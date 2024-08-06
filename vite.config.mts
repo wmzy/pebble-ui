@@ -3,7 +3,7 @@
 import * as path from 'path';
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
-import linaria from '@linaria/vite';
+import wyw from '@wyw-in-js/vite';
 import rollupPluginTypeAsJsonSchema from 'rollup-plugin-type-as-json-schema';
 
 export default defineConfig({
@@ -29,7 +29,7 @@ export default defineConfig({
       }
     }),
     rollupPluginTypeAsJsonSchema(),
-    linaria({
+    wyw({
       evaluate: false,
       sourceMap: true,
       exclude: ['node_modules/**']
