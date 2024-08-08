@@ -1,5 +1,7 @@
 import {createRoot} from 'react-dom/client';
+
 import App from '@/views';
+
 import DevTool from './components/DevTool';
 
 function AppWithDevtool() {

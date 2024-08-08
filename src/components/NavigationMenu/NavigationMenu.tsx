@@ -1,5 +1,6 @@
+import type {ReactNode} from 'react';
+
 import {reset} from '@/util/styles';
-import {ReactNode} from 'react';
 
 type Props = {
   children: ReactNode;

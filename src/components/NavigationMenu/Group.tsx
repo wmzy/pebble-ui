@@ -1,7 +1,11 @@
+import type {ReactNode} from 'react';
+
 import {css} from '@linaria/core';
-import {ReactNode, useState} from 'react';
-import * as Buttons from '../buttons';
+import { useState} from 'react';
+
 import { reset } from '@/util/styles';
+
+import * as Buttons from '../buttons';
 
 type Props = {
   title: ReactNode;

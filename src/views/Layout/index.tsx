@@ -1,6 +1,7 @@
-import * as NavigationMenu from '@/components/NavigationMenu';
 import {css} from '@linaria/core';
 import {Link, PrefetchLink, View} from '@native-router/react';
+
+import * as NavigationMenu from '@/components/NavigationMenu';
 
 export default function Layout() {
   return (

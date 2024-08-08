@@ -1,5 +1,7 @@
+import type {ReactNode} from 'react';
+
 import {css} from '@linaria/core';
-import {ReactNode, useEffect, useMemo} from 'react';
+import { useEffect, useMemo} from 'react';
 import {createPortal} from 'react-dom';
 
 export default function Popover({

@@ -1,3 +1,5 @@
+import type { Comment } from '@/types/index';
+
 import {
   createMemoryCacheProvider,
   useCache,
@@ -5,18 +7,19 @@ import {
   useInjectable,
   useLoading,
   useResult,
-  useRun
+  useRun,
 } from 'react-toolroom/async';
+
 import * as articleService from '@/services/article';
 
-type Props = {title: string};
+type Props = { title: string };
 
-const cache = createMemoryCacheProvider<any, any[]>({
+const cache = createMemoryCacheProvider<Comment[], unknown[]>({
   cacheTime: 10000,
-  hash: (k: any[]) => JSON.stringify(k)
+  hash: (k: unknown[]) => JSON.stringify(k),
 });
 
-export default function CommentList({title}: Props) {
+export default function CommentList({ title }: Props) {
   const fetchCommentsByTitle = useInjectable(
     articleService.fetchCommentsByTitle
   );

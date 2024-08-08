@@ -1,6 +1,7 @@
-/* eslint-disable no-underscore-dangle */
+ 
+import type {ArticleQuery, Comment} from '@/types/index';
+
 import * as http from '@/util/http';
-import {ArticleQuery, Comment} from '@/types/index';
 
 export async function query(params?: ArticleQuery) {
   return http.get('articles', params);

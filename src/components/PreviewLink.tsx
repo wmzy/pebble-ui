@@ -1,5 +1,8 @@
+import type {ComponentProps} from 'react';
+
 import {PrefetchLink} from '@native-router/react';
-import {ComponentProps, useState} from 'react';
+import { useState} from 'react';
+
 import Preview from './Preview';
 
 export default function PreviewLink({

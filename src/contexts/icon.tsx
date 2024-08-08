@@ -1,4 +1,6 @@
-import {ReactNode, createContext, useContext} from 'react';
+import type {ReactNode} from 'react';
+
+import { createContext, useContext} from 'react';
 
 type Icons = 'ex' | 'b';
 const IconContext = createContext<{[key in Icons]?: ReactNode}>({});

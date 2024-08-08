@@ -8,13 +8,14 @@ import {
   useResult,
   useRun
 } from 'react-toolroom/async';
+
 import {useMock} from '@/components/DevTool';
 import * as articleService from '@/services/article';
 import {tagListSchema} from '@/types/index.schema';
 
-const cache = createMemoryCacheProvider<any, any[]>({
+const cache = createMemoryCacheProvider<string[], string[]>({
   cacheTime: 10000,
-  hash: (k: any[]) => JSON.stringify(k)
+  hash: (k: string[]) => JSON.stringify(k),
 });
 
 export default function Tags() {

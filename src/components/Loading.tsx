@@ -22,7 +22,6 @@ export default function Loading(): ReactPortal | null {
     setPercent(0);
   }, [key]);
 
-  // eslint-disable-next-line consistent-return
   useEffect(() => {
     const remove = () => {
       if (el.parentElement) document.body.removeChild(el);

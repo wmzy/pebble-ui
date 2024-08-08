@@ -1,6 +1,8 @@
-import {reset} from '@/util/styles';
+import type {ButtonHTMLAttributes, DetailedHTMLProps} from 'react';
+
 import {css} from '@linaria/core';
-import {ButtonHTMLAttributes, DetailedHTMLProps} from 'react';
+
+import {reset} from '@/util/styles';
 
 export default function Block({
   className,

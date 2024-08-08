@@ -1,9 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ReactNode } from 'react';
+
+import type { createMemoryCacheProvider } from 'react-toolroom/async';
+
 import * as ee from '@for-fun/event-emitter';
-import {css} from '@linaria/core';
-import {ReactNode, useEffect, useState} from 'react';
-import {refresh} from '@native-router/core';
-import {useInject, createMemoryCacheProvider} from 'react-toolroom/async';
-import {fakerWhenNothing, schemaFaker} from '@/util/faker';
+import { css } from '@linaria/core';
+import { useEffect, useState } from 'react';
+import { refresh } from '@native-router/core';
+
+import { useInject } from 'react-toolroom/async';
+
+import { fakerWhenNothing, schemaFaker } from '@/util/faker';
+
 import Popover from './Popover';
 
 type CacheProvider = ReturnType<typeof createMemoryCacheProvider>;
@@ -20,8 +28,8 @@ export function getMockConfig(key: string) {
   return mockConfig[key];
 }
 
-export function setMockConfig(key: string, config: any) {
-  mockConfig = {...mockConfig, [key]: config};
+export function setMockConfig(key: string, config: unknown) {
+  mockConfig = { ...mockConfig, [key]: config };
   ee.emit(emitter, 'change');
 }
 
@@ -51,7 +59,7 @@ function DevToolInner() {
         x-class={css`
           width: 300px;
           height: 300px;
-          top: 0;
+          bottom: 0;
           overflow: auto;
           background: white;
         `}
@@ -62,12 +70,13 @@ function DevToolInner() {
           </button>
         </div>
         {Object.entries(config).map(([key, val]) => (
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           <MockView
             key={key}
             name={key}
             value={val}
-            onChange={(e) => setMockConfig(key, {...val, when: e.target.value})}
+            onChange={(e) =>
+              setMockConfig(key, { ...val, when: e.target.value })
+            }
           />
         ))}
       </Popover>
@@ -78,7 +87,7 @@ function DevToolInner() {
       x-class={css`
         width: 30px;
         height: 30px;
-        top: 0;
+        bottom: 0;
       `}
     >
       <button type='button' onClick={() => setOpen(true)}>
@@ -91,7 +100,7 @@ function DevToolInner() {
 function MockView({
   name,
   value,
-  onChange
+  onChange,
 }: {
   name: string;
   value: any;
@@ -103,7 +112,6 @@ function MockView({
     <div>
       <div onChange={onChange}>
         {['always', 'empty', 'disabled'].map((when) => (
-          // eslint-disable-next-line jsx-a11y/label-has-associated-control
           <label key={when}>
             <input
               name={name}
@@ -126,7 +134,7 @@ function MockView({
   );
 }
 
-export default function DevTool({children}: Props) {
+export default function DevTool({ children }: Props) {
   return (
     <>
       {children}
@@ -144,7 +152,7 @@ export function mockViewData<F extends (ctx: any) => Promise<any>>(
 
   return ((ctx) => {
     const config = getMockConfig(key);
-    const {router, location} = ctx;
+    const { router, location } = ctx;
 
     const localConfig = {
       when: 'empty',
@@ -155,7 +163,7 @@ export function mockViewData<F extends (ctx: any) => Promise<any>>(
       refresh: () => {
         console.log('refresh');
         refresh(router);
-      }
+      },
     };
 
     setMockConfig(key, localConfig);
@@ -171,7 +179,6 @@ export function mockViewData<F extends (ctx: any) => Promise<any>>(
     return fn(ctx);
   }) as F;
 }
-
 export function useMock<F extends (...params: any[]) => Promise<any>>(
   fn: F,
   schema: unknown,
@@ -190,7 +197,7 @@ export function useMock<F extends (...params: any[]) => Promise<any>>(
         refresh: () => {
           cache?.clear();
           fn(...args);
-        }
+        },
       };
 
       setMockConfig(key, localConfig);

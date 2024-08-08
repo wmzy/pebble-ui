@@ -1,6 +1,1 @@
-{
-  "jsxSingleQuote": true,
-  "trailingComma": "none",
-  "singleQuote": true,
-  "bracketSpacing": false
-}
+"tools-config/prettier"

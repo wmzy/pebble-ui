@@ -1,5 +1,8 @@
-import {View, HistoryRouter as Router, Route} from '@native-router/react';
+import type { Route} from '@native-router/react';
+
+import {View, HistoryRouter as Router} from '@native-router/react';
 import {useMemo} from 'react';
+
 import Loading from '@/components/Loading';
 import RouterError from '@/components/RouterError';
 
@@ -37,7 +40,7 @@ export default function App() {
       <Router
         routes={routes}
         // baseUrl={import.meta.env.BASE_URL.slice(0, -1)}
-        // eslint-disable-next-line react/no-unstable-nested-components
+         
         errorHandler={(e) => <RouterError error={e} />}
       >
         <View />

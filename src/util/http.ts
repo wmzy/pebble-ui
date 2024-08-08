@@ -7,11 +7,10 @@ export function fetchJSON(
   return fetch(`https://api.realworld.io/api/${url}`, {
     ...init,
     headers: {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       'content-type': 'application/json',
       accept: 'application/json',
-      ...init?.headers
-    }
+      ...init?.headers,
+    },
   })
     .then((res) => Promise.all([res, res.json()]))
     .then(([res, body]) => {
@@ -20,19 +19,19 @@ export function fetchJSON(
     });
 }
 
-export function get(url: string, params?: {[k in string]: any}) {
+export function get(url: string, params?: { [k in string]: unknown }) {
   if (params) url += `?${encode(params)}`;
-  return fetchJSON(url, {method: 'get'});
+  return fetchJSON(url, { method: 'get' });
 }
 
 export function del(url: string) {
   return fetchJSON(url, {method: 'delete'});
 }
 
-export function post(url: string, data: any) {
-  return fetchJSON(url, {method: 'post', body: JSON.stringify(data)});
+export function post(url: string, data: unknown) {
+  return fetchJSON(url, { method: 'post', body: JSON.stringify(data) });
 }
 
-export function put(url: string, data: any) {
-  return fetchJSON(url, {method: 'put', body: JSON.stringify(data)});
+export function put(url: string, data: unknown) {
+  return fetchJSON(url, { method: 'put', body: JSON.stringify(data) });
 }
