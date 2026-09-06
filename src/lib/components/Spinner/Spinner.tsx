@@ -1,5 +1,7 @@
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type SpinnerProps = {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -38,8 +40,9 @@ export default function Spinner({
   size = 'md',
   className,
 }: SpinnerProps) {
+  const strings = useStrings('spinner');
   return (
-    <span role="status" aria-label="Loading" x-class={[base, sizes[size], className]}>
+    <span role="status" aria-label={strings.loading} x-class={[base, sizes[size], className]}>
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle
           cx="12"

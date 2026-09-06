@@ -19,6 +19,9 @@ const wrapper = css`
   font-family: var(--haze-font-sans);
 `;
 
+/* physical: the action panes pair with the physical swipe API
+   (left/right props, onSwipeLeft/onSwipeRight, translateX drag) —
+   gesture coordinates are physical, so the panes stay physical. */
 const actionsLeft = css`
   position: absolute;
   top: 0;

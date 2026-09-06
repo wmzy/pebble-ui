@@ -44,7 +44,7 @@ const radioInput = css`
     content: '';
     position: absolute;
     top: 3px;
-    left: 3px;
+    inset-inline-start: 3px;
     width: 10px;
     height: 10px;
     border-radius: var(--haze-radius-full);

@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ApprovalCardProps = {
   title?: ReactNode;
   description?: ReactNode;
@@ -82,28 +84,32 @@ const approveBtn = css`
 `;
 
 export default function ApprovalCard({
-  title = 'Approval Required',
+  title,
   description,
   onApprove,
   onDeny,
-  approveText = 'Approve',
-  denyText = 'Deny',
+  approveText,
+  denyText,
   children,
   className,
 }: ApprovalCardProps) {
+  const strings = useStrings('approvalCard');
+  const titleLabel = title ?? strings.title;
+  const approveLabel = approveText ?? strings.approve;
+  const denyLabel = denyText ?? strings.deny;
   return (
     <div x-class={[card, className]}>
-      <div x-class={[header]}>{title}</div>
+      <div x-class={[header]}>{titleLabel}</div>
       <div x-class={[body]}>
         {description && <div x-class={[desc]}>{description}</div>}
         {children && <div x-class={[content]}>{children}</div>}
       </div>
       <div x-class={[actions]}>
         <button x-class={[btn, denyBtn]} type="button" onClick={onDeny}>
-          {denyText}
+          {denyLabel}
         </button>
         <button x-class={[btn, approveBtn]} type="button" onClick={onApprove}>
-          {approveText}
+          {approveLabel}
         </button>
       </div>
     </div>

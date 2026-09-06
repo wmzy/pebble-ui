@@ -6,6 +6,7 @@ import Toast from './Toast';
 import ToastContainer, { toastPlacements } from './ToastContainer';
 import { useToastContext } from './ToastContext';
 import useToast from './useToast';
+import { toast } from './toast';
 
 /** Renders the live toast list length inside the container. */
 function ToastCount() {
@@ -353,6 +354,156 @@ describe('ToastContainer + useToast', () => {
     });
 
     expect(await screen.findByText('Saved successfully')).toBeInTheDocument();
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('imperative toast()', () => {
+  // toast() holds module-level state (pending queue + subscribers) that
+  // would otherwise leak across tests.
+  afterEach(() => {
+    act(() => {
+      toast.dismiss();
+    });
+  });
+
+  it('does not throw without a container and shows nothing', () => {
+    expect(() => {
+      act(() => {
+        toast('Queued', { duration: 0 });
+      });
+    }).not.toThrow();
+    expect(screen.queryByText('Queued')).not.toBeInTheDocument();
+  });
+
+  it('replays queued toasts in order when a container mounts', () => {
+    act(() => {
+      toast('First queued', { duration: 0 });
+      toast('Second queued', { duration: 0 });
+    });
+    render(<ToastContainer>{null}</ToastContainer>);
+    const first = screen.getByText('First queued');
+    const second = screen.getByText('Second queued');
+    expect(first).toBeInTheDocument();
+    expect(second).toBeInTheDocument();
+    expect(
+      first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it('caps the pending queue at 100, dropping the oldest', () => {
+    Array.from({ length: 101 }, (_, i) =>
+      toast(`Queued ${i}`, { duration: 0 })
+    );
+    render(<ToastContainer>{null}</ToastContainer>);
+    expect(screen.queryByText('Queued 0')).not.toBeInTheDocument();
+    expect(screen.getByText('Queued 1')).toBeInTheDocument();
+    expect(screen.getByText('Queued 100')).toBeInTheDocument();
+    expect(screen.getAllByRole('alert')).toHaveLength(100);
+  });
+
+  it('shows toast() immediately once a container is mounted', () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    act(() => {
+      toast('Immediate', { duration: 0 });
+    });
+    expect(screen.getByText('Immediate')).toBeInTheDocument();
+  });
+
+  it('enqueues again after the container unmounts', () => {
+    const { unmount } = render(<ToastContainer>{null}</ToastContainer>);
+    unmount();
+    act(() => {
+      toast('After unmount', { duration: 0 });
+    });
+    expect(screen.queryByText('After unmount')).not.toBeInTheDocument();
+    render(<ToastContainer>{null}</ToastContainer>);
+    expect(screen.getByText('After unmount')).toBeInTheDocument();
+  });
+
+  it('renders in only the first container when two are mounted', () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    render(<ToastContainer>{null}</ToastContainer>);
+    act(() => {
+      toast('Once', { duration: 0 });
+    });
+    expect(screen.getAllByText('Once')).toHaveLength(1);
+  });
+
+  it('exposes variant sugar matching the variant union', () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    act(() => {
+      toast.success('Saved', { duration: 0 });
+      toast.danger('Failed', { duration: 0 });
+    });
+    const saved = screen.getByText('Saved').closest('[role="alert"]');
+    const failed = screen.getByText('Failed').closest('[role="alert"]');
+    expect(saved).toBeInTheDocument();
+    expect(failed).toBeInTheDocument();
+    // Distinct variants land on distinct classes of the toast root.
+    expect(saved?.className).not.toBe(failed?.className);
+  });
+
+  it('dismisses a specific toast by id', async () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    const ids: number[] = [];
+    act(() => {
+      ids.push(
+        toast('Keep me', { duration: 0 }),
+        toast('Drop me', { duration: 0 })
+      );
+    });
+    act(() => {
+      toast.dismiss(ids[1]);
+    });
+    await waitFor(() =>
+      expect(screen.queryByText('Drop me')).not.toBeInTheDocument()
+    );
+    expect(screen.getByText('Keep me')).toBeInTheDocument();
+    expect(ids[0]).not.toBe(ids[1]);
+  });
+
+  it('dismisses all displayed toasts when called without an id', async () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    act(() => {
+      toast('All one', { duration: 0 });
+      toast('All two', { duration: 0 });
+    });
+    act(() => {
+      toast.dismiss();
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    );
+  });
+
+  it('cancels a still-queued toast by id before a container mounts', () => {
+    toast('Kept in queue', { duration: 0 });
+    const cancelledId = toast('Cancelled while queued');
+    toast.dismiss(cancelledId);
+    render(<ToastContainer>{null}</ToastContainer>);
+    expect(screen.getByText('Kept in queue')).toBeInTheDocument();
+    expect(screen.queryByText('Cancelled while queued')).not.toBeInTheDocument();
+  });
+
+  it('clears the pending queue on dismiss-all with no container mounted', () => {
+    toast('Queued one');
+    toast('Queued two');
+    toast.dismiss();
+    render(<ToastContainer>{null}</ToastContainer>);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('has no axe violations for imperative toasts', async () => {
+    const { axe } = await import('jest-axe');
+    render(<ToastContainer>{null}</ToastContainer>);
+    act(() => {
+      toast.success('Imperatively saved', { duration: 0 });
+    });
+    expect(await screen.findByText('Imperatively saved')).toBeInTheDocument();
     const results = await axe(document.body, {
       rules: { region: { enabled: false } },
     });

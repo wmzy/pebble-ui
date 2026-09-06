@@ -46,10 +46,13 @@ const base = css`
     content: '';
     position: absolute;
     top: 2px;
+    /* physical: the checkmark is drawn from physical borders + rotate(45)
+       and stays unmirrored under RTL by industry convention. */
     left: 5px;
     width: 5px;
     height: 9px;
     border: solid var(--haze-color-text-inverse);
+    /* physical: drawing primitive of the same unmirrored checkmark. */
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
   }

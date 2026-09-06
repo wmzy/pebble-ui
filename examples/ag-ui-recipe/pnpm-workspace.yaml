@@ -1,0 +1,4 @@
+# Deliberately package-less marker: pnpm walks up to the nearest
+# pnpm-workspace.yaml to find the install root, and without this file
+# `pnpm install` here would silently install the repository root
+# instead of this example. With it, this directory is its own root.

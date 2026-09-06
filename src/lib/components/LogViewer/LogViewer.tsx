@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import { useControl } from 'react-use-control';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 type LogEntry = {
@@ -104,6 +106,7 @@ const ALL_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
 export default function LogViewer({ logs, filter: filterControl, className }: LogViewerProps) {
   const [filter, setFilter] = useControl(filterControl, null);
+  const strings = useStrings('logViewer');
 
   const filtered = useMemo(
     () => (filter ? logs.filter((l) => l.level === filter) : logs),
@@ -118,7 +121,7 @@ export default function LogViewer({ logs, filter: filterControl, className }: Lo
           type="button"
           onClick={() => setFilter(null)}
         >
-          All
+          {strings.all}
         </button>
         {ALL_LEVELS.map((lvl) => (
           <button
@@ -141,7 +144,7 @@ export default function LogViewer({ logs, filter: filterControl, className }: Lo
         ))}
         {filtered.length === 0 && (
           <div x-class={[entry]}>
-            <span x-class={[messageStyle]} style={{ color: 'var(--haze-color-text-muted)' }}>No logs</span>
+            <span x-class={[messageStyle]} style={{ color: 'var(--haze-color-text-muted)' }}>{strings.noLogs}</span>
           </div>
         )}
       </div>

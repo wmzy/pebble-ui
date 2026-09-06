@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type EmptyProps = {
   description?: string;
   image?: ReactNode;
@@ -48,15 +50,17 @@ const defaultImage = (
 );
 
 export default function Empty({
-  description = 'No data',
+  description,
   image,
   className,
   children,
 }: EmptyProps) {
+  const strings = useStrings('empty');
+  const descriptionLabel = description ?? strings.description;
   return (
     <div x-class={[base, className]}>
       <div x-class={[imageStyle]}>{image ?? defaultImage}</div>
-      <div x-class={[descStyle]}>{description}</div>
+      <div x-class={[descStyle]}>{descriptionLabel}</div>
       {children && <div x-class={[actionStyle]}>{children}</div>}
     </div>
   );

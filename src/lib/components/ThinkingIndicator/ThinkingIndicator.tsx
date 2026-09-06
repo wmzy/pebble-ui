@@ -1,5 +1,7 @@
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ThinkingIndicatorProps = {
   text?: string;
   className?: string;
@@ -36,10 +38,12 @@ const dot = css`
 const dot2 = css`animation-delay: 0.16s;`;
 const dot3 = css`animation-delay: 0.32s;`;
 
-export default function ThinkingIndicator({ text = 'Thinking', className }: ThinkingIndicatorProps) {
+export default function ThinkingIndicator({ text, className }: ThinkingIndicatorProps) {
+  const strings = useStrings('thinkingIndicator');
+  const label = text ?? strings.text;
   return (
     <div x-class={[wrapper, className]}>
-      <span>{text}</span>
+      <span>{label}</span>
       <span x-class={[dots]}>
         <span x-class={[dot]} />
         <span x-class={[dot, dot2]} />

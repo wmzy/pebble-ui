@@ -1,0 +1,126 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--haze-color-bg);
+  color: var(--haze-color-text);
+}
+
+.page-header {
+  padding: var(--haze-space-4) var(--haze-space-4) var(--haze-space-2);
+}
+
+.page-header h1 {
+  margin: 0 0 var(--haze-space-1);
+  font-size: var(--haze-text-xl);
+  font-weight: var(--haze-font-semibold);
+}
+
+.page-header p {
+  margin: 0;
+  font-size: var(--haze-text-sm);
+}
+
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: var(--haze-space-4);
+  padding: 0 var(--haze-space-4) var(--haze-space-4);
+}
+
+@media (max-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+}
+
+.chat-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.chat-scroll {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-lg);
+}
+
+.intro {
+  padding: var(--haze-space-4);
+  font-size: var(--haze-text-sm);
+}
+
+.plain-text {
+  white-space: pre-wrap;
+}
+
+.error-banner {
+  padding: var(--haze-space-2) var(--haze-space-3);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-danger);
+}
+
+.composer {
+  padding-top: var(--haze-space-3);
+}
+
+.telemetry {
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--haze-space-3);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-3);
+}
+
+.telemetry h2 {
+  margin: 0;
+  font-size: var(--haze-text-sm);
+  font-weight: var(--haze-font-semibold);
+  color: var(--haze-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.telemetry > .tool-card + .tool-card {
+  margin-block-start: var(--haze-space-2);
+}
+
+.json {
+  margin: 0;
+  font-family: var(--haze-font-mono);
+  font-size: var(--haze-text-xs);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.muted {
+  color: var(--haze-color-text-muted);
+}
+
+.small {
+  font-size: var(--haze-text-sm);
+  margin: 0;
+}

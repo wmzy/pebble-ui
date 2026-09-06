@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+import { formatString } from '../LocaleProvider/locale';
+
 type TagInputCoreProps = {
   value: string[];
   onChange: (value: string[]) => void;
@@ -118,8 +121,10 @@ export default function TagInputCore({
       return;
     }
     const index = Math.min(pending, tags.length - 1);
+    // The remove button is the only button inside a tag listitem; query
+    // structurally so a localized "Remove {tag}" label cannot break it.
     const buttons = containerRef.current?.querySelectorAll<HTMLButtonElement>(
-      '[aria-label^="Remove "]'
+      'li > button'
     );
     buttons?.[index]?.focus();
   }, [tags]);
@@ -157,8 +162,12 @@ export default function TagInputCore({
     }
   };
 
-  const baseLabel = placeholder || 'Add tag';
-  const tagCount = `${tags.length} tag${tags.length === 1 ? '' : 's'}`;
+  const strings = useStrings('tagInput');
+  const baseLabel = placeholder || strings.placeholder;
+  const tagCount = formatString(
+    tags.length === 1 ? strings.tagCountSingular : strings.tagCount,
+    { count: tags.length }
+  );
 
   return (
     <div ref={containerRef} x-class={[container, className]}>
@@ -182,7 +191,7 @@ export default function TagInputCore({
                   removeTag(i);
                 }
               }}
-              aria-label={`Remove ${t}`}
+              aria-label={formatString(strings.removeTag, { tag: t })}
               disabled={disabled}
             >
               x

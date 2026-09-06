@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ChipProps = {
   variant?: 'solid' | 'outline';
   color?: 'default' | 'primary' | 'success' | 'warning' | 'danger';
@@ -74,6 +76,7 @@ export default function Chip({
   className,
   children,
 }: ChipProps) {
+  const strings = useStrings('chip');
   const colorClass = variant === 'outline' ? outlineColors[color] : solidColors[color];
 
   return (
@@ -81,7 +84,7 @@ export default function Chip({
       {icon && <span x-class={[iconStyle]}>{icon}</span>}
       {children}
       {onClose && (
-        <button type="button" x-class={[closeBtn]} onClick={onClose} aria-label="Remove">
+        <button type="button" x-class={[closeBtn]} onClick={onClose} aria-label={strings.remove}>
           ×
         </button>
       )}

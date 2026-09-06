@@ -292,6 +292,28 @@
       },
       "otherTypes": {}
     },
+    "AvatarGroup": {
+      "routeKey": "avatargroup",
+      "cssFamily": "avatar-group",
+      "imports": [
+        "AvatarGroup"
+      ],
+      "propsTypes": {
+        "AvatarGroupProps": [
+          {
+            "name": "max",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "total",
+            "type": "number",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "BackToTop": {
       "routeKey": "backtotop",
       "cssFamily": "back-to-top",
@@ -515,6 +537,48 @@
       },
       "otherTypes": {}
     },
+    "Calendar": {
+      "routeKey": "calendar",
+      "cssFamily": "calendar",
+      "imports": [
+        "Calendar"
+      ],
+      "propsTypes": {
+        "CalendarProps": [
+          {
+            "name": "value",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "min",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "max",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "locale",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "weekStartsOn",
+            "type": "0 | 1",
+            "required": false
+          },
+          {
+            "name": "onSelect",
+            "type": "(date: string) => void",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Card": {
       "routeKey": "card",
       "cssFamily": "card",
@@ -587,6 +651,53 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Cascader": {
+      "routeKey": "cascader",
+      "cssFamily": "cascader",
+      "imports": [
+        "Cascader"
+      ],
+      "propsTypes": {
+        "CascaderProps": [
+          {
+            "name": "options",
+            "type": "CascaderOption[]",
+            "required": true
+          },
+          {
+            "name": "value",
+            "type": "ControlOrValue<string[]>",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string[]) => void",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "changeOnSelect",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "expandTrigger",
+            "type": "'click' | 'hover'",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
           }
         ]
       },
@@ -1002,6 +1113,11 @@
             "required": false
           },
           {
+            "name": "virtualThreshold",
+            "type": "number",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1314,6 +1430,88 @@
       },
       "otherTypes": {}
     },
+    "DataTable": {
+      "routeKey": "datatable",
+      "cssFamily": "data-table",
+      "imports": [
+        "DataTable"
+      ],
+      "propsTypes": {
+        "DataTableProps": [
+          {
+            "name": "columns",
+            "type": "DataTableColumnDef<TData>[]",
+            "required": true
+          },
+          {
+            "name": "data",
+            "type": "TData[]",
+            "required": true
+          },
+          {
+            "name": "sortable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "selectable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "rowSelection",
+            "type": "ControlOrValue<RowSelectionState>",
+            "required": false
+          },
+          {
+            "name": "sorting",
+            "type": "ControlOrValue<SortingState>",
+            "required": false
+          },
+          {
+            "name": "pageSize",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "page",
+            "type": "ControlOrValue<number>",
+            "required": false
+          },
+          {
+            "name": "loading",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "stickyHeader",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "getRowId",
+            "type": "(row: TData, index: number) => string",
+            "required": false
+          },
+          {
+            "name": "onRowClick",
+            "type": "(row: TData, event: MouseEvent<HTMLTableRowElement, MouseEvent>) => void",
+            "required": false
+          },
+          {
+            "name": "empty",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "DateRangePicker": {
       "routeKey": "daterangepicker",
       "cssFamily": "date-range-picker",
@@ -1397,38 +1595,6 @@
         "DatepickerCore"
       ],
       "propsTypes": {
-        "CalendarProps": [
-          {
-            "name": "value",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "min",
-            "type": "string",
-            "required": false
-          },
-          {
-            "name": "max",
-            "type": "string",
-            "required": false
-          },
-          {
-            "name": "locale",
-            "type": "string",
-            "required": false
-          },
-          {
-            "name": "weekStartsOn",
-            "type": "0 | 1",
-            "required": false
-          },
-          {
-            "name": "onSelect",
-            "type": "(date: string) => void",
-            "required": true
-          }
-        ],
         "DatepickerCoreProps": [
           {
             "name": "value",
@@ -1936,6 +2102,58 @@
       },
       "otherTypes": {}
     },
+    "HoverCard": {
+      "routeKey": "hovercard",
+      "cssFamily": "hover-card",
+      "imports": [
+        "HoverCard"
+      ],
+      "propsTypes": {
+        "HoverCardProps": [
+          {
+            "name": "content",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "openDelay",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "closeDelay",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "placement",
+            "type": "FloatingPlacement",
+            "required": false
+          },
+          {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "collisionPadding",
+            "type": "CollisionPadding",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Icon": {
       "routeKey": "icon",
       "cssFamily": "icon",
@@ -2097,6 +2315,23 @@
       },
       "otherTypes": {}
     },
+    "Kbd": {
+      "routeKey": "kbd",
+      "cssFamily": "kbd",
+      "imports": [
+        "Kbd"
+      ],
+      "propsTypes": {
+        "KbdProps": [
+          {
+            "name": "size",
+            "type": "'sm' | 'md'",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "List": {
       "routeKey": "list",
       "cssFamily": "list",
@@ -2126,6 +2361,35 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "LocaleProvider": {
+      "routeKey": "localeprovider",
+      "cssFamily": "locale-provider",
+      "imports": [
+        "default",
+        "useStrings",
+        "defaultStrings"
+      ],
+      "propsTypes": {
+        "LocaleProviderProps": [
+          {
+            "name": "locale",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "strings",
+            "type": "HazeStringsOverrides",
             "required": false
           },
           {
@@ -3014,6 +3278,110 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Sidebar": {
+      "routeKey": "sidebar",
+      "cssFamily": "sidebar",
+      "imports": [
+        "Sidebar",
+        "SidebarGroup",
+        "SidebarItem",
+        "SidebarFooter",
+        "SidebarToggle"
+      ],
+      "propsTypes": {
+        "SidebarFooterProps": [
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "SidebarGroupProps": [
+          {
+            "name": "title",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "SidebarItemProps": [
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "active",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "onClick",
+            "type": "(event: MouseEvent<HTMLAnchorElement, MouseEvent>) => void",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "SidebarProps": [
+          {
+            "name": "collapsed",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "defaultCollapsed",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "SidebarToggleProps": [
+          {
+            "name": "onClick",
+            "type": "(event: MouseEvent<HTMLButtonElement, MouseEvent>) => void",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
           }
         ]
       },
@@ -3942,7 +4310,8 @@
       "imports": [
         "Toast",
         "ToastContainer",
-        "useToast"
+        "useToast",
+        "toast"
       ],
       "propsTypes": {
         "ToastContainerProps": [
@@ -4056,6 +4425,59 @@
       },
       "otherTypes": {}
     },
+    "Toolbar": {
+      "routeKey": "toolbar",
+      "cssFamily": "toolbar",
+      "imports": [
+        "Toolbar",
+        "ToolbarButton",
+        "ToolbarSeparator"
+      ],
+      "propsTypes": {
+        "ToolbarButtonProps": [
+          {
+            "name": "variant",
+            "type": "'solid' | 'outline' | 'ghost'",
+            "required": false
+          },
+          {
+            "name": "size",
+            "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "square",
+            "type": "boolean",
+            "required": false
+          }
+        ],
+        "ToolbarProps": [
+          {
+            "name": "orientation",
+            "type": "'horizontal' | 'vertical'",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "ToolbarSeparatorProps": [
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Tooltip": {
       "routeKey": "tooltip",
       "cssFamily": "tooltip",
@@ -4098,6 +4520,53 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Tour": {
+      "routeKey": "tour",
+      "cssFamily": "tour",
+      "imports": [
+        "Tour"
+      ],
+      "propsTypes": {
+        "TourProps": [
+          {
+            "name": "steps",
+            "type": "TourStep[]",
+            "required": true
+          },
+          {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "current",
+            "type": "ControlOrValue<number>",
+            "required": false
+          },
+          {
+            "name": "onClose",
+            "type": "(reason: TourCloseReason) => void",
+            "required": false
+          },
+          {
+            "name": "onStepChange",
+            "type": "(index: number) => void",
+            "required": false
+          },
+          {
+            "name": "maskClosable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
           }
         ]
       },
@@ -4525,6 +4994,16 @@
             "required": true
           },
           {
+            "name": "estimatedItemHeight",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "groups",
+            "type": "VirtualListGroup[]",
+            "required": false
+          },
+          {
             "name": "renderItem",
             "type": "(item: T, index: number) => ReactNode",
             "required": true
@@ -4537,6 +5016,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<VirtualListHandle>",
             "required": false
           }
         ]

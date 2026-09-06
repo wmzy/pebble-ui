@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type TagGroupItemProps = {
   children: ReactNode;
   onClose?: () => void;
@@ -39,11 +41,12 @@ const closeBtn = css`
 `;
 
 export default function TagGroupItem({ children, onClose, className }: TagGroupItemProps) {
+  const strings = useStrings('tagGroup');
   return (
     <span x-class={[tag, className]}>
       {children}
       {onClose && (
-        <button x-class={[closeBtn]} type="button" onClick={onClose} aria-label="Remove">
+        <button x-class={[closeBtn]} type="button" onClick={onClose} aria-label={strings.remove}>
           x
         </button>
       )}

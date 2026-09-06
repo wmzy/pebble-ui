@@ -3,6 +3,9 @@ import type { ComponentPropsWithoutRef } from 'react';
 import { css } from '@linaria/core';
 import { useState } from 'react';
 
+import { useStrings } from '../LocaleProvider';
+import { formatString } from '../LocaleProvider/locale';
+
 type TransferItem = {
   key: string;
   title: string;
@@ -110,6 +113,7 @@ export default function TransferCore({
 }: TransferCoreProps) {
   const [selectedSource, setSelectedSource] = useState<string[]>([]);
   const [selectedTarget, setSelectedTarget] = useState<string[]>([]);
+  const strings = useStrings('transfer');
 
   const sourceItems = dataSource.filter((item) => !targetKeys.includes(item.key));
   const targetItems = dataSource.filter((item) => targetKeys.includes(item.key));
@@ -143,7 +147,7 @@ export default function TransferCore({
   return (
     <div x-class={[container, className]} {...rest}>
       <div x-class={[panel]}>
-        <div x-class={[panelHeader]}>Source ({sourceItems.length})</div>
+        <div x-class={[panelHeader]}>{formatString(strings.source, { count: sourceItems.length })}</div>
         <div x-class={[panelBody]}>
           {sourceItems.map((item) => (
             <label key={item.key} x-class={[itemStyle]}>
@@ -165,7 +169,7 @@ export default function TransferCore({
           x-class={[actionBtn]}
           disabled={selectedSource.length === 0}
           onClick={moveToTarget}
-          aria-label=">"
+          aria-label={strings.moveToTarget}
         >
           ›
         </button>
@@ -174,13 +178,13 @@ export default function TransferCore({
           x-class={[actionBtn]}
           disabled={selectedTarget.length === 0}
           onClick={moveToSource}
-          aria-label="<"
+          aria-label={strings.moveToSource}
         >
           ‹
         </button>
       </div>
       <div x-class={[panel]}>
-        <div x-class={[panelHeader]}>Target ({targetItems.length})</div>
+        <div x-class={[panelHeader]}>{formatString(strings.target, { count: targetItems.length })}</div>
         <div x-class={[panelBody]}>
           {targetItems.map((item) => (
             <label key={item.key} x-class={[itemStyle]}>

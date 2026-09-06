@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ChatMessageRole = 'user' | 'assistant' | 'system';
 
 type ChatMessageProps = {
@@ -35,7 +37,7 @@ const avatarSlot = css`
   align-items: center;
   justify-content: center;
   font-size: var(--haze-text-sm);
-  color: var(--haze-color-text-muted);
+  color: var(--haze-color-text-secondary);
 `;
 
 const body = css`
@@ -49,7 +51,7 @@ const header = css`
   gap: var(--haze-space-2);
   margin-bottom: var(--haze-space-1);
   font-size: var(--haze-text-xs);
-  color: var(--haze-color-text-muted);
+  color: var(--haze-color-text-secondary);
 `;
 
 const headerUser = css`
@@ -78,7 +80,7 @@ const bubbleAssistant = css`
 
 const bubbleSystem = css`
   background: transparent;
-  color: var(--haze-color-text-muted);
+  color: var(--haze-color-text-secondary);
   font-size: var(--haze-text-xs);
   text-align: center;
   padding: var(--haze-space-2);
@@ -86,7 +88,7 @@ const bubbleSystem = css`
 
 const statusText = css`
   font-size: var(--haze-text-xs);
-  color: var(--haze-color-text-muted);
+  color: var(--haze-color-text-secondary);
   margin-top: var(--haze-space-1);
 `;
 
@@ -110,6 +112,7 @@ export default function ChatMessage({
   className,
 }: ChatMessageProps) {
   const isUser = role === 'user';
+  const strings = useStrings('chatMessage');
 
   return (
     <div x-class={[wrapper, isUser && wrapperUser, className]}>
@@ -130,9 +133,9 @@ export default function ChatMessage({
         </div>
         {status && (
           <div x-class={[statusText, status === 'error' && statusError]}>
-            {status === 'sending' && 'Sending...'}
-            {status === 'sent' && 'Sent'}
-            {status === 'error' && 'Failed to send'}
+            {status === 'sending' && strings.sending}
+            {status === 'sent' && strings.sent}
+            {status === 'error' && strings.failedToSend}
           </div>
         )}
       </div>

@@ -3,6 +3,8 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { css } from '@linaria/core';
 import { useRef } from 'react';
 
+import { useStrings } from '../LocaleProvider';
+
 type FileInputProps = {
   children?: ReactNode;
 } & Omit<ComponentPropsWithoutRef<'input'>, 'type'>;
@@ -52,11 +54,12 @@ export default function FileInput({
   ...rest
 }: FileInputProps) {
   const ref = useRef<HTMLInputElement>(null);
+  const strings = useStrings('fileInput');
 
   return (
     <label x-class={[trigger, className]}>
       <input ref={ref} type='file' className={hiddenInput} {...rest} />
-      {children ?? 'Choose file'}
+      {children ?? strings.label}
     </label>
   );
 }

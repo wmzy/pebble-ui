@@ -4,6 +4,8 @@ import type { ControlOrValue } from 'react-use-control';
 import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
 
+import { useStrings } from '../LocaleProvider';
+
 type AlertProps = {
   visible?: ControlOrValue<boolean>;
   onClose?: () => void;
@@ -87,6 +89,7 @@ export default function Alert({
   children,
 }: AlertProps) {
   const [visible, setVisible] = useControl(visibleControl, true);
+  const strings = useStrings('alert');
 
   if (!visible) return null;
 
@@ -102,7 +105,7 @@ export default function Alert({
         <button
           type='button'
           className={closeBtn}
-          aria-label='Close'
+          aria-label={strings.close}
           onClick={handleClose}
         >
           ×

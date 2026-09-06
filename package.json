@@ -29,7 +29,8 @@
     },
     "./styles.css": "./dist/haze-ui.css",
     "./css/*": "./dist/css/*",
-    "./css-manifest.json": "./dist/css-manifest.json"
+    "./css-manifest.json": "./dist/css-manifest.json",
+    "./registry.json": "./dist/registry.json"
   },
   "files": [
     "dist"
@@ -39,7 +40,7 @@
   ],
   "scripts": {
     "start": "vite",
-    "build": "BUILD_LIB=true vite build && node scripts/split-css.mjs && tsc -p tsconfig.lib.json && tsc-alias -p tsconfig.lib.json",
+    "build": "BUILD_LIB=true vite build && node scripts/split-css.mjs && node scripts/generate-registry.mjs && tsc -p tsconfig.lib.json && tsc-alias -p tsconfig.lib.json",
     "build:demo": "BABEL_ENV=development BUILD_DEMO=true vite build && cp dist/index.html dist/404.html",
     "commit": "lint-staged && git-cz -n",
     "coverage": "vitest run --coverage",
@@ -77,11 +78,11 @@
   "author": "wmzy",
   "license": "MIT",
   "peerDependencies": {
-    "@linaria/core": "^7.0.0 || ^8.0.0",
-    "react": "^19.0.0",
-    "react-f0rm": ">=0.7.0 <2.0.0"
+    "react": "^19.0.0"
   },
   "dependencies": {
+    "@tanstack/react-table": "^9.2.4",
+    "react-f0rm": "^1.1.1",
     "react-use-control": "^1.6.0"
   },
   "devDependencies": {
@@ -95,8 +96,8 @@
     "@native-router/core": "^1.16.1",
     "@native-router/react": "^1.15.0",
     "@playwright/test": "^1.62.1",
+    "@size-limit/esbuild": "^13.0.3",
     "@size-limit/file": "^13.0.3",
-    "@tanstack/react-table": "^9.2.4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
@@ -130,7 +131,6 @@
     "ramda": "^0.32.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-f0rm": "^1.1.1",
     "react-icons": "^5.7.0",
     "react-toolroom": "^1.1.0",
     "rollup-plugin-type-as-json-schema": "^0.2.6",
@@ -145,13 +145,16 @@
   },
   "size-limit": [
     {
+      "name": "Button only (bundled from barrel)",
       "path": "dist/index.js",
-      "limit": "16 KB"
+      "import": "{Button}",
+      "limit": "2 KB"
     },
     {
+      "name": "Dashboard profile: Button + Input + Select + Dialog + Toast + Pagination",
       "path": "dist/index.js",
-      "limit": "4 KB",
-      "gzip": true
+      "import": "{Button, Input, Select, Dialog, Toast, Pagination}",
+      "limit": "10 KB"
     },
     {
       "path": "dist/haze-ui.css",

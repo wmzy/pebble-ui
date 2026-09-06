@@ -1,5 +1,7 @@
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ProgressProps = {
   value?: number;
   variant?: 'bar' | 'circle';
@@ -73,6 +75,7 @@ export default function Progress({
   className,
 }: ProgressProps) {
   const clamped = Math.max(0, Math.min(100, value));
+  const strings = useStrings('progress');
 
   if (variant === 'circle') {
     const r = circleRadius[size];
@@ -83,7 +86,7 @@ export default function Progress({
     return (
       <div
         role="progressbar"
-        aria-label="Progress"
+        aria-label={strings.label}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={clamped}
@@ -114,7 +117,7 @@ export default function Progress({
   return (
     <div
       role="progressbar"
-      aria-label="Progress"
+      aria-label={strings.label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={clamped}

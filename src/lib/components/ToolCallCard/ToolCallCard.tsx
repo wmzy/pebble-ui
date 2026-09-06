@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ToolCallStatus = 'pending' | 'running' | 'done' | 'error';
 
 type ToolCallCardProps = {
@@ -75,13 +77,6 @@ const statusClassMap: Record<ToolCallStatus, string> = {
   error: statusError,
 };
 
-const statusLabelMap: Record<ToolCallStatus, string> = {
-  pending: 'Pending',
-  running: 'Running...',
-  done: 'Done',
-  error: 'Error',
-};
-
 export default function ToolCallCard({
   name,
   input,
@@ -89,12 +84,20 @@ export default function ToolCallCard({
   status = 'pending',
   className,
 }: ToolCallCardProps) {
+  const strings = useStrings('toolCallCard');
+  const statusLabelMap: Record<ToolCallStatus, string> = {
+    pending: strings.pending,
+    running: strings.running,
+    done: strings.done,
+    error: strings.error,
+  };
+
   return (
     <div x-class={[card, className]}>
       <div x-class={[header]}>
         <span x-class={[statusIcon, statusClassMap[status]]} />
         <span>{name}</span>
-        <span style={{ marginLeft: 'auto', color: 'var(--haze-color-text-muted)' }}>
+        <span style={{ marginInlineStart: 'auto', color: 'var(--haze-color-text-muted)' }}>
           {statusLabelMap[status]}
         </span>
       </div>
@@ -102,13 +105,13 @@ export default function ToolCallCard({
         <div x-class={[body]}>
           {input && (
             <div x-class={[section]}>
-              <div x-class={[sectionLabel]}>Input</div>
+              <div x-class={[sectionLabel]}>{strings.inputLabel}</div>
               <div x-class={[content]}>{input}</div>
             </div>
           )}
           {output && (
             <div x-class={[section]}>
-              <div x-class={[sectionLabel]}>Output</div>
+              <div x-class={[sectionLabel]}>{strings.outputLabel}</div>
               <div x-class={[content]}>{output}</div>
             </div>
           )}

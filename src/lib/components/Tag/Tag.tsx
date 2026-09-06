@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type TagProps = {
   variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger';
   size?: 'sm' | 'md';
@@ -89,6 +91,7 @@ export default function Tag({
   className,
   children,
 }: TagProps) {
+  const strings = useStrings('tag');
   return (
     <span x-class={[base, variants[variant], tagSizes[size], className]}>
       {children}
@@ -96,7 +99,7 @@ export default function Tag({
         <button
           type='button'
           className={closeBtn}
-          aria-label='Remove'
+          aria-label={strings.remove}
           onClick={onClose}
         >
           ×

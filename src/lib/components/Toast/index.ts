@@ -3,3 +3,5 @@ export type {ToastProps} from './Toast';
 export {default as ToastContainer} from './ToastContainer';
 export type {ToastContainerProps} from './ToastContainer';
 export {default as useToast} from './useToast';
+export {toast} from './toast';
+export type {ToastOptions, ToastVariant} from './toast';

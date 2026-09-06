@@ -17,14 +17,12 @@ const affix = css`
 
 const posTop = css`
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline: 0;
 `;
 
 const posBottom = css`
   bottom: 0;
-  left: 0;
-  right: 0;
+  inset-inline: 0;
 `;
 
 export default function Affix({

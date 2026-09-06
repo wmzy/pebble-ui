@@ -1,6 +1,9 @@
 import { useRef, useCallback } from 'react';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+import { formatString } from '../LocaleProvider/locale';
+
 type OTPInputCoreProps = {
   length?: number;
   value: string;
@@ -40,6 +43,7 @@ export default function OTPInputCore({
   className,
 }: OTPInputCoreProps) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+  const strings = useStrings('otpInput');
 
   const handleChange = useCallback(
     (index: number, char: string) => {
@@ -85,7 +89,7 @@ export default function OTPInputCore({
           type="text"
           inputMode="numeric"
           maxLength={1}
-          aria-label={`Digit ${i + 1} of ${length}`}
+          aria-label={formatString(strings.digitLabel, { index: i + 1, total: length })}
           value={value[i] ?? ''}
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}

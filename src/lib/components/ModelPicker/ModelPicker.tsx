@@ -3,6 +3,8 @@ import type { ControlOrValue } from 'react-use-control';
 import { useControl } from 'react-use-control';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ModelOption = {
   value: string;
   label: string;
@@ -37,8 +39,14 @@ const select = css`
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
+  /* physical: CSS has no logical background-position keywords — the
+     [dir='rtl'] rule below mirrors the chevron to the inline end. */
   background-position: right 0.75rem center;
-  padding-right: var(--haze-space-8);
+  padding-inline-end: var(--haze-space-8);
+
+  [dir='rtl'] & {
+    background-position: left 0.75rem center;
+  }
 
   &:focus {
     border-color: var(--haze-color-primary);
@@ -59,6 +67,7 @@ export default function ModelPicker({
   className,
 }: ModelPickerProps) {
   const [value, setValue] = useControl(valueControl, '');
+  const strings = useStrings('modelPicker');
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setValue(e.target.value);
@@ -67,7 +76,7 @@ export default function ModelPicker({
 
   return (
     <div x-class={[wrapper, className]}>
-      <select x-class={[select]} aria-label="Model" value={value} onChange={handleChange} disabled={disabled}>
+      <select x-class={[select]} aria-label={strings.label} value={value} onChange={handleChange} disabled={disabled}>
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}{opt.contextLength ? ` (${opt.contextLength})` : ''}

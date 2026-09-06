@@ -4,6 +4,8 @@ import type { ControlOrValue } from 'react-use-control';
 import { useControl } from 'react-use-control';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type BannerProps = {
   visible?: ControlOrValue<boolean>;
   onClose?: () => void;
@@ -70,6 +72,7 @@ export default function Banner({
   className,
 }: BannerProps) {
   const [visible, setVisible] = useControl(visibleControl, true);
+  const strings = useStrings('banner');
 
   if (!visible) return null;
 
@@ -82,7 +85,7 @@ export default function Banner({
     <div x-class={[banner, variants[variant], className]} role="alert">
       <div x-class={[content]}>{children}</div>
       {onClose && (
-        <button x-class={[closeBtn]} type="button" onClick={handleClose} aria-label="Close">
+        <button x-class={[closeBtn]} type="button" onClick={handleClose} aria-label={strings.close}>
           x
         </button>
       )}

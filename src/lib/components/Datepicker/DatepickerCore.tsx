@@ -5,7 +5,7 @@ import { useCallback, useId, useRef } from 'react';
 
 import { FloatingPanel, useFloating } from '../../utils/floating';
 
-import Calendar from './Calendar';
+import Calendar from '../Calendar/Calendar';
 
 type DatepickerCoreProps = {
   value: string;

@@ -5,6 +5,9 @@ import { css } from '@linaria/core';
 import { useRef, useEffect, Children } from 'react';
 import { useControl } from 'react-use-control';
 
+import { useStrings } from '../LocaleProvider';
+import { formatString } from '../LocaleProvider/locale';
+
 type CarouselProps = {
   value?: ControlOrValue<number>;
   autoPlay?: boolean;
@@ -113,6 +116,7 @@ export default function Carousel({
   const [current, setCurrent] = useControl(valueControl, 0);
   const trackRef = useRef<HTMLDivElement>(null);
   const count = Children.count(children);
+  const strings = useStrings('carousel');
 
   useEffect(() => {
     const el = trackRef.current;
@@ -142,7 +146,7 @@ export default function Carousel({
       x-class={[wrapper, className]}
       role='region'
       aria-roledescription='carousel'
-      aria-label='Carousel'
+      aria-label={strings.label}
     >
       <div ref={trackRef} className={track}>
         {children}
@@ -153,7 +157,7 @@ export default function Carousel({
             type='button'
             x-class={[navBtn, prevBtn]}
             onClick={goPrev}
-            aria-label='Previous slide'
+            aria-label={strings.previousSlide}
           >
             ‹
           </button>
@@ -161,7 +165,7 @@ export default function Carousel({
             type='button'
             x-class={[navBtn, nextBtn]}
             onClick={goNext}
-            aria-label='Next slide'
+            aria-label={strings.nextSlide}
           >
             ›
           </button>
@@ -172,7 +176,7 @@ export default function Carousel({
                 type='button'
                 x-class={[dot, i === current && dotActive]}
                 onClick={() => setCurrent(i)}
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={formatString(strings.goToSlide, { index: i + 1 })}
               />
             ))}
           </div>

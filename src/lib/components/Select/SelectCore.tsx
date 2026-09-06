@@ -25,8 +25,15 @@ const base = css`
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M2.22 4.47a.75.75 0 0 1 1.06 0L6 7.19l2.72-2.72a.75.75 0 1 1 1.06 1.06L6.53 8.78a.75.75 0 0 1-1.06 0L2.22 5.53a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
+  /* physical: CSS has no logical background-position keywords — the
+     [dir='rtl'] rule below mirrors the caret to the inline end. */
   background-position: right var(--haze-space-3) center;
-  padding-right: var(--haze-space-8);
+  padding-inline-end: var(--haze-space-8);
+
+  [dir='rtl'] & {
+    background-position: left var(--haze-space-3) center;
+  }
+
   cursor: pointer;
   transition:
     border-color 0.15s,

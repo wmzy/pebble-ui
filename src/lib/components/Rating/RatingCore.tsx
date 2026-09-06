@@ -1,6 +1,9 @@
 import { css } from '@linaria/core';
 import { useState } from 'react';
 
+import { useStrings } from '../LocaleProvider';
+import { formatString } from '../LocaleProvider/locale';
+
 type RatingCoreProps = {
   value: number;
   onChange: (value: number) => void;
@@ -43,6 +46,7 @@ export default function RatingCore({
   className,
 }: RatingCoreProps) {
   const [hoverValue, setHoverValue] = useState<number | null>(null);
+  const strings = useStrings('rating');
 
   const handleClick = (index: number) => {
     onChange(index + 1);
@@ -63,7 +67,7 @@ export default function RatingCore({
             x-class={[star, (filled || halfFilled) && starActive]}
             role="radio"
             aria-checked={value >= i + 1 ? 'true' : 'false'}
-            aria-label={`${i + 1} star${i > 0 ? 's' : ''}`}
+            aria-label={formatString(i > 0 ? strings.stars : strings.star, { count: i + 1 })}
             onClick={() => handleClick(i)}
             onMouseEnter={() => setHoverValue(i + 1)}
             onMouseLeave={() => setHoverValue(null)}

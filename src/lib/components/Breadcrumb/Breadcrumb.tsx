@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { css } from '@linaria/core';
 import { Children } from 'react';
 
+import { useStrings } from '../LocaleProvider';
+
 type BreadcrumbProps = {
   separator?: ReactNode;
   className?: string;
@@ -35,10 +37,11 @@ export default function Breadcrumb({
   className,
   children,
 }: BreadcrumbProps) {
+  const strings = useStrings('breadcrumb');
   const items = Children.toArray(children);
 
   return (
-    <nav aria-label='Breadcrumb' x-class={[nav, className]}>
+    <nav aria-label={strings.label} x-class={[nav, className]}>
       <ol className={list}>
         {items.map((child, i) => (
           <li

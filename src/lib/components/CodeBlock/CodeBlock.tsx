@@ -27,7 +27,7 @@ const pre = css`
 const lang = css`
   position: absolute;
   top: var(--haze-space-2);
-  right: var(--haze-space-3);
+  inset-inline-end: var(--haze-space-3);
   font-size: var(--haze-text-xs);
   color: var(--haze-color-text-muted);
   font-family: var(--haze-font-sans);

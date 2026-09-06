@@ -23,6 +23,13 @@ import { whenExitSettles } from './presence';
  * ContextMenu, Datepicker, Combobox, Menu and Tooltip. NOT exported from
  * the library entry — consumers compose their own panels on top.
  *
+ * RTL note: placement names and geometry are deliberately PHYSICAL —
+ * 'left' means the physical left of the trigger, matching the industry
+ * convention (Radix, Floating UI) where side/alignment is the consumer's
+ * call. An RTL app passes the mirrored placement itself (e.g. 'right'
+ * where an LTR app passes 'left'); the collision math below is
+ * direction-agnostic because it works on raw viewport rects.
+ *
  * Three rendering tiers, chosen by feature detection:
  *
  *   1. popover API + CSS anchor positioning (Chromium): the panel is a

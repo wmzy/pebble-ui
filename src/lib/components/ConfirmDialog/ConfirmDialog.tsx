@@ -7,6 +7,7 @@ import { useId } from 'react';
 
 import { useFocusScope } from '../../utils/focus-scope';
 import { Presence } from '../../utils/presence';
+import { useStrings } from '../LocaleProvider';
 
 type ConfirmDialogProps = {
   open?: ControlOrValue<boolean>;
@@ -162,13 +163,16 @@ export default function ConfirmDialog({
   onCancel,
   title,
   children,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   variant = 'default',
   className,
   ...rest
 }: ConfirmDialogProps) {
   const [open, setOpen] = useControl(openControl, false);
+  const strings = useStrings('confirmDialog');
+  const confirmLabel = confirmText ?? strings.confirm;
+  const cancelLabel = cancelText ?? strings.cancel;
   const setScope = useFocusScope({ enabled: open, trapped: true });
   // 标题作为 dialog 的可访问名（aria-dialog-name），与 Dialog 同一模式
   const titleId = `haze-confirm-title-${useId()}`;
@@ -217,10 +221,10 @@ export default function ConfirmDialog({
           <div x-class={[body]}>{children}</div>
           <div x-class={[footer]}>
             <button x-class={[btn, cancelBtn]} type="button" onClick={handleCancel}>
-              {cancelText}
+              {cancelLabel}
             </button>
             <button x-class={[btn, variant === 'danger' ? dangerBtn : confirmBtn]} type="button" onClick={handleConfirm}>
-              {confirmText}
+              {confirmLabel}
             </button>
           </div>
         </div>

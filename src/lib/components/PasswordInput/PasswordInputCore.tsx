@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type PasswordInputCoreProps = {
   value: string;
   onChange: (value: string) => void;
@@ -19,7 +21,7 @@ const wrapper = css`
 const input = css`
   width: 100%;
   padding: var(--haze-space-2) var(--haze-space-3);
-  padding-right: var(--haze-space-10);
+  padding-inline-end: var(--haze-space-10);
   border: 1px solid var(--haze-color-border);
   border-radius: var(--haze-radius-md);
   background: var(--haze-color-bg);
@@ -42,7 +44,7 @@ const input = css`
 
 const toggle = css`
   position: absolute;
-  right: var(--haze-space-2);
+  inset-inline-end: var(--haze-space-2);
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -70,13 +72,14 @@ export default function PasswordInputCore({
   className,
 }: PasswordInputCoreProps) {
   const [visible, setVisible] = useState(false);
+  const strings = useStrings('passwordInput');
 
   return (
     <div x-class={[wrapper, className]}>
       <input
         x-class={[input]}
         type={visible ? 'text' : 'password'}
-        aria-label="Password"
+        aria-label={strings.label}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -87,7 +90,7 @@ export default function PasswordInputCore({
         type="button"
         onClick={() => setVisible(!visible)}
         tabIndex={-1}
-        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-label={visible ? strings.hide : strings.show}
       >
         {visible ? '🙈' : '👁'}
       </button>

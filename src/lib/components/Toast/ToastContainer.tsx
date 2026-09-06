@@ -2,13 +2,14 @@ import type { ReactNode } from 'react';
 
 import type { ToastItem } from './ToastContext';
 
-import { css } from '@linaria/core';
-import { useState, useCallback, useRef } from 'react';
+import {css} from '@linaria/core';
+import {useState, useCallback, useRef, useEffect} from 'react';
 
-import { Presence } from '../../utils/presence';
+import {Presence} from '../../utils/presence';
 
 import Toast from './Toast';
-import { ToastProvider } from './ToastContext';
+import {ToastProvider} from './ToastContext';
+import {nextToastId, subscribeToastChannel} from './toast';
 
 type ToastPlacement =
   | 'top-left'
@@ -37,6 +38,9 @@ const containerBase = css`
   pointer-events: none;
 `;
 
+/* physical: the placement keys name physical viewport corners (a public
+   API contract, e.g. 'bottom-right'), and each edge pairs with its
+   physical safe-area env, which has no logical counterpart. */
 export const toastPlacements = {
   'top-left': css`
     top: calc(var(--haze-space-4) + env(safe-area-inset-top));
@@ -65,18 +69,34 @@ export default function ToastContainer({
   // Ids whose exit animation is in flight; the toast stays in `toasts`
   // (and mounted under Presence) until the exit settles.
   const [exitingIds, setExitingIds] = useState<number[]>([]);
-  const counterRef = useRef(0);
+  // Mirror of `toasts` for the imperative dismiss-all, which needs the
+  // live list inside a subscription callback without re-subscribing on
+  // every toast change.
+  const toastsRef = useRef<ToastItem[]>([]);
+  useEffect(() => {
+    toastsRef.current = toasts;
+  }, [toasts]);
 
-  const addToast = useCallback(
-    (toast: Omit<ToastItem, 'id'>) => {
-      counterRef.current += 1;
+  // Shared append for both entry points: the context API (useToast) and
+  // the imperative module channel (toast()).
+  const appendToast = useCallback(
+    (item: ToastItem) => {
       setToasts((prev) => {
-        const next = [...prev, { ...toast, id: counterRef.current }];
+        const next = [...prev, item];
         if (maxCount === undefined || next.length <= maxCount) return next;
         return next.slice(next.length - maxCount);
       });
     },
     [maxCount]
+  );
+
+  const addToast = useCallback(
+    (toast: Omit<ToastItem, 'id'>) => {
+      // Ids come from the module-level sequence so imperative and context
+      // toasts can never collide.
+      appendToast({...toast, id: nextToastId()});
+    },
+    [appendToast]
   );
 
   // Phase 1 of removal: flip the item's Presence to data-state="closed" so
@@ -91,6 +111,30 @@ export default function ToastContainer({
     setToasts((prev) => prev.filter((t) => t.id !== id));
     setExitingIds((prev) => prev.filter((exitingId) => exitingId !== id));
   }, []);
+
+  const dismissFromChannel = useCallback(
+    (id?: number) => {
+      if (id === undefined) {
+        toastsRef.current.forEach((item) => removeToast(item.id));
+        return;
+      }
+      removeToast(id);
+    },
+    [removeToast]
+  );
+
+  // Imperative API hookup: on mount this container subscribes as a
+  // consumer of `toast()` calls — the first subscriber also replays toasts
+  // queued before any container existed; on unmount it unsubscribes (the
+  // next mounted container, if any, takes over).
+  useEffect(
+    () =>
+      subscribeToastChannel({
+        onToast: appendToast,
+        onDismiss: dismissFromChannel,
+      }),
+    [appendToast, dismissFromChannel]
+  );
 
   return (
     <ToastProvider value={{ toasts, addToast, removeToast }}>

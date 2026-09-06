@@ -4,6 +4,8 @@ import { useRef, useCallback } from 'react';
 import { useControl } from 'react-use-control';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ChatInputProps = {
   value?: ControlOrValue<string>;
   onSend?: (message: string) => void;
@@ -73,13 +75,15 @@ const sendBtn = css`
 export default function ChatInput({
   value: valueControl,
   onSend,
-  placeholder = 'Type a message...',
+  placeholder,
   disabled,
   maxLength,
   className,
 }: ChatInputProps) {
   const [value, setValue] = useControl(valueControl, '');
   const ref = useRef<HTMLTextAreaElement>(null);
+  const strings = useStrings('chatInput');
+  const placeholderLabel = placeholder ?? strings.placeholder;
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim();
@@ -114,7 +118,7 @@ export default function ChatInput({
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder}
+        placeholder={placeholderLabel}
         disabled={disabled}
         maxLength={maxLength}
         rows={1}
@@ -124,7 +128,7 @@ export default function ChatInput({
         type="button"
         onClick={handleSend}
         disabled={disabled || !value.trim()}
-        aria-label="Send"
+        aria-label={strings.send}
       >
         &uarr;
       </button>

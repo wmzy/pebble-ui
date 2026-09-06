@@ -4,6 +4,8 @@ import type { ControlOrValue } from 'react-use-control';
 import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
 
+import { useStrings } from '../LocaleProvider';
+
 type PaginationProps = {
   page?: ControlOrValue<number>;
   total: number;
@@ -104,6 +106,7 @@ export default function Pagination({
   ...rest
 }: PaginationProps) {
   const [page, setPage] = useControl(pageControl, 1);
+  const strings = useStrings('pagination');
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const pages = getPageNumbers(page, totalPages);
 
@@ -114,7 +117,7 @@ export default function Pagination({
         x-class={[btn]}
         disabled={page <= 1}
         onClick={() => setPage((p) => Math.max(1, p - 1))}
-        aria-label="Previous"
+        aria-label={strings.previous}
       >
         ‹
       </button>
@@ -138,7 +141,7 @@ export default function Pagination({
         x-class={[btn]}
         disabled={page >= totalPages}
         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-        aria-label="Next"
+        aria-label={strings.next}
       >
         ›
       </button>

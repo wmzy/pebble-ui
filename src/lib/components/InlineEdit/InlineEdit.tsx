@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useControl } from 'react-use-control';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type InlineEditProps = {
   value?: ControlOrValue<string>;
   onChange?: (value: string) => void;
@@ -50,7 +52,7 @@ const placeholderStyle = css`
 export default function InlineEdit({
   value: valueControl,
   onChange,
-  placeholder = 'Click to edit',
+  placeholder,
   disabled,
   className,
 }: InlineEditProps) {
@@ -58,6 +60,8 @@ export default function InlineEdit({
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
+  const strings = useStrings('inlineEdit');
+  const placeholderLabel = placeholder ?? strings.placeholder;
 
   useEffect(() => {
     if (isEditing) {
@@ -95,7 +99,7 @@ export default function InlineEdit({
       <input
         ref={inputRef}
         x-class={[editing, className]}
-        aria-label={placeholder}
+        aria-label={placeholderLabel}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
@@ -112,7 +116,7 @@ export default function InlineEdit({
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') startEditing(); }}
     >
-      {value || placeholder}
+      {value || placeholderLabel}
     </span>
   );
 }

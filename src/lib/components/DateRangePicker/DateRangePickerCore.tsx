@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type DateRangePickerCoreProps = {
   startDate: string;
   endDate: string;
@@ -54,12 +56,13 @@ export default function DateRangePickerCore({
   separator = '–',
   className,
 }: DateRangePickerCoreProps) {
+  const strings = useStrings('dateRangePicker');
   return (
     <div x-class={[container, className]}>
       <input
         type="date"
         x-class={[input]}
-        aria-label="Start date"
+        aria-label={strings.startDate}
         value={startDate}
         onChange={(e) => onStartChange(e.target.value)}
       />
@@ -67,7 +70,7 @@ export default function DateRangePickerCore({
       <input
         type="date"
         x-class={[input]}
-        aria-label="End date"
+        aria-label={strings.endDate}
         value={endDate}
         onChange={(e) => onEndChange(e.target.value)}
       />

@@ -113,4 +113,113 @@ describe('Combobox', () => {
     });
     expect(results.violations).toEqual([]);
   });
+
+  describe('virtualization', () => {
+    // Row height of the virtualized path — OPTION_ROW_HEIGHT in
+    // Combobox.tsx (space-2 padding top+bottom + text-sm at 1.5).
+    const ROW_HEIGHT = 37;
+
+    function makeOptions(count: number) {
+      return Array.from({ length: count }, (_, i) => ({
+        value: `opt-${i}`,
+        label: `Option ${i}`,
+      }));
+    }
+
+    // jsdom has no layout: scrollHeight reads 0, which clamps every
+    // programmatic scrollTop to 0. Give the scrollport a real range.
+    function giveScrollRange(port: HTMLElement, rows: number) {
+      Object.defineProperty(port, 'scrollHeight', {
+        value: rows * ROW_HEIGHT,
+        configurable: true,
+      });
+    }
+
+    it('renders the list through VirtualList above the threshold', async () => {
+      const user = userEvent.setup();
+      render(<Combobox options={makeOptions(30)} virtualThreshold={10} />);
+      await user.click(screen.getByRole('combobox'));
+      expect(document.querySelector('[data-virtualized]')).not.toBeNull();
+      // Windowed: only the visible window plus overscan is mounted.
+      expect(screen.getAllByRole('option').length).toBeLessThan(30);
+      expect(screen.getByText('Option 0')).toBeInTheDocument();
+    });
+
+    it('virtualizes past the default threshold of 100', async () => {
+      const user = userEvent.setup();
+      render(<Combobox options={makeOptions(101)} />);
+      await user.click(screen.getByRole('combobox'));
+      expect(document.querySelector('[data-virtualized]')).not.toBeNull();
+      expect(screen.getAllByRole('option').length).toBeLessThan(101);
+    });
+
+    it('keeps the plain DOM below the threshold', async () => {
+      const user = userEvent.setup();
+      render(<Combobox options={makeOptions(15)} virtualThreshold={20} />);
+      await user.click(screen.getByRole('combobox'));
+      expect(document.querySelector('[data-virtualized]')).toBeNull();
+      const listbox = screen.getByRole('listbox');
+      expect(screen.getAllByRole('option')).toHaveLength(15);
+      // Options stay direct children of the listbox, as before.
+      expect(listbox.children).toHaveLength(15);
+    });
+
+    it('never virtualizes when virtualThreshold is 0', async () => {
+      const user = userEvent.setup();
+      render(<Combobox options={makeOptions(30)} virtualThreshold={0} />);
+      await user.click(screen.getByRole('combobox'));
+      expect(document.querySelector('[data-virtualized]')).toBeNull();
+      expect(screen.getAllByRole('option')).toHaveLength(30);
+    });
+
+    it('scrolls the highlighted row into view while navigating', async () => {
+      const user = userEvent.setup();
+      render(<Combobox options={makeOptions(30)} virtualThreshold={10} />);
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+      giveScrollRange(port, 30);
+
+      await user.keyboard('{ArrowDown}'.repeat(12));
+      // Row 5 first leaves the viewport and 'auto' aligns rows entering
+      // from below to the top; rows 11–12 stay visible without scrolling.
+      expect(port.scrollTop).toBe(370);
+      expect(screen.getByRole('option', { name: 'Option 12' })).toBeInTheDocument();
+
+      await user.keyboard('{ArrowUp}'.repeat(3));
+      // Row 9 enters from above → aligned to the viewport bottom instead.
+      expect(port.scrollTop).toBe(170);
+      expect(screen.getByRole('option', { name: 'Option 9' })).toBeInTheDocument();
+    });
+
+    it('scrolls the highlighted row back into view when the listbox reopens', async () => {
+      const user = userEvent.setup();
+      render(<Combobox options={makeOptions(30)} virtualThreshold={10} />);
+      const input = screen.getByRole('combobox');
+      await user.click(input);
+      const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+      giveScrollRange(port, 30);
+
+      await user.keyboard('{ArrowDown}'.repeat(6));
+      expect(port.scrollTop).toBe(185);
+      await user.keyboard('{Escape}');
+      // Scrolled elsewhere while closed — the live highlight must be
+      // recovered on reopen.
+      port.scrollTop = 0;
+      fireEvent.scroll(port);
+      await user.click(input);
+      expect(port.scrollTop).toBe(185);
+    });
+
+    it('has no axe violations when the list is virtualized', async () => {
+      const { axe } = await import('jest-axe');
+      const user = userEvent.setup();
+      render(<Combobox options={makeOptions(150)} placeholder="Search" />);
+      await user.click(screen.getByRole('combobox'));
+      const results = await axe(document.body, {
+        rules: { region: { enabled: false } },
+      });
+      expect(results.violations).toEqual([]);
+    });
+  });
 });

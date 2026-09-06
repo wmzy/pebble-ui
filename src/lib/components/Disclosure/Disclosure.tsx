@@ -50,6 +50,9 @@ const summaryStyle = css`
     content: '';
     width: 8px;
     height: 8px;
+    /* physical: the chevron is a rotated glyph drawn from physical
+       borders — swapping them for logical ones would corrupt the shape
+       (rotation itself stays physical either way). */
     border-right: 2px solid var(--haze-color-text-muted);
     border-bottom: 2px solid var(--haze-color-text-muted);
     transform: rotate(-45deg);

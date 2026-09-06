@@ -1,10 +1,13 @@
 import type { ControlOrValue } from 'react-use-control';
 
+import type { VirtualListHandle } from '../VirtualList';
+
 import { css } from '@linaria/core';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useControl } from 'react-use-control';
 
 import { FloatingPanel, useFloating } from '../../utils/floating';
+import { VirtualList } from '../VirtualList';
 
 import ComboboxOption from './ComboboxOption';
 
@@ -13,6 +16,12 @@ type ComboboxProps = {
   open?: ControlOrValue<boolean>;
   options: { value: string; label: string }[];
   placeholder?: string;
+  /**
+   * Render the dropdown through VirtualList once the filtered list is
+   * longer than this many options. Defaults to 100; 0 disables
+   * virtualization entirely (plain DOM rendering at any length).
+   */
+  virtualThreshold?: number;
   className?: string;
 };
 
@@ -59,11 +68,43 @@ const listbox = css`
   box-shadow: var(--haze-shadow-lg);
 `;
 
+/**
+ * Virtualized panel: same chrome, no scroll box — the VirtualList
+ * scrollport owns scrolling. Keeping the plain class untouched avoids a
+ * nested scroll container that could grow a second scrollbar under a
+ * border-box consumer (2px of panel border would overflow the cap).
+ */
+const listboxVirtual = css`
+  min-width: 100%;
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-md);
+  background: var(--haze-color-bg);
+  box-shadow: var(--haze-shadow-lg);
+`;
+
+/** Scrollport height of the virtualized list — the plain listbox's
+ * `max-height` cap, so both modes are equally tall at the limit. */
+const VIRTUAL_LIST_HEIGHT = 200;
+
+/** Fixed row height for the virtualized path: ComboboxOption's natural
+ * box — space-2 padding top+bottom + text-sm at leading-normal =
+ * 8 + 21 + 8. Virtualization math needs it as a JS number; rows are
+ * stretched to fill it (`virtualRow`), so the two cannot drift apart. */
+const OPTION_ROW_HEIGHT = 37;
+
+/** Stretch a virtualized option over its absolutely-positioned,
+ * fixed-height row wrapper so hover/highlight cover the full row. */
+const virtualRow = css`
+  height: 100%;
+  box-sizing: border-box;
+`;
+
 export default function Combobox({
   value: valueControl,
   open: openControl,
   options,
   placeholder,
+  virtualThreshold = 100,
   className,
 }: ComboboxProps) {
   const [value, setValue] = useControl(valueControl, '');
@@ -74,6 +115,7 @@ export default function Combobox({
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<VirtualListHandle>(null);
 
   const floating = useFloating({
     open,
@@ -86,6 +128,20 @@ export default function Combobox({
   const filtered = options.filter((o) =>
     o.label.toLowerCase().includes(query.toLowerCase())
   );
+
+  const virtualized =
+    virtualThreshold > 0 && filtered.length > virtualThreshold;
+
+  // The highlighted row must stay visible whenever it moves (keyboard
+  // navigation) and whenever the panel (re)opens with a live highlight —
+  // 'auto' alignment is a no-op for rows already on screen. Gated on
+  // `shown`, not `open`: this child effect runs before the behavior
+  // effect calls showPopover(), and scrollTop set on a still-hidden
+  // popover is clamped away and lost.
+  useEffect(() => {
+    if (!virtualized || !floating.shown || highlightIndex < 0) return;
+    listRef.current?.scrollToIndex(highlightIndex, 'auto');
+  }, [virtualized, floating.shown, highlightIndex]);
 
   // Typing a new query invalidates the highlight — adjust during render
   // (React-endorsed reset) so the first filtered frame already drops any
@@ -150,19 +206,40 @@ export default function Combobox({
         placement="bottom-span"
         id={id}
         role="listbox"
-        visualClass={listbox}
+        visualClass={virtualized ? listboxVirtual : listbox}
       >
-        {filtered.map((o, i) => (
-          <ComboboxOption
-            key={o.value}
-            value={o.value}
-            highlighted={i === highlightIndex}
-            selected={o.value === value}
-            onSelect={selectOption}
-          >
-            {o.label}
-          </ComboboxOption>
-        ))}
+        {virtualized ? (
+          <VirtualList
+            ref={listRef}
+            data-virtualized
+            items={filtered}
+            height={VIRTUAL_LIST_HEIGHT}
+            itemHeight={OPTION_ROW_HEIGHT}
+            renderItem={(o, i) => (
+              <ComboboxOption
+                value={o.value}
+                highlighted={i === highlightIndex}
+                selected={o.value === value}
+                onSelect={selectOption}
+                className={virtualRow}
+              >
+                {o.label}
+              </ComboboxOption>
+            )}
+          />
+        ) : (
+          filtered.map((o, i) => (
+            <ComboboxOption
+              key={o.value}
+              value={o.value}
+              highlighted={i === highlightIndex}
+              selected={o.value === value}
+              onSelect={selectOption}
+            >
+              {o.label}
+            </ComboboxOption>
+          ))
+        )}
       </FloatingPanel>
     </div>
   );

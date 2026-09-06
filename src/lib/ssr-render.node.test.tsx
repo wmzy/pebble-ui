@@ -120,6 +120,8 @@ const COMBOBOX_OPTIONS = [
 
 // name → element + the substrings the server HTML must contain (key text
 // or role/state attributes). Every entry also asserts non-empty output.
+const noop = () => undefined;
+
 const CASES: [name: string, element: ReactElement, expects: string[]][] = [
   ['Button', <Button>Save changes</Button>, ['Save changes', 'type="button"']],
   [
@@ -134,13 +136,13 @@ const CASES: [name: string, element: ReactElement, expects: string[]][] = [
   ],
   [
     'InputCore',
-    <InputCore value="" onChange={() => {}} placeholder="Bare input" />,
+    <InputCore value="" onChange={noop} placeholder="Bare input" />,
     ['Bare input'],
   ],
   [
     'SelectCore',
     (
-      <SelectCore value="" onChange={() => {}} aria-label="fruit">
+      <SelectCore value="" onChange={noop} aria-label="fruit">
         <Option value="apple">Apple</Option>
       </SelectCore>
     ),

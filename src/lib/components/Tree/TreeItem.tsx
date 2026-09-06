@@ -5,6 +5,8 @@ import type { TreeNodeData } from './types';
 import { css } from '@linaria/core';
 import { useId } from 'react';
 
+import { useStrings } from '../LocaleProvider';
+
 type TreeItemProps = {
   node: TreeNodeData;
   level: number;
@@ -271,6 +273,7 @@ export default function TreeItem({
 }: TreeItemProps) {
   const hasChildren = !!node.children?.length;
   const isLeaf = node.isLeaf ?? !hasChildren;
+  const strings = useStrings('tree');
   // 与 Dialog 的 haze-dialog-title-${useId()} 同一套生成模式：给节点标题
   // 一个稳定 id，供复选框 aria-labelledby 引用（ReactNode 标题也能命名）。
   const titleId = `haze-tree-title-${useId()}`;
@@ -311,7 +314,7 @@ export default function TreeItem({
         {!isLeaf && (
           <span
             role='button'
-            aria-label={expanded ? 'Collapse' : 'Expand'}
+            aria-label={expanded ? strings.collapse : strings.expand}
             x-class={[switcher, expanded && switcherExpanded]}
             onClick={(e) => {
               e.stopPropagation();

@@ -1,0 +1,11 @@
+# Deliberately package-less marker: pnpm walks up to the nearest
+# pnpm-workspace.yaml to find the install root, and without this file
+# `pnpm install` here would silently install the repository root
+# instead of this example. With it, this directory is its own root.
+#
+# The minimumReleaseAgeExclude block below is written by pnpm 11's
+# supply-chain age gate (same pattern as the repository root's own
+# pnpm-workspace.yaml) — keep it so installs here stay reproducible.
+
+minimumReleaseAgeExclude:
+  - '@ai-sdk/openai@4.0.60'

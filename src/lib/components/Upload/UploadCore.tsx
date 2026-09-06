@@ -3,6 +3,8 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { css } from '@linaria/core';
 import { useRef, useCallback } from 'react';
 
+import { useStrings } from '../LocaleProvider';
+
 type UploadCoreProps = {
   /** The selected files — the field value, emitted verbatim (as the
    * complete next list) by `onChange`. */
@@ -67,6 +69,7 @@ export default function UploadCore({
   ...rest
 }: UploadCoreProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const strings = useStrings('upload');
 
   const commit = useCallback(
     (picked: File[]) => {
@@ -128,7 +131,7 @@ export default function UploadCore({
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
-          <div>Drag & drop files here, or click to upload</div>
+          <div>{strings.hint}</div>
         </>
       )}
     </div>

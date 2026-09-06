@@ -1,16 +1,29 @@
+import type { ComponentPropsWithoutRef } from 'react';
+import type { ControlOrValue } from 'react-use-control';
+
 import { css } from '@linaria/core';
+import { useControl } from 'react-use-control';
 import { useState } from 'react';
 
+import { useStrings } from '../LocaleProvider';
+
 type CalendarProps = {
-  value: string;
+  /** Selected date as "YYYY-MM-DD"; empty string means nothing selected. */
+  value?: ControlOrValue<string>;
+  /** Earliest selectable date ("YYYY-MM-DD"). */
   min?: string;
+  /** Latest selectable date ("YYYY-MM-DD"). */
   max?: string;
   /** BCP 47 locale used for month and weekday formatting. */
   locale?: string;
   /** Explicit first day of the week: 0 = Sunday, 1 = Monday. */
   weekStartsOn?: 0 | 1;
-  onSelect: (date: string) => void;
-};
+  /**
+   * Called with the picked "YYYY-MM-DD" date. Still fires alongside the
+   * controllable `value` for callers that prefer event-style wiring.
+   */
+  onSelect?: (date: string) => void;
+} & Omit<ComponentPropsWithoutRef<'div'>, 'onSelect'>;
 
 const calendarWrapper = css`
   padding: var(--haze-space-3);
@@ -22,7 +35,8 @@ const header = css`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--haze-space-2);
+  gap: var(--haze-space-2);
+  margin-block-end: var(--haze-space-2);
 `;
 
 const headerBtn = css`
@@ -34,6 +48,7 @@ const headerBtn = css`
   padding: var(--haze-space-1);
   border-radius: var(--haze-radius-sm);
   font-size: var(--haze-text-sm);
+  font-family: var(--haze-font-sans);
   line-height: 1;
 
   &:hover {
@@ -49,6 +64,12 @@ const headerBtn = css`
 const headerTitle = css`
   font-weight: var(--haze-weight-medium);
   color: var(--haze-color-text);
+`;
+
+const headerTrailing = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-1);
 `;
 
 const grid = css`
@@ -87,7 +108,7 @@ const dayBtn = css`
   border-radius: var(--haze-radius-sm);
   font-size: var(--haze-text-sm);
   line-height: 1.5;
-  transition: background 0.1s;
+  transition: background var(--haze-duration-fast) var(--haze-ease);
 
   &:hover {
     background: var(--haze-color-bg-subtle);
@@ -165,13 +186,18 @@ function formatDate(year: number, month: number, day: number) {
 }
 
 export default function Calendar({
-  value,
+  value: valueControl,
   min,
   max,
   locale,
   weekStartsOn,
   onSelect,
+  className,
+  ...rest
 }: CalendarProps) {
+  const [value, setValue] = useControl(valueControl, '');
+  const strings = useStrings('calendar');
+
   const initial = value ? new Date(value) : new Date();
   const [viewYear, setViewYear] = useState(initial.getFullYear());
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
@@ -202,6 +228,12 @@ export default function Calendar({
       }
       return m + 1;
     });
+  };
+
+  const goToday = () => {
+    const now = new Date();
+    setViewYear(now.getFullYear());
+    setViewMonth(now.getMonth());
   };
 
   const isDisabled = (dateStr: string) => {
@@ -251,25 +283,30 @@ export default function Calendar({
   }
 
   return (
-    <div x-class={[calendarWrapper]}>
+    <div x-class={[calendarWrapper, className]} {...rest}>
       <div x-class={[header]}>
         <button
           type='button'
           x-class={[headerBtn]}
           onClick={goPrevMonth}
-          aria-label='Previous month'
+          aria-label={strings.previousMonth}
         >
           ‹
         </button>
         <span x-class={[headerTitle]}>{monthLabel}</span>
-        <button
-          type='button'
-          x-class={[headerBtn]}
-          onClick={goNextMonth}
-          aria-label='Next month'
-        >
-          ›
-        </button>
+        <span x-class={[headerTrailing]}>
+          <button type='button' x-class={[headerBtn]} onClick={goToday}>
+            {strings.today}
+          </button>
+          <button
+            type='button'
+            x-class={[headerBtn]}
+            onClick={goNextMonth}
+            aria-label={strings.nextMonth}
+          >
+            ›
+          </button>
+        </span>
       </div>
       <div x-class={[grid]} role='grid' aria-label={monthLabel}>
         <div role='row' x-class={[rowContents]}>
@@ -284,7 +321,12 @@ export default function Calendar({
             {week.map((c) => {
               const dateStr = formatDate(c.year, c.month, c.day);
               return (
-                <span role='gridcell' key={dateStr} x-class={[cellContents]}>
+                <span
+                  role='gridcell'
+                  key={dateStr}
+                  aria-selected={dateStr === value}
+                  x-class={[cellContents]}
+                >
                   <button
                     type='button'
                     x-class={[
@@ -293,7 +335,10 @@ export default function Calendar({
                       c.outside && dayOutside,
                     ]}
                     disabled={isDisabled(dateStr)}
-                    onClick={() => onSelect(dateStr)}
+                    onClick={() => {
+                      setValue(dateStr);
+                      onSelect?.(dateStr);
+                    }}
                   >
                     {c.day}
                   </button>

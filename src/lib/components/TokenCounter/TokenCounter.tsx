@@ -1,5 +1,7 @@
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type TokenCounterProps = {
   used: number;
   max: number;
@@ -44,11 +46,12 @@ const count = css`
 export default function TokenCounter({ used, max, label, className }: TokenCounterProps) {
   const pct = max > 0 ? Math.min(100, (used / max) * 100) : 0;
   const fillClass = pct > 90 ? fillDanger : pct > 70 ? fillWarning : fillNormal;
+  const strings = useStrings('tokenCounter');
 
   return (
     <div x-class={[wrapper, className]}>
       <div x-class={[info]}>
-        <span>{label || 'Tokens'}</span>
+        <span>{label || strings.label}</span>
         <span x-class={[count]}>{used.toLocaleString()} / {max.toLocaleString()}</span>
       </div>
       <div x-class={[bar]}>

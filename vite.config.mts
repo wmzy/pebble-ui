@@ -98,6 +98,10 @@ const buildConfig = (() => {
           '@for-fun/event-emitter',
           // peer dependency — consumers bring their own copy
           'react-f0rm',
+          // regular dependency, but kept external so its CJS interop never
+          // leaks a `require()` call into the pure-ESM dist (the Node ESM
+          // contract test imports dist/index.js in bare node)
+          '@tanstack/react-table',
         ],
         output: {
           preserveModules: true,

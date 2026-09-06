@@ -1,5 +1,7 @@
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type ColorPickerCoreProps = {
   value: string;
   onChange: (value: string) => void;
@@ -87,6 +89,7 @@ export default function ColorPickerCore({
   presets,
   className,
 }: ColorPickerCoreProps) {
+  const strings = useStrings('colorPicker');
   return (
     <div x-class={[container, className]}>
       <div x-class={[previewRow]}>
@@ -94,14 +97,14 @@ export default function ColorPickerCore({
           type="color"
           x-class={[colorInput]}
           value={value}
-          aria-label="Pick color"
+          aria-label={strings.pickColor}
           onChange={(e) => onChange(e.target.value)}
         />
         <input
           type="text"
           x-class={[textInput]}
           value={value}
-          aria-label="Hex color"
+          aria-label={strings.hexColor}
           onChange={(e) => onChange(e.target.value)}
         />
       </div>

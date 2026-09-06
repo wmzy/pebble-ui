@@ -126,15 +126,17 @@ const COMBOBOX_OPTIONS = [
   { value: 'banana', label: 'Banana' },
 ];
 
+const noop = () => undefined;
+
 const CASES: [name: string, element: ReactElement][] = [
   ['Button', <Button>Save changes</Button>],
   ['ButtonLink', <ButtonLink href="https://example.com">Read docs</ButtonLink>],
   ['Input', <Input placeholder="Enter text" />],
-  ['InputCore', <InputCore value="" onChange={() => {}} placeholder="Bare input" />],
+  ['InputCore', <InputCore value="" onChange={noop} placeholder="Bare input" />],
   [
     'SelectCore',
     (
-      <SelectCore value="" onChange={() => {}} aria-label="fruit">
+      <SelectCore value="" onChange={noop} aria-label="fruit">
         <Option value="apple">Apple</Option>
       </SelectCore>
     ),

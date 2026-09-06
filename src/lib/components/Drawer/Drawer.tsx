@@ -85,12 +85,16 @@ const overlay = css`
   }
 `;
 
+/* physical: placement is a physical API ('left'/'right' edge of the
+   viewport, matching the ±100% slide-in vars below); the pinned edge
+   must not flip with direction. */
 const placements = {
   left: css`
     height: 100vh;
     width: 320px;
     min-width: 280px;
     max-width: 85vw;
+    /* physical: pins the left drawer to the physical left edge. */
     margin-left: 0;
     --haze-drawer-from-x: -100%;
     --haze-drawer-from-y: 0;
@@ -100,6 +104,7 @@ const placements = {
     width: 320px;
     min-width: 280px;
     max-width: 85vw;
+    /* physical: pins the right drawer to the physical right edge. */
     margin-left: auto;
     --haze-drawer-from-x: 100%;
     --haze-drawer-from-y: 0;

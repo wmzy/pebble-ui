@@ -2,6 +2,8 @@ import type { ComponentPropsWithoutRef } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type NumberInputCoreProps = {
   value: number;
   onChange: (value: number) => void;
@@ -130,6 +132,7 @@ export default function NumberInputCore({
   className,
   ...rest
 }: NumberInputCoreProps) {
+  const strings = useStrings('numberInput');
   const clamp = (n: number) => {
     const clamped = Math.round(n * 1e10) / 1e10;
     if (min !== undefined && clamped < min) return min;
@@ -144,7 +147,7 @@ export default function NumberInputCore({
         x-class={[stepBtn, btnSizes[size]]}
         onClick={() => onChange(clamp(value - step))}
         disabled={min !== undefined && value <= min}
-        aria-label='Decrease'
+        aria-label={strings.decrease}
       >
         −
       </button>
@@ -167,7 +170,7 @@ export default function NumberInputCore({
         x-class={[stepBtn, btnSizes[size]]}
         onClick={() => onChange(clamp(value + step))}
         disabled={max !== undefined && value >= max}
-        aria-label='Increase'
+        aria-label={strings.increase}
       >
         +
       </button>

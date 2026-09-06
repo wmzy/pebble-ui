@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type BackToTopProps = {
   threshold?: number;
   children?: React.ReactNode;
@@ -10,6 +12,9 @@ type BackToTopProps = {
 const button = css`
   position: fixed;
   bottom: calc(var(--haze-space-6) + env(safe-area-inset-bottom));
+  /* physical: pinned to the physical bottom-end screen corner — a FAB
+     carries no reading-direction semantics, and the safe-area env has no
+     logical counterpart. */
   right: calc(var(--haze-space-6) + env(safe-area-inset-right));
   display: flex;
   align-items: center;
@@ -38,6 +43,7 @@ const hidden = css`
 
 export default function BackToTop({ threshold = 300, children = '↑', className }: BackToTopProps) {
   const [visible, setVisible] = useState(false);
+  const strings = useStrings('backToTop');
 
   const handleScroll = useCallback(() => {
     setVisible(window.scrollY > threshold);
@@ -56,7 +62,7 @@ export default function BackToTop({ threshold = 300, children = '↑', className
     <button
       x-class={[button, !visible && hidden, className]}
       onClick={scrollToTop}
-      aria-label="Back to top"
+      aria-label={strings.label}
     >
       {children}
     </button>

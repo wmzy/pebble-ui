@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type AsyncSectionProps = {
   /**
    * 为真时渲染加载占位（Spinner + loadingText）。优先级最高：错误未
@@ -107,12 +109,15 @@ export default function AsyncSection({
   loading = false,
   error,
   onRetry,
-  loadingText = 'Loading…',
+  loadingText,
   errorText,
-  retryText = 'Retry',
+  retryText,
   className,
   children,
 }: AsyncSectionProps) {
+  const strings = useStrings('asyncSection');
+  const loadingLabel = loadingText ?? strings.loading;
+  const retryLabel = retryText ?? strings.retry;
   if (loading) {
     return (
       <section x-class={[base, className]} aria-busy="true">
@@ -134,7 +139,7 @@ export default function AsyncSection({
               />
             </svg>
           </span>
-          {loadingText}
+          {loadingLabel}
         </div>
       </section>
     );
@@ -144,14 +149,14 @@ export default function AsyncSection({
     const message =
       errorText ??
       (error instanceof Error && error.message ? error.message : undefined) ??
-      'Something went wrong';
+      strings.error;
     return (
       <section x-class={[base, className]}>
         <div x-class={[errorBox]} role="alert">
           <p x-class={[errorMessage]}>{message}</p>
           {onRetry && (
             <button type="button" x-class={[retryButton]} onClick={onRetry}>
-              {retryText}
+              {retryLabel}
             </button>
           )}
         </div>

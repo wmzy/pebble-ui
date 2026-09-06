@@ -71,8 +71,8 @@ export { NumberInput, NumberInputCore } from './components/NumberInput';
 export type { NumberInputProps, NumberInputCoreProps } from './components/NumberInput';
 export { FileInput } from './components/FileInput';
 export type { FileInputProps } from './components/FileInput';
-export { Toast, ToastContainer, useToast } from './components/Toast';
-export type { ToastProps, ToastContainerProps } from './components/Toast';
+export { Toast, ToastContainer, useToast, toast } from './components/Toast';
+export type { ToastProps, ToastContainerProps, ToastOptions, ToastVariant } from './components/Toast';
 export { List, ListItem } from './components/List';
 export type { ListProps, ListItemProps } from './components/List';
 export { Combobox } from './components/Combobox';
@@ -175,13 +175,46 @@ export type { CodeBlockProps } from './components/CodeBlock';
 export { AspectRatio } from './components/AspectRatio';
 export type { AspectRatioProps } from './components/AspectRatio';
 export { VirtualList } from './components/VirtualList';
-export type { VirtualListProps } from './components/VirtualList';
+export type { VirtualListProps, VirtualListHandle, VirtualListGroup, VirtualListAlign } from './components/VirtualList';
 export { TagGroup, TagGroupItem } from './components/TagGroup';
 export type { TagGroupProps, TagGroupItemProps } from './components/TagGroup';
 export { BottomSheet } from './components/BottomSheet';
 export type { BottomSheetProps } from './components/BottomSheet';
 export { SwipeAction } from './components/SwipeAction';
 export type { SwipeActionProps } from './components/SwipeAction';
+
+// i18n
+export { default as LocaleProvider, useStrings } from './components/LocaleProvider';
+export { defaultStrings } from './components/LocaleProvider';
+export type { LocaleProviderProps, HazeStrings } from './components/LocaleProvider';
+
+// data table (TanStack headless + haze styles)
+export { DataTable } from './components/DataTable';
+export type { DataTableProps, DataTableColumnDef, DataTableColumnMeta } from './components/DataTable';
+
+// display & overlay additions
+export { Kbd } from './components/Kbd';
+export type { KbdProps } from './components/Kbd';
+export { AvatarGroup } from './components/AvatarGroup';
+export type { AvatarGroupProps } from './components/AvatarGroup';
+export { Calendar } from './components/Calendar';
+export type { CalendarProps } from './components/Calendar';
+export { HoverCard } from './components/HoverCard';
+export type { HoverCardProps } from './components/HoverCard';
+export { Toolbar, ToolbarButton, ToolbarSeparator } from './components/Toolbar';
+export type { ToolbarProps, ToolbarButtonProps, ToolbarSeparatorProps } from './components/Toolbar';
+export { Cascader } from './components/Cascader';
+export type { CascaderProps, CascaderOption } from './components/Cascader';
+export { Sidebar, SidebarGroup, SidebarItem, SidebarFooter, SidebarToggle } from './components/Sidebar';
+export type {
+  SidebarProps,
+  SidebarGroupProps,
+  SidebarItemProps,
+  SidebarFooterProps,
+  SidebarToggleProps,
+} from './components/Sidebar';
+export { Tour } from './components/Tour';
+export type { TourProps, TourStep, TourCloseReason, TourPlacement } from './components/Tour';
 
 // agent components
 export { ChatMessage } from './components/ChatMessage';
