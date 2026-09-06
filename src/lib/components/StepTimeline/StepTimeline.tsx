@@ -35,7 +35,7 @@ const item = css`
   &:not(:last-child)::before {
     content: '';
     position: absolute;
-    left: 0.5625rem;
+    inset-inline-start: 0.5625rem;
     top: 1.5rem;
     bottom: 0;
     width: 2px;

@@ -1,0 +1,2790 @@
+{
+  "AccordionItemProps": [
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "description": "Header text shown in the summary"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Collapsible content"
+    }
+  ],
+  "AccordionProps": [
+    {
+      "name": "exclusive",
+      "type": "boolean",
+      "default": "false",
+      "description": "Only one item open at a time (uses name attribute)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "AccordionItem elements"
+    }
+  ],
+  "AffixProps": [
+    {
+      "name": "position",
+      "type": "'top' | 'bottom'",
+      "default": "'top'",
+      "description": "Viewport edge"
+    },
+    {
+      "name": "offset",
+      "type": "number",
+      "default": "0",
+      "description": "Pixel offset from edge"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "style",
+      "type": "CSSProperties",
+      "description": "Inline styles"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Content to affix"
+    }
+  ],
+  "AlertProps": [
+    {
+      "name": "variant",
+      "type": "'info' | 'success' | 'warning' | 'danger'",
+      "default": "'info'",
+      "description": "Color variant"
+    },
+    {
+      "name": "visible",
+      "type": "Control<boolean> | boolean",
+      "default": "true",
+      "description": "Visibility state (controllable)"
+    },
+    {
+      "name": "closable",
+      "type": "boolean",
+      "default": "false",
+      "description": "Show a close button"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Called when the close button is clicked"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Alert content"
+    }
+  ],
+  "ApprovalCardProps": [
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "default": "'Approval Required'",
+      "description": "Card title"
+    },
+    {
+      "name": "description",
+      "type": "ReactNode",
+      "description": "Description text"
+    },
+    {
+      "name": "onApprove",
+      "type": "() => void",
+      "description": "Called when approve is clicked"
+    },
+    {
+      "name": "onDeny",
+      "type": "() => void",
+      "description": "Called when deny is clicked"
+    },
+    {
+      "name": "approveText",
+      "type": "string",
+      "default": "'Approve'",
+      "description": "Approve button text"
+    },
+    {
+      "name": "denyText",
+      "type": "string",
+      "default": "'Deny'",
+      "description": "Deny button text"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Additional content"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "AspectRatioProps": [
+    {
+      "name": "ratio",
+      "type": "number",
+      "default": "16/9",
+      "description": "Aspect ratio (width / height)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Content to render inside"
+    }
+  ],
+  "AvatarProps": [
+    {
+      "name": "src",
+      "type": "string",
+      "description": "Image URL"
+    },
+    {
+      "name": "alt",
+      "type": "string",
+      "description": "Alt text; first letter used as fallback"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Avatar size"
+    },
+    {
+      "name": "fallback",
+      "type": "ReactNode",
+      "description": "Custom fallback content"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "BackToTopProps": [
+    {
+      "name": "threshold",
+      "type": "number",
+      "default": "300",
+      "description": "Scroll distance before showing (px)"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "default": "'↑'",
+      "description": "Button content"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "BadgeProps": [
+    {
+      "name": "variant",
+      "type": "'default' | 'success' | 'warning' | 'danger' | 'info'",
+      "default": "'default'",
+      "description": "Color variant"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md'",
+      "default": "'md'",
+      "description": "Size of the badge"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Badge content"
+    }
+  ],
+  "BannerProps": [
+    {
+      "name": "visible",
+      "type": "Control<boolean> | boolean",
+      "description": "Controlled visibility"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Close handler; shows close button when provided"
+    },
+    {
+      "name": "variant",
+      "type": "'info' | 'success' | 'warning' | 'danger'",
+      "default": "'info'",
+      "description": "Color variant"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Banner content"
+    }
+  ],
+  "BottomSheetProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "description": "Controlled open state"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Called when sheet closes"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Sheet content"
+    }
+  ],
+  "BreadcrumbItemProps": [
+    {
+      "name": "href",
+      "type": "string",
+      "description": "Link URL; omit for current page"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Item label"
+    }
+  ],
+  "BreadcrumbProps": [
+    {
+      "name": "separator",
+      "type": "ReactNode",
+      "default": "'/'",
+      "description": "Separator between items"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "BreadcrumbItem elements"
+    }
+  ],
+  "ButtonProps": [
+    {
+      "name": "variant",
+      "type": "'solid' | 'outline' | 'ghost'",
+      "default": "'solid'",
+      "description": "Visual style of the button"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Size of the button"
+    },
+    {
+      "name": "square",
+      "type": "boolean",
+      "default": "false",
+      "description": "Equal padding on all sides, ideal for icon-only buttons"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the button"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "...rest",
+      "type": "ButtonHTMLAttributes",
+      "description": "All native button attributes (except type)"
+    }
+  ],
+  "CardProps": [
+    {
+      "name": "variant",
+      "type": "'elevated' | 'outlined' | 'filled'",
+      "default": "'elevated'",
+      "description": "Visual style of the card"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Card content"
+    }
+  ],
+  "CarouselProps": [
+    {
+      "name": "value",
+      "type": "Control<number> | number",
+      "description": "Active slide index"
+    },
+    {
+      "name": "autoPlay",
+      "type": "boolean",
+      "default": "false",
+      "description": "Auto-advance slides"
+    },
+    {
+      "name": "interval",
+      "type": "number",
+      "default": "5000",
+      "description": "Auto-play interval in ms"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "CarouselSlide elements"
+    }
+  ],
+  "ChatContainerProps": [
+    {
+      "name": "autoScroll",
+      "type": "boolean",
+      "default": "true",
+      "description": "Automatically scroll to bottom on new content"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Chat messages"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "ChatInputProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Input value (controllable)"
+    },
+    {
+      "name": "onSend",
+      "type": "(message: string) => void",
+      "description": "Called when the user sends a message"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "'Type a message...'",
+      "description": "Input placeholder text"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the input"
+    },
+    {
+      "name": "maxLength",
+      "type": "number",
+      "description": "Maximum character length"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "ChatMessageProps": [
+    {
+      "name": "role",
+      "type": "'user' | 'assistant' | 'system'",
+      "description": "Message role determining layout and style"
+    },
+    {
+      "name": "avatar",
+      "type": "ReactNode",
+      "description": "Custom avatar content"
+    },
+    {
+      "name": "name",
+      "type": "ReactNode",
+      "description": "Display name shown in the header"
+    },
+    {
+      "name": "timestamp",
+      "type": "ReactNode",
+      "description": "Timestamp shown in the header"
+    },
+    {
+      "name": "status",
+      "type": "'sending' | 'sent' | 'error'",
+      "description": "Delivery status indicator"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Message content"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "CheckboxProps": [
+    {
+      "name": "checked",
+      "type": "Control<boolean> | boolean",
+      "description": "Controlled checked state or control object"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the checkbox"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "...rest",
+      "type": "InputHTMLAttributes",
+      "description": "All native input attributes"
+    }
+  ],
+  "ChipProps": [
+    {
+      "name": "variant",
+      "type": "'solid' | 'outline'",
+      "default": "'solid'",
+      "description": "Visual variant"
+    },
+    {
+      "name": "color",
+      "type": "'default' | 'primary' | 'success' | 'warning' | 'danger'",
+      "default": "'default'",
+      "description": "Color scheme"
+    },
+    {
+      "name": "icon",
+      "type": "ReactNode",
+      "description": "Leading icon"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Close handler; shows close button when provided"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Chip content"
+    }
+  ],
+  "CodeBlockProps": [
+    {
+      "name": "language",
+      "type": "string",
+      "description": "Language label displayed in corner"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Code content"
+    }
+  ],
+  "CollapsibleProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "description": "Controlled open state"
+    },
+    {
+      "name": "defaultOpen",
+      "type": "boolean",
+      "default": "false",
+      "description": "Initial open state"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "CollapsibleTrigger and CollapsibleContent elements"
+    }
+  ],
+  "ColorPickerProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled color value (hex)"
+    },
+    {
+      "name": "presets",
+      "type": "string[]",
+      "description": "Array of preset color hex values"
+    },
+    {
+      "name": "onChange",
+      "type": "(color: string) => void",
+      "description": "Called when color changes"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "ComboboxProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled value or control object"
+    },
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "description": "Dropdown open state (controllable)"
+    },
+    {
+      "name": "options",
+      "type": "{value: string; label: string}[]",
+      "description": "List of options"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "description": "Input placeholder text"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "CommandInputProps": [
+    {
+      "name": "placeholder",
+      "type": "string",
+      "description": "Input placeholder text"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "CommandItemProps": [
+    {
+      "name": "onSelect",
+      "type": "() => void",
+      "description": "Called when item is selected"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Item content (string for filtering)"
+    }
+  ],
+  "CommandProps": [
+    {
+      "name": "query",
+      "type": "Control<string> | string",
+      "description": "Filter query (controllable)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "CommandInput, CommandList, and CommandItem elements"
+    }
+  ],
+  "ConfirmDialogProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "description": "Controlled open state"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Called when dialog closes"
+    },
+    {
+      "name": "onConfirm",
+      "type": "() => void",
+      "description": "Called on confirm"
+    },
+    {
+      "name": "onCancel",
+      "type": "() => void",
+      "description": "Called on cancel"
+    },
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "description": "Dialog title"
+    },
+    {
+      "name": "confirmText",
+      "type": "string",
+      "default": "'Confirm'",
+      "description": "Confirm button text"
+    },
+    {
+      "name": "cancelText",
+      "type": "string",
+      "default": "'Cancel'",
+      "description": "Cancel button text"
+    },
+    {
+      "name": "variant",
+      "type": "'default' | 'danger'",
+      "default": "'default'",
+      "description": "Confirm button style"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Dialog body content"
+    }
+  ],
+  "ContainerProps": [
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg' | 'xl' | 'full'",
+      "default": "'lg'",
+      "description": "Max-width breakpoint"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Container content"
+    }
+  ],
+  "ContextMenuItemProps": [
+    {
+      "name": "onClick",
+      "type": "() => void",
+      "description": "Called when item is clicked"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the item"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Item content"
+    }
+  ],
+  "ContextMenuProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "description": "Controlled open state"
+    },
+    {
+      "name": "onOpenChange",
+      "type": "(open: boolean) => void",
+      "description": "Called when open state changes"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Trigger and Content elements"
+    }
+  ],
+  "ConversationItemProps": [
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "description": "Conversation title"
+    },
+    {
+      "name": "subtitle",
+      "type": "ReactNode",
+      "description": "Subtitle or preview text"
+    },
+    {
+      "name": "active",
+      "type": "boolean",
+      "default": "false",
+      "description": "Whether this item is currently active"
+    },
+    {
+      "name": "onClick",
+      "type": "() => void",
+      "description": "Called when the item is clicked"
+    },
+    {
+      "name": "end",
+      "type": "ReactNode",
+      "description": "Content at the end of the item"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "ConversationListProps": [
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "ConversationItem elements"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "DatepickerProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Selected date (ISO format YYYY-MM-DD)"
+    },
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "description": "Dropdown open state (controllable)"
+    },
+    {
+      "name": "min",
+      "type": "string",
+      "description": "Minimum selectable date"
+    },
+    {
+      "name": "max",
+      "type": "string",
+      "description": "Maximum selectable date"
+    },
+    {
+      "name": "locale",
+      "type": "string",
+      "description": "BCP 47 locale for month and weekday formatting (e.g. \"zh-CN\")"
+    },
+    {
+      "name": "weekStartsOn",
+      "type": "0 | 1",
+      "description": "First day of the week (0 = Sunday, 1 = Monday); defaults to the locale week info"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "'Select date'",
+      "description": "Input placeholder"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "DateRangePickerProps": [
+    {
+      "name": "startDate",
+      "type": "Control<string> | string",
+      "description": "Controlled start date"
+    },
+    {
+      "name": "endDate",
+      "type": "Control<string> | string",
+      "description": "Controlled end date"
+    },
+    {
+      "name": "onStartChange",
+      "type": "(value: string) => void",
+      "description": "Called when start date changes"
+    },
+    {
+      "name": "onEndChange",
+      "type": "(value: string) => void",
+      "description": "Called when end date changes"
+    },
+    {
+      "name": "separator",
+      "type": "ReactNode",
+      "default": "'–'",
+      "description": "Separator between inputs"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "DialogProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "default": "false",
+      "description": "Whether the dialog is open"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Called when the dialog is closed"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Dialog content"
+    }
+  ],
+  "DiffViewerProps": [
+    {
+      "name": "oldValue",
+      "type": "string",
+      "description": "Original text"
+    },
+    {
+      "name": "newValue",
+      "type": "string",
+      "description": "Modified text"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "DisclosureProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "default": "false",
+      "description": "Whether the disclosure is open"
+    },
+    {
+      "name": "summary",
+      "type": "ReactNode",
+      "description": "Header/trigger text"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Collapsible content"
+    }
+  ],
+  "DividerProps": [
+    {
+      "name": "orientation",
+      "type": "'horizontal' | 'vertical'",
+      "default": "'horizontal'",
+      "description": "Direction of the divider"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "DrawerProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "default": "false",
+      "description": "Whether the drawer is open"
+    },
+    {
+      "name": "placement",
+      "type": "'left' | 'right' | 'top' | 'bottom'",
+      "default": "'right'",
+      "description": "Edge to anchor the drawer"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Called when the drawer is closed"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Drawer content"
+    }
+  ],
+  "DropdownMenuContentProps": [
+    {
+      "name": "align",
+      "type": "'start' | 'center' | 'end'",
+      "default": "'start'",
+      "description": "Content alignment"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "MenuItem and MenuSeparator elements"
+    }
+  ],
+  "DropdownMenuItemProps": [
+    {
+      "name": "onClick",
+      "type": "() => void",
+      "description": "Called when item is clicked"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the item"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Item content"
+    }
+  ],
+  "DropdownMenuProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "description": "Controlled open state"
+    },
+    {
+      "name": "onOpenChange",
+      "type": "(open: boolean) => void",
+      "description": "Called when open state changes"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Trigger and Content elements"
+    }
+  ],
+  "EmptyProps": [
+    {
+      "name": "description",
+      "type": "string",
+      "default": "'No data'",
+      "description": "Text description below the image"
+    },
+    {
+      "name": "image",
+      "type": "ReactNode",
+      "description": "Custom image/illustration (replaces default)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Action content (e.g. a button)"
+    }
+  ],
+  "FileInputProps": [
+    {
+      "name": "accept",
+      "type": "string",
+      "description": "Accepted file types"
+    },
+    {
+      "name": "multiple",
+      "type": "boolean",
+      "default": "false",
+      "description": "Allow multiple files"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "default": "'Choose file'",
+      "description": "Custom trigger text"
+    }
+  ],
+  "FlexProps": [
+    {
+      "name": "direction",
+      "type": "'row' | 'column'",
+      "default": "'row'",
+      "description": "Flex direction"
+    },
+    {
+      "name": "align",
+      "type": "CSSProperties[\"alignItems\"]",
+      "description": "Align items"
+    },
+    {
+      "name": "justify",
+      "type": "CSSProperties[\"justifyContent\"]",
+      "description": "Justify content"
+    },
+    {
+      "name": "gap",
+      "type": "string | number",
+      "description": "Gap between items"
+    },
+    {
+      "name": "wrap",
+      "type": "boolean",
+      "default": "false",
+      "description": "Enable flex-wrap"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Flex children"
+    }
+  ],
+  "GridItemProps": [
+    {
+      "name": "span",
+      "type": "number",
+      "default": "1",
+      "description": "Number of columns to span"
+    },
+    {
+      "name": "start",
+      "type": "number",
+      "description": "Grid column start position"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Grid item content"
+    }
+  ],
+  "GridProps": [
+    {
+      "name": "columns",
+      "type": "number",
+      "default": "12",
+      "description": "Number of grid columns"
+    },
+    {
+      "name": "gap",
+      "type": "number",
+      "default": "4",
+      "description": "Gap token index (--haze-space-N)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "GridItem elements"
+    }
+  ],
+  "IconProps": [
+    {
+      "name": "icon",
+      "type": "ComponentType<SVGProps<SVGSVGElement>>",
+      "description": "SVG component to render (alternative to children). Stroke mode is auto-enabled."
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Icon size (16px / 20px / 24px)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "SVG element (used when icon prop is not provided)"
+    }
+  ],
+  "ImageProps": [
+    {
+      "name": "src",
+      "type": "string",
+      "description": "Image URL"
+    },
+    {
+      "name": "alt",
+      "type": "string",
+      "description": "Alt text"
+    },
+    {
+      "name": "fallback",
+      "type": "ReactNode",
+      "description": "Fallback content on error"
+    },
+    {
+      "name": "aspectRatio",
+      "type": "string",
+      "description": "CSS aspect-ratio value"
+    },
+    {
+      "name": "objectFit",
+      "type": "CSSProperties[\"objectFit\"]",
+      "default": "'cover'",
+      "description": "Object-fit behavior"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "InlineEditProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled value"
+    },
+    {
+      "name": "onChange",
+      "type": "(value: string) => void",
+      "description": "Called when value is committed"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "'Click to edit'",
+      "description": "Placeholder text"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable editing"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "InputProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled value or control object"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Size of the input"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the input"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "...rest",
+      "type": "InputHTMLAttributes",
+      "description": "All native input attributes"
+    }
+  ],
+  "ListProps": [
+    {
+      "name": "variant",
+      "type": "'unordered' | 'ordered' | 'none'",
+      "default": "'unordered'",
+      "description": "List style"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "ListItem elements"
+    }
+  ],
+  "LogEntry": [
+    {
+      "name": "level",
+      "type": "'debug' | 'info' | 'warn' | 'error'",
+      "description": "Log severity level"
+    },
+    {
+      "name": "message",
+      "type": "string",
+      "description": "Log message text"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "description": "Optional timestamp string"
+    }
+  ],
+  "LogViewerProps": [
+    {
+      "name": "logs",
+      "type": "LogEntry[]",
+      "description": "Array of { level, message, timestamp? }"
+    },
+    {
+      "name": "filter",
+      "type": "Control<LogLevel | null> | LogLevel | null",
+      "description": "Active level filter (controllable)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "MarkdownRendererProps": [
+    {
+      "name": "content",
+      "type": "string",
+      "description": "Markdown source string"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "MenuItemProps": [
+    {
+      "name": "onSelect",
+      "type": "() => void",
+      "description": "Called when item is selected"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the item"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Item content"
+    }
+  ],
+  "MenuProps": [
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "default": "false",
+      "description": "Whether the menu is open"
+    },
+    {
+      "name": "trigger",
+      "type": "ReactNode",
+      "description": "Trigger element"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "MenuItem and MenuDivider elements"
+    }
+  ],
+  "ModelPickerProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Selected model value"
+    },
+    {
+      "name": "options",
+      "type": "ModelOption[]",
+      "description": "Array of { value, label, description?, contextLength? }"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the picker"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "NavigationBarProps": [
+    {
+      "name": "brand",
+      "type": "ReactNode",
+      "description": "Brand/logo content"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "NavLink elements"
+    },
+    {
+      "name": "end",
+      "type": "ReactNode",
+      "description": "End slot content (e.g. login button)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "NavLinkProps": [
+    {
+      "name": "href",
+      "type": "string",
+      "default": "'#'",
+      "description": "Link URL"
+    },
+    {
+      "name": "active",
+      "type": "boolean",
+      "default": "false",
+      "description": "Mark as active"
+    },
+    {
+      "name": "onClick",
+      "type": "() => void",
+      "description": "Click handler (prevents default)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Link text"
+    }
+  ],
+  "NumberInputProps": [
+    {
+      "name": "value",
+      "type": "Control<number> | number",
+      "description": "Controlled value or control object"
+    },
+    {
+      "name": "min",
+      "type": "number",
+      "description": "Minimum value"
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "description": "Maximum value"
+    },
+    {
+      "name": "step",
+      "type": "number",
+      "default": "1",
+      "description": "Step increment"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Input size"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "OTPInputProps": [
+    {
+      "name": "length",
+      "type": "number",
+      "default": "6",
+      "description": "Number of input cells"
+    },
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled OTP value"
+    },
+    {
+      "name": "onChange",
+      "type": "(value: string) => void",
+      "description": "Called when OTP changes"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "PaginationProps": [
+    {
+      "name": "page",
+      "type": "Control<number> | number",
+      "description": "Current page number (controlled)"
+    },
+    {
+      "name": "total",
+      "type": "number",
+      "description": "Total number of items"
+    },
+    {
+      "name": "pageSize",
+      "type": "number",
+      "default": "10",
+      "description": "Items per page"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Size of pagination buttons"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "...rest",
+      "type": "NavHTMLAttributes",
+      "description": "All native nav attributes"
+    }
+  ],
+  "PasswordInputProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled value"
+    },
+    {
+      "name": "onChange",
+      "type": "(value: string) => void",
+      "description": "Called when value changes"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "description": "Input placeholder"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the input"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "PopoverProps": [
+    {
+      "name": "content",
+      "type": "ReactNode",
+      "description": "Popover panel content"
+    },
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "default": "false",
+      "description": "Whether the popover is open"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Trigger element"
+    }
+  ],
+  "ProgressProps": [
+    {
+      "name": "value",
+      "type": "number",
+      "default": "0",
+      "description": "Progress percentage (0-100)"
+    },
+    {
+      "name": "variant",
+      "type": "'bar' | 'circle'",
+      "default": "'bar'",
+      "description": "Visual style"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Size of the progress indicator"
+    },
+    {
+      "name": "color",
+      "type": "'primary' | 'success' | 'warning' | 'danger'",
+      "default": "'primary'",
+      "description": "Color variant"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "RadioGroupProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled value or control object"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "description": "HTML name attribute for the radio group"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "<Radio> elements"
+    }
+  ],
+  "RadioProps": [
+    {
+      "name": "value",
+      "type": "string",
+      "description": "Value of this radio option"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Label text"
+    }
+  ],
+  "RatingProps": [
+    {
+      "name": "value",
+      "type": "Control<number> | number",
+      "description": "Controlled rating value"
+    },
+    {
+      "name": "count",
+      "type": "number",
+      "default": "5",
+      "description": "Number of stars"
+    },
+    {
+      "name": "allowHalf",
+      "type": "boolean",
+      "default": "false",
+      "description": "Allow half-star ratings"
+    },
+    {
+      "name": "onChange",
+      "type": "(value: number) => void",
+      "description": "Called when rating changes"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "ResizableGroupProps": [
+    {
+      "name": "direction",
+      "type": "'horizontal' | 'vertical'",
+      "default": "'horizontal'",
+      "description": "Layout direction"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "ResizablePanel and ResizableHandle elements"
+    }
+  ],
+  "ResizablePanelProps": [
+    {
+      "name": "defaultSize",
+      "type": "number",
+      "default": "50",
+      "description": "Default size as percentage"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Panel content"
+    }
+  ],
+  "ScrollAreaProps": [
+    {
+      "name": "maxHeight",
+      "type": "number | string",
+      "description": "Maximum height (px if number)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Scrollable content"
+    }
+  ],
+  "SegmentedProps": [
+    {
+      "name": "options",
+      "type": "SegmentedOption[]",
+      "description": "Array of strings or { value, label, disabled? }"
+    },
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled selected value"
+    },
+    {
+      "name": "onChange",
+      "type": "(value: string) => void",
+      "description": "Called when selection changes"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Segment size"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "SelectProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled value or control object"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Size of the select"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the select"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "<Option> elements"
+    }
+  ],
+  "SkeletonProps": [
+    {
+      "name": "variant",
+      "type": "'text' | 'circular' | 'rectangular'",
+      "default": "'text'",
+      "description": "Shape of the skeleton"
+    },
+    {
+      "name": "width",
+      "type": "string | number",
+      "description": "Width (px if number)"
+    },
+    {
+      "name": "height",
+      "type": "string | number",
+      "description": "Height (px if number)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "SliderProps": [
+    {
+      "name": "value",
+      "type": "Control<number> | number",
+      "description": "Controlled value or control object"
+    },
+    {
+      "name": "min",
+      "type": "number",
+      "default": "0",
+      "description": "Minimum value"
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": "100",
+      "description": "Maximum value"
+    },
+    {
+      "name": "step",
+      "type": "number",
+      "default": "1",
+      "description": "Step increment"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the slider"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "SpinnerProps": [
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Spinner size (16px / 24px / 32px)"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "StatGroupProps": [
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Stat elements"
+    }
+  ],
+  "StatProps": [
+    {
+      "name": "title",
+      "type": "string",
+      "description": "Stat label"
+    },
+    {
+      "name": "value",
+      "type": "string | number",
+      "description": "Stat value"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "description": "Additional description"
+    },
+    {
+      "name": "trend",
+      "type": "'up' | 'down' | 'neutral'",
+      "description": "Trend direction"
+    },
+    {
+      "name": "trendValue",
+      "type": "string",
+      "description": "Trend percentage text"
+    },
+    {
+      "name": "prefix",
+      "type": "ReactNode",
+      "description": "Content before value"
+    },
+    {
+      "name": "suffix",
+      "type": "ReactNode",
+      "description": "Content after value"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "StepperProps": [
+    {
+      "name": "activeStep",
+      "type": "Control<number> | number",
+      "default": "0",
+      "description": "Index of the currently active step"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Step elements"
+    }
+  ],
+  "StepProps": [
+    {
+      "name": "title",
+      "type": "string",
+      "description": "Step label text"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "description": "Optional description below the title"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "StepTimelineItemProps": [
+    {
+      "name": "label",
+      "type": "ReactNode",
+      "description": "Step label text"
+    },
+    {
+      "name": "description",
+      "type": "ReactNode",
+      "description": "Optional description below the label"
+    },
+    {
+      "name": "status",
+      "type": "'pending' | 'active' | 'done' | 'error'",
+      "default": "'pending'",
+      "description": "Step status"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "StepTimelineProps": [
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "StepTimelineItem elements"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "StreamingTextProps": [
+    {
+      "name": "text",
+      "type": "string",
+      "description": "Full text to stream"
+    },
+    {
+      "name": "speed",
+      "type": "number",
+      "default": "20",
+      "description": "Milliseconds between characters"
+    },
+    {
+      "name": "onComplete",
+      "type": "() => void",
+      "description": "Called when streaming finishes"
+    },
+    {
+      "name": "showCursor",
+      "type": "boolean",
+      "default": "true",
+      "description": "Show blinking cursor during streaming"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "SwipeActionProps": [
+    {
+      "name": "left",
+      "type": "ReactNode",
+      "description": "Left swipe action content"
+    },
+    {
+      "name": "right",
+      "type": "ReactNode",
+      "description": "Right swipe action content"
+    },
+    {
+      "name": "onSwipeLeft",
+      "type": "() => void",
+      "description": "Called when swiped left past threshold"
+    },
+    {
+      "name": "onSwipeRight",
+      "type": "() => void",
+      "description": "Called when swiped right past threshold"
+    },
+    {
+      "name": "threshold",
+      "type": "number",
+      "default": "80",
+      "description": "Swipe distance threshold in px"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Main content"
+    }
+  ],
+  "SwitchProps": [
+    {
+      "name": "checked",
+      "type": "Control<boolean> | boolean",
+      "description": "Controlled checked state or control object"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Size of the switch"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the switch"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "TableProps": [
+    {
+      "name": "striped",
+      "type": "boolean",
+      "default": "false",
+      "description": "Alternate row backgrounds"
+    },
+    {
+      "name": "bordered",
+      "type": "boolean",
+      "default": "false",
+      "description": "Add cell borders"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "TableHead and TableBody elements"
+    }
+  ],
+  "TabPanelProps": [
+    {
+      "name": "value",
+      "type": "string",
+      "description": "Matches the corresponding Tab value"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Panel content"
+    }
+  ],
+  "TabProps": [
+    {
+      "name": "value",
+      "type": "string",
+      "description": "Unique value identifying this tab"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Tab label"
+    }
+  ],
+  "TabsProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Active tab value"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "TabList and TabPanel elements"
+    }
+  ],
+  "TagGroupItemProps": [
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Close handler; shows close button when provided"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Tag content"
+    }
+  ],
+  "TagGroupProps": [
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "TagGroupItem elements"
+    }
+  ],
+  "TagInputProps": [
+    {
+      "name": "value",
+      "type": "Control<string[]> | string[]",
+      "description": "Controlled tags array"
+    },
+    {
+      "name": "onChange",
+      "type": "(value: string[]) => void",
+      "description": "Called when tags change"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "description": "Input placeholder"
+    },
+    {
+      "name": "maxTags",
+      "type": "number",
+      "description": "Maximum number of tags"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the input"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "TagProps": [
+    {
+      "name": "variant",
+      "type": "'default' | 'primary' | 'success' | 'warning' | 'danger'",
+      "default": "'default'",
+      "description": "Color variant"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md'",
+      "default": "'md'",
+      "description": "Tag size"
+    },
+    {
+      "name": "closable",
+      "type": "boolean",
+      "default": "false",
+      "description": "Show close button"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Called when close button is clicked"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Tag content"
+    }
+  ],
+  "TextareaProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled value or control object"
+    },
+    {
+      "name": "size",
+      "type": "'sm' | 'md' | 'lg'",
+      "default": "'md'",
+      "description": "Size of the textarea"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the textarea"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "...rest",
+      "type": "TextareaHTMLAttributes",
+      "description": "All native textarea attributes"
+    }
+  ],
+  "TextProps": [
+    {
+      "name": "type",
+      "type": "'default' | 'secondary' | 'muted'",
+      "default": "'default'",
+      "description": "Text color variant"
+    },
+    {
+      "name": "strong",
+      "type": "boolean",
+      "default": "false",
+      "description": "Render as bold"
+    },
+    {
+      "name": "code",
+      "type": "boolean",
+      "default": "false",
+      "description": "Render as inline code"
+    },
+    {
+      "name": "mark",
+      "type": "boolean",
+      "default": "false",
+      "description": "Highlight text"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Text content"
+    }
+  ],
+  "ThinkingIndicatorProps": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "'Thinking'",
+      "description": "Label text shown before the dots"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "TimelineItemProps": [
+    {
+      "name": "title",
+      "type": "string",
+      "description": "Event title"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "description": "Event description"
+    },
+    {
+      "name": "time",
+      "type": "string",
+      "description": "Timestamp text"
+    },
+    {
+      "name": "color",
+      "type": "'primary' | 'success' | 'warning' | 'danger' | 'default'",
+      "default": "'default'",
+      "description": "Dot color"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "TimePickerProps": [
+    {
+      "name": "value",
+      "type": "Control<string> | string",
+      "description": "Controlled time value"
+    },
+    {
+      "name": "onChange",
+      "type": "(value: string) => void",
+      "description": "Called when time changes"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "description": "Input placeholder"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "...rest",
+      "type": "InputHTMLAttributes",
+      "description": "All native input attributes"
+    }
+  ],
+  "TitleProps": [
+    {
+      "name": "level",
+      "type": "1 | 2 | 3 | 4 | 5",
+      "default": "1",
+      "description": "Heading level"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Title content"
+    }
+  ],
+  "TokenCounterProps": [
+    {
+      "name": "used",
+      "type": "number",
+      "description": "Number of tokens used"
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "description": "Maximum token capacity"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "'Tokens'",
+      "description": "Label text"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "ToolCallCardProps": [
+    {
+      "name": "name",
+      "type": "string",
+      "description": "Tool or function name"
+    },
+    {
+      "name": "input",
+      "type": "ReactNode",
+      "description": "Input passed to the tool"
+    },
+    {
+      "name": "output",
+      "type": "ReactNode",
+      "description": "Output returned by the tool"
+    },
+    {
+      "name": "status",
+      "type": "'pending' | 'running' | 'done' | 'error'",
+      "default": "'pending'",
+      "description": "Execution status"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "TooltipProps": [
+    {
+      "name": "content",
+      "type": "ReactNode",
+      "description": "Tooltip content"
+    },
+    {
+      "name": "position",
+      "type": "'top' | 'bottom' | 'left' | 'right'",
+      "default": "'top'",
+      "description": "Tooltip placement"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Trigger element"
+    }
+  ],
+  "TransferProps": [
+    {
+      "name": "dataSource",
+      "type": "TransferItem[]",
+      "description": "Array of { key, title, disabled? } items"
+    },
+    {
+      "name": "targetKeys",
+      "type": "Control<string[]> | string[]",
+      "description": "Keys of items in the target list (controllable)"
+    },
+    {
+      "name": "onChange",
+      "type": "(targetKeys, direction, moveKeys) => void",
+      "description": "Called when items are moved"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "TreeNodeData": [
+    {
+      "name": "key",
+      "type": "string",
+      "description": "Unique identifier for the node"
+    },
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "description": "Display title of the node"
+    },
+    {
+      "name": "children",
+      "type": "TreeNodeData[]",
+      "description": "Child nodes"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the node"
+    },
+    {
+      "name": "selectable",
+      "type": "boolean",
+      "default": "true",
+      "description": "Allow node selection"
+    },
+    {
+      "name": "disableCheckbox",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the checkbox for this node"
+    },
+    {
+      "name": "icon",
+      "type": "ReactNode",
+      "description": "Custom icon for this node"
+    },
+    {
+      "name": "isLeaf",
+      "type": "boolean",
+      "description": "Mark as leaf node (for lazy loading)"
+    }
+  ],
+  "TreeProps": [
+    {
+      "name": "treeData",
+      "type": "TreeNodeData[]",
+      "description": "Array of tree node data"
+    },
+    {
+      "name": "checkable",
+      "type": "boolean",
+      "default": "false",
+      "description": "Show checkbox before each node"
+    },
+    {
+      "name": "checkStrictly",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable parent-child cascade selection"
+    },
+    {
+      "name": "selectable",
+      "type": "boolean",
+      "default": "true",
+      "description": "Allow node selection"
+    },
+    {
+      "name": "multiple",
+      "type": "boolean",
+      "default": "false",
+      "description": "Allow multiple selection"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": "false",
+      "description": "Disable the entire tree"
+    },
+    {
+      "name": "blockNode",
+      "type": "boolean",
+      "default": "false",
+      "description": "Node content takes full width"
+    },
+    {
+      "name": "showLine",
+      "type": "boolean",
+      "default": "false",
+      "description": "Show connecting lines between nodes"
+    },
+    {
+      "name": "showIcon",
+      "type": "boolean",
+      "default": "false",
+      "description": "Show icon for each node"
+    },
+    {
+      "name": "expandedKeys",
+      "type": "Control<string[]> | string[]",
+      "description": "Controlled expanded node keys"
+    },
+    {
+      "name": "selectedKeys",
+      "type": "Control<string[]> | string[]",
+      "description": "Controlled selected node keys"
+    },
+    {
+      "name": "checkedKeys",
+      "type": "Control<string[]> | string[]",
+      "description": "Controlled checked node keys"
+    },
+    {
+      "name": "titleRender",
+      "type": "(node: TreeNodeData) => ReactNode",
+      "description": "Custom title renderer"
+    },
+    {
+      "name": "iconRender",
+      "type": "(node: TreeNodeData) => ReactNode",
+      "description": "Custom icon renderer"
+    },
+    {
+      "name": "switcherIcon",
+      "type": "ReactNode",
+      "description": "Custom expand/collapse icon"
+    },
+    {
+      "name": "onExpand",
+      "type": "(expandedKeys: string[], info: {...}) => void",
+      "description": "Callback when node is expanded/collapsed"
+    },
+    {
+      "name": "onSelect",
+      "type": "(selectedKeys: string[], info: {...}) => void",
+      "description": "Callback when node is selected"
+    },
+    {
+      "name": "onCheck",
+      "type": "(checkedKeys: string[] | {...}, info: {...}) => void",
+      "description": "Callback when node is checked"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "UploadProps": [
+    {
+      "name": "accept",
+      "type": "string",
+      "description": "Accepted file types"
+    },
+    {
+      "name": "multiple",
+      "type": "boolean",
+      "default": "false",
+      "description": "Allow multiple files"
+    },
+    {
+      "name": "onChange",
+      "type": "(files: File[]) => void",
+      "description": "Called when files are selected"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Custom dropzone content"
+    }
+  ],
+  "VirtualListProps": [
+    {
+      "name": "items",
+      "type": "T[]",
+      "description": "Array of items to render"
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "description": "Container height in px"
+    },
+    {
+      "name": "itemHeight",
+      "type": "number",
+      "description": "Height of each item in px"
+    },
+    {
+      "name": "renderItem",
+      "type": "(item: T, index: number) => ReactNode",
+      "description": "Item renderer"
+    },
+    {
+      "name": "overscan",
+      "type": "number",
+      "default": "5",
+      "description": "Extra items to render outside viewport"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ]
+}

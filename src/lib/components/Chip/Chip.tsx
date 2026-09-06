@@ -59,7 +59,7 @@ const closeBtn = css`
   padding: 0;
   opacity: 0.6;
   transition: opacity 0.15s;
-  margin-left: var(--haze-space-1);
+  margin-inline-start: var(--haze-space-1);
 
   &:hover {
     opacity: 1;

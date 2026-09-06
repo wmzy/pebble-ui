@@ -10,9 +10,13 @@ import react from '@vitejs/plugin-react';
 import wyw from '@wyw-in-js/vite';
 import rollupPluginTypeAsJsonSchema from 'rollup-plugin-type-as-json-schema';
 
+import { writeProps } from './scripts/generate-props.mjs';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isLibBuild = process.env.BUILD_LIB === 'true';
 const isDemoBuild = process.env.BUILD_DEMO === 'true';
+// The docs app: demo build or dev server — but never the lib build or vitest.
+const isDocsApp = isDemoBuild || (!isLibBuild && !process.env.VITEST);
 
 // Lib entries: the root barrel plus every per-directory barrel that the
 // package's `exports` subpaths (./components/*, ./form, ./tokens) point
@@ -53,6 +57,23 @@ function jsxPlusPlugin(): Plugin {
       });
       if (!result?.code) return;
       return { code: result.code, map: result.map };
+    },
+  };
+}
+
+// Docs app only: regenerate src/generated/props.json (PropsTable `of` data
+// and the Copy-import index) before the module graph resolves it. Skipped
+// for lib builds and vitest — neither reads the generated file.
+function propsDocgenPlugin(): Plugin {
+  return {
+    name: 'haze-ui-props-docgen',
+    configResolved() {
+      const { changed, componentCount } = writeProps(__dirname);
+      if (changed) {
+        console.log(
+          `props-docgen: regenerated src/generated/props.json (${componentCount} components)`
+        );
+      }
     },
   };
 }
@@ -120,6 +141,7 @@ export default defineConfig({
   },
   plugins: [
     jsxPlusPlugin(),
+    ...(isDocsApp ? [propsDocgenPlugin()] : []),
     react({
       exclude: ['node_modules/**'],
     }),

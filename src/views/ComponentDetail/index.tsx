@@ -1,8 +1,28 @@
 import type { ReactNode } from 'react';
 
-import { useState } from 'react';
+import type { Table as TanStackTable } from '@tanstack/react-table';
+
+import { useEffect, useRef, useState } from 'react';
 import { useMatched } from '@native-router/react';
+import {
+  columnFilteringFeature,
+  createColumnHelper,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  filterFn_includesString,
+  globalFilteringFeature,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_text,
+  tableFeatures,
+  useTable,
+} from '@tanstack/react-table';
 import { useControl } from 'react-use-control';
+
+import { css } from '@linaria/core';
 
 const noop = () => {
   /* demo placeholder */
@@ -15,6 +35,7 @@ import {
   Select,
   Option,
   Checkbox,
+  CheckboxCore,
   Switch,
   Badge,
   Dialog,
@@ -24,6 +45,7 @@ import {
   Radio,
   RadioGroup,
   Textarea,
+  TextareaCore,
   Slider,
   Tabs,
   TabList,
@@ -100,6 +122,7 @@ import {
   CollapsibleContent,
   Transfer,
   Upload,
+  UploadCore,
   ColorPicker,
   Rating,
   Timeline,
@@ -144,6 +167,8 @@ import {
 } from '@/lib';
 
 import FormDemo from '@/components/FormDemo';
+
+import generatedProps from '@/generated/props.json';
 
 import PropsTable from './PropsTable';
 import A11yNote from './A11yNote';
@@ -303,45 +328,7 @@ function ButtonDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'variant',
-              type: "'solid' | 'outline' | 'ghost'",
-              default: "'solid'",
-              description: 'Visual style of the button',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Size of the button',
-            },
-            {
-              name: 'square',
-              type: 'boolean',
-              default: 'false',
-              description:
-                'Equal padding on all sides, ideal for icon-only buttons',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the button',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: '...rest',
-              type: 'ButtonHTMLAttributes',
-              description: 'All native button attributes (except type)',
-            },
-          ]}
-        />
+        <PropsTable of='ButtonProps' />
       </div>
 
       <div className={section}>
@@ -404,37 +391,7 @@ function InputDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Controlled value or control object',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Size of the input',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the input',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: '...rest',
-              type: 'InputHTMLAttributes',
-              description: 'All native input attributes',
-            },
-          ]}
-        />
+        <PropsTable of='InputProps' />
       </div>
 
       <div className={section}>
@@ -506,37 +463,7 @@ function SelectDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Controlled value or control object',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Size of the select',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the select',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: '<Option> elements',
-            },
-          ]}
-        />
+        <PropsTable of='SelectProps' />
       </div>
 
       <div className={section}>
@@ -598,31 +525,7 @@ function CheckboxDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'checked',
-              type: 'Control<boolean> | boolean',
-              description: 'Controlled checked state or control object',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the checkbox',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: '...rest',
-              type: 'InputHTMLAttributes',
-              description: 'All native input attributes',
-            },
-          ]}
-        />
+        <PropsTable of='CheckboxProps' />
       </div>
 
       <div className={section}>
@@ -677,32 +580,7 @@ function SwitchDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'checked',
-              type: 'Control<boolean> | boolean',
-              description: 'Controlled checked state or control object',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Size of the switch',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the switch',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='SwitchProps' />
       </div>
 
       <div className={section}>
@@ -760,32 +638,7 @@ function BadgeDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'variant',
-              type: "'default' | 'success' | 'warning' | 'danger' | 'info'",
-              default: "'default'",
-              description: 'Color variant',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md'",
-              default: "'md'",
-              description: 'Size of the badge',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Badge content',
-            },
-          ]}
-        />
+        <PropsTable of='BadgeProps' />
       </div>
 
       <div className={section}>
@@ -842,31 +695,7 @@ function DialogDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'open',
-              type: 'Control<boolean> | boolean',
-              default: 'false',
-              description: 'Whether the dialog is open',
-            },
-            {
-              name: 'onClose',
-              type: '() => void',
-              description: 'Called when the dialog is closed',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Dialog content',
-            },
-          ]}
-        />
+        <PropsTable of='DialogProps' />
       </div>
 
       <div className={section}>
@@ -922,31 +751,7 @@ function TooltipDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'content',
-              type: 'ReactNode',
-              description: 'Tooltip content',
-            },
-            {
-              name: 'position',
-              type: "'top' | 'bottom' | 'left' | 'right'",
-              default: "'top'",
-              description: 'Tooltip placement',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Trigger element',
-            },
-          ]}
-        />
+        <PropsTable of='TooltipProps' />
       </div>
 
       <div className={section}>
@@ -992,31 +797,7 @@ function PopoverDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'content',
-              type: 'ReactNode',
-              description: 'Popover panel content',
-            },
-            {
-              name: 'open',
-              type: 'Control<boolean> | boolean',
-              default: 'false',
-              description: 'Whether the popover is open',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Trigger element',
-            },
-          ]}
-        />
+        <PropsTable of='PopoverProps' />
       </div>
 
       <div className={section}>
@@ -1094,26 +875,7 @@ function CardDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'variant',
-              type: "'elevated' | 'outlined' | 'filled'",
-              default: "'elevated'",
-              description: 'Visual style of the card',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Card content',
-            },
-          ]}
-        />
+        <PropsTable of='CardProps' />
       </div>
 
       <div className={section}>
@@ -1156,49 +918,12 @@ function RadioDemo() {
 
       <div className={section}>
         <h2>RadioGroup Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Controlled value or control object',
-            },
-            {
-              name: 'name',
-              type: 'string',
-              description: 'HTML name attribute for the radio group',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: '<Radio> elements',
-            },
-          ]}
-        />
+        <PropsTable of='RadioGroupProps' />
       </div>
 
       <div className={section}>
         <h2>Radio Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'string',
-              description: 'Value of this radio option',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            { name: 'children', type: 'ReactNode', description: 'Label text' },
-          ]}
-        />
+        <PropsTable of='RadioProps' />
       </div>
 
       <div className={section}>
@@ -1260,37 +985,7 @@ function TextareaDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Controlled value or control object',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Size of the textarea',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the textarea',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: '...rest',
-              type: 'TextareaHTMLAttributes',
-              description: 'All native textarea attributes',
-            },
-          ]}
-        />
+        <PropsTable of='TextareaProps' />
       </div>
 
       <div className={section}>
@@ -1353,44 +1048,7 @@ function SliderDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<number> | number',
-              description: 'Controlled value or control object',
-            },
-            {
-              name: 'min',
-              type: 'number',
-              default: '0',
-              description: 'Minimum value',
-            },
-            {
-              name: 'max',
-              type: 'number',
-              default: '100',
-              description: 'Maximum value',
-            },
-            {
-              name: 'step',
-              type: 'number',
-              default: '1',
-              description: 'Step increment',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the slider',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='SliderProps' />
       </div>
 
       <div className={section}>
@@ -1445,67 +1103,17 @@ function TabsDemo() {
 
       <div className={section}>
         <h2>Tabs Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Active tab value',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'TabList and TabPanel elements',
-            },
-          ]}
-        />
+        <PropsTable of='TabsProps' />
       </div>
 
       <div className={section}>
         <h2>Tab Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'string',
-              description: 'Unique value identifying this tab',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            { name: 'children', type: 'ReactNode', description: 'Tab label' },
-          ]}
-        />
+        <PropsTable of='TabProps' />
       </div>
 
       <div className={section}>
         <h2>TabPanel Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'string',
-              description: 'Matches the corresponding Tab value',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Panel content',
-            },
-          ]}
-        />
+        <PropsTable of='TabPanelProps' />
       </div>
 
       <div className={section}>
@@ -1564,49 +1172,12 @@ function AccordionDemo() {
 
       <div className={section}>
         <h2>Accordion Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'exclusive',
-              type: 'boolean',
-              default: 'false',
-              description: 'Only one item open at a time (uses name attribute)',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'AccordionItem elements',
-            },
-          ]}
-        />
+        <PropsTable of='AccordionProps' />
       </div>
 
       <div className={section}>
         <h2>AccordionItem Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'title',
-              type: 'ReactNode',
-              description: 'Header text shown in the summary',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Collapsible content',
-            },
-          ]}
-        />
+        <PropsTable of='AccordionItemProps' />
       </div>
 
       <div className={section}>
@@ -1679,43 +1250,7 @@ function AlertDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'variant',
-              type: "'info' | 'success' | 'warning' | 'danger'",
-              default: "'info'",
-              description: 'Color variant',
-            },
-            {
-              name: 'visible',
-              type: 'Control<boolean> | boolean',
-              default: 'true',
-              description: 'Visibility state (controllable)',
-            },
-            {
-              name: 'closable',
-              type: 'boolean',
-              default: 'false',
-              description: 'Show a close button',
-            },
-            {
-              name: 'onClose',
-              type: '() => void',
-              description: 'Called when the close button is clicked',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Alert content',
-            },
-          ]}
-        />
+        <PropsTable of='AlertProps' />
       </div>
 
       <div className={section}>
@@ -1766,32 +1301,7 @@ function AvatarDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'src', type: 'string', description: 'Image URL' },
-            {
-              name: 'alt',
-              type: 'string',
-              description: 'Alt text; first letter used as fallback',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Avatar size',
-            },
-            {
-              name: 'fallback',
-              type: 'ReactNode',
-              description: 'Custom fallback content',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='AvatarProps' />
       </div>
 
       <div className={section}>
@@ -1864,39 +1374,7 @@ function TagDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'variant',
-              type: "'default' | 'primary' | 'success' | 'warning' | 'danger'",
-              default: "'default'",
-              description: 'Color variant',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md'",
-              default: "'md'",
-              description: 'Tag size',
-            },
-            {
-              name: 'closable',
-              type: 'boolean',
-              default: 'false',
-              description: 'Show close button',
-            },
-            {
-              name: 'onClose',
-              type: '() => void',
-              description: 'Called when close button is clicked',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            { name: 'children', type: 'ReactNode', description: 'Tag content' },
-          ]}
-        />
+        <PropsTable of='TagProps' />
       </div>
 
       <div className={section}>
@@ -1959,31 +1437,7 @@ function SkeletonDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'variant',
-              type: "'text' | 'circular' | 'rectangular'",
-              default: "'text'",
-              description: 'Shape of the skeleton',
-            },
-            {
-              name: 'width',
-              type: 'string | number',
-              description: 'Width (px if number)',
-            },
-            {
-              name: 'height',
-              type: 'string | number',
-              description: 'Height (px if number)',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='SkeletonProps' />
       </div>
 
       <div className={section}>
@@ -2189,32 +1643,7 @@ import { Icon } from 'haze-ui';
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'icon',
-              type: 'ComponentType<SVGProps<SVGSVGElement>>',
-              description:
-                'SVG component to render (alternative to children). Stroke mode is auto-enabled.',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Icon size (16px / 20px / 24px)',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'SVG element (used when icon prop is not provided)',
-            },
-          ]}
-        />
+        <PropsTable of='IconProps' />
       </div>
 
       <div className={section}>
@@ -2273,33 +1702,7 @@ function ImageDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'src', type: 'string', description: 'Image URL' },
-            { name: 'alt', type: 'string', description: 'Alt text' },
-            {
-              name: 'fallback',
-              type: 'ReactNode',
-              description: 'Fallback content on error',
-            },
-            {
-              name: 'aspectRatio',
-              type: 'string',
-              description: 'CSS aspect-ratio value',
-            },
-            {
-              name: 'objectFit',
-              type: 'CSSProperties["objectFit"]',
-              default: "'cover'",
-              description: 'Object-fit behavior',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ImageProps' />
       </div>
 
       <div className={section}>
@@ -2347,47 +1750,7 @@ function FlexDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'direction',
-              type: "'row' | 'column'",
-              default: "'row'",
-              description: 'Flex direction',
-            },
-            {
-              name: 'align',
-              type: 'CSSProperties["alignItems"]',
-              description: 'Align items',
-            },
-            {
-              name: 'justify',
-              type: 'CSSProperties["justifyContent"]',
-              description: 'Justify content',
-            },
-            {
-              name: 'gap',
-              type: 'string | number',
-              description: 'Gap between items',
-            },
-            {
-              name: 'wrap',
-              type: 'boolean',
-              default: 'false',
-              description: 'Enable flex-wrap',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Flex children',
-            },
-          ]}
-        />
+        <PropsTable of='FlexProps' />
       </div>
 
       <div className={section}>
@@ -2440,45 +1803,12 @@ function BreadcrumbDemo() {
 
       <div className={section}>
         <h2>Breadcrumb Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'separator',
-              type: 'ReactNode',
-              default: "'/'",
-              description: 'Separator between items',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'BreadcrumbItem elements',
-            },
-          ]}
-        />
+        <PropsTable of='BreadcrumbProps' />
       </div>
 
       <div className={section}>
         <h2>BreadcrumbItem Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'href',
-              type: 'string',
-              description: 'Link URL; omit for current page',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            { name: 'children', type: 'ReactNode', description: 'Item label' },
-          ]}
-        />
+        <PropsTable of='BreadcrumbItemProps' />
       </div>
 
       <div className={section}>
@@ -2528,31 +1858,7 @@ function DisclosureDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'open',
-              type: 'Control<boolean> | boolean',
-              default: 'false',
-              description: 'Whether the disclosure is open',
-            },
-            {
-              name: 'summary',
-              type: 'ReactNode',
-              description: 'Header/trigger text',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Collapsible content',
-            },
-          ]}
-        />
+        <PropsTable of='DisclosureProps' />
       </div>
 
       <div className={section}>
@@ -2599,60 +1905,12 @@ function MenuDemo() {
 
       <div className={section}>
         <h2>Menu Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'open',
-              type: 'Control<boolean> | boolean',
-              default: 'false',
-              description: 'Whether the menu is open',
-            },
-            {
-              name: 'trigger',
-              type: 'ReactNode',
-              description: 'Trigger element',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'MenuItem and MenuDivider elements',
-            },
-          ]}
-        />
+        <PropsTable of='MenuProps' />
       </div>
 
       <div className={section}>
         <h2>MenuItem Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'onSelect',
-              type: '() => void',
-              description: 'Called when item is selected',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the item',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Item content',
-            },
-          ]}
-        />
+        <PropsTable of='MenuItemProps' />
       </div>
 
       <div className={section}>
@@ -2713,34 +1971,7 @@ function NumberInputDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<number> | number',
-              description: 'Controlled value or control object',
-            },
-            { name: 'min', type: 'number', description: 'Minimum value' },
-            { name: 'max', type: 'number', description: 'Maximum value' },
-            {
-              name: 'step',
-              type: 'number',
-              default: '1',
-              description: 'Step increment',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Input size',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='NumberInputProps' />
       </div>
 
       <div className={section}>
@@ -2782,32 +2013,7 @@ function FileInputDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'accept',
-              type: 'string',
-              description: 'Accepted file types',
-            },
-            {
-              name: 'multiple',
-              type: 'boolean',
-              default: 'false',
-              description: 'Allow multiple files',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              default: "'Choose file'",
-              description: 'Custom trigger text',
-            },
-          ]}
-        />
+        <PropsTable of='FileInputProps' />
       </div>
 
       <div className={section}>
@@ -2953,26 +2159,7 @@ function ListDemo() {
 
       <div className={section}>
         <h2>List Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'variant',
-              type: "'unordered' | 'ordered' | 'none'",
-              default: "'unordered'",
-              description: 'List style',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'ListItem elements',
-            },
-          ]}
-        />
+        <PropsTable of='ListProps' />
       </div>
 
       <div className={section}>
@@ -3021,35 +2208,7 @@ function ComboboxDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Controlled value or control object',
-            },
-            {
-              name: 'open',
-              type: 'Control<boolean> | boolean',
-              description: 'Dropdown open state (controllable)',
-            },
-            {
-              name: 'options',
-              type: '{value: string; label: string}[]',
-              description: 'List of options',
-            },
-            {
-              name: 'placeholder',
-              type: 'string',
-              description: 'Input placeholder text',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ComboboxProps' />
       </div>
 
       <div className={section}>
@@ -3150,32 +2309,7 @@ function TableDemo() {
 
       <div className={section}>
         <h2>Table Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'striped',
-              type: 'boolean',
-              default: 'false',
-              description: 'Alternate row backgrounds',
-            },
-            {
-              name: 'bordered',
-              type: 'boolean',
-              default: 'false',
-              description: 'Add cell borders',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'TableHead and TableBody elements',
-            },
-          ]}
-        />
+        <PropsTable of='TableProps' />
       </div>
 
       <div className={section}>
@@ -3193,6 +2327,496 @@ function TableDemo() {
       </div>
 
       <CssVarsSection component='table' />
+    </>
+  );
+}
+
+// ─── DataTable (recipe) ────────────────────────────────────────
+
+type EmployeeStatus = 'active' | 'away' | 'offline';
+
+type EmployeeRow = {
+  id: number;
+  name: string;
+  role: string;
+  status: EmployeeStatus;
+  score: number;
+  joined: string;
+};
+
+const DATA_TABLE_ROWS = 500;
+const DATA_TABLE_PAGE_SIZE = 10;
+
+const EMPLOYEE_FIRST_NAMES = [
+  'Ada',
+  'Grace',
+  'Alan',
+  'Edsger',
+  'Barbara',
+  'Donald',
+  'Radia',
+  'Vint',
+  'Margaret',
+  'Dennis',
+  'Frances',
+  'Ken',
+  'Katherine',
+  'John',
+  'Hedy',
+  'Linus',
+];
+const EMPLOYEE_LAST_NAMES = [
+  'Lovelace',
+  'Hopper',
+  'Turing',
+  'Dijkstra',
+  'Liskov',
+  'Knuth',
+  'Perlman',
+  'Cerf',
+  'Hamilton',
+  'Ritchie',
+  'Allen',
+  'Thompson',
+  'Johnson',
+  'Backus',
+  'Lamarr',
+  'Torvalds',
+];
+const EMPLOYEE_ROLES = [
+  'Engineer',
+  'Designer',
+  'Manager',
+  'Analyst',
+  'Researcher',
+  'Product Lead',
+];
+const EMPLOYEE_STATUSES: readonly EmployeeStatus[] = [
+  'active',
+  'away',
+  'offline',
+];
+
+const STATUS_BADGE_VARIANT = {
+  active: 'success',
+  away: 'warning',
+  offline: 'default',
+} as const;
+
+/** mulberry32 finalizer — a deterministic per-index hash so the demo dataset
+ * is identical on every load (no Math.random). */
+function seededHash(seed: number): number {
+  const t0 = (seed + 0x6d2b79f5) | 0;
+  const t1 = Math.imul(t0 ^ (t0 >>> 15), t0 | 1);
+  const t2 = t1 ^ (t1 + Math.imul(t1 ^ (t1 >>> 7), t1 | 61));
+  return (t2 ^ (t2 >>> 14)) >>> 0;
+}
+
+const dataTableData: EmployeeRow[] = Array.from(
+  { length: DATA_TABLE_ROWS },
+  (_, i) => {
+    const a = seededHash(i);
+    const b = seededHash(i + 0x9e37);
+    const c = seededHash(i + 0x85eb);
+    const d = seededHash(i + 0x27d4);
+    return {
+      id: i + 1,
+      name: `${EMPLOYEE_FIRST_NAMES[a % EMPLOYEE_FIRST_NAMES.length]!} ${
+        EMPLOYEE_LAST_NAMES[b % EMPLOYEE_LAST_NAMES.length]!
+      }`,
+      role: EMPLOYEE_ROLES[c % EMPLOYEE_ROLES.length]!,
+      status: EMPLOYEE_STATUSES[d % EMPLOYEE_STATUSES.length]!,
+      score: Math.round(450 + ((a >>> 8) % 551)) / 10,
+      joined: new Date(Date.UTC(2018 + (b % 8), c % 12, 1 + (d % 28)))
+        .toISOString()
+        .slice(0, 10),
+    };
+  }
+);
+
+/** Register only the features the recipe uses — v9's tree-shaking contract.
+ * Global filtering reuses the column-filtering pipeline, so both features and
+ * the shared filtered row model slot are required. */
+const dataTableFeatures = tableFeatures({
+  columnFilteringFeature,
+  globalFilteringFeature,
+  filteredRowModel: createFilteredRowModel(),
+  filterFns: { includesString: filterFn_includesString },
+  rowPaginationFeature,
+  paginatedRowModel: createPaginatedRowModel(),
+  rowSelectionFeature,
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
+});
+
+const dataTableHelper = createColumnHelper<
+  typeof dataTableFeatures,
+  EmployeeRow
+>();
+
+const dataTableColumns = dataTableHelper.columns([
+  dataTableHelper.display({
+    id: 'select',
+    // CheckboxCore (not Checkbox): cells are driven by table state every
+    // render, and Checkbox's `checked` prop is uncontrolled-initial only —
+    // CheckboxCore takes an honest controlled `checked` + `onChange(checked)`.
+    header: ({ table }) => <SelectAllCheckbox table={table} />,
+    cell: ({ row }) => (
+      <CheckboxCore
+        checked={row.getIsSelected()}
+        onChange={(checked) => row.toggleSelected(checked)}
+        aria-label={`Select ${row.original.name}`}
+      />
+    ),
+  }),
+  dataTableHelper.accessor('id', { header: 'ID' }),
+  dataTableHelper.accessor('name', { header: 'Name' }),
+  dataTableHelper.accessor('role', { header: 'Role' }),
+  dataTableHelper.accessor('status', {
+    header: 'Status',
+    cell: (info) => (
+      <Badge size='sm' variant={STATUS_BADGE_VARIANT[info.getValue()]}>
+        {info.getValue()}
+      </Badge>
+    ),
+  }),
+  dataTableHelper.accessor('score', {
+    header: 'Score',
+    cell: (info) => info.getValue().toFixed(1),
+  }),
+  dataTableHelper.accessor('joined', { header: 'Joined' }),
+]);
+
+const dataTableToolbar = css`
+  display: flex;
+  align-items: center;
+  gap: var(--haze-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--haze-space-3);
+`;
+
+const dataTableFilterInput = css`
+  max-width: 240px;
+`;
+
+const dataTableMeta = css`
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-sm);
+`;
+
+const dataTableSortBtn = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-1);
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--haze-color-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-radius: var(--haze-radius-sm);
+    box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
+  }
+`;
+
+const dataTableSortIcon = css`
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-xs);
+`;
+
+const dataTableRowStyle = css`
+  &:hover {
+    background: var(--haze-color-bg-subtle);
+  }
+`;
+
+const dataTableRowSelected = css`
+  &,
+  &:hover {
+    background: var(--haze-color-primary-subtle);
+  }
+`;
+
+const dataTableCheckCell = css`
+  width: 1%;
+  white-space: nowrap;
+`;
+
+const dataTableNumCell = css`
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+`;
+
+const dataTableEmptyCell = css`
+  padding: var(--haze-space-6) var(--haze-space-3);
+  text-align: center;
+  color: var(--haze-color-text-muted);
+`;
+
+const dataTableFooter = css`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--haze-space-3);
+  flex-wrap: wrap;
+  margin-top: var(--haze-space-3);
+`;
+
+const dataTableNote = css`
+  max-width: 75ch;
+  color: var(--haze-color-text-secondary);
+  font-size: var(--haze-text-sm);
+  line-height: var(--haze-leading-normal);
+
+  code {
+    font-family: var(--haze-font-mono);
+    font-size: var(--haze-text-xs);
+  }
+`;
+
+/**
+ * Header select-all checkbox. React has no `indeterminate` prop (it strips
+ * the attribute entirely), so the DOM property is set on the wrapped input
+ * after every commit; CheckboxCore supplies the native input, controlled
+ * checked state, and focus ring.
+ */
+function SelectAllCheckbox({
+  table,
+}: {
+  table: TanStackTable<typeof dataTableFeatures, EmployeeRow>;
+}) {
+  const wrapRef = useRef<HTMLSpanElement>(null);
+  const allSelected = table.getIsAllRowsSelected();
+  const someSelected = table.getIsSomeRowsSelected();
+
+  useEffect(() => {
+    const input = wrapRef.current?.querySelector('input');
+    if (input) input.indeterminate = someSelected && !allSelected;
+  });
+
+  return (
+    <span ref={wrapRef}>
+      <CheckboxCore
+        checked={allSelected}
+        onChange={(checked) => table.toggleAllRowsSelected(checked)}
+        aria-label='Select all rows'
+      />
+    </span>
+  );
+}
+
+function DataTableDemo() {
+  const [, , pageCtrl] = useControl(undefined, 1);
+  const [page, setPage] = useControl(pageCtrl);
+  const [, , filterCtrl] = useControl(undefined, '');
+  const [globalFilter, setGlobalFilter] = useControl(filterCtrl);
+
+  const table = useTable({
+    features: dataTableFeatures,
+    columns: dataTableColumns,
+    data: dataTableData,
+    getRowId: (row) => String(row.id),
+    globalFilterFn: 'includesString',
+    state: {
+      globalFilter,
+      pagination: { pageIndex: page - 1, pageSize: DATA_TABLE_PAGE_SIZE },
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === 'function'
+          ? updater({
+              pageIndex: page - 1,
+              pageSize: DATA_TABLE_PAGE_SIZE,
+            })
+          : updater;
+      setPage(Math.max(1, next.pageIndex + 1));
+    },
+  });
+
+  const filteredCount = table.getFilteredRowModel().rows.length;
+  const selectedCount = table.getSelectedRowIds().length;
+  const pageCount = Math.max(
+    1,
+    Math.ceil(filteredCount / DATA_TABLE_PAGE_SIZE)
+  );
+
+  return (
+    <>
+      <h1>DataTable</h1>
+      <p className={intro}>
+        A recipe, not a library component:{' '}
+        <code>@tanstack/react-table</code> (headless) owns sorting, selection,
+        filtering and pagination state, while haze-ui Table primitives render
+        the semantic markup. This page shows the full composition — feature
+        registration, column definitions, and controlled state slices wired
+        to haze-ui&apos;s controllable-state controls.
+      </p>
+
+      <div className={section}>
+        <h2>Sortable, Selectable, Filterable</h2>
+        <div className={dataTableToolbar}>
+          <Input
+            className={dataTableFilterInput}
+            value={filterCtrl}
+            placeholder='Filter by name, role, status…'
+            aria-label='Filter table rows'
+          />
+          <span className={dataTableMeta}>
+            {filteredCount === DATA_TABLE_ROWS
+              ? `${DATA_TABLE_ROWS} rows`
+              : `${filteredCount} of ${DATA_TABLE_ROWS} rows match`}
+            {selectedCount > 0 && ` · ${selectedCount} selected`}
+          </span>
+        </div>
+
+        <Table>
+          <TableHead>
+            <TableRow>
+              {table.getHeaderGroups()[0]!.headers.map((header) => {
+                const sorted = header.column.getIsSorted();
+                return (
+                  <TableCell
+                    as='th'
+                    key={header.id}
+                    aria-sort={
+                      sorted === 'asc'
+                        ? 'ascending'
+                        : sorted === 'desc'
+                          ? 'descending'
+                          : undefined
+                    }
+                  >
+                    {header.column.getCanSort() ? (
+                      <button
+                        type='button'
+                        className={dataTableSortBtn}
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <table.FlexRender header={header} />
+                        <span
+                          className={dataTableSortIcon}
+                          aria-hidden='true'
+                        >
+                          {sorted === 'asc'
+                            ? '↑'
+                            : sorted === 'desc'
+                              ? '↓'
+                              : '↕'}
+                        </span>
+                      </button>
+                    ) : (
+                      <table.FlexRender header={header} />
+                    )}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                x-class={[
+                  dataTableRowStyle,
+                  row.getIsSelected() && dataTableRowSelected,
+                ]}
+              >
+                {row.getAllCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    x-class={[
+                      cell.column.id === 'select' && dataTableCheckCell,
+                      cell.column.id === 'score' && dataTableNumCell,
+                    ]}
+                  >
+                    <table.FlexRender cell={cell} />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+            {table.getRowModel().rows.length === 0 && (
+              <TableRow>
+                <TableCell
+                  className={dataTableEmptyCell}
+                  colSpan={dataTableColumns.length}
+                >
+                  No rows match “{globalFilter}”.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        <div className={dataTableFooter}>
+          <span className={dataTableMeta}>
+            Page {page} of {pageCount}
+          </span>
+          <Pagination
+            page={pageCtrl}
+            total={filteredCount}
+            pageSize={DATA_TABLE_PAGE_SIZE}
+            size='sm'
+          />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Dataset Size & Virtualization</h2>
+        <p className={dataTableNote}>
+          This demo pins the dataset at {DATA_TABLE_ROWS} deterministic rows
+          (a seeded hash regenerates identical data on every load) and keeps
+          the DOM at one page — {DATA_TABLE_PAGE_SIZE} rows — regardless of
+          dataset size, because the paginated row model slices before render.
+          haze-ui&apos;s <code>VirtualList</code> is not a natural host for
+          table rows: it stacks absolutely-positioned single-column rows, so
+          semantic <code>&lt;tr&gt;</code> elements cannot live inside a{' '}
+          <code>&lt;tbody&gt;</code>, and aligning columns across
+          independently positioned rows would require fixed-width grid cells
+          that abandon the Table primitives. For scroll-position
+          virtualization of 10k+ rows, pair TanStack Table&apos;s row models
+          with a grid-based virtual scroller (e.g.{' '}
+          <code>@tanstack/react-virtual</code>) outside semantic table
+          markup.
+        </p>
+      </div>
+
+      <div className={section}>
+        <h2>Accessibility</h2>
+        <A11yNote>
+          <ul>
+            <li>
+              The sorted column header carries{' '}
+              <strong>aria-sort=&quot;ascending&quot;/&quot;descending&quot;</strong>;
+              every sort toggle is a native <strong>&lt;button&gt;</strong>{' '}
+              reachable by Tab and activated with Enter/Space
+            </li>
+            <li>
+              Clicks cycle <strong>unsorted → ascending → descending →
+              unsorted</strong> (Shift-click adds a multi-sort column)
+            </li>
+            <li>
+              Row selection uses native checkboxes with per-row{' '}
+              <strong>aria-label</strong>; the header checkbox reflects
+              all/some/none via <strong>checked</strong> +{' '}
+              <strong>indeterminate</strong> and selects across all pages
+            </li>
+            <li>
+              Pagination reuses the library <strong>Pagination</strong> nav
+              with <strong>aria-current=&quot;page&quot;</strong>
+            </li>
+          </ul>
+        </A11yNote>
+      </div>
     </>
   );
 }
@@ -3259,37 +2883,7 @@ function CarouselDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<number> | number',
-              description: 'Active slide index',
-            },
-            {
-              name: 'autoPlay',
-              type: 'boolean',
-              default: 'false',
-              description: 'Auto-advance slides',
-            },
-            {
-              name: 'interval',
-              type: 'number',
-              default: '5000',
-              description: 'Auto-play interval in ms',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'CarouselSlide elements',
-            },
-          ]}
-        />
+        <PropsTable of='CarouselProps' />
       </div>
 
       <div className={section}>
@@ -3346,41 +2940,7 @@ function DatepickerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Selected date (ISO format YYYY-MM-DD)',
-            },
-            {
-              name: 'open',
-              type: 'Control<boolean> | boolean',
-              description: 'Dropdown open state (controllable)',
-            },
-            {
-              name: 'min',
-              type: 'string',
-              description: 'Minimum selectable date',
-            },
-            {
-              name: 'max',
-              type: 'string',
-              description: 'Maximum selectable date',
-            },
-            {
-              name: 'placeholder',
-              type: 'string',
-              default: "'Select date'",
-              description: 'Input placeholder',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='DatepickerProps' />
       </div>
 
       <div className={section}>
@@ -3467,164 +3027,12 @@ function TreeDemo() {
 
       <div className={section}>
         <h2>Tree Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'treeData',
-              type: 'TreeNodeData[]',
-              description: 'Array of tree node data',
-            },
-            {
-              name: 'checkable',
-              type: 'boolean',
-              default: 'false',
-              description: 'Show checkbox before each node',
-            },
-            {
-              name: 'checkStrictly',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable parent-child cascade selection',
-            },
-            {
-              name: 'selectable',
-              type: 'boolean',
-              default: 'true',
-              description: 'Allow node selection',
-            },
-            {
-              name: 'multiple',
-              type: 'boolean',
-              default: 'false',
-              description: 'Allow multiple selection',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the entire tree',
-            },
-            {
-              name: 'blockNode',
-              type: 'boolean',
-              default: 'false',
-              description: 'Node content takes full width',
-            },
-            {
-              name: 'showLine',
-              type: 'boolean',
-              default: 'false',
-              description: 'Show connecting lines between nodes',
-            },
-            {
-              name: 'showIcon',
-              type: 'boolean',
-              default: 'false',
-              description: 'Show icon for each node',
-            },
-            {
-              name: 'expandedKeys',
-              type: 'Control<string[]> | string[]',
-              description: 'Controlled expanded node keys',
-            },
-            {
-              name: 'selectedKeys',
-              type: 'Control<string[]> | string[]',
-              description: 'Controlled selected node keys',
-            },
-            {
-              name: 'checkedKeys',
-              type: 'Control<string[]> | string[]',
-              description: 'Controlled checked node keys',
-            },
-            {
-              name: 'titleRender',
-              type: '(node: TreeNodeData) => ReactNode',
-              description: 'Custom title renderer',
-            },
-            {
-              name: 'iconRender',
-              type: '(node: TreeNodeData) => ReactNode',
-              description: 'Custom icon renderer',
-            },
-            {
-              name: 'switcherIcon',
-              type: 'ReactNode',
-              description: 'Custom expand/collapse icon',
-            },
-            {
-              name: 'onExpand',
-              type: '(expandedKeys: string[], info: {...}) => void',
-              description: 'Callback when node is expanded/collapsed',
-            },
-            {
-              name: 'onSelect',
-              type: '(selectedKeys: string[], info: {...}) => void',
-              description: 'Callback when node is selected',
-            },
-            {
-              name: 'onCheck',
-              type: '(checkedKeys: string[] | {...}, info: {...}) => void',
-              description: 'Callback when node is checked',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='TreeProps' />
       </div>
 
       <div className={section}>
         <h2>TreeNodeData</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'key',
-              type: 'string',
-              description: 'Unique identifier for the node',
-            },
-            {
-              name: 'title',
-              type: 'ReactNode',
-              description: 'Display title of the node',
-            },
-            {
-              name: 'children',
-              type: 'TreeNodeData[]',
-              description: 'Child nodes',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the node',
-            },
-            {
-              name: 'selectable',
-              type: 'boolean',
-              default: 'true',
-              description: 'Allow node selection',
-            },
-            {
-              name: 'disableCheckbox',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the checkbox for this node',
-            },
-            {
-              name: 'icon',
-              type: 'ReactNode',
-              description: 'Custom icon for this node',
-            },
-            {
-              name: 'isLeaf',
-              type: 'boolean',
-              description: 'Mark as leaf node (for lazy loading)',
-            },
-          ]}
-        />
+        <PropsTable of='TreeNodeData' />
       </div>
 
       <div className={section}>
@@ -3687,21 +3095,7 @@ function DividerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'orientation',
-              type: "'horizontal' | 'vertical'",
-              default: "'horizontal'",
-              description: 'Direction of the divider',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='DividerProps' />
       </div>
 
       <div className={section}>
@@ -3753,21 +3147,7 @@ function SpinnerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Spinner size (16px / 24px / 32px)',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='SpinnerProps' />
       </div>
 
       <div className={section}>
@@ -3820,31 +3200,7 @@ function EmptyDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'description',
-              type: 'string',
-              default: "'No data'",
-              description: 'Text description below the image',
-            },
-            {
-              name: 'image',
-              type: 'ReactNode',
-              description: 'Custom image/illustration (replaces default)',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Action content (e.g. a button)',
-            },
-          ]}
-        />
+        <PropsTable of='EmptyProps' />
       </div>
 
       <div className={section}>
@@ -3905,39 +3261,7 @@ function ProgressDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'number',
-              default: '0',
-              description: 'Progress percentage (0-100)',
-            },
-            {
-              name: 'variant',
-              type: "'bar' | 'circle'",
-              default: "'bar'",
-              description: 'Visual style',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Size of the progress indicator',
-            },
-            {
-              name: 'color',
-              type: "'primary' | 'success' | 'warning' | 'danger'",
-              default: "'primary'",
-              description: 'Color variant',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ProgressProps' />
       </div>
 
       <div className={section}>
@@ -3987,42 +3311,7 @@ function PaginationDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'page',
-              type: 'Control<number> | number',
-              description: 'Current page number (controlled)',
-            },
-            {
-              name: 'total',
-              type: 'number',
-              description: 'Total number of items',
-            },
-            {
-              name: 'pageSize',
-              type: 'number',
-              default: '10',
-              description: 'Items per page',
-            },
-            {
-              name: 'size',
-              type: "'sm' | 'md' | 'lg'",
-              default: "'md'",
-              description: 'Size of pagination buttons',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: '...rest',
-              type: 'NavHTMLAttributes',
-              description: 'All native nav attributes',
-            },
-          ]}
-        />
+        <PropsTable of='PaginationProps' />
       </div>
 
       <div className={section}>
@@ -4090,61 +3379,12 @@ function GridDemo() {
 
       <div className={section}>
         <h2>Grid Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'columns',
-              type: 'number',
-              default: '12',
-              description: 'Number of grid columns',
-            },
-            {
-              name: 'gap',
-              type: 'number',
-              default: '4',
-              description: 'Gap token index (--haze-space-N)',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'GridItem elements',
-            },
-          ]}
-        />
+        <PropsTable of='GridProps' />
       </div>
 
       <div className={section}>
         <h2>GridItem Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'span',
-              type: 'number',
-              default: '1',
-              description: 'Number of columns to span',
-            },
-            {
-              name: 'start',
-              type: 'number',
-              description: 'Grid column start position',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Grid item content',
-            },
-          ]}
-        />
+        <PropsTable of='GridItemProps' />
       </div>
 
       <div className={section}>
@@ -4197,37 +3437,7 @@ function DrawerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'open',
-              type: 'Control<boolean> | boolean',
-              default: 'false',
-              description: 'Whether the drawer is open',
-            },
-            {
-              name: 'placement',
-              type: "'left' | 'right' | 'top' | 'bottom'",
-              default: "'right'",
-              description: 'Edge to anchor the drawer',
-            },
-            {
-              name: 'onClose',
-              type: '() => void',
-              description: 'Called when the drawer is closed',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Drawer content',
-            },
-          ]}
-        />
+        <PropsTable of='DrawerProps' />
       </div>
 
       <div className={section}>
@@ -4281,49 +3491,12 @@ function StepperDemo() {
 
       <div className={section}>
         <h2>Stepper Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'activeStep',
-              type: 'Control<number> | number',
-              default: '0',
-              description: 'Index of the currently active step',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Step elements',
-            },
-          ]}
-        />
+        <PropsTable of='StepperProps' />
       </div>
 
       <div className={section}>
         <h2>Step Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'title',
-              type: 'string',
-              description: 'Step label text',
-            },
-            {
-              name: 'description',
-              type: 'string',
-              description: 'Optional description below the title',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='StepProps' />
       </div>
 
       <div className={section}>
@@ -4344,6 +3517,480 @@ function StepperDemo() {
       </div>
 
       <CssVarsSection component='stepper' />
+    </>
+  );
+}
+
+// ─── ChatMessage — edit / resend / branch (recipe) ────────────
+
+type BranchMessage = {
+  id: number;
+  role: 'user' | 'assistant';
+  name: string;
+  time: string;
+  text: string;
+  /** Canned deterministic rewrites — each resend cycles to the next one. */
+  alts?: string[];
+};
+
+const INITIAL_CONVERSATION: BranchMessage[] = [
+  {
+    id: 1,
+    role: 'user',
+    name: 'You',
+    time: '10:00',
+    text: 'Should a design system ship its own virtualizer, or wrap a headless core?',
+  },
+  {
+    id: 2,
+    role: 'assistant',
+    name: 'Assistant',
+    time: '10:01',
+    text: 'Wrap it. A design system owns tokens and markup, not scroll math — reuse a battle-tested core and spend your budget on theming and a11y.',
+    alts: [
+      'Ship a thin list. Most consumers need 10k rows, not exotic layouts — one small absolute-positioned renderer keeps the bundle honest.',
+      'Both: a tiny built-in for chat-shaped lists, an escape hatch to the headless core for grids and variable heights.',
+    ],
+  },
+  {
+    id: 3,
+    role: 'user',
+    name: 'You',
+    time: '10:02',
+    text: 'What breaks first if we hand-roll it?',
+  },
+  {
+    id: 4,
+    role: 'assistant',
+    name: 'Assistant',
+    time: '10:03',
+    text: 'Edge cases: momentum scrolling on iOS, resize observers, RTL coordinates. That is why this recipe composes instead of rewriting.',
+    alts: [
+      'Keyboard and screen-reader order. Absolutely-positioned rows leave DOM order alone, but focus management and live regions are on you.',
+      'Measurement drift. One rounding error per row and the bottom of a 10k-item list is off by a full screen.',
+    ],
+  },
+];
+
+/** Deterministic continuations handed to new branches, cycled by branch
+ * count — the same click sequence always grows the same tree. */
+const BRANCH_CONTINUATIONS: Omit<BranchMessage, 'id'>[][] = [
+  [
+    {
+      role: 'user',
+      name: 'You',
+      time: '10:04',
+      text: 'Alright — show me the wrap in three lines.',
+    },
+    {
+      role: 'assistant',
+      name: 'Assistant',
+      time: '10:05',
+      text: 'Core list, themed row, scroll-synced pager. Everything else is product code.',
+      alts: [
+        'Core list, themed row, bottom-anchored log. Ship the boring version first.',
+      ],
+    },
+  ],
+  [
+    {
+      role: 'user',
+      name: 'You',
+      time: '10:04',
+      text: 'And when the list is a grid instead?',
+    },
+    {
+      role: 'assistant',
+      name: 'Assistant',
+      time: '10:05',
+      text: 'Then the single-column stack stops fitting — keep the tokens, swap the renderer for a windowing core that understands columns.',
+      alts: [
+        'Then columns need a windowing core; keep the tokens, swap the renderer.',
+      ],
+    },
+  ],
+];
+
+/** Fixed delay between reflow steps — deterministic, no network involved. */
+const RESEND_STEP_MS = 500;
+
+const branchToolbar = css`
+  display: flex;
+  align-items: center;
+  gap: var(--haze-space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--haze-space-3);
+`;
+
+const branchTabs = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-1);
+  padding: var(--haze-space-1);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-md);
+  background: var(--haze-color-bg-muted);
+`;
+
+const branchTab = css`
+  padding: var(--haze-space-0) var(--haze-space-3);
+  border: none;
+  border-radius: var(--haze-radius-sm);
+  background: transparent;
+  color: var(--haze-color-text-secondary);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  font-weight: var(--haze-weight-medium);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--haze-color-text);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--haze-color-bg);
+    color: var(--haze-color-text);
+    box-shadow: var(--haze-shadow-sm);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--haze-color-focus-ring);
+  }
+`;
+
+const branchList = css`
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-lg);
+  padding: 0 var(--haze-space-3);
+  max-width: 640px;
+`;
+
+const msgActions = css`
+  display: flex;
+  align-items: center;
+  gap: var(--haze-space-1);
+  flex-shrink: 0;
+  padding-top: var(--haze-space-6);
+  opacity: 0;
+  transition: opacity var(--haze-duration-fast) var(--haze-ease);
+`;
+
+const msgRow = css`
+  display: flex;
+  align-items: flex-start;
+  gap: var(--haze-space-2);
+
+  /* Reveal on hover AND focus-within — Tab reaches the transparent
+     buttons, and the row lights up around whichever one is focused. */
+  &:hover ${msgActions},
+  &:focus-within ${msgActions} {
+    opacity: 1;
+  }
+`;
+
+const msgRowUser = css`
+  flex-direction: row-reverse;
+`;
+
+const msgGrow = css`
+  flex: 1;
+  min-width: 0;
+`;
+
+const msgEditor = css`
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-2);
+`;
+
+const msgEditorButtons = css`
+  display: flex;
+  gap: var(--haze-space-2);
+`;
+
+const msgPending = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-1);
+
+  i {
+    width: 0.35em;
+    height: 0.35em;
+    border-radius: var(--haze-radius-full);
+    background: currentColor;
+    animation: msgWorkflowPulse var(--haze-duration-slow)
+      var(--haze-ease-in-out) infinite;
+
+    &:nth-child(2) {
+      animation-delay: calc(var(--haze-duration-slow) / 3);
+    }
+
+    &:nth-child(3) {
+      animation-delay: calc(var(--haze-duration-slow) / 1.5);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    i {
+      animation: none;
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes msgWorkflowPulse {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+`;
+
+/**
+ * Edit / resend / branch over a plain `branches: BranchMessage[][]` tree —
+ * each branch owns a full timeline, so switching branches is just an index
+ * swap and edits stay branch-local. The active branch rides a
+ * controllable-state control (same pattern as the DataTable recipe).
+ */
+function ChatMessageWorkflowDemo() {
+  const [branches, setBranches] = useState<BranchMessage[][]>([
+    INITIAL_CONVERSATION,
+  ]);
+  const [, , activeCtrl] = useControl(undefined, 0);
+  const [active, setActive] = useControl(activeCtrl);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [draft, setDraft] = useState('');
+  /** Resend variant counter per assistant message id — cycles `alts`. */
+  const [variantPick, setVariantPick] = useState<Record<number, number>>({});
+  /** Rows in [from, done] are resolved; rows in (done, end) are pending. */
+  const [reflow, setReflow] = useState<{ from: number; done: number } | null>(
+    null
+  );
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearTimers = () => {
+    for (const t of timersRef.current) clearTimeout(t);
+    timersRef.current = [];
+  };
+
+  useEffect(() => clearTimers, []);
+
+  const cancelTransient = () => {
+    clearTimers();
+    setReflow(null);
+    setEditingId(null);
+    setDraft('');
+  };
+
+  const branch = branches[Math.min(active, branches.length - 1)]!;
+
+  const switchBranch = (index: number) => {
+    if (index === active) return;
+    cancelTransient();
+    setActive(index);
+  };
+
+  const startEdit = (m: BranchMessage) => {
+    clearTimers();
+    setReflow(null);
+    setEditingId(m.id);
+    // start from the text the reader sees (the current variant, if any)
+    setDraft(textOf(m));
+  };
+
+  const saveEdit = () => {
+    const text = draft.trim();
+    if (!text || editingId == null) return;
+    setBranches((prev) =>
+      prev.map((b, i) =>
+        i === active
+          ? b.map((m) => (m.id === editingId ? { ...m, text } : m))
+          : b
+      )
+    );
+    // the edit supersedes any resend variant — show m.text again
+    setVariantPick((picks) => ({ ...picks, [editingId]: 0 }));
+    setEditingId(null);
+    setDraft('');
+  };
+
+  const startResend = (from: number) => {
+    clearTimers();
+    setEditingId(null);
+    setDraft('');
+    setReflow({ from, done: from - 1 });
+    for (let k = from; k < branch.length; k++) {
+      timersRef.current.push(
+        setTimeout(() => {
+          // A newer resend may have restarted the chain — stale steps die.
+          setReflow((r) => (r?.from === from ? { ...r, done: k } : r));
+          const message = branch[k]!;
+          if (message.role === 'assistant' && message.alts) {
+            setVariantPick((picks) => ({
+              ...picks,
+              [message.id]: (picks[message.id] ?? 0) + 1,
+            }));
+          }
+        }, RESEND_STEP_MS * (k - from + 1))
+      );
+    }
+  };
+
+  const branchFrom = (index: number) => {
+    const head = branch.slice(0, index + 1);
+    const continuation =
+      BRANCH_CONTINUATIONS[branches.length % BRANCH_CONTINUATIONS.length]!;
+    const idBase = 1000 + branches.length * 10;
+    const tail = continuation.map((m, k) => ({ ...m, id: idBase + k }));
+    cancelTransient();
+    setBranches((prev) => [...prev, [...head, ...tail]]);
+    setActive(branches.length);
+  };
+
+  const resetDemo = () => {
+    cancelTransient();
+    setVariantPick({});
+    setBranches([INITIAL_CONVERSATION]);
+    setActive(0);
+  };
+
+  /** pick 0 = original text; each resend after that cycles `alts`. */
+  const textOf = (m: BranchMessage): string => {
+    const pick = variantPick[m.id] ?? 0;
+    if (pick === 0 || !m.alts?.length) return m.text;
+    return m.alts[(pick - 1) % m.alts.length]!;
+  };
+
+  return (
+    <>
+      <div className={branchToolbar}>
+        {branches.length > 1 ? (
+          <span
+            className={branchTabs}
+            role='group'
+            aria-label='Conversation branches'
+          >
+            {branches.map((b, i) => (
+              <button
+                key={i}
+                type='button'
+                className={branchTab}
+                aria-pressed={i === active}
+                aria-label={`Branch v${i + 1} (${b.length} messages)`}
+                onClick={() => switchBranch(i)}
+              >
+                v{i + 1}
+              </button>
+            ))}
+          </span>
+        ) : (
+          <span className={dataTableMeta}>
+            Single branch — use ⑂ on a message to fork the timeline.
+          </span>
+        )}
+        <Button size='sm' variant='ghost' onClick={resetDemo}>
+          Reset demo
+        </Button>
+      </div>
+
+      <div className={branchList}>
+        {branch.map((m, index) => {
+          const loading =
+            reflow !== null && index >= reflow.from && index > reflow.done;
+          const editing = editingId === m.id;
+          return (
+            <div key={m.id} x-class={[msgRow, m.role === 'user' && msgRowUser]}>
+              <ChatMessage
+                role={m.role}
+                name={m.name}
+                timestamp={m.time}
+                className={msgGrow}
+              >
+                {editing ? (
+                  <div className={msgEditor}>
+                    <TextareaCore
+                      value={draft}
+                      onChange={setDraft}
+                      rows={3}
+                      aria-label={`Edit message ${index + 1}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                          e.preventDefault();
+                          saveEdit();
+                        }
+                        if (e.key === 'Escape') {
+                          e.preventDefault();
+                          cancelTransient();
+                        }
+                      }}
+                    />
+                    <div className={msgEditorButtons}>
+                      <Button
+                        size='sm'
+                        onClick={saveEdit}
+                        disabled={!draft.trim()}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={cancelTransient}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : loading ? (
+                  <span
+                    className={msgPending}
+                    role={index === reflow.from ? 'status' : undefined}
+                    aria-label={`Re-sending message ${index + 1}`}
+                  >
+                    <i aria-hidden='true' />
+                    <i aria-hidden='true' />
+                    <i aria-hidden='true' />
+                  </span>
+                ) : (
+                  textOf(m)
+                )}
+              </ChatMessage>
+              {!editing && !loading && (
+                <div className={msgActions}>
+                  <Button
+                    size='sm'
+                    variant='ghost'
+                    aria-label={`Edit message ${index + 1}`}
+                    onClick={() => startEdit(m)}
+                  >
+                    ✎
+                  </Button>
+                  <Button
+                    size='sm'
+                    variant='ghost'
+                    aria-label={`Resend message ${index + 1} and regenerate everything after it`}
+                    onClick={() => startResend(index)}
+                  >
+                    ↻
+                  </Button>
+                  <Button
+                    size='sm'
+                    variant='ghost'
+                    aria-label={`Branch from message ${index + 1}`}
+                    onClick={() => branchFrom(index)}
+                  >
+                    ⑂
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }
@@ -4382,46 +4029,29 @@ function ChatMessageDemo() {
       </div>
 
       <div className={section}>
+        <h2>Edit / Resend / Branch (recipe)</h2>
+        <ChatMessageWorkflowDemo />
+        <p className={dataTableNote}>
+          The message tree is a plain <code>branches: BranchMessage[][]</code>{' '}
+          — every branch owns a full timeline, so branching forks the active
+          one after the chosen message (deterministic continuations, cycled
+          by branch count) and the switcher above restores each branch&apos;s
+          own tail. Edits are branch-local. Resend replays deterministically:
+          the target row and everything after it become pending placeholders,
+          then resolve one per {RESEND_STEP_MS} ms via a{' '}
+          <code>setTimeout</code> chain — user messages return verbatim,
+          assistant answers cycle through canned <code>alts</code>. No{' '}
+          <code>Math.random</code> anywhere: the same clicks always produce
+          the same tree. Row actions stay transparent until the row is
+          hovered <em>or</em> focused — <code>:focus-within</code> keeps them
+          keyboard-reachable — and each button carries a descriptive{' '}
+          <code>aria-label</code>.
+        </p>
+      </div>
+
+      <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'role',
-              type: "'user' | 'assistant' | 'system'",
-              description: 'Message role determining layout and style',
-            },
-            {
-              name: 'avatar',
-              type: 'ReactNode',
-              description: 'Custom avatar content',
-            },
-            {
-              name: 'name',
-              type: 'ReactNode',
-              description: 'Display name shown in the header',
-            },
-            {
-              name: 'timestamp',
-              type: 'ReactNode',
-              description: 'Timestamp shown in the header',
-            },
-            {
-              name: 'status',
-              type: "'sending' | 'sent' | 'error'",
-              description: 'Delivery status indicator',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Message content',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ChatMessageProps' />
       </div>
 
       <div className={section}>
@@ -4434,11 +4064,334 @@ function ChatMessageDemo() {
             </li>
             <li>System messages are centered with muted styling</li>
             <li>Status text provides visual feedback for message delivery</li>
+            <li>
+              Recipe rows reveal their action bar on{' '}
+              <strong>:focus-within</strong>, so Tab reaches every action
+              button; each carries a descriptive <strong>aria-label</strong>,
+              the pending row is a <strong>role=&quot;status&quot;</strong>{' '}
+              live region, and the editor saves with{' '}
+              <strong>Ctrl/Cmd+Enter</strong>, cancels with{' '}
+              <strong>Escape</strong>
+            </li>
           </ul>
         </A11yNote>
       </div>
 
       <CssVarsSection component='chatmessage' />
+    </>
+  );
+}
+
+// ─── ChatContainer × VirtualList — 10k-message feed (recipe) ──
+
+type FeedMessage = {
+  role: 'user' | 'assistant' | 'system';
+  name: string;
+  text: string;
+  time: string;
+  mono: boolean;
+};
+
+const FEED_SIZE = 10000;
+const FEED_ROW_HEIGHT = 44;
+const FEED_LIST_HEIGHT = 400;
+const FEED_OVERSCAN = 8;
+/** Distance from the bottom (px) that still counts as "parked at bottom". */
+const FEED_BOTTOM_EPSILON = 32;
+/** Visible window + both overscan shoulders + the straddling row. */
+const FEED_MOUNTED_ROWS =
+  Math.ceil(FEED_LIST_HEIGHT / FEED_ROW_HEIGHT) + FEED_OVERSCAN * 2 + 1;
+
+const FEED_WORDS = [
+  'virtualize',
+  'deterministic',
+  'seed',
+  'render',
+  'scroll',
+  'bubble',
+  'overscan',
+  'token',
+  'compose',
+  'throttle',
+  'pipeline',
+  'measure',
+  'memoize',
+  'stream',
+  'commit',
+];
+
+const FEED_CODE_LINE =
+  'const rows = feed.slice(start, end).map(makeRow); // uniform height keeps the stack cheap';
+
+/**
+ * Pure index → message: even = user, odd = assistant, every 11th = system
+ * notice. Word count walks a 4 + (index·7 mod 23) gradient, every 97th
+ * message is a ~100-word wall, every 131st a long code line, and
+ * timestamps advance one minute from 09:00. No Math.random anywhere —
+ * every load generates a byte-identical feed.
+ */
+function makeFeedMessage(index: number): FeedMessage {
+  const role: FeedMessage['role'] =
+    index % 11 === 3
+      ? 'system'
+      : index % 2 === 0
+        ? 'user'
+        : 'assistant';
+  const wall = index % 97 === 0;
+  const code = index % 131 === 0 && role !== 'system';
+  const wordCount = wall ? 104 : code ? 1 : 4 + ((index * 7) % 23);
+  const text = code
+    ? FEED_CODE_LINE
+    : Array.from(
+        { length: wordCount },
+        (_, w) => FEED_WORDS[(index * 7 + w * 3) % FEED_WORDS.length]
+      ).join(' ');
+  const minutes = 9 * 60 + index;
+  const time = `${String(Math.floor(minutes / 60) % 24).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  return {
+    role,
+    name: role === 'user' ? 'You' : role === 'assistant' ? 'Assistant' : '',
+    text,
+    time,
+    mono: code,
+  };
+}
+
+const feedToolbar = css`
+  display: flex;
+  align-items: center;
+  gap: var(--haze-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--haze-space-3);
+`;
+
+const feedMeta = css`
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-sm);
+`;
+
+const feedFrame = css`
+  position: relative;
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-lg);
+`;
+
+/** Marker class: identifies VirtualList's internal scrollport for the
+ * bottom-tracking listener (VirtualList does not expose it via ref yet). */
+const feedScroller = css`
+  overscroll-behavior: contain;
+`;
+
+const feedJump = css`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: var(--haze-space-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-1);
+  padding: var(--haze-space-1) var(--haze-space-3);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-full);
+  background: var(--haze-color-bg);
+  box-shadow: var(--haze-shadow-md);
+  color: var(--haze-color-primary);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--haze-color-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
+  }
+`;
+
+const feedRow = css`
+  display: flex;
+  align-items: center;
+  gap: var(--haze-space-2);
+  height: 100%;
+  padding: 0 var(--haze-space-3);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+`;
+
+const feedRowUser = css`
+  flex-direction: row-reverse;
+`;
+
+const feedRowSystem = css`
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 var(--haze-space-3);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-xs);
+  color: var(--haze-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+`;
+
+const feedAvatar = css`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--haze-space-6);
+  height: var(--haze-space-6);
+  border-radius: var(--haze-radius-full);
+  background: var(--haze-color-bg-muted);
+  color: var(--haze-color-text-secondary);
+  font-size: var(--haze-text-xs);
+  font-weight: var(--haze-weight-medium);
+`;
+
+const feedAvatarUser = css`
+  background: var(--haze-color-primary);
+  color: var(--haze-color-bg);
+`;
+
+const feedName = css`
+  flex-shrink: 0;
+  font-weight: var(--haze-weight-medium);
+  color: var(--haze-color-text);
+`;
+
+const feedTime = css`
+  flex-shrink: 0;
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-xs);
+  font-variant-numeric: tabular-nums;
+`;
+
+const feedText = css`
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--haze-color-text-secondary);
+`;
+
+const feedTextMono = css`
+  font-family: var(--haze-font-mono);
+  font-size: var(--haze-text-xs);
+`;
+
+/**
+ * ChatContainer frames the conversation (padding, column rhythm) while
+ * VirtualList owns the scrollport over 10k deterministic messages.
+ * ChatContainer's autoScroll is OFF: its MutationObserver would fire on
+ * every scroll-driven row swap, and always-follow is wrong once the
+ * reader scrolls up. Stick-to-bottom is this recipe's job instead —
+ * follow appends only while parked at the bottom, otherwise surface an
+ * "N new messages below" pill.
+ */
+function ChatVirtualFeedDemo() {
+  const [messages, setMessages] = useState<FeedMessage[]>(() =>
+    Array.from({ length: FEED_SIZE }, (_, i) => makeFeedMessage(i))
+  );
+  const [newBelow, setNewBelow] = useState(0);
+  const frameRef = useRef<HTMLDivElement>(null);
+  /** VirtualList's internal scrollport — located by marker class. */
+  const scrollerRef = useRef<HTMLElement | null>(null);
+  const atBottomRef = useRef(true);
+
+  useEffect(() => {
+    const el = frameRef.current?.querySelector<HTMLElement>(
+      `.${feedScroller}`
+    );
+    if (!el) return;
+    scrollerRef.current = el;
+    el.tabIndex = 0; // keyboard-scrollable (arrows/Page keys) — library gap
+    const onScroll = () => {
+      atBottomRef.current =
+        el.scrollHeight - el.scrollTop - el.clientHeight <
+        FEED_BOTTOM_EPSILON;
+      if (atBottomRef.current) setNewBelow(0);
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    el.scrollTop = el.scrollHeight; // land on the newest message
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Stick-to-bottom: follow appends only while parked at the bottom.
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (el && atBottomRef.current) el.scrollTop = el.scrollHeight;
+  }, [messages.length]);
+
+  const appendNext = () => {
+    setMessages((prev) => [...prev, makeFeedMessage(prev.length)]);
+    if (!atBottomRef.current) setNewBelow((n) => n + 1);
+  };
+
+  const jumpToLatest = () => {
+    const el = scrollerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+    atBottomRef.current = true;
+    setNewBelow(0);
+  };
+
+  const renderRow = (m: FeedMessage) =>
+    m.role === 'system' ? (
+      <div className={feedRowSystem} title={m.text}>
+        ◇ {m.text}
+      </div>
+    ) : (
+      <div x-class={[feedRow, m.role === 'user' && feedRowUser]} title={m.text}>
+        <span
+          x-class={[feedAvatar, m.role === 'user' && feedAvatarUser]}
+          aria-hidden='true'
+        >
+          {m.role === 'user' ? 'U' : 'A'}
+        </span>
+        <span className={feedName}>{m.name}</span>
+        <span className={feedTime}>{m.time}</span>
+        <span x-class={[feedText, m.mono && feedTextMono]}>{m.text}</span>
+      </div>
+    );
+
+  return (
+    <>
+      <div className={feedToolbar}>
+        <Button size='sm' variant='outline' onClick={appendNext}>
+          Append next message
+        </Button>
+        <Button size='sm' variant='ghost' onClick={jumpToLatest}>
+          Jump to latest
+        </Button>
+        <span className={feedMeta}>
+          {messages.length} messages · ~{FEED_MOUNTED_ROWS} rows mounted
+        </span>
+      </div>
+      <div
+        ref={frameRef}
+        className={feedFrame}
+        role='log'
+        aria-label='Virtualized chat feed, newest messages at the bottom'
+      >
+        <ChatContainer autoScroll={false}>
+          <VirtualList
+            className={feedScroller}
+            items={messages}
+            height={FEED_LIST_HEIGHT}
+            itemHeight={FEED_ROW_HEIGHT}
+            overscan={FEED_OVERSCAN}
+            renderItem={renderRow}
+          />
+        </ChatContainer>
+        {newBelow > 0 && (
+          <button type='button' className={feedJump} onClick={jumpToLatest}>
+            {newBelow} new message{newBelow > 1 ? 's' : ''} below ↓
+          </button>
+        )}
+      </div>
     </>
   );
 }
@@ -4477,27 +4430,36 @@ function ChatContainerDemo() {
       </div>
 
       <div className={section}>
+        <h2>10,000 messages — ChatContainer × VirtualList (recipe)</h2>
+        <ChatVirtualFeedDemo />
+        <p className={dataTableNote}>
+          <strong>Data.</strong> <code>makeFeedMessage(index)</code> is pure:
+          roles alternate (even user / odd assistant, every 11th a system
+          notice), word count follows a 4 + (index·7 mod 23) gradient, every
+          97th message is a ~100-word wall and every 131st a long code line,
+          and timestamps advance one minute from 09:00 — so the 10,000-message
+          feed is identical on every load. <strong>VirtualList pairing.</strong>{' '}
+          <code>itemHeight</code> (44) must equal the rendered row height
+          exactly — that is why rows clamp to one line with ellipsis;
+          variable-height messages would need a measured virtualizer, not
+          this absolute-positioned stack. <code>height</code> (400) fixes the
+          scrollport, <code>overscan</code> (8) hides the render window
+          behind fast scrolls, and the whole feed is a single{' '}
+          {FEED_ROW_HEIGHT * FEED_SIZE} px spacer with only ~
+          {FEED_MOUNTED_ROWS} rows mounted. ChatContainer keeps the frame
+          with <code>autoScroll={'{false}'}</code> — its MutationObserver
+          would fire on every scroll-driven row swap, and always-follow is
+          wrong once the reader scrolls up — so stick-to-bottom is the
+          recipe&apos;s job: a passive scroll listener parks{' '}
+          <code>atBottom</code> within {FEED_BOTTOM_EPSILON} px of the end,
+          appends scroll only while parked, and otherwise surface the{' '}
+          “N new messages below” pill.
+        </p>
+      </div>
+
+      <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'autoScroll',
-              type: 'boolean',
-              default: 'true',
-              description: 'Automatically scroll to bottom on new content',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Chat messages',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ChatContainerProps' />
       </div>
 
       <div className={section}>
@@ -4511,12 +4473,279 @@ function ChatContainerDemo() {
               Auto-scroll uses <strong>MutationObserver</strong> for reliable
               detection
             </li>
+            <li>
+              The virtualized feed is a <strong>role=&quot;log&quot;</strong>{' '}
+              (polite live region) — appends are announced without stealing
+              focus. VirtualList does not expose its scrollport, so the
+              recipe marks it with a class and sets{' '}
+              <strong>tabIndex=&quot;0&quot;</strong> on it for arrow-key
+              scrolling; ellipsis is purely visual, the full text stays in
+              the DOM for assistive tech
+            </li>
           </ul>
         </A11yNote>
       </div>
 
       <CssVarsSection component='chatcontainer' />
     </>
+  );
+}
+
+// ─── ChatInput × Upload — attachment bridge (recipe) ──────────
+
+/** Fixed epoch (2026-01-01 09:00 UTC) — deterministic lastModified. */
+const SAMPLE_FILE_TS = Date.UTC(2026, 0, 1, 9, 0, 0);
+
+const SAMPLE_FILE_SPECS = [
+  {
+    name: 'render-trace.log',
+    type: 'text/plain',
+    body: [
+      '[09:00:00] mount <ChatInput/> 0.9ms',
+      '[09:00:01] attach 3 files (bridge) 0.2ms',
+      '[09:00:02] send message + attachments 1.1ms',
+    ].join('\n'),
+  },
+  {
+    name: 'bundle-report.json',
+    type: 'application/json',
+    body: '{"component":"ChatInput","cssBytes":1240,"jsBytes":3120,"runtime":"zero"}',
+  },
+  {
+    name: 'focus-ring.svg',
+    type: 'image/svg+xml',
+    body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  },
+] as const;
+
+/**
+ * Deterministic File fabrication — fixed bodies and a fixed lastModified,
+ * so every simulated pick yields byte-identical objects. This is the
+ * in-memory stand-in for a real picker (DataTransfer/FileList); nothing
+ * is uploaded anywhere.
+ */
+function makeSampleFiles(): File[] {
+  return SAMPLE_FILE_SPECS.map(
+    (spec, i) =>
+      new File([spec.body], spec.name, {
+        type: spec.type,
+        lastModified: SAMPLE_FILE_TS + i * 1000,
+      })
+  );
+}
+
+function formatBytes(size: number): string {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+type SentWithAttachments = { text: string; files: File[] };
+
+const attachStack = css`
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-2);
+  max-width: 560px;
+`;
+
+const attachCards = css`
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--haze-space-2);
+`;
+
+const attachCard = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-2);
+  padding: var(--haze-space-1) var(--haze-space-2);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-md);
+  background: var(--haze-color-bg-subtle);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+`;
+
+const attachName = css`
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--haze-color-text);
+`;
+
+const attachSize = css`
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-xs);
+  font-variant-numeric: tabular-nums;
+`;
+
+const attachRemoveBtn = css`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--haze-space-5);
+  height: var(--haze-space-5);
+  border: none;
+  border-radius: var(--haze-radius-sm);
+  background: transparent;
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-sm);
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--haze-color-danger);
+    background: var(--haze-color-danger-subtle);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--haze-color-focus-ring);
+  }
+`;
+
+const attachComposer = css`
+  display: flex;
+  align-items: flex-end;
+  gap: var(--haze-space-2);
+`;
+
+const attachInputGrow = css`
+  flex: 1;
+  min-width: 0;
+`;
+
+const attachSentChips = css`
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--haze-space-2);
+  margin-top: var(--haze-space-2);
+`;
+
+const attachSentChip = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-1);
+  padding: var(--haze-space-0) var(--haze-space-2);
+  border-radius: var(--haze-radius-full);
+  background: var(--haze-color-bg-muted);
+  color: var(--haze-color-text-secondary);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-xs);
+`;
+
+/**
+ * ChatInput has no attachment slot, so the recipe bridges one: the pending
+ * file list lives in a controllable <code>Control&lt;File[]&gt;</code>, both
+ * FileInput (label + hidden native input) and UploadCore (controlled
+ * dropzone — value is the whole list, onChange emits the complete next
+ * list) write through it, preview cards render above the composer, and
+ * send moves text + files into a read-only ChatMessage preview.
+ */
+function ChatAttachmentBridgeDemo() {
+  // The file list is the field value — controllable from outside, same
+  // pattern as the DataTable recipe's page slice.
+  const [, , filesCtrl] = useControl(undefined, [] as File[]);
+  const [files, setFiles] = useControl(filesCtrl);
+  const [sent, setSent] = useState<SentWithAttachments[]>([]);
+
+  const addPicked = (picked: File[]) => {
+    if (picked.length === 0) return;
+    setFiles((prev) => [...prev, ...picked]);
+  };
+
+  return (
+    <div className={attachStack}>
+      <div className={feedToolbar}>
+        <Button size='sm' variant='outline' onClick={() => addPicked(makeSampleFiles())}>
+          Add sample attachments
+        </Button>
+        {files.length > 0 && (
+          <Button
+            size='sm'
+            variant='ghost'
+            onClick={() => setFiles([])}
+            aria-label='Clear all pending attachments'
+          >
+            Clear
+          </Button>
+        )}
+        <span className={feedMeta}>
+          {files.length} pending · {sent.length} sent
+        </span>
+      </div>
+
+      {files.length > 0 && (
+        <div className={attachCards} role='group' aria-label='Pending attachments'>
+          {files.map((file, i) => (
+            <span
+              className={attachCard}
+              key={`${file.name}-${file.lastModified}-${i}`}
+            >
+              <span className={attachName}>{file.name}</span>
+              <span className={attachSize}>{formatBytes(file.size)}</span>
+              <button
+                type='button'
+                className={attachRemoveBtn}
+                aria-label={`Remove attachment ${file.name}`}
+                onClick={() =>
+                  setFiles((prev) => prev.filter((_, idx) => idx !== i))
+                }
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className={attachComposer}>
+        <FileInput
+          multiple
+          onChange={(e) => {
+            addPicked(Array.from(e.target.files ?? []));
+            e.target.value = '';
+          }}
+        >
+          📎 Attach
+        </FileInput>
+        <ChatInput
+          className={attachInputGrow}
+          placeholder='Type a message — attachments ride along…'
+          onSend={(text) => {
+            setSent((prev) => [...prev, { text, files }]);
+            setFiles([]);
+          }}
+        />
+      </div>
+
+      <UploadCore value={files} onChange={setFiles} multiple>
+        <span>
+          …or drop files here to attach — in-memory only, nothing uploads
+        </span>
+      </UploadCore>
+
+      {sent.length > 0 && (
+        <div aria-label='Sent messages with attachments'>
+          {sent.map((s, i) => (
+            <ChatMessage key={i} role='user' name='You' timestamp='just now'>
+              {s.text}
+              {s.files.length > 0 && (
+                <span className={attachSentChips}>
+                  {s.files.map((f, j) => (
+                    <span className={attachSentChip} key={j}>
+                      📎 {f.name} · {formatBytes(f.size)}
+                    </span>
+                  ))}
+                </span>
+              )}
+            </ChatMessage>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -4561,43 +4790,31 @@ function ChatInputDemo() {
       </div>
 
       <div className={section}>
+        <h2>Attachments bridge (recipe)</h2>
+        <ChatAttachmentBridgeDemo />
+        <p className={dataTableNote}>
+          ChatInput has no attachment slot, so the recipe bridges one: the
+          pending list lives in a controllable <code>Control&lt;File[]&gt;</code>{' '}
+          — both <code>FileInput</code> (label + hidden native input; picks
+          merge into the same list) and <code>UploadCore</code> (controlled
+          dropzone: <code>value</code> is the whole list,{' '}
+          <code>onChange</code> emits the complete next list) write through
+          that one control, which makes the preview cards above the composer
+          the single source of truth. <code>ChatInput</code> only fires{' '}
+          <code>onSend</code> for non-empty text, so attachments always ride
+          along with a message; sending moves text + files into the
+          read-only preview below and clears the list. The{' '}
+          <em>Add sample attachments</em> button fabricates{' '}
+          <code>File</code> objects in memory (<code>new File</code> with
+          fixed bodies and <code>lastModified</code>, the deterministic
+          stand-in for <code>DataTransfer</code>-driven picks) — nothing is
+          uploaded.
+        </p>
+      </div>
+
+      <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Input value (controllable)',
-            },
-            {
-              name: 'onSend',
-              type: '(message: string) => void',
-              description: 'Called when the user sends a message',
-            },
-            {
-              name: 'placeholder',
-              type: 'string',
-              default: "'Type a message...'",
-              description: 'Input placeholder text',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the input',
-            },
-            {
-              name: 'maxLength',
-              type: 'number',
-              description: 'Maximum character length',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ChatInputProps' />
       </div>
 
       <div className={section}>
@@ -4613,6 +4830,15 @@ function ChatInputDemo() {
             </li>
             <li>
               Focus ring appears on <strong>:focus-within</strong>
+            </li>
+            <li>
+              Recipe: every remove button carries an{' '}
+              <strong>aria-label</strong> naming its file, the pending set
+              is a labeled <strong>role=&quot;group&quot;</strong>, the
+              dropzone is the library <strong>UploadCore</strong>{' '}
+              (<strong>role=&quot;button&quot;</strong>, keyboard-operable),
+              and sent attachment chips are plain text so they read together
+              with the message
             </li>
           </ul>
         </A11yNote>
@@ -4652,37 +4878,7 @@ function StreamingTextDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'text',
-              type: 'string',
-              description: 'Full text to stream',
-            },
-            {
-              name: 'speed',
-              type: 'number',
-              default: '20',
-              description: 'Milliseconds between characters',
-            },
-            {
-              name: 'onComplete',
-              type: '() => void',
-              description: 'Called when streaming finishes',
-            },
-            {
-              name: 'showCursor',
-              type: 'boolean',
-              default: 'true',
-              description: 'Show blinking cursor during streaming',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='StreamingTextProps' />
       </div>
 
       <div className={section}>
@@ -4746,20 +4942,7 @@ console.log("Hello from code block");
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'content',
-              type: 'string',
-              description: 'Markdown source string',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='MarkdownRendererProps' />
       </div>
 
       <div className={section}>
@@ -4818,36 +5001,7 @@ function ToolCallCardDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'name',
-              type: 'string',
-              description: 'Tool or function name',
-            },
-            {
-              name: 'input',
-              type: 'ReactNode',
-              description: 'Input passed to the tool',
-            },
-            {
-              name: 'output',
-              type: 'ReactNode',
-              description: 'Output returned by the tool',
-            },
-            {
-              name: 'status',
-              type: "'pending' | 'running' | 'done' | 'error'",
-              default: "'pending'",
-              description: 'Execution status',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ToolCallCardProps' />
       </div>
 
       <div className={section}>
@@ -4893,21 +5047,7 @@ function ThinkingIndicatorDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'text',
-              type: 'string',
-              default: "'Thinking'",
-              description: 'Label text shown before the dots',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ThinkingIndicatorProps' />
       </div>
 
       <div className={section}>
@@ -4967,49 +5107,12 @@ function StepTimelineDemo() {
 
       <div className={section}>
         <h2>StepTimeline Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'StepTimelineItem elements',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='StepTimelineProps' />
       </div>
 
       <div className={section}>
         <h2>StepTimelineItem Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'label',
-              type: 'ReactNode',
-              description: 'Step label text',
-            },
-            {
-              name: 'description',
-              type: 'ReactNode',
-              description: 'Optional description below the label',
-            },
-            {
-              name: 'status',
-              type: "'pending' | 'active' | 'done' | 'error'",
-              default: "'pending'",
-              description: 'Step status',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='StepTimelineItemProps' />
       </div>
 
       <div className={section}>
@@ -5082,53 +5185,7 @@ function ApprovalCardDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'title',
-              type: 'ReactNode',
-              default: "'Approval Required'",
-              description: 'Card title',
-            },
-            {
-              name: 'description',
-              type: 'ReactNode',
-              description: 'Description text',
-            },
-            {
-              name: 'onApprove',
-              type: '() => void',
-              description: 'Called when approve is clicked',
-            },
-            {
-              name: 'onDeny',
-              type: '() => void',
-              description: 'Called when deny is clicked',
-            },
-            {
-              name: 'approveText',
-              type: 'string',
-              default: "'Approve'",
-              description: 'Approve button text',
-            },
-            {
-              name: 'denyText',
-              type: 'string',
-              default: "'Deny'",
-              description: 'Deny button text',
-            },
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'Additional content',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ApprovalCardProps' />
       </div>
 
       <div className={section}>
@@ -5170,31 +5227,7 @@ function TokenCounterDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'used',
-              type: 'number',
-              description: 'Number of tokens used',
-            },
-            {
-              name: 'max',
-              type: 'number',
-              description: 'Maximum token capacity',
-            },
-            {
-              name: 'label',
-              type: 'string',
-              default: "'Tokens'",
-              description: 'Label text',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='TokenCounterProps' />
       </div>
 
       <div className={section}>
@@ -5252,31 +5285,7 @@ function ModelPickerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'value',
-              type: 'Control<string> | string',
-              description: 'Selected model value',
-            },
-            {
-              name: 'options',
-              type: 'ModelOption[]',
-              description: 'Array of { value, label, description?, contextLength? }',
-            },
-            {
-              name: 'disabled',
-              type: 'boolean',
-              default: 'false',
-              description: 'Disable the picker',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ModelPickerProps' />
       </div>
 
       <div className={section}>
@@ -5344,59 +5353,12 @@ function ConversationListDemo() {
 
       <div className={section}>
         <h2>ConversationList Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'children',
-              type: 'ReactNode',
-              description: 'ConversationItem elements',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ConversationListProps' />
       </div>
 
       <div className={section}>
         <h2>ConversationItem Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'title',
-              type: 'ReactNode',
-              description: 'Conversation title',
-            },
-            {
-              name: 'subtitle',
-              type: 'ReactNode',
-              description: 'Subtitle or preview text',
-            },
-            {
-              name: 'active',
-              type: 'boolean',
-              default: 'false',
-              description: 'Whether this item is currently active',
-            },
-            {
-              name: 'onClick',
-              type: '() => void',
-              description: 'Called when the item is clicked',
-            },
-            {
-              name: 'end',
-              type: 'ReactNode',
-              description: 'Content at the end of the item',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='ConversationItemProps' />
       </div>
 
       <div className={section}>
@@ -5444,25 +5406,7 @@ function DiffViewerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'oldValue',
-              type: 'string',
-              description: 'Original text',
-            },
-            {
-              name: 'newValue',
-              type: 'string',
-              description: 'Modified text',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='DiffViewerProps' />
       </div>
 
       <div className={section}>
@@ -5516,48 +5460,12 @@ function LogViewerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'logs',
-              type: 'LogEntry[]',
-              description: 'Array of { level, message, timestamp? }',
-            },
-            {
-              name: 'filter',
-              type: "Control<LogLevel | null> | LogLevel | null",
-              description: 'Active level filter (controllable)',
-            },
-            {
-              name: 'className',
-              type: 'string',
-              description: 'Additional CSS class',
-            },
-          ]}
-        />
+        <PropsTable of='LogViewerProps' />
       </div>
 
       <div className={section}>
         <h2>LogEntry Type</h2>
-        <PropsTable
-          props={[
-            {
-              name: 'level',
-              type: "'debug' | 'info' | 'warn' | 'error'",
-              description: 'Log severity level',
-            },
-            {
-              name: 'message',
-              type: 'string',
-              description: 'Log message text',
-            },
-            {
-              name: 'timestamp',
-              type: 'string',
-              description: 'Optional timestamp string',
-            },
-          ]}
-        />
+        <PropsTable of='LogEntry' />
       </div>
 
       <div className={section}>
@@ -5603,34 +5511,17 @@ function CommandDemo() {
 
       <div className={section}>
         <h2>Command Props</h2>
-        <PropsTable
-          props={[
-            { name: 'query', type: 'Control<string> | string', description: 'Filter query (controllable)' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'CommandInput, CommandList, and CommandItem elements' },
-          ]}
-        />
+        <PropsTable of='CommandProps' />
       </div>
 
       <div className={section}>
         <h2>CommandInput Props</h2>
-        <PropsTable
-          props={[
-            { name: 'placeholder', type: 'string', description: 'Input placeholder text' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='CommandInputProps' />
       </div>
 
       <div className={section}>
         <h2>CommandItem Props</h2>
-        <PropsTable
-          props={[
-            { name: 'onSelect', type: '() => void', description: 'Called when item is selected' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Item content (string for filtering)' },
-          ]}
-        />
+        <PropsTable of='CommandItemProps' />
       </div>
 
       <div className={section}>
@@ -5672,24 +5563,12 @@ function ResizableDemo() {
 
       <div className={section}>
         <h2>ResizableGroup Props</h2>
-        <PropsTable
-          props={[
-            { name: 'direction', type: "'horizontal' | 'vertical'", default: "'horizontal'", description: 'Layout direction' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'ResizablePanel and ResizableHandle elements' },
-          ]}
-        />
+        <PropsTable of='ResizableGroupProps' />
       </div>
 
       <div className={section}>
         <h2>ResizablePanel Props</h2>
-        <PropsTable
-          props={[
-            { name: 'defaultSize', type: 'number', default: '50', description: 'Default size as percentage' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Panel content' },
-          ]}
-        />
+        <PropsTable of='ResizablePanelProps' />
       </div>
 
       <div className={section}>
@@ -5727,14 +5606,7 @@ function CollapsibleDemo() {
 
       <div className={section}>
         <h2>Collapsible Props</h2>
-        <PropsTable
-          props={[
-            { name: 'open', type: 'Control<boolean> | boolean', description: 'Controlled open state' },
-            { name: 'defaultOpen', type: 'boolean', default: 'false', description: 'Initial open state' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'CollapsibleTrigger and CollapsibleContent elements' },
-          ]}
-        />
+        <PropsTable of='CollapsibleProps' />
       </div>
 
       <div className={section}>
@@ -5776,14 +5648,7 @@ function TransferDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'dataSource', type: 'TransferItem[]', description: 'Array of { key, title, disabled? } items' },
-            { name: 'targetKeys', type: 'Control<string[]> | string[]', description: 'Keys of items in the target list (controllable)' },
-            { name: 'onChange', type: '(targetKeys, direction, moveKeys) => void', description: 'Called when items are moved' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='TransferProps' />
       </div>
 
       <div className={section}>
@@ -5824,15 +5689,7 @@ function UploadDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'accept', type: 'string', description: 'Accepted file types' },
-            { name: 'multiple', type: 'boolean', default: 'false', description: 'Allow multiple files' },
-            { name: 'onChange', type: '(files: File[]) => void', description: 'Called when files are selected' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Custom dropzone content' },
-          ]}
-        />
+        <PropsTable of='UploadProps' />
       </div>
 
       <div className={section}>
@@ -5866,14 +5723,7 @@ function ColorPickerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'value', type: 'Control<string> | string', description: 'Controlled color value (hex)' },
-            { name: 'presets', type: 'string[]', description: 'Array of preset color hex values' },
-            { name: 'onChange', type: '(color: string) => void', description: 'Called when color changes' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='ColorPickerProps' />
       </div>
 
       <div className={section}>
@@ -5918,15 +5768,7 @@ function RatingDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'value', type: 'Control<number> | number', description: 'Controlled rating value' },
-            { name: 'count', type: 'number', default: '5', description: 'Number of stars' },
-            { name: 'allowHalf', type: 'boolean', default: 'false', description: 'Allow half-star ratings' },
-            { name: 'onChange', type: '(value: number) => void', description: 'Called when rating changes' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='RatingProps' />
       </div>
 
       <div className={section}>
@@ -5963,15 +5805,7 @@ function TimelineDemo() {
 
       <div className={section}>
         <h2>TimelineItem Props</h2>
-        <PropsTable
-          props={[
-            { name: 'title', type: 'string', description: 'Event title' },
-            { name: 'description', type: 'string', description: 'Event description' },
-            { name: 'time', type: 'string', description: 'Timestamp text' },
-            { name: 'color', type: "'primary' | 'success' | 'warning' | 'danger' | 'default'", default: "'default'", description: 'Dot color' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='TimelineItemProps' />
       </div>
 
       <div className={section}>
@@ -6024,27 +5858,12 @@ function TypographyDemo() {
 
       <div className={section}>
         <h2>Title Props</h2>
-        <PropsTable
-          props={[
-            { name: 'level', type: '1 | 2 | 3 | 4 | 5', default: '1', description: 'Heading level' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Title content' },
-          ]}
-        />
+        <PropsTable of='TitleProps' />
       </div>
 
       <div className={section}>
         <h2>Text Props</h2>
-        <PropsTable
-          props={[
-            { name: 'type', type: "'default' | 'secondary' | 'muted'", default: "'default'", description: 'Text color variant' },
-            { name: 'strong', type: 'boolean', default: 'false', description: 'Render as bold' },
-            { name: 'code', type: 'boolean', default: 'false', description: 'Render as inline code' },
-            { name: 'mark', type: 'boolean', default: 'false', description: 'Highlight text' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Text content' },
-          ]}
-        />
+        <PropsTable of='TextProps' />
       </div>
 
       <div className={section}>
@@ -6080,28 +5899,12 @@ function StatDemo() {
 
       <div className={section}>
         <h2>Stat Props</h2>
-        <PropsTable
-          props={[
-            { name: 'title', type: 'string', description: 'Stat label' },
-            { name: 'value', type: 'string | number', description: 'Stat value' },
-            { name: 'description', type: 'string', description: 'Additional description' },
-            { name: 'trend', type: "'up' | 'down' | 'neutral'", description: 'Trend direction' },
-            { name: 'trendValue', type: 'string', description: 'Trend percentage text' },
-            { name: 'prefix', type: 'ReactNode', description: 'Content before value' },
-            { name: 'suffix', type: 'ReactNode', description: 'Content after value' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='StatProps' />
       </div>
 
       <div className={section}>
         <h2>StatGroup Props</h2>
-        <PropsTable
-          props={[
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Stat elements' },
-          ]}
-        />
+        <PropsTable of='StatGroupProps' />
       </div>
 
       <div className={section}>
@@ -6143,15 +5946,7 @@ function SegmentedDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'options', type: 'SegmentedOption[]', description: 'Array of strings or { value, label, disabled? }' },
-            { name: 'value', type: 'Control<string> | string', description: 'Controlled selected value' },
-            { name: 'onChange', type: '(value: string) => void', description: 'Called when selection changes' },
-            { name: 'size', type: "'sm' | 'md' | 'lg'", default: "'md'", description: 'Segment size' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='SegmentedProps' />
       </div>
 
       <div className={section}>
@@ -6207,16 +6002,7 @@ function ChipDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'variant', type: "'solid' | 'outline'", default: "'solid'", description: 'Visual variant' },
-            { name: 'color', type: "'default' | 'primary' | 'success' | 'warning' | 'danger'", default: "'default'", description: 'Color scheme' },
-            { name: 'icon', type: 'ReactNode', description: 'Leading icon' },
-            { name: 'onClose', type: '() => void', description: 'Close handler; shows close button when provided' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Chip content' },
-          ]}
-        />
+        <PropsTable of='ChipProps' />
       </div>
 
       <div className={section}>
@@ -6253,13 +6039,7 @@ function ScrollAreaDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'maxHeight', type: 'number | string', description: 'Maximum height (px if number)' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Scrollable content' },
-          ]}
-        />
+        <PropsTable of='ScrollAreaProps' />
       </div>
 
       <div className={section}>
@@ -6292,15 +6072,7 @@ function TimePickerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'value', type: 'Control<string> | string', description: 'Controlled time value' },
-            { name: 'onChange', type: '(value: string) => void', description: 'Called when time changes' },
-            { name: 'placeholder', type: 'string', description: 'Input placeholder' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: '...rest', type: 'InputHTMLAttributes', description: 'All native input attributes' },
-          ]}
-        />
+        <PropsTable of='TimePickerProps' />
       </div>
 
       <div className={section}>
@@ -6331,16 +6103,7 @@ function DateRangePickerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'startDate', type: 'Control<string> | string', description: 'Controlled start date' },
-            { name: 'endDate', type: 'Control<string> | string', description: 'Controlled end date' },
-            { name: 'onStartChange', type: '(value: string) => void', description: 'Called when start date changes' },
-            { name: 'onEndChange', type: '(value: string) => void', description: 'Called when end date changes' },
-            { name: 'separator', type: 'ReactNode', default: "'–'", description: 'Separator between inputs' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='DateRangePickerProps' />
       </div>
 
       <div className={section}>
@@ -6371,14 +6134,7 @@ function OTPInputDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'length', type: 'number', default: '6', description: 'Number of input cells' },
-            { name: 'value', type: 'Control<string> | string', description: 'Controlled OTP value' },
-            { name: 'onChange', type: '(value: string) => void', description: 'Called when OTP changes' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='OTPInputProps' />
       </div>
 
       <div className={section}>
@@ -6413,15 +6169,7 @@ function PasswordInputDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'value', type: 'Control<string> | string', description: 'Controlled value' },
-            { name: 'onChange', type: '(value: string) => void', description: 'Called when value changes' },
-            { name: 'placeholder', type: 'string', description: 'Input placeholder' },
-            { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the input' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='PasswordInputProps' />
       </div>
 
       <div className={section}>
@@ -6455,16 +6203,7 @@ function TagInputDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'value', type: 'Control<string[]> | string[]', description: 'Controlled tags array' },
-            { name: 'onChange', type: '(value: string[]) => void', description: 'Called when tags change' },
-            { name: 'placeholder', type: 'string', description: 'Input placeholder' },
-            { name: 'maxTags', type: 'number', description: 'Maximum number of tags' },
-            { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the input' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='TagInputProps' />
       </div>
 
       <div className={section}>
@@ -6496,15 +6235,7 @@ function InlineEditDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'value', type: 'Control<string> | string', description: 'Controlled value' },
-            { name: 'onChange', type: '(value: string) => void', description: 'Called when value is committed' },
-            { name: 'placeholder', type: 'string', default: "'Click to edit'", description: 'Placeholder text' },
-            { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable editing' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='InlineEditProps' />
       </div>
 
       <div className={section}>
@@ -6546,37 +6277,17 @@ function DropdownMenuDemo() {
 
       <div className={section}>
         <h2>DropdownMenu Props</h2>
-        <PropsTable
-          props={[
-            { name: 'open', type: 'Control<boolean> | boolean', description: 'Controlled open state' },
-            { name: 'onOpenChange', type: '(open: boolean) => void', description: 'Called when open state changes' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Trigger and Content elements' },
-          ]}
-        />
+        <PropsTable of='DropdownMenuProps' />
       </div>
 
       <div className={section}>
         <h2>DropdownMenuContent Props</h2>
-        <PropsTable
-          props={[
-            { name: 'align', type: "'start' | 'center' | 'end'", default: "'start'", description: 'Content alignment' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'MenuItem and MenuSeparator elements' },
-          ]}
-        />
+        <PropsTable of='DropdownMenuContentProps' />
       </div>
 
       <div className={section}>
         <h2>DropdownMenuItem Props</h2>
-        <PropsTable
-          props={[
-            { name: 'onClick', type: '() => void', description: 'Called when item is clicked' },
-            { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the item' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Item content' },
-          ]}
-        />
+        <PropsTable of='DropdownMenuItemProps' />
       </div>
 
       <div className={section}>
@@ -6620,26 +6331,12 @@ function ContextMenuDemo() {
 
       <div className={section}>
         <h2>ContextMenu Props</h2>
-        <PropsTable
-          props={[
-            { name: 'open', type: 'Control<boolean> | boolean', description: 'Controlled open state' },
-            { name: 'onOpenChange', type: '(open: boolean) => void', description: 'Called when open state changes' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Trigger and Content elements' },
-          ]}
-        />
+        <PropsTable of='ContextMenuProps' />
       </div>
 
       <div className={section}>
         <h2>ContextMenuItem Props</h2>
-        <PropsTable
-          props={[
-            { name: 'onClick', type: '() => void', description: 'Called when item is clicked' },
-            { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the item' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Item content' },
-          ]}
-        />
+        <PropsTable of='ContextMenuItemProps' />
       </div>
 
       <div className={section}>
@@ -6678,27 +6375,12 @@ function NavigationBarDemo() {
 
       <div className={section}>
         <h2>NavigationBar Props</h2>
-        <PropsTable
-          props={[
-            { name: 'brand', type: 'ReactNode', description: 'Brand/logo content' },
-            { name: 'children', type: 'ReactNode', description: 'NavLink elements' },
-            { name: 'end', type: 'ReactNode', description: 'End slot content (e.g. login button)' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='NavigationBarProps' />
       </div>
 
       <div className={section}>
         <h2>NavLink Props</h2>
-        <PropsTable
-          props={[
-            { name: 'href', type: 'string', default: "'#'", description: 'Link URL' },
-            { name: 'active', type: 'boolean', default: 'false', description: 'Mark as active' },
-            { name: 'onClick', type: '() => void', description: 'Click handler (prevents default)' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Link text' },
-          ]}
-        />
+        <PropsTable of='NavLinkProps' />
       </div>
 
       <div className={section}>
@@ -6733,13 +6415,7 @@ function BackToTopDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'threshold', type: 'number', default: '300', description: 'Scroll distance before showing (px)' },
-            { name: 'children', type: 'ReactNode', default: "'↑'", description: 'Button content' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='BackToTopProps' />
       </div>
 
       <div className={section}>
@@ -6773,15 +6449,7 @@ function AffixDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'position', type: "'top' | 'bottom'", default: "'top'", description: 'Viewport edge' },
-            { name: 'offset', type: 'number', default: '0', description: 'Pixel offset from edge' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'style', type: 'CSSProperties', description: 'Inline styles' },
-            { name: 'children', type: 'ReactNode', description: 'Content to affix' },
-          ]}
-        />
+        <PropsTable of='AffixProps' />
       </div>
 
       <div className={section}>
@@ -6820,13 +6488,7 @@ function ContainerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'size', type: "'sm' | 'md' | 'lg' | 'xl' | 'full'", default: "'lg'", description: 'Max-width breakpoint' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Container content' },
-          ]}
-        />
+        <PropsTable of='ContainerProps' />
       </div>
 
       <div className={section}>
@@ -6862,15 +6524,7 @@ function BannerDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'visible', type: 'Control<boolean> | boolean', description: 'Controlled visibility' },
-            { name: 'onClose', type: '() => void', description: 'Close handler; shows close button when provided' },
-            { name: 'variant', type: "'info' | 'success' | 'warning' | 'danger'", default: "'info'", description: 'Color variant' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Banner content' },
-          ]}
-        />
+        <PropsTable of='BannerProps' />
       </div>
 
       <div className={section}>
@@ -6915,20 +6569,7 @@ function ConfirmDialogDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'open', type: 'Control<boolean> | boolean', description: 'Controlled open state' },
-            { name: 'onClose', type: '() => void', description: 'Called when dialog closes' },
-            { name: 'onConfirm', type: '() => void', description: 'Called on confirm' },
-            { name: 'onCancel', type: '() => void', description: 'Called on cancel' },
-            { name: 'title', type: 'ReactNode', description: 'Dialog title' },
-            { name: 'confirmText', type: 'string', default: "'Confirm'", description: 'Confirm button text' },
-            { name: 'cancelText', type: 'string', default: "'Cancel'", description: 'Cancel button text' },
-            { name: 'variant', type: "'default' | 'danger'", default: "'default'", description: 'Confirm button style' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Dialog body content' },
-          ]}
-        />
+        <PropsTable of='ConfirmDialogProps' />
       </div>
 
       <div className={section}>
@@ -6963,13 +6604,7 @@ console.log(greeting);`}
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'language', type: 'string', description: 'Language label displayed in corner' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Code content' },
-          ]}
-        />
+        <PropsTable of='CodeBlockProps' />
       </div>
 
       <div className={section}>
@@ -7007,13 +6642,7 @@ function AspectRatioDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'ratio', type: 'number', default: '16/9', description: 'Aspect ratio (width / height)' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Content to render inside' },
-          ]}
-        />
+        <PropsTable of='AspectRatioProps' />
       </div>
 
       <div className={section}>
@@ -7055,16 +6684,7 @@ function VirtualListDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'items', type: 'T[]', description: 'Array of items to render' },
-            { name: 'height', type: 'number', description: 'Container height in px' },
-            { name: 'itemHeight', type: 'number', description: 'Height of each item in px' },
-            { name: 'renderItem', type: '(item: T, index: number) => ReactNode', description: 'Item renderer' },
-            { name: 'overscan', type: 'number', default: '5', description: 'Extra items to render outside viewport' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-          ]}
-        />
+        <PropsTable of='VirtualListProps' />
       </div>
 
       <div className={section}>
@@ -7100,23 +6720,12 @@ function TagGroupDemo() {
 
       <div className={section}>
         <h2>TagGroup Props</h2>
-        <PropsTable
-          props={[
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'TagGroupItem elements' },
-          ]}
-        />
+        <PropsTable of='TagGroupProps' />
       </div>
 
       <div className={section}>
         <h2>TagGroupItem Props</h2>
-        <PropsTable
-          props={[
-            { name: 'onClose', type: '() => void', description: 'Close handler; shows close button when provided' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Tag content' },
-          ]}
-        />
+        <PropsTable of='TagGroupItemProps' />
       </div>
 
       <div className={section}>
@@ -7158,14 +6767,7 @@ function BottomSheetDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'open', type: 'Control<boolean> | boolean', description: 'Controlled open state' },
-            { name: 'onClose', type: '() => void', description: 'Called when sheet closes' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Sheet content' },
-          ]}
-        />
+        <PropsTable of='BottomSheetProps' />
       </div>
 
       <div className={section}>
@@ -7204,17 +6806,7 @@ function SwipeActionDemo() {
 
       <div className={section}>
         <h2>Props</h2>
-        <PropsTable
-          props={[
-            { name: 'left', type: 'ReactNode', description: 'Left swipe action content' },
-            { name: 'right', type: 'ReactNode', description: 'Right swipe action content' },
-            { name: 'onSwipeLeft', type: '() => void', description: 'Called when swiped left past threshold' },
-            { name: 'onSwipeRight', type: '() => void', description: 'Called when swiped right past threshold' },
-            { name: 'threshold', type: 'number', default: '80', description: 'Swipe distance threshold in px' },
-            { name: 'className', type: 'string', description: 'Additional CSS class' },
-            { name: 'children', type: 'ReactNode', description: 'Main content' },
-          ]}
-        />
+        <PropsTable of='SwipeActionProps' />
       </div>
 
       <div className={section}>
@@ -7265,6 +6857,7 @@ const demos: Record<string, () => ReactNode> = {
   list: ListDemo,
   combobox: ComboboxDemo,
   table: TableDemo,
+  'data-table': DataTableDemo,
   carousel: CarouselDemo,
   datepicker: DatepickerDemo,
   tree: TreeDemo,
@@ -7326,6 +6919,66 @@ const demos: Record<string, () => ReactNode> = {
   form: FormDemo,
 };
 
+// ─── Copy import ────────────────────────────────────────────────
+
+const copyBar = css`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--haze-space-3);
+`;
+
+/** route param (`:name`, e.g. 'numberinput') → generated component entry. */
+const propsByRoute = new Map(
+  Object.values(generatedProps.components).map((entry) => [
+    entry.routeKey,
+    entry,
+  ])
+);
+
+/**
+ * Small wrapper-level action: copies the `import { … } from 'haze-ui'` lines
+ * (plus the tokens.css / per-component css imports) for the current route.
+ * Rendered once next to the demo, not inside each demo. Hidden when the
+ * route has no component entry in the generated props index (e.g. 'form').
+ */
+function CopyImportButton({ name }: { name: string }) {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    []
+  );
+
+  const entry = propsByRoute.get(name);
+  if (!entry) return null;
+
+  const importText = [
+    `import { ${entry.imports.join(', ')} } from 'haze-ui';`,
+    `import 'haze-ui/css/tokens.css';`,
+    `import 'haze-ui/css/${entry.cssFamily}.css';`,
+  ].join('\n');
+
+  return (
+    <div className={copyBar}>
+      <Button
+        size='sm'
+        variant='outline'
+        onClick={() => {
+          void navigator.clipboard.writeText(importText);
+          setCopied(true);
+          if (timer.current) clearTimeout(timer.current);
+          timer.current = setTimeout(() => setCopied(false), 2000);
+        }}
+      >
+        {copied ? 'Copied' : 'Copy import'}
+      </Button>
+    </div>
+  );
+}
+
 export default function ComponentDetail() {
   const { params } = useMatched();
   const name = params.name ?? '';
@@ -7333,7 +6986,14 @@ export default function ComponentDetail() {
 
   return (
     <div className={page}>
-      {Demo ? <Demo /> : <h1>Component not found: {name}</h1>}
+      {Demo ? (
+        <>
+          <CopyImportButton name={name} />
+          <Demo />
+        </>
+      ) : (
+        <h1>Component not found: {name}</h1>
+      )}
     </div>
   );
 }

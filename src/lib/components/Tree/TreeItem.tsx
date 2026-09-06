@@ -103,7 +103,7 @@ const checkbox = css`
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
-  margin-right: var(--haze-space-2);
+  margin-inline-end: var(--haze-space-2);
   border: 1px solid var(--haze-color-border);
   border-radius: var(--haze-radius-sm);
   background: var(--haze-color-bg);
@@ -138,7 +138,7 @@ const nodeIcon = css`
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-  margin-right: var(--haze-space-2);
+  margin-inline-end: var(--haze-space-2);
   color: var(--haze-color-text-muted);
 
   svg {
@@ -177,7 +177,7 @@ const indentLine = css`
 `;
 
 const indentLineWithBorder = css`
-  border-left: 1px solid var(--haze-color-border);
+  border-inline-start: 1px solid var(--haze-color-border);
 `;
 
 const ChevronRight = () => (

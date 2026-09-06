@@ -1,5 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { css } from '@linaria/core';
+
+import { parseMarkdown, splitBlocks } from './markdown-blocks';
 
 type MarkdownRendererProps = {
   content: string;
@@ -31,7 +33,7 @@ const wrapper = css`
 
   & ul, & ol {
     margin-bottom: var(--haze-space-3);
-    padding-left: var(--haze-space-6);
+    padding-inline-start: var(--haze-space-6);
   }
 
   & li {
@@ -61,8 +63,8 @@ const wrapper = css`
 
   & blockquote {
     margin-bottom: var(--haze-space-3);
-    padding-left: var(--haze-space-4);
-    border-left: 3px solid var(--haze-color-border);
+    padding-inline-start: var(--haze-space-4);
+    border-inline-start: 3px solid var(--haze-color-border);
     color: var(--haze-color-text-muted);
   }
 
@@ -80,7 +82,7 @@ const wrapper = css`
   & th, & td {
     padding: var(--haze-space-2) var(--haze-space-3);
     border: 1px solid var(--haze-color-border);
-    text-align: left;
+    text-align: start;
   }
 
   & th {
@@ -100,75 +102,32 @@ const wrapper = css`
   }
 `;
 
-function parseMarkdown(src: string): string {
-  let html = src;
-
-  // code blocks
-  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_m, lang, code) => {
-    return `<pre><code class="lang-${lang}">${escapeHtml((code as string).trim())}</code></pre>`;
-  });
-
-  // inline code
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  // headings
-  html = html.replace(/^######\s+(.+)$/gm, '<h6>$1</h6>');
-  html = html.replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>');
-  html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
-  html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
-
-  // bold and italic
-  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  // blockquote
-  html = html.replace(/^>\s+(.+)$/gm, '<blockquote>$1</blockquote>');
-
-  // unordered list
-  html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
-  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
-
-  // ordered list
-  html = html.replace(/^\d+\.\s+(.+)$/gm, '<oli>$1</oli>');
-  html = html.replace(/((?:<oli>.*<\/oli>\n?)+)/g, (m) => {
-    return '<ol>' + m.replace(/<\/?oli>/g, (t) => t.replace('oli', 'li')) + '</ol>';
-  });
-
-  // horizontal rule
-  html = html.replace(/^---$/gm, '<hr />');
-
-  // links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-
-  // images
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" />');
-
-  // paragraphs (lines not already wrapped in block elements)
-  html = html.replace(/^(?!<[a-z])((?!<\/).+)$/gm, (line) => {
-    const trimmed = line.trim();
-    if (!trimmed) return '';
-    return `<p>${trimmed}</p>`;
-  });
-
-  // line breaks
-  html = html.replace(/\n{2,}/g, '\n');
-
-  return html;
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+type BlockCache = { source: readonly string[]; parsed: string[] };
 
 export default function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  const html = useMemo(() => parseMarkdown(content), [content]);
+  // Partition at blank-line boundaries (outside code fences, at even
+  // backtick parity — see markdown-blocks.ts). While content streams in,
+  // only the active tail block changes; every earlier block is stable.
+  const blocks = useMemo(() => splitBlocks(content), [content]);
+
+  // Sliding per-block memo: value-compare each block against the previous
+  // content's block list (`===` compares string values), so stable prefix
+  // blocks reuse their parse and only changed blocks run the pipeline.
+  // parseMarkdown is pure, so caching across renders is safe even for
+  // discarded concurrent renders.
+  const cacheRef = useRef<BlockCache>({ source: [], parsed: [] });
+  const html = useMemo(() => {
+    const prev = cacheRef.current;
+    const parsed = blocks.map((block, i) =>
+      // source/parsed are same-length; a matching source slot always has
+      // its parsed counterpart.
+      prev.source[i] === block ? prev.parsed[i]! : parseMarkdown(block),
+    );
+    cacheRef.current = { source: blocks, parsed };
+    // Single newline between blocks — exactly what parseMarkdown's final
+    // `\n{2,}` collapse produces for the blank-line separators.
+    return parsed.join('\n');
+  }, [blocks]);
 
   return (
     <div

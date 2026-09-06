@@ -14,6 +14,8 @@ type DatepickerCoreProps = {
   onOpenChange: (open: boolean) => void;
   min?: string;
   max?: string;
+  locale?: string;
+  weekStartsOn?: 0 | 1;
   placeholder?: string;
   className?: string;
 };
@@ -61,6 +63,8 @@ export default function DatepickerCore({
   onOpenChange,
   min,
   max,
+  locale,
+  weekStartsOn,
   placeholder = 'Select date',
   className,
 }: DatepickerCoreProps) {
@@ -114,6 +118,8 @@ export default function DatepickerCore({
           value={value}
           min={min}
           max={max}
+          locale={locale}
+          weekStartsOn={weekStartsOn}
           onSelect={(date) => {
             onChange(date);
             onOpenChange(false);

@@ -107,6 +107,49 @@ const featureDesc = css`
   margin: 0;
 `;
 
+const compareSection = css`
+  padding: var(--haze-space-8) var(--haze-space-4);
+  max-width: 960px;
+  margin: 0 auto;
+`;
+
+const compareScroll = css`
+  overflow-x: auto;
+`;
+
+const compareTable = css`
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  line-height: var(--haze-leading-normal);
+  color: var(--haze-color-text-secondary);
+
+  & th,
+  & td {
+    text-align: left;
+    padding: var(--haze-space-2) var(--haze-space-3);
+    border-bottom: 1px solid var(--haze-color-border);
+    vertical-align: top;
+    white-space: nowrap;
+  }
+
+  & thead th {
+    color: var(--haze-color-text);
+    font-weight: var(--haze-weight-semibold);
+  }
+
+  & tbody th {
+    color: var(--haze-color-text);
+    font-weight: var(--haze-weight-medium);
+  }
+
+  & td:first-of-type {
+    color: var(--haze-color-primary);
+    font-weight: var(--haze-weight-medium);
+  }
+`;
+
 const statsSection = css`
   padding: var(--haze-space-8) var(--haze-space-4);
   background: var(--haze-color-bg-subtle);
@@ -245,6 +288,41 @@ const FEATURES = [
   },
 ] as const;
 
+const COMPARE_COLUMNS = ['haze-ui', 'shadcn + Base UI', 'Radix', 'Mantine', 'MUI'] as const;
+
+const COMPARE_ROWS = [
+  {
+    label: 'Styling runtime',
+    cells: ['zero (Linaria)', 'zero (Tailwind)', 'unstyled', 'runtime', 'runtime'],
+  },
+  {
+    label: 'State API',
+    cells: [
+      'ControlOrValue<T> single prop',
+      'value/defaultValue',
+      'value/defaultValue',
+      'value/defaultValue',
+      'value/defaultValue',
+    ],
+  },
+  {
+    label: 'Form binding',
+    cells: ['react-f0rm deep integration', 'react-hook-form optional', '\u2014', 'built-in', 'built-in'],
+  },
+  {
+    label: 'AI components',
+    cells: ['18 built-in, zero runtime binding', '\u2014', '\u2014', '\u2014', '\u2014'],
+  },
+  {
+    label: 'Per-component CSS',
+    cells: ['css-manifest.json', '\u2014', '\u2014', '\u2014', '\u2014'],
+  },
+  {
+    label: 'Shipped CSS',
+    cells: ['~19 kB gzipped', 'varies', '\u2014', '\u2014', '\u2014'],
+  },
+] as const;
+
 export default function Home() {
   return (
     <div className={wrapper}>
@@ -302,6 +380,35 @@ export default function Home() {
               <p className={featureDesc}>{f.desc}</p>
             </Card>
           ))}
+        </div>
+      </section>
+
+      <section className={compareSection}>
+        <h2 className={sectionTitle}>How it compares</h2>
+        <p className={sectionSubtitle}>
+          Zero-runtime styling, one-prop state control, and AI components built in.
+        </p>
+        <div className={compareScroll}>
+          <table className={compareTable}>
+            <thead>
+              <tr>
+                <th scope="col" aria-label="Dimension" />
+                {COMPARE_COLUMNS.map((column) => (
+                  <th key={column} scope="col">{column}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARE_ROWS.map((row) => (
+                <tr key={row.label}>
+                  <th scope="row">{row.label}</th>
+                  {COMPARE_COLUMNS.map((column, i) => (
+                    <td key={column}>{row.cells[i]}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 

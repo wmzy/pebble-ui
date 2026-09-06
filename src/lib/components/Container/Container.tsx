@@ -10,10 +10,8 @@ type ContainerProps = {
 
 const container = css`
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: var(--haze-space-4);
-  padding-right: var(--haze-space-4);
+  margin-inline: auto;
+  padding-inline: var(--haze-space-4);
   font-family: var(--haze-font-sans);
 `;
 

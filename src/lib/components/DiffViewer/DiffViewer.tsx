@@ -45,10 +45,10 @@ const lineNum = css`
   flex-shrink: 0;
   width: 3rem;
   padding: 0 var(--haze-space-2);
-  text-align: right;
+  text-align: end;
   color: var(--haze-color-text-muted);
   user-select: none;
-  border-right: 1px solid var(--haze-color-border);
+  border-inline-end: 1px solid var(--haze-color-border);
 `;
 
 const lineContent = css`

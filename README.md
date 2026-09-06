@@ -14,6 +14,14 @@ English | [简体中文](./README-zh_CN.md)
 - Support themes customization
 - Support Tree-shaking
 
+## Why npm-distributed (not copy-paste)
+
+**Interaction states are formulas, not values.** Every hover/active/subtle/focus-ring color is a CSS relative-color expression — `oklch(from var(--haze-color-primary) calc(l - 0.045) c h)` — baked into `tokens.css`. Override `--haze-color-primary` on a theme class and the entire interaction-state family re-derives at runtime in the browser, no rebuild, no codegen. In a copy-paste setup every pasted file owns its own copy of that formula, and each theme tweak means re-applying it by hand, file by file.
+
+**`haze-ui/css-manifest.json` is machine-readable data.** The authoritative export → CSS-file mapping (family absorption included) is regenerated on every build, so bundler plugins and codemods read one source of truth instead of re-deriving kebab-case file names. A directory of pasted components has no equivalent — the mapping exists only in your head or your fork, and it drifts.
+
+**The `ControlOrValue<T>` protocol needs a real runtime.** One prop — `checked?: Control<T> | T` — covers controlled *and* uncontrolled usage because `react-use-control` carries the wiring; a published package is the contract that keeps that behavior identical across every component and version. None of this is hostile to the shadcn / Base UI ecosystem: haze-ui tokens are plain CSS custom properties, so they interoperate with a Tailwind v4 `@theme` block, and haze components compose alongside copy-pasted primitives wherever each fits.
+
 ## Getting Started
 
 ### Installation
@@ -149,6 +157,29 @@ import { useTitle } from 'haze-ui';
 function SettingsView() {
   useTitle('Settings');
   // ...
+}
+```
+
+## Design tokens export (Figma)
+
+`toDesignTokens()` converts the token registry into a [W3C Design Tokens](https://tr.designtokens.org/) JSON file — grouped by category (`color` / `font` / `spacing` / `dimension` / `shadow`), each token carrying a W3C `$type` and the source CSS variable in `$extensions['haze-ui.css-var']`, with `$value` being the resolved value of the chosen theme (`light` by default). The Theme Editor ships a one-click entry: the **Export W3C tokens (.json)** button in the toolbar downloads the file for the mode currently being edited, live edits included. The exported file can be imported directly into Figma Tokens / Tokens Studio.
+
+```json
+{
+  "color": {
+    "color-primary": {
+      "$value": "oklch(0.563 0.241 260.8)",
+      "$type": "color",
+      "$extensions": { "haze-ui.css-var": "--haze-color-primary" }
+    }
+  },
+  "spacing": {
+    "space-2": {
+      "$value": "8px",
+      "$type": "dimension",
+      "$extensions": { "haze-ui.css-var": "--haze-space-2" }
+    }
+  }
 }
 ```
 
@@ -424,6 +455,89 @@ All three are optional; omit them and the field behaves exactly as
 before (immediate validation per the form's `mode`, immediate error
 display, `validate`-only).
 
+## Accessibility & RTL
+
+haze-ui supports RTL via CSS logical properties wherever a side is
+semantic (the *start/end* of reading flow), not just decorative. Set
+`dir="rtl"` (or `direction: rtl`) on an ancestor and those sides mirror
+automatically — no component props change. A regression smoke test
+(`src/lib/rtl.test.tsx`) renders Progress, Alert, Badge, Tag and Dialog
+in a `dir="rtl"` subtree asserting rendering, axe cleanliness and
+unchanged aria contracts.
+
+### Direction-responsive by construction (no physical CSS)
+
+- **Progress (bar)** — the fill is a normal-flow block with a percentage
+  `width`, so it grows from the inline-start edge (right in RTL) with no
+  `left`/`right` in its CSS.
+- **Slider** — a native `<input type="range">`; the browser mirrors fill
+  and thumb under `dir="rtl"`.
+- **Flex gap / `flex-direction: row`** — gap and row order follow the
+  writing mode, so icon-to-label spacing in Tag, ChatMessage, Alert, etc.
+  mirrors for free.
+- **Carousel track scrolling** — uses `scrollIntoView({ inline: 'start' })`,
+  a logical scroll position.
+
+### Fixed: physical → logical conversions
+
+| File | Change |
+| --- | --- |
+| `Carousel.tsx` | prev/next buttons `left`/`right` → `inset-inline-start`/`inset-inline-end`, plus a `[dir='rtl']` `scale: -1 1` mirror so the `‹`/`›` glyphs point along the reading direction |
+| `ChatMessage.tsx` | bubble tail corners `border-bottom-right-radius` / `border-bottom-left-radius` → `border-end-end-radius` / `border-end-start-radius` (tail follows the bubble's anchored side) |
+| `Chip.tsx` | close-button `margin-left` → `margin-inline-start` |
+| `Container.tsx` | `margin-left/right: auto` → `margin-inline: auto`; `padding-left/right` → `padding-inline` |
+| `ContextMenuItem.tsx`, `DropdownMenuItem.tsx`, `MenuItem.tsx`, `ConversationItem.tsx` | `text-align: left` → `text-align: start` |
+| `DiffViewer.tsx` | line-number gutter `text-align: right` → `end`, `border-right` → `border-inline-end` (gutter stays on the leading side) |
+| `List.tsx` | `padding-left` → `padding-inline-start` (list indent), both variants |
+| `NavigationBar.tsx` | end-slot `margin-left: auto` → `margin-inline-start: auto` |
+| `StepTimeline.tsx` | connector line `left` → `inset-inline-start` (stays under the inline-start marker column) |
+| `Stepper/Step.tsx` | connector `left: 50%` → `inset-inline-start: 50%` (extends toward the next step) |
+| `TableHead.tsx` | `th { text-align: left }` → `start` |
+| `TreeItem.tsx` | checkbox/icon `margin-right` → `margin-inline-end`; indent guide `border-left` → `border-inline-start` |
+
+Kept physical on purpose — glyph geometry or symmetric layout, not
+reading-flow sides: the rotated border chevrons in Accordion/Disclosure,
+Checkbox's rotated checkmark, Radio's centered dot, Affix's symmetric
+`left: 0; right: 0` stretch.
+
+### Partial support: known gaps
+
+- **Floating panels (Popover, DropdownMenu, Tooltip, ContextMenu,
+  Combobox, Datepicker)** — placements are physical sides
+  (`'left'`/`'right'`/`'bottom-end'`, …). The CSS anchor-positioning
+  `position-area` grid keywords and the JS collision math
+  (`utils/collision.ts`, viewport coordinates) are physical; migrating to
+  logical `position-area` keywords is a tracked future change. In RTL the
+  panels position identically to LTR.
+- **Input adornments** — `SelectCore` / `ModelPicker` chevrons
+  (`background-position: right …` + `padding-right`) and
+  `PasswordInputCore`'s absolute reveal button sit on the physical right
+  with matching padding. Consistent under RTL, but not mirrored.
+- **Progress (circle)** — SVG `stroke-dashoffset` fill runs clockwise
+  regardless of direction (SVG has no inline axis).
+- **Physical-by-design placement APIs** — `Drawer` `placement`
+  (`'left'`/`'right'`), `Toast` placement (`'top-left'`, …),
+  `SwipeAction` left/right action edges, `BackToTop`'s bottom-right
+  corner, `CodeBlock`'s top-right language badge: the side is the API,
+  so it stays physical.
+
+### Workaround for remaining gaps
+
+Wrap with `dir="rtl"` for everything above; for the physical-by-design
+cases, override with logical insets through the `className` every
+component accepts:
+
+```jsx
+<Drawer placement="right" className="rtl-drawer" />
+```
+
+```css
+[dir='rtl'] .rtl-drawer {
+  /* nudge a physical placement back to the reading-flow side */
+  inset-inline-end: 0;
+}
+```
+
 ## Related Projects
 
 - [react-use-control](https://github.com/wmzy/react-use-control)
@@ -458,3 +572,28 @@ import 'haze-ui/css/button.css';
 
 No — haze-ui is ESM-only (`"type": "module"`). Use a bundler or runtime
 with ESM support (Vite, webpack 5, Next.js, Node ≥ 18, …).
+
+### How do I detect (or degrade) the relative-color syntax?
+
+Since v1.13, theme interaction states are derived with CSS relative
+colors, so the browser baseline from [Browser support](#browser-support)
+applies — Chrome/Edge 119+, Safari 16.4+, Firefox 128+, with no HSL/hex
+fallbacks shipped. To gate your own fallback styling on support, probe
+the syntax in CSS:
+
+```css
+@supports (color: oklch(from red calc(l + 0.05) 0 h)) {
+  /* relative colors available: derive custom states from tokens */
+}
+```
+
+or from JS before deciding which stylesheet to load:
+
+```js
+if (CSS.supports('color: oklch(from red calc(l + 0.05) 0 h)')) {
+  // relative colors available — load the v1.13+ token sheet
+} else {
+  // below baseline: pin a pre-OKLCH version or ship your own fallbacks
+}
+```
+

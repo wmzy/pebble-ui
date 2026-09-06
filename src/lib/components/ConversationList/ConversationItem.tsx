@@ -19,7 +19,7 @@ const item = css`
   cursor: pointer;
   border-radius: var(--haze-radius-md);
   transition: background 0.15s;
-  text-align: left;
+  text-align: start;
   width: 100%;
   border: none;
   background: none;

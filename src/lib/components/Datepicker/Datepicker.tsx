@@ -9,6 +9,8 @@ type DatepickerProps = {
   open?: ControlOrValue<boolean>;
   min?: string;
   max?: string;
+  locale?: string;
+  weekStartsOn?: 0 | 1;
   placeholder?: string;
   className?: string;
 };
@@ -18,6 +20,8 @@ export default function Datepicker({
   open: openControl,
   min,
   max,
+  locale,
+  weekStartsOn,
   placeholder,
   className,
 }: DatepickerProps) {
@@ -32,6 +36,8 @@ export default function Datepicker({
       onOpenChange={setOpen}
       min={min}
       max={max}
+      locale={locale}
+      weekStartsOn={weekStartsOn}
       placeholder={placeholder}
       className={className}
     />

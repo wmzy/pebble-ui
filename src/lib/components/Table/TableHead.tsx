@@ -11,7 +11,7 @@ const head = css`
   border-bottom: 2px solid var(--haze-color-border);
 
   & th {
-    text-align: left;
+    text-align: start;
     padding: var(--haze-space-2) var(--haze-space-3);
     font-weight: var(--haze-weight-semibold);
     color: var(--haze-color-text);

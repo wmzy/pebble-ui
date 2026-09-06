@@ -20,7 +20,7 @@ const step = css`
 const stepConnector = css`
   position: absolute;
   top: 16px;
-  left: 50%;
+  inset-inline-start: 50%;
   width: 100%;
   height: 2px;
   background: var(--haze-color-border);

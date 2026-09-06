@@ -11,6 +11,37 @@ function getMonthLabel(year: number, month: number) {
   });
 }
 
+function getLocalizedMonthLabel(year: number, month: number, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(year, month));
+}
+
+/* Mirrors Calendar's week-start resolution: Intl reports 7 for Sunday while
+   the grid uses 0, and engines without getWeekInfo fall back to Sunday. */
+function getLocaleWeekStart(locale: string) {
+  const firstDay = (
+    new Intl.Locale(locale) as { getWeekInfo?: () => { firstDay: number } }
+  ).getWeekInfo?.().firstDay;
+  return firstDay === undefined || firstDay === 7 ? 0 : firstDay;
+}
+
+function getLocalizedWeekdays(locale: string, weekStart: number) {
+  const fmt = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+  // 2024-01-07 is a Sunday; index 0…6 map to Sunday…Saturday.
+  const byDay = Array.from({ length: 7 }, (_, day) =>
+    fmt.format(new Date(2024, 0, 7 + day))
+  );
+  return Array.from({ length: 7 }, (_, i) => byDay[(weekStart + i) % 7]!);
+}
+
+function getWeekdayHeaders() {
+  return screen
+    .getAllByRole('columnheader')
+    .map((columnheader) => columnheader.textContent);
+}
+
 describe('Datepicker', () => {
   it('renders an input with placeholder', () => {
     render(<Datepicker />);
@@ -101,6 +132,60 @@ describe('Datepicker', () => {
     const decLabel = getMonthLabel(2024, 11);
     expect(screen.getByText(decLabel)).toBeInTheDocument();
   });
+
+  it('renders legacy weekday headers in Sunday-first order by default', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value="2025-01-15" />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(getWeekdayHeaders()).toEqual([
+      'Su',
+      'Mo',
+      'Tu',
+      'We',
+      'Th',
+      'Fr',
+      'Sa',
+    ]);
+  });
+
+  it('starts the week on Monday when weekStartsOn is 1', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value="2025-01-15" weekStartsOn={1} />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(getWeekdayHeaders()).toEqual([
+      'Mo',
+      'Tu',
+      'We',
+      'Th',
+      'Fr',
+      'Sa',
+      'Su',
+    ]);
+    // 2025-01-01 is a Wednesday → two outside days (Mon 30, Tue 31) lead.
+    const firstWeek = screen.getAllByRole('row')[1]!.querySelectorAll('button');
+    expect(firstWeek[0]).toHaveTextContent('30');
+    expect(firstWeek[1]).toHaveTextContent('31');
+    expect(firstWeek[2]).toHaveTextContent('1');
+  });
+
+  it('formats month label and weekday headers for locale="zh-CN"', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value="2025-01-15" locale="zh-CN" />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(
+      screen.getByText(getLocalizedMonthLabel(2025, 0, 'zh-CN'))
+    ).toBeInTheDocument();
+    expect(getWeekdayHeaders()).toEqual(
+      getLocalizedWeekdays('zh-CN', getLocaleWeekStart('zh-CN'))
+    );
+  });
+
+  it('lets weekStartsOn override the locale week info', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value="2025-01-15" locale="zh-CN" weekStartsOn={0} />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(getWeekdayHeaders()).toEqual(getLocalizedWeekdays('zh-CN', 0));
+  });
 });
 
 describe('DatepickerCore', () => {
@@ -186,6 +271,23 @@ describe('DatepickerCore', () => {
     );
     fireEvent.keyDown(document.body, { key: 'Escape' });
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('forwards locale and weekStartsOn to the calendar', () => {
+    render(
+      <DatepickerCore
+        value="2025-01-15"
+        onChange={() => undefined}
+        open
+        onOpenChange={() => undefined}
+        locale="zh-CN"
+        weekStartsOn={0}
+      />
+    );
+    expect(
+      screen.getByText(getLocalizedMonthLabel(2025, 0, 'zh-CN'))
+    ).toBeInTheDocument();
+    expect(getWeekdayHeaders()).toEqual(getLocalizedWeekdays('zh-CN', 0));
   });
 
   it('has no axe violations when the calendar is open', async () => {

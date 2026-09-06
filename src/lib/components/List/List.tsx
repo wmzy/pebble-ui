@@ -14,7 +14,7 @@ const base = css`
   color: var(--haze-color-text);
   line-height: var(--haze-leading-normal);
   margin: 0;
-  padding-left: var(--haze-space-5);
+  padding-inline-start: var(--haze-space-5);
 `;
 
 const variantStyles = {
@@ -26,7 +26,7 @@ const variantStyles = {
   `,
   none: css`
     list-style-type: none;
-    padding-left: 0;
+    padding-inline-start: 0;
   `,
 } as const;
 

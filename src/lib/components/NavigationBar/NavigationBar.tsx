@@ -36,7 +36,7 @@ const links = css`
 `;
 
 const endSlot = css`
-  margin-left: auto;
+  margin-inline-start: auto;
   display: flex;
   align-items: center;
   gap: var(--haze-space-2);

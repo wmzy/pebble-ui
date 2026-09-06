@@ -28,6 +28,7 @@ import {
 } from '@/lib';
 import {formatOklch, parseHex, parseOklch} from '@/lib/tokens';
 import {useTheme, buildDefaultTokens} from '@/contexts/theme';
+import {toDesignTokens} from '@/util/design-tokens';
 import {page, section} from '@/views/ComponentDetail/styles';
 
 const editorGrid = css`
@@ -446,6 +447,23 @@ export default function ThemeEditor() {
     URL.revokeObjectURL(url);
   }, []);
 
+  /** Export the mode currently being edited (defaults + edits) as a W3C design tokens file. */
+  const handleExportW3cTokens = useCallback(() => {
+    const registry: TokenDef[] = TOKEN_REGISTRY.map((token) =>
+      activeMode === 'light'
+        ? {...token, light: edits[token.name] ?? defaults[token.name] ?? token.light}
+        : {...token, dark: edits[token.name] ?? defaults[token.name] ?? token.dark},
+    );
+    const file = toDesignTokens(registry, {theme: activeMode});
+    const blob = new Blob([JSON.stringify(file, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(themeName.trim() || 'haze-ui').replace(/\s+/g, '-').toLowerCase()}-tokens-${activeMode}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [activeMode, edits, defaults, themeName]);
+
   const handleImport = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -572,6 +590,11 @@ export default function ThemeEditor() {
           className={hiddenFileInput}
           onChange={handleImport}
         />
+        <Tooltip content="Export W3C tokens (.json)">
+          <Button size="sm" square variant="outline" onClick={handleExportW3cTokens}>
+            <Icon icon={Download} size="sm" />
+          </Button>
+        </Tooltip>
       </div>
 
       <div className={modeToggle}>

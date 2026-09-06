@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { css } from '@linaria/core';
 import { Link, PrefetchLink, View } from '@native-router/react';
 
@@ -20,6 +20,9 @@ import {
   Option,
 } from '@/lib';
 import { useTheme } from '@/contexts/theme';
+
+import SidebarSearch, { MatchText } from './SidebarSearch';
+import { filterComponents } from './search-score';
 
 const rootLayout = css`
   height: 100vh;
@@ -153,6 +156,13 @@ const disclosureNav = css`
   }
 `;
 
+const noResult = css`
+  padding: var(--haze-space-1) var(--haze-space-4);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-text-muted);
+`;
+
 const mainContent = css`
   flex: 1;
   overflow-y: auto;
@@ -191,6 +201,7 @@ const COMPONENTS = [
   'list',
   'combobox',
   'table',
+  'data-table',
   'carousel',
   'datepicker',
   'tree',
@@ -307,6 +318,12 @@ export default function Layout() {
 
   const stars = useStarCount();
 
+  const [search, setSearch] = useState('');
+  const componentMatches = useMemo(
+    () => filterComponents(COMPONENTS, search),
+    [search]
+  );
+
   const themeClass = resolvedMode === 'dark' ? darkTheme : lightTheme;
 
   return (
@@ -408,13 +425,29 @@ export default function Layout() {
                         Overview
                       </Link>
                     </ListItem>
-                    {COMPONENTS.map((name) => (
-                      <ListItem key={name}>
-                        <Link className={navLink} to={`/components/${name}`}>
-                          {capitalize(name)}
+                    <ListItem>
+                      <SidebarSearch value={search} onChange={setSearch} />
+                    </ListItem>
+                    {componentMatches.map((match) => (
+                      <ListItem key={match.name}>
+                        <Link
+                          className={navLink}
+                          to={`/components/${match.name}`}
+                        >
+                          <MatchText
+                            text={capitalize(match.name)}
+                            indices={match.indices}
+                          />
                         </Link>
                       </ListItem>
                     ))}
+                    {search.trim() !== '' && componentMatches.length === 0 && (
+                      <ListItem>
+                        <div className={noResult}>
+                          No components match “{search.trim()}”
+                        </div>
+                      </ListItem>
+                    )}
                   </List>
                 </Disclosure>
               </ListItem>

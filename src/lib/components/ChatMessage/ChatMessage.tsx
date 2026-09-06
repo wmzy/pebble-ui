@@ -67,13 +67,13 @@ const bubble = css`
 const bubbleUser = css`
   background: var(--haze-color-primary);
   color: var(--haze-color-bg);
-  border-bottom-right-radius: var(--haze-radius-sm);
+  border-end-end-radius: var(--haze-radius-sm);
 `;
 
 const bubbleAssistant = css`
   background: var(--haze-color-bg-muted);
   color: var(--haze-color-text);
-  border-bottom-left-radius: var(--haze-radius-sm);
+  border-end-start-radius: var(--haze-radius-sm);
 `;
 
 const bubbleSystem = css`

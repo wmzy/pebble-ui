@@ -19,7 +19,7 @@ const item = css`
   color: var(--haze-color-text);
   font-family: var(--haze-font-sans);
   font-size: var(--haze-text-sm);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   transition: background 0.1s;
 

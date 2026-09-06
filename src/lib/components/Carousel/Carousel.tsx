@@ -64,11 +64,21 @@ const navBtn = css`
 `;
 
 const prevBtn = css`
-  left: var(--haze-space-2);
+  inset-inline-start: var(--haze-space-2);
+
+  /* 位置随行进侧镜像；‹/› 字形靠元素镜像翻转（scale 与 navBtn 的
+     transform 独立组合，不覆盖 translateY）。 */
+  [dir='rtl'] & {
+    scale: -1 1;
+  }
 `;
 
 const nextBtn = css`
-  right: var(--haze-space-2);
+  inset-inline-end: var(--haze-space-2);
+
+  [dir='rtl'] & {
+    scale: -1 1;
+  }
 `;
 
 const indicators = css`

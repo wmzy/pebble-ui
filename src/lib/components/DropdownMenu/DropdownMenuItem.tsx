@@ -23,7 +23,7 @@ const item = css`
   font-family: var(--haze-font-sans);
   color: var(--haze-color-text);
   border-radius: var(--haze-radius-sm);
-  text-align: left;
+  text-align: start;
   transition: background 0.15s;
 
   &:hover {

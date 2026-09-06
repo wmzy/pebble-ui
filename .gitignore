@@ -26,6 +26,8 @@ tmp
 # Playwright
 /test-results
 /playwright-report
+/e2e/test-results
+/e2e/playwright-report
 
 /.nyc_output
 

@@ -55,4 +55,65 @@ describe('StreamingText', () => {
     });
     expect(results.violations).toEqual([]);
   });
+
+  it('finalizes completed lines into memoized chunk spans', () => {
+    const text = 'first line\nsecond line\nthird line';
+    const { container } = render(
+      <StreamingText text={text} speed={1} showCursor={false} />,
+    );
+    for (const _tick of text) {
+      act(() => { vi.advanceTimersByTime(1); });
+    }
+    const wrapperEl = container.firstChild as HTMLElement;
+    const chunks = Array.from(wrapperEl.children);
+    // one chunk span per line; finalized chunks keep their trailing newline
+    expect(chunks).toHaveLength(3);
+    expect(chunks[0]!.textContent).toBe('first line\n');
+    expect(chunks[1]!.textContent).toBe('second line\n');
+    expect(chunks[2]!.textContent).toBe('third line');
+    expect(wrapperEl.textContent).toBe(text);
+  });
+
+  it('confines per-tick DOM text mutations to the active tail chunk', async () => {
+    const lines = Array.from(
+      { length: 12 },
+      (_, i) => `line-${String(i).padStart(2, '0')} ${'x'.repeat(10)}`,
+    );
+    const text = lines.join('\n');
+    const { container } = render(
+      <StreamingText text={text} speed={1} showCursor={false} />,
+    );
+    const root = container.firstChild as HTMLElement;
+
+    // Finalized chunks must never have their text mutated again: every
+    // characterData mutation has to land on the element that is the last
+    // child at delivery time (the growing tail chunk). MutationObserver
+    // records are delivered per microtask checkpoint, so each tick is
+    // flushed through an async act before the next one starts.
+    const mutatedOutsideTail: string[] = [];
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.type !== 'characterData') return;
+        const parent = (record.target as Text).parentElement;
+        if (parent && parent !== root.lastElementChild) {
+          mutatedOutsideTail.push(parent.textContent);
+        }
+      }
+    });
+    observer.observe(root, { characterData: true, childList: true, subtree: true });
+
+    for (const _tick of text) {
+      await act(async () => {
+        vi.advanceTimersByTime(1);
+        // Yield a microtask so MutationObserver records (delivered per
+        // microtask checkpoint) are flushed inside this act boundary.
+        await Promise.resolve();
+      });
+    }
+    observer.disconnect();
+
+    expect(mutatedOutsideTail).toEqual([]);
+    expect(root.textContent).toBe(text);
+    expect(root.children).toHaveLength(lines.length);
+  });
 });
