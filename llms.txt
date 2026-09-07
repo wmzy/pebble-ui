@@ -1,0 +1,219 @@
+# Haze UI
+
+> React 19 UI component library built on the `ControlOrValue<T>` protocol: every stateful
+> component accepts one state prop (`checked?: Control<T> | T`) that works controlled *and*
+> uncontrolled, powered by [react-use-control](https://github.com/wmzy/react-use-control).
+
+101 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
+against `--haze-*` design tokens. ESM-only, `preserveModules` dist, tree-shakeable,
+`'use client'` directives pre-injected for React Server Components. Peer range
+`react: ^19.0.0` — no React 18 compatibility layer.
+
+## Install
+
+```sh
+npm i haze-ui
+# optional peers, only for the components that need them:
+npm i react-f0rm              # FormItem
+npm i @tanstack/react-table   # DataTable
+```
+
+## CSS: two loading modes
+
+The JS entry imports no stylesheet — pick one mode:
+
+```jsx
+// 1) Full stylesheet (simplest)
+import 'haze-ui/styles.css';
+
+// 2) Per-component CSS: tokens once + each component you use
+import 'haze-ui/css/tokens.css';
+import 'haze-ui/css/button.css';
+```
+
+Per-component files are kebab-case names, but sub-components and cores share their
+directory's family file (`InputCore` → `input.css`). Don't hardcode the mapping:
+`haze-ui/css-manifest.json` is the machine-readable, build-generated export → css-file
+map (with family absorption and a `noCss` list) — tooling should read it instead of
+re-deriving file names.
+
+## Components
+
+### General
+
+- **Avatar** — user avatar with image, size variants and fallback content when the image is missing.
+- **AvatarGroup** — stacks avatars in overlapping rows with a `+N` overflow chip (`max`/`total`).
+- **Badge** — small inline status label with variant and color options.
+- **Button** — action button with `variant`/`size`/`square` options; native `<button>` under the hood.
+- **Divider** — content separator line, horizontal or vertical.
+- **Icon** — inline SVG icon wrapper with token-sized `sm`/`md`/`lg` boxes.
+- **Tag** — compact status label with variant color and optional close button.
+- **TagGroup** — flex-wrap container laying out Tag children with consistent gap.
+- **Typography** — text primitives: `Title`, `Text`, `Paragraph` on typography tokens.
+
+### Layout
+
+- **AspectRatio** — boxes children to a fixed width/height ratio.
+- **Container** — centered max-width page container with horizontal padding.
+- **Flex** — flexbox layout primitive mapping props to flex CSS.
+- **Grid** — CSS grid layout primitive.
+- **Resizable** — split-pane group with draggable dividers (`ResizableGroup`, horizontal or vertical).
+- **ScrollArea** — scrollable region with custom-styled thin scrollbars and `maxHeight`.
+- **Sidebar** — app sidebar shell with controllable collapsed state (`aside` + rail width tokens).
+
+### Forms
+
+- **Cascader** — multi-level drill-down selector committing a path of option values.
+- **Checkbox** — checkbox input with controllable `checked` state.
+- **ColorPicker** — color selector with controllable value and preset swatches.
+- **Combobox** — autocomplete text input with filterable option list.
+- **Datepicker** — date input with popup calendar (`YYYY-MM-DD` value).
+- **DateRangePicker** — picks a start/end date range.
+- **FileInput** — trigger element that opens a hidden native file input.
+- **Form (FormItem)** — react-f0rm field wrapper adding label, error and aria wiring to controlled cores.
+- **InlineEdit** — click-to-edit text value in place.
+- **Input** — text input with adornments; sugar over `InputCore`.
+- **NumberInput** — numeric input with `min`/`max`/`step`.
+- **OTPInput** — one-time-password input of `length` segmented character boxes.
+- **PasswordInput** — text input with a visibility reveal toggle.
+- **Radio / RadioGroup** — radio option and group with controllable selection.
+- **Rating** — star rating with half-step support.
+- **Segmented** — segmented control selecting one option from a compact set.
+- **Select** — dropdown select over `SelectCore` with `<option>` children.
+- **Slider** — native range slider with controllable value.
+- **Switch** — toggle switch (`role="switch"`) with controllable `checked`.
+- **TagInput** — enter-to-commit token input over `TagInputCore`.
+- **Textarea** — multiline text input.
+- **TimePicker** — time-of-day input with controllable value.
+- **Transfer** — two-column shuttle moving options between source and target lists.
+- **Upload** — file picker with accumulating `File[]` value, `accept`/`multiple`.
+
+### Overlays
+
+- **BottomSheet** — mobile-style sheet sliding from the bottom screen edge.
+- **ConfirmDialog** — ready-made confirm dialog with confirm/cancel actions and a danger variant.
+- **ContextMenu** — floating menu opened on right-click.
+- **Dialog** — modal dialog with focus trapping.
+- **Drawer** — edge-anchored sliding panel (`placement` left/right).
+- **DropdownMenu** — click-triggered floating menu.
+- **HoverCard** — non-modal floating preview (avatar card, link summary) anchored to its trigger.
+- **Menu** — lightweight toggle menu with a trigger and statically positioned panel (`MenuItem`, `MenuDivider`).
+- **Popover** — floating popover anchored to a trigger element.
+- **Tooltip** — hover/focus hint bubble.
+
+### Data Display
+
+- **Accordion** — collapsible section list (`AccordionItem` with `title`).
+- **Calendar** — month-grid date surface with `min`/`max`, locale and `weekStartsOn`.
+- **Card** — content card with `elevated`/`outlined`/`filled` variants.
+- **Carousel** — slideshow with controllable active index and autoplay.
+- **Chip** — rounded status chip with optional icon and close button.
+- **CodeBlock** — monospace code container with a language badge.
+- **DataTable** — feature table on `@tanstack/react-table` (sorting, pagination, row selection).
+- **Image** — image with fallback and `aspectRatio`/`objectFit` control.
+- **Kbd** — keyboard key-cap styling for shortcuts.
+- **List** — styled `ul`/`ol`/plain list variants.
+- **Progress** — progress bar or circle driven by a percentage `value`.
+- **Stat** — metric display with title, value and trend indicator.
+- **Table** — styled semantic table (`striped`, `bordered`).
+- **Timeline** — vertical timeline container for `TimelineItem` children.
+- **Tree** — hierarchical tree with expand, select and check state.
+- **VirtualList** — windowed list rendering only visible rows; fixed or measured dynamic heights.
+
+### Navigation
+
+- **Affix** — fixes children to a viewport edge once scrolled past an offset.
+- **BackToTop** — floating scroll-to-top button appearing past a scroll threshold.
+- **Breadcrumb** — breadcrumb trail nav with configurable separator.
+- **Command** — command palette surface: `CommandInput` plus filterable `CommandItem`s.
+- **NavigationBar** — top nav bar with `brand` and `end` slots.
+- **Pagination** — page navigation with controllable `page` and ellipsis windows.
+- **Stepper** — step indicator driven by `activeStep` (`Step` children).
+- **Tabs** — tab panel switcher with controllable active tab.
+- **Toolbar** — button group with toolbar a11y (roving tabindex; `ToolbarButton`, `ToolbarSeparator`).
+- **Tour** — guided walkthrough spotlighting `steps` behind a mask, controllable `current`.
+
+### Feedback
+
+- **Alert** — inline status message box.
+- **AsyncSection** — declarative loading / error / content states for async data.
+- **Banner** — dismissible top banner with info/success/warning/danger variants.
+- **Empty** — empty-state placeholder with image and description.
+- **Skeleton** — shimmering loading placeholder (`text`/`circular`/`rectangular`).
+- **Spinner** — loading spinner.
+- **Toast** — toast notifications via `useToast` + `ToastContainer` (imperative `toast()` helper included).
+
+### AI & Chat
+
+- **ApprovalCard** — approval gate with approve / deny actions for agent-initiated operations.
+- **ChatContainer** — chat transcript scroll container with stick-to-bottom auto-scroll.
+- **ChatInput** — message composer with a controllable value and onSend callback.
+- **ChatMessage** — chat bubble with role-based layout (user / assistant / system), avatar, name, timestamp and delivery status.
+- **ConversationList** — selectable list of conversations for a chat-history sidebar.
+- **DiffViewer** — renders the line diff between old and new content for agent-proposed edits.
+- **LogViewer** — scrollable log stream with severity-level filtering.
+- **MarkdownRenderer** — renders markdown content (including code blocks) for assistant responses.
+- **ModelPicker** — controllable dropdown for selecting the active model.
+- **StepTimeline** — vertical timeline of agent execution steps with per-step status.
+- **StreamingText** — typewriter effect that reveals streaming text character by character, with an optional cursor.
+- **ThinkingIndicator** — animated bouncing-dots indicator that the agent is processing.
+- **TokenCounter** — context-window token usage counter with budget progress.
+- **ToolCallCard** — card presenting an agent tool call — name, input, output and running state.
+
+### Utilities
+
+- **Collapsible** — unstyled open/close container with controllable `open` state.
+- **Disclosure** — summary-header disclosure panel (details/summary semantics).
+- **LocaleProvider** — supplies UI string packs (built-in English and zh-CN) to locale-aware components.
+- **SwipeAction** — swipe-to-reveal row actions on left/right edges with a commit threshold.
+
+## Design tokens
+
+Colors are generated in **OKLCH** from `src/lib/tokens/palette.ts`: 12-step primitive
+scales (gray/blue/green/amber/red × light/dark) plus semantic aliases. Interaction
+states (hover/active/subtle/focus-ring/border-hover) are **CSS relative-color formulas**
+— `oklch(from var(--haze-color-primary) calc(l - 0.045) c h)` — so overriding
+`--haze-color-primary` on a theme class re-derives the whole interaction family at
+runtime, no rebuild. Themes ship as classes: apply `lightTheme` (or `darkTheme`) plus
+`spacing` and `typography` to a root element. Browser baseline: Chrome/Edge 119+,
+Safari 16.4+, Firefox 128+ (relative-color syntax, no hex fallbacks).
+`toDesignTokens()` (from `haze-ui/tokens`) exports the registry as a
+[W3C Design Tokens](https://tr.designtokens.org/) JSON file for Figma Tokens /
+Tokens Studio. All tokens are plain CSS custom properties prefixed `--haze-*`.
+
+## Floating overlays: three tiers
+
+Popover, DropdownMenu, Tooltip, ContextMenu, Combobox and Datepicker panels pick an
+engine by feature detection: (1) native `popover` attribute + CSS anchor positioning
+(position-area grid with fallbacks), (2) `popover` alone, (3) a JS-positioned fallback.
+Modern engines take tier 1; positioning and light-dismiss behavior stay consistent
+across tiers. Panel placement APIs use physical sides (`'bottom'`, `'bottom-end'`, …).
+
+## Forms: react-f0rm integration
+
+Form state belongs to [react-f0rm](https://github.com/wmzy/react-f0rm) (optional peer).
+haze-ui ships controlled cores — `InputCore`, `SelectCore`, `SwitchCore`, `TextareaCore`,
+`TagInputCore`, `TransferCore`, `UploadCore`, `CheckboxCore`, … — that speak the plain
+`{value, onChange}` pair its headless `useField` hook emits, with zero adapters.
+`FormItem` wraps the hook's state in label, error and aria wiring, with declarative
+binding via `as`/`input` props. The sugar components (`Input`, `Select`, …) keep the
+`ControlOrValue<T>` API for standalone use outside forms.
+
+## AI-friendly distribution
+
+- `haze-ui/registry.json` (npm artifact; also at <https://unpkg.com/haze-ui/registry.json>)
+  is a shadcn/ui-compatible registry covering the **agent components** (the AI & Chat
+  group plus AsyncSection). Its items are thin wrapper files that re-export the
+  published component and import its stylesheet — haze-ui stays an npm dependency
+  underneath, so wrappers are your customization layer, not vendored source.
+- `haze-ui/css-manifest.json` maps every export to its css file (see "CSS" above).
+
+## Links
+
+- Docs & demos: <https://wmzy.github.io/haze-ui/>
+- GitHub: <https://github.com/wmzy/haze-ui>
+- npm: <https://www.npmjs.com/package/haze-ui>
+
+This file is maintained by hand — component lists and counts here are updated when the
+component set changes, and the authoritative groups live in the demo sidebar contract
+(`src/views/Layout/component-groups.ts`).

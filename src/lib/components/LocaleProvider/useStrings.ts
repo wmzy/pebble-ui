@@ -3,7 +3,8 @@ import type { HazeStringsOverrides, LocaleContextValue } from './LocaleContext';
 
 import { useContext } from 'react';
 
-import { defaultStrings } from './locale';
+import { enUS } from './locale';
+import { zhCN } from './zh-cn';
 
 import { LocaleContext } from './LocaleContext';
 
@@ -17,16 +18,33 @@ function collectLayers(
 }
 
 /**
- * Resolved copy for one component: the section of `defaultStrings`
- * layered with every enclosing provider's override, key by key, so the
- * innermost provider wins conflicts and silent keys keep outer (or
- * default) values. Falls back to the defaults when no provider is
+ * Picks the built-in pack for a BCP 47 tag: Chinese variants ('zh',
+ * 'zh-CN', 'zh_TW', …) resolve to `zhCN`, anything else — or no
+ * locale at all — falls back to English.
+ */
+function resolveBuiltinStrings(locale: string | undefined): HazeStrings {
+  if (locale) {
+    const tag = locale.toLowerCase();
+    if (tag === 'zh' || tag.startsWith('zh-') || tag.startsWith('zh_')) {
+      return zhCN;
+    }
+  }
+  return enUS;
+}
+
+/**
+ * Resolved copy for one component: the section of the built-in pack
+ * selected by the provider chain's effective `locale`, layered with
+ * every enclosing provider's override, key by key, so the innermost
+ * provider wins conflicts and silent keys keep outer (or pack)
+ * values. Falls back to the English defaults when no provider is
  * mounted.
  */
 export function useStrings<K extends keyof HazeStrings>(
   componentKey: K
 ): Readonly<HazeStrings[K]> {
-  const overrides = collectLayers(useContext(LocaleContext))
+  const context = useContext(LocaleContext);
+  const overrides = collectLayers(context)
     .map((layer) => layer[componentKey])
     .filter(
       (section): section is Partial<HazeStrings[K]> => section !== undefined
@@ -34,6 +52,6 @@ export function useStrings<K extends keyof HazeStrings>(
 
   return overrides.reduce<Readonly<HazeStrings[K]>>(
     (resolved, section) => ({ ...resolved, ...section }),
-    defaultStrings[componentKey]
+    resolveBuiltinStrings(context?.locale)[componentKey]
   );
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { useControl } from 'react-use-control';
 
-import { LocaleProvider, Pagination, ChatInput, defaultStrings  } from '@/lib';
+import { LocaleProvider, Pagination, ChatInput, Empty, defaultStrings  } from '@/lib';
 
 
 import PropsTable from '../PropsTable';
@@ -48,6 +48,38 @@ export default function LocaleProviderDemo() {
           </div>
           <ChatInput onSend={() => undefined} />
         </LocaleProvider>
+      </div>
+
+      <div className={section}>
+        <h2>Built-in locales</h2>
+        <p>
+          Set <code>locale</code> to switch every component to a bundled
+          language pack — <code>&quot;zh-CN&quot;</code> (and any other
+          Chinese tag) serves Chinese copy. <code>strings</code> still
+          layers on top of the selected pack, and any other locale falls
+          back to the English default.
+        </p>
+        <LocaleProvider
+          locale="zh-CN"
+          strings={{ empty: { description: '筛选结果为空' } }}
+        >
+          <Pagination total={50} pageSize={10} />
+          <Empty />
+        </LocaleProvider>
+        <pre className={codeBlock}>{`import { LocaleProvider } from 'haze-ui';
+
+// Built-in pack: every component switches to Chinese copy
+<LocaleProvider locale="zh-CN">
+  <App />
+</LocaleProvider>
+
+// Custom copy still layers on top of the selected pack
+<LocaleProvider
+  locale="zh-CN"
+  strings={{ empty: { description: '筛选结果为空' } }}
+>
+  <App />
+</LocaleProvider>`}</pre>
       </div>
 
       <div className={section}>

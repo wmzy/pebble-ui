@@ -4,7 +4,6 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - react-f0rm
-  - react-toolroom
   - '@native-router/*'
   - '@for-fun/event-emitter'
   - react-use-control@1.4.0 || 1.5.0

@@ -1,3 +1,5 @@
+import { Check, X, ChevronRight } from 'lucide-react';
+
 import { Icon, Flex } from '@/lib';
 
 import PropsTable from '../PropsTable';
@@ -192,6 +194,79 @@ import { Icon } from 'haze-ui';
     <path d="M12 2L2 7l10 5 10-5-10-5z" />
   </svg>
 </Icon>`}</pre>
+      </div>
+
+      <div className={section}>
+        <h2>Using an Icon Library</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          For production apps, pair <code>Icon</code> with a maintained icon
+          library — <code>lucide-react</code> (MIT) is a good default, with
+          tree-shakable stroke icons:
+        </p>
+        <pre className={codeBlock}>{`pnpm add lucide-react`}</pre>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          Every Lucide icon is a React component, so it plugs straight into
+          the <code>icon</code> prop — no wrappers needed. <code>Icon</code>{' '}
+          handles the rest automatically: stroke icons render with{' '}
+          <code>fill: none</code>, color follows <code>currentColor</code>,
+          and sizing comes from the <code>sm</code>/<code>md</code>/{' '}
+          <code>lg</code> size tokens.
+        </p>
+        <div className={row}>
+          <Flex gap='var(--haze-space-4)' style={{ alignItems: 'center' }}>
+            <Flex gap='var(--haze-space-2)' style={{ alignItems: 'center' }}>
+              <Icon icon={Check} size='lg' />
+              <span
+                style={{
+                  fontSize: 'var(--haze-text-xs)',
+                  color: 'var(--haze-color-text-muted)',
+                }}
+              >
+                Check
+              </span>
+            </Flex>
+            <Flex gap='var(--haze-space-2)' style={{ alignItems: 'center' }}>
+              <Icon icon={X} size='lg' />
+              <span
+                style={{
+                  fontSize: 'var(--haze-text-xs)',
+                  color: 'var(--haze-color-text-muted)',
+                }}
+              >
+                X
+              </span>
+            </Flex>
+            <Flex gap='var(--haze-space-2)' style={{ alignItems: 'center' }}>
+              <Icon icon={ChevronRight} size='lg' />
+              <span
+                style={{
+                  fontSize: 'var(--haze-text-xs)',
+                  color: 'var(--haze-color-text-muted)',
+                }}
+              >
+                ChevronRight
+              </span>
+            </Flex>
+          </Flex>
+        </div>
+        <pre className={codeBlock}>{`import { Check, X, ChevronRight } from 'lucide-react';
+import { Icon } from 'haze-ui';
+
+<Icon icon={Check} size="md" />
+<Icon icon={X} size="md" />
+<Icon icon={ChevronRight} size="md" />`}</pre>
       </div>
 
       <div className={section}>

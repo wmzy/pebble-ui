@@ -8,7 +8,6 @@ import { defineConfig } from 'vite';
 import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import wyw from '@wyw-in-js/vite';
-import rollupPluginTypeAsJsonSchema from 'rollup-plugin-type-as-json-schema';
 
 import { writeProps } from './scripts/generate-props.mjs';
 
@@ -92,8 +91,6 @@ const buildConfig = (() => {
           'react/jsx-runtime',
           '@linaria/core',
           'react-use-control',
-          'react-toolroom',
-          'react-toolroom/async',
           '@native-router/react',
           '@for-fun/event-emitter',
           // peer dependency — consumers bring their own copy
@@ -159,7 +156,6 @@ export default defineConfig({
     react({
       exclude: ['node_modules/**'],
     }),
-    rollupPluginTypeAsJsonSchema(),
     wyw({
       evaluate: false,
       sourceMap: true,

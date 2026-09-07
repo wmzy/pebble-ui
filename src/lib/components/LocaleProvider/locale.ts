@@ -98,6 +98,10 @@ const defaultStrings = {
     all: 'All',
     noLogs: 'No logs',
   },
+  mentions: {
+    label: 'Suggestions',
+    noMatch: 'No matches',
+  },
   modelPicker: {
     label: 'Model',
   },
@@ -186,4 +190,7 @@ function formatString(
   );
 }
 
-export { defaultStrings, formatString };
+/** English copy — the default pack, aliased for symmetry with `zhCN`. */
+const enUS: HazeStrings = defaultStrings;
+
+export { defaultStrings, enUS, formatString };

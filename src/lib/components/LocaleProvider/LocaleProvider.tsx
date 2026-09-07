@@ -8,8 +8,11 @@ import { LocaleContext } from './LocaleContext';
 
 type LocaleProviderProps = {
   /**
-   * BCP 47 language tag. Currently stored and inherited only — no
-   * library string is formatted through Intl yet.
+   * BCP 47 language tag selecting the built-in string pack: Chinese
+   * variants ('zh', 'zh-CN', 'zh_TW', …) serve the bundled zh-CN
+   * copy, any other value falls back to English. Unset inherits the
+   * tag from the enclosing provider; `strings` still layers on top
+   * of the selected pack.
    */
   locale?: string;
   strings?: HazeStringsOverrides;

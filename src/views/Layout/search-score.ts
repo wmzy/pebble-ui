@@ -12,6 +12,11 @@
  * word boundaries come from a greedy longest-match lexicon of the UI terms
  * used across the list. A name the lexicon cannot split at its first
  * character stays a single word, which keeps initials conservative.
+ *
+ * Aliases ("modal" for dialog, see ./component-groups.ts ALIASES) compete
+ * at the same tiers as the name itself: the best tier across name + aliases
+ * wins. A tie prefers the name, and only name hits carry highlight indices —
+ * alias positions do not map onto the displayed name.
  */
 
 const RANK_PREFIX = 4;
@@ -88,44 +93,66 @@ function spanIndices(start: number, length: number): number[] {
   return Array.from({ length }, (_, k) => start + k);
 }
 
-export type ComponentMatch = { name: string; rank: number; indices: number[] };
+type CandidateMatch = { rank: number; indices: number[] };
 
-export function scoreComponent(
-  name: string,
-  query: string
-): ComponentMatch | null {
-  const q = query.trim().toLowerCase();
-  if (!q) return null;
-  const n = name.toLowerCase();
+/** Scores one candidate string (a name or an alias) against the query. */
+function scoreCandidate(candidate: string, q: string): CandidateMatch | null {
+  const c = candidate.toLowerCase();
 
-  if (n.startsWith(q)) {
-    return { name, rank: RANK_PREFIX, indices: spanIndices(0, q.length) };
+  if (c.startsWith(q)) {
+    return { rank: RANK_PREFIX, indices: spanIndices(0, q.length) };
   }
 
-  const { initials, positions } = wordIndex(name);
+  const { initials, positions } = wordIndex(candidate);
   const initialHits = subsequenceIndices(initials, q);
   if (initialHits) {
     return {
-      name,
       rank: RANK_INITIALS,
       indices: initialHits.map((k) => positions[k]!),
     };
   }
 
-  const at = n.indexOf(q);
+  const at = c.indexOf(q);
   if (at >= 0) {
-    return { name, rank: RANK_SUBSTRING, indices: spanIndices(at, q.length) };
+    return { rank: RANK_SUBSTRING, indices: spanIndices(at, q.length) };
   }
 
-  const seq = subsequenceIndices(n, q);
-  if (seq) return { name, rank: RANK_SUBSEQUENCE, indices: seq };
+  const seq = subsequenceIndices(c, q);
+  if (seq) return { rank: RANK_SUBSEQUENCE, indices: seq };
 
   return null;
 }
 
+export type ComponentMatch = { name: string; rank: number; indices: number[] };
+
+export function scoreComponent(
+  name: string,
+  query: string,
+  aliases: readonly string[] = []
+): ComponentMatch | null {
+  const q = query.trim().toLowerCase();
+  if (!q) return null;
+
+  const nameMatch = scoreCandidate(name, q);
+  let rank = nameMatch?.rank ?? RANK_NONE;
+  let indices = nameMatch?.indices ?? [];
+
+  for (const alias of aliases) {
+    const aliasMatch = scoreCandidate(alias, q);
+    if (aliasMatch && aliasMatch.rank > rank) {
+      rank = aliasMatch.rank;
+      indices = []; // hit lives on the alias, not the displayed name
+    }
+  }
+
+  if (rank === RANK_NONE) return null;
+  return { name, rank, indices };
+}
+
 export function filterComponents(
   names: readonly string[],
-  query: string
+  query: string,
+  aliases?: Readonly<Record<string, readonly string[]>>
 ): ComponentMatch[] {
   const q = query.trim().toLowerCase();
   if (!q) {
@@ -133,7 +160,7 @@ export function filterComponents(
   }
   const matches: ComponentMatch[] = [];
   for (const name of names) {
-    const match = scoreComponent(name, q);
+    const match = scoreComponent(name, q, aliases?.[name] ?? []);
     if (match) matches.push(match);
   }
   // Stable sort: original array order breaks ties within a tier.

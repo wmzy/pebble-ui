@@ -2398,7 +2398,9 @@
       "imports": [
         "default",
         "useStrings",
-        "defaultStrings"
+        "defaultStrings",
+        "enUS",
+        "zhCN"
       ],
       "propsTypes": {
         "LocaleProviderProps": [
@@ -2478,6 +2480,81 @@
             "name": "content",
             "type": "string",
             "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Mentions": {
+      "routeKey": "mentions",
+      "cssFamily": "mentions",
+      "imports": [
+        "Mentions",
+        "MentionsCore"
+      ],
+      "propsTypes": {
+        "MentionsCoreProps": [
+          {
+            "name": "value",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string) => void",
+            "required": true
+          },
+          {
+            "name": "options",
+            "type": "MentionsOption[]",
+            "required": true
+          },
+          {
+            "name": "trigger",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "MentionsProps": [
+          {
+            "name": "value",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string) => void",
+            "required": false
+          },
+          {
+            "name": "options",
+            "type": "MentionsOption[]",
+            "required": true
+          },
+          {
+            "name": "trigger",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
           },
           {
             "name": "className",

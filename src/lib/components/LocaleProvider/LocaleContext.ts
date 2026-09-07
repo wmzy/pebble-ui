@@ -13,7 +13,7 @@ type HazeStringsOverrides = {
  * defaults → outermost → innermost per section key.
  */
 type LocaleContextValue = {
-  /** Reserved for Intl-based formatting in a future release. */
+  /** BCP 47 tag; `useStrings` resolves it to a built-in string pack. */
   locale?: string;
   strings?: HazeStringsOverrides;
   parent?: LocaleContextValue;

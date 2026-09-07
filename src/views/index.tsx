@@ -38,6 +38,10 @@ export default function App() {
             component: () => import('./ThemeEditor')
           },
           {
+            path: '/changelog',
+            component: () => import('./Changelog')
+          },
+          {
             path: '/about',
             component: () => import('./About')
           }

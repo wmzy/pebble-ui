@@ -5,6 +5,8 @@ import Empty from '../Empty/Empty';
 import Pagination from '../Pagination/Pagination';
 
 import LocaleProvider from './LocaleProvider';
+import { defaultStrings, enUS } from './locale';
+import { zhCN } from './zh-cn';
 
 describe('LocaleProvider', () => {
   it('renders default copy with no provider mounted', () => {
@@ -94,6 +96,95 @@ describe('LocaleProvider', () => {
     expect(
       inner.queryByRole('button', { name: 'Outer Next' })
     ).not.toBeInTheDocument();
+  });
+
+  it('maps the zh-CN pack 1:1 onto the default pack', () => {
+    const assertSameShape = (en: unknown, zh: unknown, path: string) => {
+      expect(typeof zh).toBe(typeof en);
+      if (typeof en === 'object' && en !== null) {
+        expect(Object.keys(zh as object).sort()).toEqual(
+          Object.keys(en).sort()
+        );
+        for (const key of Object.keys(en)) {
+          assertSameShape(
+            (en as Record<string, unknown>)[key],
+            (zh as Record<string, unknown>)[key],
+            `${path}.${key}`
+          );
+        }
+      }
+    };
+    assertSameShape(defaultStrings, zhCN, 'strings');
+  });
+
+  it('keeps enUS as an alias of the default pack', () => {
+    expect(enUS).toBe(defaultStrings);
+  });
+
+  it('serves the built-in zh-CN pack for locale="zh-CN"', () => {
+    render(
+      <LocaleProvider locale="zh-CN">
+        <Pagination total={20} />
+        <Empty />
+      </LocaleProvider>
+    );
+    expect(screen.getByRole('button', { name: '上一页' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '下一页' })).toBeInTheDocument();
+    expect(screen.getByText('暂无数据')).toBeInTheDocument();
+    expect(screen.queryByText('No data')).not.toBeInTheDocument();
+  });
+
+  it('maps every Chinese language tag variant to the zh-CN pack', () => {
+    for (const locale of ['zh', 'zh-Hans', 'zh_TW']) {
+      const { unmount } = render(
+        <LocaleProvider locale={locale}>
+          <Empty />
+        </LocaleProvider>
+      );
+      expect(screen.getByText('暂无数据')).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it('falls back to English for non-Chinese locales', () => {
+    render(
+      <LocaleProvider locale="fr-FR">
+        <Empty />
+      </LocaleProvider>
+    );
+    expect(screen.getByText('No data')).toBeInTheDocument();
+  });
+
+  it('layers the strings prop on top of the selected pack', () => {
+    render(
+      <LocaleProvider
+        locale="zh-CN"
+        strings={{ empty: { description: '筛选结果为空' } }}
+      >
+        <Empty />
+        <Pagination total={20} />
+      </LocaleProvider>
+    );
+    expect(screen.getByText('筛选结果为空')).toBeInTheDocument();
+    // untouched keys keep the pack copy
+    expect(screen.getByRole('button', { name: '上一页' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '下一页' })).toBeInTheDocument();
+  });
+
+  it('inherits locale down the provider chain with the innermost winning', () => {
+    render(
+      <LocaleProvider locale="zh-CN">
+        <Empty />
+        <LocaleProvider>
+          <Empty />
+        </LocaleProvider>
+        <LocaleProvider locale="fr">
+          <Empty />
+        </LocaleProvider>
+      </LocaleProvider>
+    );
+    expect(screen.getAllByText('暂无数据')).toHaveLength(2);
+    expect(screen.getByText('No data')).toBeInTheDocument();
   });
 
   it('has no axe violations', async () => {

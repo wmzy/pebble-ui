@@ -33,6 +33,8 @@ import LocaleProviderDemo from './demos/LocaleProviderDemo';
 
 import { page } from './styles';
 
+import DemoSource from './DemoSource';
+
 import ButtonDemo from './demos/ButtonDemo';
 
 import InputDemo from './demos/InputDemo';
@@ -183,6 +185,10 @@ import PasswordInputDemo from './demos/PasswordInputDemo';
 
 import TagInputDemo from './demos/TagInputDemo';
 
+import MentionsDemo from './demos/MentionsDemo';
+
+import AsyncSectionDemo from './demos/AsyncSectionDemo';
+
 import InlineEditDemo from './demos/InlineEditDemo';
 
 import DropdownMenuDemo from './demos/DropdownMenuDemo';
@@ -272,6 +278,7 @@ const demos: Record<string, () => ReactNode> = {
   conversationlist: ConversationListDemo,
   diffviewer: DiffViewerDemo,
   logviewer: LogViewerDemo,
+  asyncsection: AsyncSectionDemo,
   command: CommandDemo,
   resizable: ResizableDemo,
   collapsible: CollapsibleDemo,
@@ -290,6 +297,7 @@ const demos: Record<string, () => ReactNode> = {
   otpinput: OTPInputDemo,
   passwordinput: PasswordInputDemo,
   taginput: TagInputDemo,
+  mentions: MentionsDemo,
   inlineedit: InlineEditDemo,
   dropdownmenu: DropdownMenuDemo,
   contextmenu: ContextMenuDemo,
@@ -387,6 +395,7 @@ export default function ComponentDetail() {
         <>
           <CopyImportButton name={name} />
           <Demo />
+          <DemoSource name={name} />
         </>
       ) : (
         <h1>Component not found: {name}</h1>

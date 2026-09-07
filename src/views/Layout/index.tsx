@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { css } from '@linaria/core';
+import { useControl } from 'react-use-control';
 import { Link, PrefetchLink, View } from '@native-router/react';
 
-import { Sun, Moon, Monitor, Palette, Star } from 'lucide-react';
+import { Sun, Moon, Monitor, Palette, Star, Menu } from 'lucide-react';
 
 import {
   lightTheme,
@@ -18,10 +19,13 @@ import {
   Tooltip,
   Select,
   Option,
+  Drawer,
+  useMediaQuery,
 } from '@/lib';
 import { useTheme } from '@/contexts/theme';
 
 import SidebarSearch, { MatchText } from './SidebarSearch';
+import { ALIASES, COMPONENT_GROUPS, type ComponentItem } from './component-groups';
 import { filterComponents } from './search-score';
 
 const rootLayout = css`
@@ -101,6 +105,10 @@ const sidebar = css`
   display: flex;
   flex-direction: column;
   background: var(--haze-color-bg);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const brand = css`
@@ -156,6 +164,19 @@ const disclosureNav = css`
   }
 `;
 
+const groupSection = css`
+  padding-bottom: var(--haze-space-2);
+`;
+
+const groupTitle = css`
+  padding: var(--haze-space-2) var(--haze-space-4) var(--haze-space-1);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-xs);
+  font-weight: var(--haze-weight-medium);
+  color: var(--haze-color-text-muted);
+  text-transform: uppercase;
+`;
+
 const noResult = css`
   padding: var(--haze-space-1) var(--haze-space-4);
   font-family: var(--haze-font-sans);
@@ -169,111 +190,37 @@ const mainContent = css`
   background: var(--haze-color-bg);
 `;
 
-const COMPONENTS = [
-  'button',
-  'input',
-  'select',
-  'checkbox',
-  'switch',
-  'badge',
-  'dialog',
-  'tooltip',
-  'popover',
-  'card',
-  'radio',
-  'textarea',
-  'slider',
-  'tabs',
-  'accordion',
-  'alert',
-  'avatar',
-  'tag',
-  'skeleton',
-  'icon',
-  'image',
-  'flex',
-  'breadcrumb',
-  'disclosure',
-  'menu',
-  'numberinput',
-  'fileinput',
-  'toast',
-  'list',
-  'combobox',
-  'table',
-  'data-table',
-  'carousel',
-  'datepicker',
-  'tree',
-  'divider',
-  'spinner',
-  'empty',
-  'progress',
-  'pagination',
-  'grid',
-  'drawer',
-  'stepper',
-  'command',
-  'resizable',
-  'collapsible',
-  'transfer',
-  'upload',
-  'colorpicker',
-  'rating',
-  'timeline',
-  'typography',
-  'stat',
-  'segmented',
-  'chip',
-  'scrollarea',
-  'timepicker',
-  'daterangepicker',
-  'otpinput',
-  'passwordinput',
-  'taginput',
-  'inlineedit',
-  'dropdownmenu',
-  'contextmenu',
-  'navigationbar',
-  'backtotop',
-  'affix',
-  'container',
-  'banner',
-  'confirmdialog',
-  'codeblock',
-  'aspectratio',
-  'virtuallist',
-  'taggroup',
-  'bottomsheet',
-  'swipeaction',
-  'kbd',
-  'avatargroup',
-  'calendar',
-  'hovercard',
-  'toolbar',
-  'cascader',
-  'sidebar',
-  'tour',
-  'localeprovider',
-  'chatmessage',
-  'chatcontainer',
-  'chatinput',
-  'streamingtext',
-  'markdownrenderer',
-  'toolcallcard',
-  'thinkingindicator',
-  'steptimeline',
-  'approvalcard',
-  'tokencounter',
-  'modelpicker',
-  'conversationlist',
-  'diffviewer',
-  'logviewer',
-  'form',
-] as const;
+/* 与 MOBILE_QUERY 保持同一断点；CSS 负责隐藏，JS 负责汉堡/Drawer。 */
+const menuBtnWrap = css`
+  display: flex;
 
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
+const drawerBody = css`
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+`;
+
+const MOBILE_QUERY = '(max-width: 768px)';
+
+const ALL_ITEMS: ComponentItem[] = COMPONENT_GROUPS.flatMap((g) => g.items);
+
+/* 搜索候选以展示名小写为键（与 props.json 的 routeKey 一致），便于命中
+ * 位置直接对展示名高亮；ALIASES 按 route 键入，这里换算到搜索键。 */
+const SEARCH_NAMES = ALL_ITEMS.map((item) => item.name.toLowerCase());
+
+const ITEM_BY_SEARCH_NAME = new Map(
+  ALL_ITEMS.map((item) => [item.name.toLowerCase(), item])
+);
+
+const SEARCH_ALIASES: Record<string, string[]> = {};
+for (const item of ALL_ITEMS) {
+  const aliases = ALIASES[item.route];
+  if (aliases) SEARCH_ALIASES[item.name.toLowerCase()] = aliases;
 }
 
 const REPO = 'wmzy/haze-ui';
@@ -314,6 +261,119 @@ function useStarCount(): number | null {
   return count;
 }
 
+type SidebarNavProps = {
+  search: string;
+  onSearchChange: (value: string) => void;
+  /** 抽屉内导航后收起（桌面侧边栏不传）。 */
+  onNavigate?: () => void;
+};
+
+function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
+  const componentMatches = useMemo(
+    () => filterComponents(SEARCH_NAMES, search, SEARCH_ALIASES),
+    [search]
+  );
+  const searching = search.trim() !== '';
+
+  return (
+    <List variant='none'>
+      <ListItem>
+        <Link className={navLink} to='/' onClick={onNavigate}>
+          Home
+        </Link>
+      </ListItem>
+      <ListItem>
+        <Link className={navLink} to='/getting-started' onClick={onNavigate}>
+          Getting Started
+        </Link>
+      </ListItem>
+      <ListItem>
+        <Disclosure
+          open={true}
+          summary='Components'
+          className={disclosureNav}
+        >
+          <List variant='none'>
+            <ListItem>
+              <Link className={navLink} to='/components' onClick={onNavigate}>
+                Overview
+              </Link>
+            </ListItem>
+            <ListItem>
+              <SidebarSearch value={search} onChange={onSearchChange} />
+            </ListItem>
+            {searching ? (
+              <>
+                {componentMatches.map((match) => {
+                  const item = ITEM_BY_SEARCH_NAME.get(match.name);
+                  if (!item) return null;
+                  return (
+                    <ListItem key={item.route}>
+                      <Link
+                        className={navLink}
+                        to={`/components/${item.route}`}
+                        onClick={onNavigate}
+                      >
+                        <MatchText
+                          text={item.name}
+                          indices={match.indices}
+                        />
+                      </Link>
+                    </ListItem>
+                  );
+                })}
+                {componentMatches.length === 0 && (
+                  <ListItem>
+                    <div className={noResult}>
+                      No components match “{search.trim()}”
+                    </div>
+                  </ListItem>
+                )}
+              </>
+            ) : (
+              COMPONENT_GROUPS.map((group) => (
+                <div key={group.group} className={groupSection}>
+                  <div className={groupTitle}>{group.group}</div>
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.route}
+                      className={navLink}
+                      to={`/components/${item.route}`}
+                      onClick={onNavigate}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              ))
+            )}
+          </List>
+        </Disclosure>
+      </ListItem>
+      <ListItem>
+        <Link className={navLink} to='/ai-showcase' onClick={onNavigate}>
+          AI Showcase
+        </Link>
+      </ListItem>
+      <ListItem>
+        <Link className={navLink} to='/theme-editor' onClick={onNavigate}>
+          Theme Editor
+        </Link>
+      </ListItem>
+      <ListItem>
+        <Link className={navLink} to='/changelog' onClick={onNavigate}>
+          Changelog
+        </Link>
+      </ListItem>
+      <ListItem>
+        <Link className={navLink} to='/about' onClick={onNavigate}>
+          About
+        </Link>
+      </ListItem>
+    </List>
+  );
+}
+
 export default function Layout() {
   const {
     baseTheme,
@@ -328,12 +388,19 @@ export default function Layout() {
   const stars = useStarCount();
 
   const [search, setSearch] = useState('');
-  const componentMatches = useMemo(
-    () => filterComponents(COMPONENTS, search),
-    [search]
-  );
+  // Drawer 的 open 是 ControlOrValue：传原始布尔值等于非受控初值（后续
+  // prop 变化会被忽略），要随汉堡按钮切换必须传 Control。
+  const [, setDrawerOpen, drawerOpenCtrl] = useControl(undefined, false);
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+
+  // 断点回到桌面时收起抽屉，常驻侧边栏接管导航。
+  useEffect(() => {
+    if (!isMobile) setDrawerOpen(false);
+  }, [isMobile, setDrawerOpen]);
 
   const themeClass = resolvedMode === 'dark' ? darkTheme : lightTheme;
+
+  const closeDrawer = () => setDrawerOpen(false);
 
   return (
     <div
@@ -342,6 +409,17 @@ export default function Layout() {
       style={activeCustomThemeStyle}
     >
       <header className={header}>
+        <div className={menuBtnWrap}>
+          <Button
+            size='sm'
+            square
+            variant='ghost'
+            aria-label='Open navigation'
+            onClick={() => setDrawerOpen(true)}
+          >
+            <Icon icon={Menu} size='sm' />
+          </Button>
+        </div>
         <Flex gap='var(--haze-space-1)'>
           <Tooltip content='Light'>
             <Button
@@ -411,77 +489,27 @@ export default function Layout() {
             Haze UI
           </PrefetchLink>
           <nav className={navArea}>
-            <List variant='none'>
-              <ListItem>
-                <Link className={navLink} to='/'>
-                  Home
-                </Link>
-              </ListItem>
-              <ListItem>
-                <Link className={navLink} to='/getting-started'>
-                  Getting Started
-                </Link>
-              </ListItem>
-              <ListItem>
-                <Disclosure
-                  open={true}
-                  summary='Components'
-                  className={disclosureNav}
-                >
-                  <List variant='none'>
-                    <ListItem>
-                      <Link className={navLink} to='/components'>
-                        Overview
-                      </Link>
-                    </ListItem>
-                    <ListItem>
-                      <SidebarSearch value={search} onChange={setSearch} />
-                    </ListItem>
-                    {componentMatches.map((match) => (
-                      <ListItem key={match.name}>
-                        <Link
-                          className={navLink}
-                          to={`/components/${match.name}`}
-                        >
-                          <MatchText
-                            text={capitalize(match.name)}
-                            indices={match.indices}
-                          />
-                        </Link>
-                      </ListItem>
-                    ))}
-                    {search.trim() !== '' && componentMatches.length === 0 && (
-                      <ListItem>
-                        <div className={noResult}>
-                          No components match “{search.trim()}”
-                        </div>
-                      </ListItem>
-                    )}
-                  </List>
-                </Disclosure>
-              </ListItem>
-              <ListItem>
-                <Link className={navLink} to='/ai-showcase'>
-                  AI Showcase
-                </Link>
-              </ListItem>
-              <ListItem>
-                <Link className={navLink} to='/theme-editor'>
-                  Theme Editor
-                </Link>
-              </ListItem>
-              <ListItem>
-                <Link className={navLink} to='/about'>
-                  About
-                </Link>
-              </ListItem>
-            </List>
+            <SidebarNav search={search} onSearchChange={setSearch} />
           </nav>
         </aside>
         <main className={mainContent}>
           <View />
         </main>
       </div>
+      <Drawer open={drawerOpenCtrl} placement='left' onClose={closeDrawer}>
+        <div className={drawerBody}>
+          <PrefetchLink className={brand} to='/' onClick={closeDrawer}>
+            Haze UI
+          </PrefetchLink>
+          <nav className={navArea}>
+            <SidebarNav
+              search={search}
+              onSearchChange={setSearch}
+              onNavigate={closeDrawer}
+            />
+          </nav>
+        </div>
+      </Drawer>
     </div>
   );
 }

@@ -152,6 +152,8 @@ export { PasswordInput, PasswordInputCore } from './components/PasswordInput';
 export type { PasswordInputProps, PasswordInputCoreProps } from './components/PasswordInput';
 export { TagInput, TagInputCore } from './components/TagInput';
 export type { TagInputProps, TagInputCoreProps } from './components/TagInput';
+export { Mentions, MentionsCore } from './components/Mentions';
+export type { MentionsProps, MentionsCoreProps, MentionsOption } from './components/Mentions';
 export { InlineEdit } from './components/InlineEdit';
 export type { InlineEditProps } from './components/InlineEdit';
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from './components/DropdownMenu';
@@ -185,7 +187,7 @@ export type { SwipeActionProps } from './components/SwipeAction';
 
 // i18n
 export { default as LocaleProvider, useStrings } from './components/LocaleProvider';
-export { defaultStrings } from './components/LocaleProvider';
+export { defaultStrings, enUS, zhCN } from './components/LocaleProvider';
 export type { LocaleProviderProps, HazeStrings } from './components/LocaleProvider';
 
 // data table (TanStack headless + haze styles)
