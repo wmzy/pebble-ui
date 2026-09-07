@@ -9,6 +9,18 @@ import {
   useClipboard,
 } from '@/lib';
 
+import { buildStackblitzProject } from './stackblitz';
+
+/** 打开 StackBlitz 工程；弹窗被拦截 / sdk 加载失败时静默放弃，不 crash。 */
+async function openInStackBlitz(name: string, source: string): Promise<void> {
+  try {
+    const { default: sdk } = await import('@stackblitz/sdk');
+    sdk.openProject(buildStackblitzProject(name, source), { newWindow: true });
+  } catch {
+    // 文档页不受影响，用户可改用 Copy 手动搭建
+  }
+}
+
 // demos 目录源码映射：'./demos/ButtonDemo.tsx' → 文件内容字符串。
 const demoSources = import.meta.glob('./demos/*.tsx', {
   query: '?raw',
@@ -135,6 +147,13 @@ export default function DemoSource({ name }: { name: string }) {
             <span className={fileNameStyle}>demos/{demo.fileName}</span>
           </CollapsibleTrigger>
           <span className={langTag}>tsx</span>
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={() => void openInStackBlitz(name, demo.source)}
+          >
+            Open in StackBlitz
+          </Button>
           <Button
             size='sm'
             variant='outline'

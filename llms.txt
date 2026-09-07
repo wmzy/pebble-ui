@@ -4,7 +4,7 @@
 > component accepts one state prop (`checked?: Control<T> | T`) that works controlled *and*
 > uncontrolled, powered by [react-use-control](https://github.com/wmzy/react-use-control).
 
-101 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
+104 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
 against `--haze-*` design tokens. ESM-only, `preserveModules` dist, tree-shakeable,
 `'use client'` directives pre-injected for React Server Components. Peer range
 `react: ^19.0.0` — no React 18 compatibility layer.
@@ -16,6 +16,7 @@ npm i haze-ui
 # optional peers, only for the components that need them:
 npm i react-f0rm              # FormItem
 npm i @tanstack/react-table   # DataTable
+npm i recharts                # Chart
 ```
 
 ## CSS: two loading modes
@@ -54,6 +55,7 @@ re-deriving file names.
 ### Layout
 
 - **AspectRatio** — boxes children to a fixed width/height ratio.
+- **AppShell** — application frame with sticky header, collapsible sidebar (`ControlOrValue`), content and footer slots; CSS-Grid layout, sidebar turns overlay below 768px.
 - **Container** — centered max-width page container with horizontal padding.
 - **Flex** — flexbox layout primitive mapping props to flex CSS.
 - **Grid** — CSS grid layout primitive.
@@ -85,6 +87,7 @@ re-deriving file names.
 - **TagInput** — enter-to-commit token input over `TagInputCore`.
 - **Textarea** — multiline text input.
 - **TimePicker** — time-of-day input with controllable value.
+- **Toggle** — two-state pressed button (`aria-pressed`) with sizes and `square` icon mode; `ToolbarToggle` variant rides toolbar roving focus.
 - **Transfer** — two-column shuttle moving options between source and target lists.
 - **Upload** — file picker with accumulating `File[]` value, `accept`/`multiple`.
 
@@ -107,6 +110,7 @@ re-deriving file names.
 - **Calendar** — month-grid date surface with `min`/`max`, locale and `weekStartsOn`.
 - **Card** — content card with `elevated`/`outlined`/`filled` variants.
 - **Carousel** — slideshow with controllable active index and autoplay.
+- **Chart** — line/area/bar charts over `recharts` (optional peer), colors and axes on haze tokens; series cycle the semantic palette.
 - **Chip** — rounded status chip with optional icon and close button.
 - **CodeBlock** — monospace code container with a language badge.
 - **DataTable** — feature table on `@tanstack/react-table` (sorting, pagination, row selection).
@@ -188,6 +192,14 @@ engine by feature detection: (1) native `popover` attribute + CSS anchor positio
 (position-area grid with fallbacks), (2) `popover` alone, (3) a JS-positioned fallback.
 Modern engines take tier 1; positioning and light-dismiss behavior stay consistent
 across tiers. Panel placement APIs use physical sides (`'bottom'`, `'bottom-end'`, …).
+
+## Headless primitives (experimental)
+
+`haze-ui/headless` re-exports the behavior layer the components are built on —
+`useFloating` (the three-tier floating engine), `Presence` (exit animations),
+the focus-scope hooks and the `computeFloatingPosition` collision math — for
+component authors assembling their own panels. Same source, same version as
+the styled library; experimental while the API settles.
 
 ## Forms: react-f0rm integration
 

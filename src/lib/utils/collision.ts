@@ -1,7 +1,8 @@
 // Pure geometry for floating-panel collision handling, extracted from
 // placeFloatingPanel (floating.tsx, tier 2) so placement strategies can be
 // computed and tested without a DOM. No css, no React — deterministic math
-// over literal rects only.
+// over literal rects only. Public surface curated behind the
+// `haze-ui/headless` subpath; not part of the main library barrel.
 
 /** Viewport edge a collision measurement applies to. */
 export type CollisionSide = 'top' | 'right' | 'bottom' | 'left';

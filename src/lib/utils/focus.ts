@@ -2,7 +2,8 @@
  * 纯焦点工具：tabbable 元素查询与首个聚焦目标计算。
  *
  * 无 React、无 CSS 依赖，可在任意 DOM 环境（含 jsdom）直接复用。
- * 与 floating.tsx 一样属于内部原语，不进 src/lib/index.ts barrel。
+ * 与 floating.tsx 一样属于内部原语，不进 src/lib/index.ts barrel——
+ * 公共面由 haze-ui/headless 子路径策展导出。
  */
 
 /**

@@ -5,7 +5,8 @@ import { focusFirst, getTabbables } from './focus';
 /**
  * 焦点域 hook（Radix FocusScope 的简化版，headless：返回 ref 回调，
  * 由消费方挂到容器元素上）。负责弹层的初始聚焦 / 焦点归还 / 可选困焦，
- * 无 CSS 依赖，不进 src/lib/index.ts barrel。
+ * 无 CSS 依赖，不进 src/lib/index.ts barrel——公共面由 haze-ui/headless
+ * 子路径策展导出。
  */
 export type FocusScopeOptions = {
   /**

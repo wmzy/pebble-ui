@@ -1,0 +1,66 @@
+# Weekly anti-rot CI for the standalone example projects under examples/.
+# Each example consumes the root library via `link:../..`, so the root must be
+# installed and built (dist/) before the examples can build. A failure in one
+# example does not block the others — each is an independent step guarded only
+# on the root library build having succeeded.
+
+name: examples
+
+on:
+  schedule:
+    # Every Sunday 18:00 UTC
+    - cron: '0 18 * * 0'
+  workflow_dispatch:
+
+jobs:
+  examples:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            examples/nextjs/pnpm-lock.yaml
+            examples/ag-ui-recipe/pnpm-lock.yaml
+            examples/ai-sdk-recipe/pnpm-lock.yaml
+
+      - name: Install root dependencies
+        run: pnpm install
+
+      - name: Build haze-ui library (produces dist/ for link:../.. consumers)
+        id: build-lib
+        run: pnpm build
+
+      # -- Examples: independent, non-blocking steps --------------------------
+      # install + build in one step per project; `!cancelled()` keeps later
+      # examples running after an earlier one fails. Lockfiles here can drift
+      # from package.json, so install without --frozen-lockfile to surface the
+      # real rot signal (build breakage) rather than dying at install.
+
+      - name: Build examples/nextjs (next build)
+        if: ${{ !cancelled() && steps.build-lib.outcome == 'success' }}
+        working-directory: examples/nextjs
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm build
+
+      - name: Build examples/ag-ui-recipe (tsc --noEmit && vite build)
+        if: ${{ !cancelled() && steps.build-lib.outcome == 'success' }}
+        working-directory: examples/ag-ui-recipe
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm build
+
+      - name: Build examples/ai-sdk-recipe (tsc --noEmit && vite build)
+        if: ${{ !cancelled() && steps.build-lib.outcome == 'success' }}
+        working-directory: examples/ai-sdk-recipe
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm build

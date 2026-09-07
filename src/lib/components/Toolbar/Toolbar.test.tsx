@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import Toolbar from './Toolbar';
 import ToolbarButton from './ToolbarButton';
 import ToolbarSeparator from './ToolbarSeparator';
+import ToolbarToggle from './ToolbarToggle';
 
 function renderToolbar(orientation?: 'vertical') {
   return render(
@@ -175,5 +176,71 @@ describe('ToolbarButton', () => {
       </Toolbar>
     );
     expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('ToolbarToggle', () => {
+  it('renders with aria-pressed=false by default and forwards native props', () => {
+    render(
+      <Toolbar aria-label="Text formatting">
+        <ToolbarToggle disabled aria-label="Bold">
+          B
+        </ToolbarToggle>
+      </Toolbar>
+    );
+    const toggle = screen.getByRole('button', { name: 'Bold' });
+    expect(toggle).toHaveAttribute('type', 'button');
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(toggle).toBeDisabled();
+    expect(toggle).toHaveAttribute('aria-label', 'Bold');
+  });
+
+  it('can be initialized pressed', () => {
+    render(
+      <Toolbar aria-label="Text formatting">
+        <ToolbarToggle pressed>Bold</ToolbarToggle>
+      </Toolbar>
+    );
+    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('toggles aria-pressed on click', async () => {
+    const user = userEvent.setup();
+    render(
+      <Toolbar aria-label="Text formatting">
+        <ToolbarToggle>Bold</ToolbarToggle>
+      </Toolbar>
+    );
+    const toggle = screen.getByRole('button', { name: 'Bold' });
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('participates in toolbar roving keyboard navigation', async () => {
+    const user = userEvent.setup();
+    render(
+      <Toolbar aria-label="Text formatting">
+        <ToolbarButton>Bold</ToolbarButton>
+        <ToolbarToggle>Italic</ToolbarToggle>
+        <ToolbarButton>Underline</ToolbarButton>
+      </Toolbar>
+    );
+    const bold = screen.getByRole('button', { name: 'Bold' });
+    const italic = screen.getByRole('button', { name: 'Italic' });
+    const underline = screen.getByRole('button', { name: 'Underline' });
+    bold.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(italic).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    expect(underline).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(italic).toHaveFocus();
+    // Space activates the focused toggle without breaking the roving stop.
+    await user.keyboard(' ');
+    expect(italic).toHaveAttribute('aria-pressed', 'true');
+    expect(italic).toHaveFocus();
+    expect(italic).toHaveAttribute('tabindex', '0');
   });
 });

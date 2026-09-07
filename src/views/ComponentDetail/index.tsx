@@ -28,6 +28,9 @@ import SidebarDemo from './demos/SidebarDemo';
 
 import TourDemo from './demos/TourDemo';
 import LocaleProviderDemo from './demos/LocaleProviderDemo';
+import ToggleDemo from './demos/ToggleDemo';
+import AppShellDemo from './demos/AppShellDemo';
+import ChartDemo from './demos/ChartDemo';
 
 
 
@@ -322,6 +325,9 @@ const demos: Record<string, () => ReactNode> = {
   sidebar: SidebarDemo,
   tour: TourDemo,
   localeprovider: LocaleProviderDemo,
+  toggle: ToggleDemo,
+  appshell: AppShellDemo,
+  chart: ChartDemo,
   form: FormDemo,
 };
 

@@ -124,6 +124,48 @@
       },
       "otherTypes": {}
     },
+    "AppShell": {
+      "routeKey": "appshell",
+      "cssFamily": "app-shell",
+      "imports": [
+        "AppShell"
+      ],
+      "propsTypes": {
+        "AppShellProps": [
+          {
+            "name": "header",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "sidebar",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "footer",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "sidebarCollapsed",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "sidebarWidth",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "ApprovalCard": {
       "routeKey": "approvalcard",
       "cssFamily": "approval-card",
@@ -697,6 +739,58 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Chart": {
+      "routeKey": "chart",
+      "cssFamily": "chart",
+      "imports": [
+        "Chart"
+      ],
+      "propsTypes": {
+        "ChartProps": [
+          {
+            "name": "type",
+            "type": "ChartType",
+            "required": true
+          },
+          {
+            "name": "data",
+            "type": "T[]",
+            "required": true
+          },
+          {
+            "name": "series",
+            "type": "ChartSeries[]",
+            "required": true
+          },
+          {
+            "name": "xKey",
+            "type": "keyof T & string",
+            "required": true
+          },
+          {
+            "name": "height",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "showLegend",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showGrid",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showTooltip",
+            "type": "boolean",
             "required": false
           }
         ]
@@ -4453,6 +4547,66 @@
       },
       "otherTypes": {}
     },
+    "Toggle": {
+      "routeKey": "toggle",
+      "cssFamily": "toggle",
+      "imports": [
+        "Toggle",
+        "ToggleCore"
+      ],
+      "propsTypes": {
+        "ToggleCoreProps": [
+          {
+            "name": "pressed",
+            "type": "boolean",
+            "required": true
+          },
+          {
+            "name": "onPressedChange",
+            "type": "(pressed: boolean) => void",
+            "required": true
+          },
+          {
+            "name": "onNativeClick",
+            "type": "MouseEventHandler<HTMLButtonElement> | undefined",
+            "required": false
+          },
+          {
+            "name": "size",
+            "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "square",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "ToggleProps": [
+          {
+            "name": "pressed",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "size",
+            "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "square",
+            "type": "boolean",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "TokenCounter": {
       "routeKey": "tokencounter",
       "cssFamily": "token-counter",
@@ -4528,7 +4682,8 @@
       "imports": [
         "Toolbar",
         "ToolbarButton",
-        "ToolbarSeparator"
+        "ToolbarSeparator",
+        "ToolbarToggle"
       ],
       "propsTypes": {
         "ToolbarButtonProps": [
@@ -4569,6 +4724,28 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          }
+        ],
+        "ToolbarToggleProps": [
+          {
+            "name": "pressed",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "variant",
+            "type": "'solid' | 'outline' | 'ghost'",
+            "required": false
+          },
+          {
+            "name": "size",
+            "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "square",
+            "type": "boolean",
             "required": false
           }
         ]

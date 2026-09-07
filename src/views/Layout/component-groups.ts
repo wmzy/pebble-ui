@@ -32,6 +32,7 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
     group: 'Layout',
     items: [
       { name: 'AspectRatio', route: 'aspectratio' },
+      { name: 'AppShell', route: 'appshell' },
       { name: 'Container', route: 'container' },
       { name: 'Flex', route: 'flex' },
       { name: 'Grid', route: 'grid' },
@@ -66,6 +67,7 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
       { name: 'TagInput', route: 'taginput' },
       { name: 'Textarea', route: 'textarea' },
       { name: 'TimePicker', route: 'timepicker' },
+      { name: 'Toggle', route: 'toggle' },
       { name: 'Transfer', route: 'transfer' },
       { name: 'Upload', route: 'upload' },
     ],
@@ -92,6 +94,7 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
       { name: 'Calendar', route: 'calendar' },
       { name: 'Card', route: 'card' },
       { name: 'Carousel', route: 'carousel' },
+      { name: 'Chart', route: 'chart' },
       { name: 'Chip', route: 'chip' },
       { name: 'CodeBlock', route: 'codeblock' },
       { name: 'DataTable', route: 'data-table' },

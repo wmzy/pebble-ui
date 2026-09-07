@@ -22,6 +22,10 @@ export default function App() {
             component: () => import('./GettingStarted')
           },
           {
+            path: '/recipes',
+            component: () => import('./Recipes')
+          },
+          {
             path: '/components',
             component: () => import('./ComponentDoc')
           },

@@ -24,7 +24,7 @@ const isDocsApp = isDemoBuild || (!isLibBuild && !process.env.VITEST);
 // exist and the subpaths would not resolve.
 const libEntries = [
   path.resolve(__dirname, 'src/lib/index.ts'),
-  ...['components', 'form', 'tokens'].flatMap((group) =>
+  ...['components', 'form', 'headless', 'tokens'].flatMap((group) =>
     readdirSync(path.resolve(__dirname, `src/lib/${group}`), {
       withFileTypes: true,
     })
@@ -100,6 +100,8 @@ const buildConfig = (() => {
           // pure-ESM dist (the Node ESM contract test imports dist/index.js
           // in bare node)
           '@tanstack/react-table',
+          // optional peer dependency (Chart's engine) — same rule
+          'recharts',
         ],
         output: {
           preserveModules: true,

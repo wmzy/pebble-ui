@@ -9,7 +9,8 @@ import { cloneElement, useEffect, useRef, useState } from 'react';
  * Internal exit-animation primitives shared by floating.tsx (animated
  * panels) and the modal/collapsible families: `whenExitSettles` waits out
  * an element's closing animation/transition, and `Presence` keeps a single
- * child mounted while that exit runs. Not exported from the library barrel.
+ * child mounted while that exit runs. Not exported from the library barrel
+ * — the public surface is curated behind the `haze-ui/headless` subpath.
  */
 
 // ---------------------------------------------------------------------------

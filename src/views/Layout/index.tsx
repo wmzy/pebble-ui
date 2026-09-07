@@ -288,6 +288,11 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
         </Link>
       </ListItem>
       <ListItem>
+        <Link className={navLink} to='/recipes' onClick={onNavigate}>
+          Recipes
+        </Link>
+      </ListItem>
+      <ListItem>
         <Disclosure
           open={true}
           summary='Components'

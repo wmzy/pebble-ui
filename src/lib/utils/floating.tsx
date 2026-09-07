@@ -20,8 +20,9 @@ import { whenExitSettles } from './presence';
 
 /**
  * Internal floating-panel primitives shared by Popover, DropdownMenu,
- * ContextMenu, Datepicker, Combobox, Menu and Tooltip. NOT exported from
- * the library entry — consumers compose their own panels on top.
+ * ContextMenu, Datepicker, Combobox, Menu and Tooltip. Not exported from
+ * the library entry — the public surface is curated behind the
+ * `haze-ui/headless` subpath; consumers compose their own panels on top.
  *
  * RTL note: placement names and geometry are deliberately PHYSICAL —
  * 'left' means the physical left of the trigger, matching the industry

@@ -16,6 +16,8 @@ export { Checkbox, CheckboxCore } from './components/Checkbox';
 export type { CheckboxProps, CheckboxCoreProps } from './components/Checkbox';
 export { Switch, SwitchCore } from './components/Switch';
 export type { SwitchProps, SwitchCoreProps } from './components/Switch';
+export { Toggle, ToggleCore } from './components/Toggle';
+export type { ToggleProps, ToggleCoreProps } from './components/Toggle';
 export { Badge } from './components/Badge';
 export type { BadgeProps } from './components/Badge';
 export { Dialog } from './components/Dialog';
@@ -199,6 +201,10 @@ export type {
   DataTableVirtualized,
 } from './components/DataTable';
 
+// chart (recharts optional peer + haze tokens)
+export { Chart } from './components/Chart';
+export type { ChartProps, ChartSeries, ChartType } from './components/Chart';
+
 // display & overlay additions
 export { Kbd } from './components/Kbd';
 export type { KbdProps } from './components/Kbd';
@@ -208,8 +214,10 @@ export { Calendar } from './components/Calendar';
 export type { CalendarProps } from './components/Calendar';
 export { HoverCard } from './components/HoverCard';
 export type { HoverCardProps } from './components/HoverCard';
-export { Toolbar, ToolbarButton, ToolbarSeparator } from './components/Toolbar';
-export type { ToolbarProps, ToolbarButtonProps, ToolbarSeparatorProps } from './components/Toolbar';
+export { Toolbar, ToolbarButton, ToolbarSeparator, ToolbarToggle } from './components/Toolbar';
+export type { ToolbarProps, ToolbarButtonProps, ToolbarSeparatorProps, ToolbarToggleProps } from './components/Toolbar';
+export { AppShell } from './components/AppShell';
+export type { AppShellProps } from './components/AppShell';
 export { Cascader } from './components/Cascader';
 export type { CascaderProps, CascaderOption } from './components/Cascader';
 export { Sidebar, SidebarGroup, SidebarItem, SidebarFooter, SidebarToggle } from './components/Sidebar';

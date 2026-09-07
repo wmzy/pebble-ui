@@ -5,6 +5,7 @@
 [English](./README.md) | 简体中文
 
 [![npm](https://img.shields.io/npm/v/haze-ui)](https://www.npmjs.com/package/haze-ui)
+[![downloads](https://img.shields.io/npm/dm/haze-ui.svg)](https://www.npmjs.com/package/haze-ui)
 [![CI](https://github.com/wmzy/haze-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/wmzy/haze-ui/actions/workflows/ci.yml)
 
 ## 特性
@@ -14,6 +15,9 @@
 - 保持克制，提供轻量、可组合、易于扩展的组件
 - 支持主题定制
 - 支持 Tree-shaking
+- 像产品一样测试：120+ 个单测文件、每个组件测试套件内建 axe 无障碍用例、
+  约 50 条横跨 Chromium/Firefox/WebKit 的 Playwright e2e 场景，以及
+  像素锁定的视觉基线
 
 ## 为什么选择 npm 分发（而非复制粘贴）
 
@@ -49,15 +53,37 @@ peer 依赖范围有意定为 `react: ^19.0.0`——haze-ui 构建在现代 Reac
 
 还在 React 18？请先升级。haze-ui 不附带 React 18 兼容层，也没有计划提供。
 
+#### 从 React 18 迁移
+
+应用本身升到 React 19 之后，过一遍 haze-ui 相关的检查清单：
+
+- **`ref` 是一个 prop。** React 19 直接把 `ref` 传给函数组件——去掉你
+  包在 haze 组件外的 `forwardRef` 包装，把 `ref` 当普通 prop 传即可。
+- **没有 `defaultValue` 双轨。** 有状态组件一律说
+  `ControlOrValue<T>`（如 `checked?: Control<T> | boolean`）：同一个 prop
+  同时覆盖受控与非受控，不存在 `defaultChecked`/`defaultValue` 这对
+  prop 需要迁移。原来传 `defaultValue` 的地方，直接传纯值（非受控），
+  或改为受控 + `onChange`。
+- **浮层面板假定现代平台基线。** Popover、DropdownMenu、Tooltip、
+  ContextMenu、Combobox、Datepicker 通过特性检测在原生 `popover` + CSS
+  anchor positioning、仅 `popover`、JS 回退之间选择——不用从 React 18
+  工程里背 polyfill 过来，但[「浏览器支持」](#浏览器支持)的地板要求适用。
+- **颜色是 OKLCH，交互态运行时派生。** 要求 Chrome/Edge 119+、
+  Safari 16.4+ 或 Firefox 128+；不提供 HSL/hex 回退。
+- **`'use client'` 已预注入。** `dist/` 里每个模块都以该指令开头，
+  Next.js App Router 项目中直接从客户端组件导入 haze-ui 即可——不需要
+  再写一个把自己的 `'use client'` 旗帜挂在库上的再导出包装模块。
+
 ### 可选 peer 依赖
 
 haze-ui 唯一的必装运行时依赖是 `react-use-control`——`ControlOrValue<T>`
-背后的引擎。两个集成是可选依赖（peer dependency），只在使用到对应组件时
+背后的引擎。三个集成是可选依赖（peer dependency），只在使用到对应组件时
 才安装：
 
 ```sh
 npm i react-f0rm              # FormItem（peer 范围 ^1.1.1）
 npm i @tanstack/react-table   # DataTable（peer 范围 ^9.2.4）
+npm i recharts                # Chart（peer 范围 ^3.10.1）
 ```
 
 其余一切——`Button`、`Input`、`Dialog`、`Select`……——只需要 `react` 和
@@ -65,8 +91,9 @@ npm i @tanstack/react-table   # DataTable（peer 范围 ^9.2.4）
 因此构建器（Next.js、Vite、webpack、Turbopack、Rollup）会摇掉未使用的
 再导出链，永远不会解析你未安装的 peer：不装 `react-f0rm` 也能
 `import { Button } from 'haze-ui'`。只有不经构建器的消费者（裸 Node ESM
-直接导入 barrel，会急切链接整张模块图）必须同时安装两个 peer；
-`haze-ui/form` 与 `haze-ui/components/DataTable` 子路径则完全绕开 barrel。
+直接导入 barrel，会急切链接整张模块图）必须同时安装可选 peer；
+`haze-ui/form`、`haze-ui/components/DataTable` 与 `haze-ui/components/Chart`
+子路径则完全绕开 barrel。
 
 ### 浏览器支持
 
@@ -231,21 +258,45 @@ function SettingsView() {
 ## AI 友好分发
 
 **llms.txt** —— 面向 AI 编码工具 / 爬虫的全库 markdown 概览（`ControlOrValue<T>`
-状态协议、两种 CSS 加载模式、按分组列出全部 101 个组件及一句话用途、token
+状态协议、两种 CSS 加载模式、按分组列出全部 104 个组件及一句话用途、token
 体系、浮层三 tier、表单集成）。位于仓库根 [llms.txt](./llms.txt)，文档站上也可
 访问 <https://wmzy.github.io/haze-ui/llms.txt>（`build:demo` 会把它拷入 `dist/`）。
 
-**registry.json** —— shadcn/ui 兼容的组件注册表，作为 `haze-ui/registry.json`
+**registry.json** —— 面向 agent 安装的注册表，作为 `haze-ui/registry.json`
 npm 产物分发（每次构建由 `scripts/generate-registry.mjs` 重新生成），也可从
-<https://unpkg.com/haze-ui/registry.json> 直接访问。用 shadcn CLI 消费：
+<https://unpkg.com/haze-ui/registry.json> 直接访问。任何理解 registry 的
+工具都能消费——shadcn CLI 即可：
 
 ```sh
 pnpm dlx shadcn@latest add https://unpkg.com/haze-ui/registry.json
 ```
 
-如实说明覆盖范围：它只包含 **agent 组件**（AI & Chat 分组 + AsyncSection）。
-每个条目是包装文件而非拷贝的源码——它 re-export 已发布的组件并导入其样式，
-haze-ui 仍是一个持续更新的 npm 依赖；把生成的文件当作你的定制层即可。
+每个条目都是**包装文件，而非拷贝的源码**：它从已发布的 haze-ui npm 包
+re-export 组件并导入其样式表，`haze-ui` 始终是一个持续更新的普通 npm
+依赖——shadcn CLI 只是分发渠道。这正是它的定位：AI 编码 agent（以及一切
+想快速接入、同时保留 npm 更新链路的人）一步拿到可用的 import，而不落入
+「复制粘贴即拥有源码」的预期错位。想改样式或行为时，fork 生成的包装文件
+——它是你的定制层，不是源码拷贝。覆盖范围如实说明：仅包含 **agent 组件**
+（AI & Chat 分组 + AsyncSection）。
+
+## 无头原语（实验性）
+
+带样式组件所依赖的行为层，以独立子路径发布：`haze-ui/headless`。
+自己组装面板的组件作者可以直接使用 Popover、DropdownMenu、Tooltip
+内部所用的同一批原语——同源同版本，无需重新实现：
+
+- `useFloating` —— 三 tier 浮层引擎（原生 `popover` + CSS anchor
+  positioning → 仅 `popover` → JS 兜底），以及 `placeFloatingPanel`、
+  `useFloatingPosition` 与 placement/panel 相关类型
+- `Presence` —— 带退出动画的挂载/卸载
+- `useFocusScope` / `isTabbable` / `getTabbables` —— 焦点圈禁与可聚焦查询
+- `computeFloatingPosition` —— flip/shift 碰撞计算的纯函数
+
+```jsx
+import { useFloating, Presence } from 'haze-ui/headless';
+```
+
+API 稳定前为实验性——只会做非破坏性新增，定型前签名可能收紧。
 
 ## react-f0rm 集成
 
