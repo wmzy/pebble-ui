@@ -36,8 +36,8 @@ const base = css`
 
   cursor: pointer;
   transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+    border-color var(--haze-duration-fast),
+    box-shadow var(--haze-duration-fast);
 
   &:hover {
     border-color: var(--haze-color-border-hover);

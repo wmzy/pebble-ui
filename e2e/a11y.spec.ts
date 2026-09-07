@@ -86,7 +86,9 @@ test.describe('axe baseline', () => {
 
   test('shown toast', async ({page}) => {
     await page.locator('#toast-opener').click();
-    const toast = page.getByRole('alert');
+    // Demo opens a success toast, which now announces politely (role=status);
+    // only danger toasts use the assertive alert role.
+    const toast = page.getByRole('status');
     await expect(toast).toBeVisible();
     await waitForOpenAnimationToSettle(toast);
     await scan(page, '#toast-demo');

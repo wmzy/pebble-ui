@@ -190,7 +190,12 @@ export type { LocaleProviderProps, HazeStrings } from './components/LocaleProvid
 
 // data table (TanStack headless + haze styles)
 export { DataTable } from './components/DataTable';
-export type { DataTableProps, DataTableColumnDef, DataTableColumnMeta } from './components/DataTable';
+export type {
+  DataTableProps,
+  DataTableColumnDef,
+  DataTableColumnMeta,
+  DataTableVirtualized,
+} from './components/DataTable';
 
 // display & overlay additions
 export { Kbd } from './components/Kbd';
@@ -249,7 +254,15 @@ export { AsyncSection } from './components/AsyncSection';
 export type { AsyncSectionProps } from './components/AsyncSection';
 
 // hooks
-export { useTitle } from './hooks';
+export {
+  useTitle,
+  useMediaQuery,
+  usePrefersReducedMotion,
+  useDebouncedValue,
+  useDebouncedCallback,
+  useClipboard,
+} from './hooks';
+export type { UseClipboardResult } from './hooks';
 
 // form integration (react-f0rm peer)
 export { FormItem } from './form';

@@ -1076,6 +1076,21 @@
             "required": false
           },
           {
+            "name": "id",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "setSize",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "posInSet",
+            "type": "number",
+            "required": false
+          },
+          {
             "name": "onSelect",
             "type": "(value: string) => void",
             "required": false
@@ -1486,6 +1501,11 @@
           {
             "name": "stickyHeader",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "virtualized",
+            "type": "DataTableVirtualized",
             "required": false
           },
           {

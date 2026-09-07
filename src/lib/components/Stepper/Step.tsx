@@ -42,7 +42,7 @@ const circle = css`
   border: 2px solid var(--haze-color-border);
   background: var(--haze-color-bg);
   color: var(--haze-color-text-muted);
-  transition: all 0.2s;
+  transition: all var(--haze-duration-normal);
 `;
 
 const activeCircle = css`

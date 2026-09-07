@@ -60,7 +60,7 @@ const btn = css`
   font-family: var(--haze-font-sans);
   font-weight: var(--haze-weight-medium);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
 `;
 
 const denyBtn = css`

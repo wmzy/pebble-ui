@@ -24,7 +24,7 @@ const item = css`
   color: var(--haze-color-text);
   border-radius: var(--haze-radius-sm);
   text-align: start;
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
 
   &:hover {
     background: var(--haze-color-bg-muted);

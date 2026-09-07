@@ -35,7 +35,7 @@ const link = css`
   padding: var(--haze-space-1) var(--haze-space-2);
   border-radius: var(--haze-radius-sm);
   cursor: pointer;
-  transition: color 0.15s, background 0.15s;
+  transition: color var(--haze-duration-fast), background var(--haze-duration-fast);
 
   &:hover {
     color: var(--haze-color-text);

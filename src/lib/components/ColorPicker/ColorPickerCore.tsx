@@ -71,7 +71,7 @@ const presetBtn = css`
   border-radius: var(--haze-radius-full);
   border: 2px solid transparent;
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s;
+  transition: border-color var(--haze-duration-fast), transform var(--haze-duration-fast);
 
   &:hover {
     transform: scale(1.1);

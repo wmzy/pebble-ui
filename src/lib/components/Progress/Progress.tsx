@@ -26,7 +26,7 @@ const barSizes = {
 const barFill = css`
   height: 100%;
   border-radius: var(--haze-radius-full);
-  transition: width 0.3s ease;
+  transition: width var(--haze-duration-slow) ease;
 `;
 
 const colorMap = {
@@ -54,7 +54,7 @@ const circleBg = css`
 const circleFill = css`
   fill: none;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.3s ease;
+  transition: stroke-dashoffset var(--haze-duration-slow) ease;
 `;
 
 const circleColorMap = {

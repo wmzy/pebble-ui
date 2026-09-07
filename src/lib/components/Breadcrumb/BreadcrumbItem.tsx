@@ -11,7 +11,7 @@ type BreadcrumbItemProps = {
 const link = css`
   color: var(--haze-color-primary);
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color var(--haze-duration-fast);
 
   &:hover {
     color: var(--haze-color-primary-hover);

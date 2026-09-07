@@ -1,0 +1,143 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "haze-ui",
+  "homepage": "https://github.com/wmzy/haze-ui",
+  "items": [
+    {
+      "name": "haze-tokens",
+      "type": "registry:item",
+      "title": "Haze UI Tokens",
+      "description": "haze-ui 设计令牌（OKLCH 色板、间距、排版、动效）的引入与主题化指南。Design-token onboarding guide: where tokens.css lives and how to load, theme and interop it.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui"],
+      "docs": "haze-ui ships JS and CSS separately. Import the stylesheet once in your app entry: `import 'haze-ui/styles.css'` (full sheet) or `import 'haze-ui/css/tokens.css'` plus per-component CSS. Activate tokens with the `lightTheme`/`darkTheme` + `spacing` + `typography` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/haze-tokens/haze-tokens.md",
+          "type": "registry:file",
+          "target": "~/docs/haze-tokens.md"
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "按钮与链接按钮的薄再导出，组件本体由 haze-ui npm 包提供。Thin re-export of haze-ui Button — versioned and tree-shaken through npm.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui"],
+      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/button.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:ui",
+      "title": "Dialog",
+      "description": "基于原生 dialog 元素的对话框，open 状态可控。Thin re-export of haze-ui Dialog — native <dialog> element with a controllable open state.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui"],
+      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/dialog.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "registry:ui",
+      "title": "Dropdown Menu",
+      "description": "下拉菜单复合组件（Trigger/Content/Item/Separator）薄再导出。Thin re-export of the haze-ui DropdownMenu compound family, built on the native Popover API.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui"],
+      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/dropdown-menu.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "combobox",
+      "type": "registry:ui",
+      "title": "Combobox",
+      "description": "输入框加过滤选项列表的组合框，取值可控。Thin re-export of haze-ui Combobox — input plus filtered option list with a controllable value.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui"],
+      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/combobox.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "form",
+      "type": "registry:ui",
+      "title": "Form",
+      "description": "将 haze-ui 字段接入 react-f0rm 表单的 FormItem 薄再导出。Thin re-export of haze-ui FormItem — binds any haze-ui field into a react-f0rm form.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui", "react-f0rm"],
+      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/form.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/ui/form.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "data-table",
+      "type": "registry:ui",
+      "title": "Data Table",
+      "description": "TanStack Table 无头内核加 haze 样式的数据表薄再导出。Thin re-export of haze-ui DataTable — TanStack Table headless core with haze styling.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui", "@tanstack/react-table"],
+      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/data-table.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/ui/data-table.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "toast",
+      "type": "registry:ui",
+      "title": "Toast",
+      "description": "Toast 通知全家桶：组件、容器、useToast hook 与命令式 toast()。Thin re-export of the haze-ui Toast family — component, container, useToast hook and imperative toast().",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui"],
+      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/toast.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Mount `ToastContainer` once near the app root; `useToast` consumers must render below it. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/ui/toast.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "chat-message",
+      "type": "registry:ui",
+      "title": "Chat Message",
+      "description": "AI 聊天消息组件薄再导出，haze-ui AI 组件套件的代表。Thin re-export of haze-ui ChatMessage — role-aware message bubble, the anchor of the AI chat kit.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "dependencies": ["haze-ui"],
+      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/chat-message.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. The rest of the AI kit (ChatContainer, ChatInput, StreamingText, MarkdownRenderer) imports from 'haze-ui' directly. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "files": [
+        {
+          "path": "registry/ui/chat-message.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    }
+  ]
+}

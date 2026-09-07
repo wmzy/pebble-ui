@@ -24,7 +24,7 @@ const wrapper = css`
   border-radius: var(--haze-radius-lg);
   background: var(--haze-color-bg);
   font-family: var(--haze-font-sans);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--haze-duration-fast), box-shadow var(--haze-duration-fast);
 
   &:focus-within {
     border-color: var(--haze-color-primary);
@@ -60,7 +60,7 @@ const sendBtn = css`
   border: none;
   cursor: pointer;
   font-size: var(--haze-text-sm);
-  transition: opacity 0.15s;
+  transition: opacity var(--haze-duration-fast);
 
   &:disabled {
     opacity: 0.5;

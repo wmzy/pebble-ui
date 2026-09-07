@@ -21,7 +21,7 @@ const track = css`
   background: var(--haze-color-bg-muted);
   cursor: pointer;
   padding: 2px;
-  transition: background 0.2s;
+  transition: background var(--haze-duration-normal);
 
   &:focus-visible {
     outline: none;
@@ -42,7 +42,7 @@ const thumb = css`
   display: block;
   border-radius: var(--haze-radius-full);
   background: white;
-  transition: transform 0.2s;
+  transition: transform var(--haze-duration-normal);
   box-shadow: var(--haze-shadow-sm);
 `;
 

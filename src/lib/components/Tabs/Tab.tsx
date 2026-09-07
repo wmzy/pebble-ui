@@ -22,8 +22,8 @@ const base = css`
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   transition:
-    color 0.15s,
-    border-color 0.15s;
+    color var(--haze-duration-fast),
+    border-color var(--haze-duration-fast);
 
   &:hover {
     color: var(--haze-color-text);

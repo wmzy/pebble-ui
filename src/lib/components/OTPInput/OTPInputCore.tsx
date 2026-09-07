@@ -28,7 +28,7 @@ const cell = css`
   background: var(--haze-color-bg);
   color: var(--haze-color-text);
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--haze-duration-fast), box-shadow var(--haze-duration-fast);
 
   &:focus {
     border-color: var(--haze-color-primary);

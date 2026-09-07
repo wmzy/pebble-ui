@@ -34,7 +34,7 @@ const btn = css`
   color: var(--haze-color-text);
   font-size: var(--haze-text-sm);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background var(--haze-duration-fast), border-color var(--haze-duration-fast);
 
   &:hover:not(:disabled) {
     background: var(--haze-color-bg-subtle);

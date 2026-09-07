@@ -3,4 +3,5 @@ export type {
   DataTableProps,
   DataTableColumnDef,
   DataTableColumnMeta,
+  DataTableVirtualized,
 } from './DataTable';

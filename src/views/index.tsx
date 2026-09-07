@@ -30,6 +30,10 @@ export default function App() {
             component: () => import('./ComponentDetail')
           },
           {
+            path: '/ai-showcase',
+            component: () => import('./AIShowcase')
+          },
+          {
             path: '/theme-editor',
             component: () => import('./ThemeEditor')
           },

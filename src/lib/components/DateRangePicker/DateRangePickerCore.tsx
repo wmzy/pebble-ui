@@ -30,7 +30,7 @@ const input = css`
   font-size: var(--haze-text-sm);
   font-family: var(--haze-font-sans);
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--haze-duration-fast), box-shadow var(--haze-duration-fast);
 
   &:focus {
     border-color: var(--haze-color-primary);

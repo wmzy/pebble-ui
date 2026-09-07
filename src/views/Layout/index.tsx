@@ -461,6 +461,11 @@ export default function Layout() {
                 </Disclosure>
               </ListItem>
               <ListItem>
+                <Link className={navLink} to='/ai-showcase'>
+                  AI Showcase
+                </Link>
+              </ListItem>
+              <ListItem>
                 <Link className={navLink} to='/theme-editor'>
                   Theme Editor
                 </Link>

@@ -55,11 +55,20 @@ const input = css`
 `;
 
 /**
- * min-width keeps the fallback/absolute tier as wide as the input, the
- * way the anchored tier's `span-left` area does for free.
+ * The fallback/absolute tier keeps the panel as wide as the input via
+ * `min-width: 100%` (its containing block is the input-width wrapper).
+ * On the anchored tier the containing block is the viewport-wide
+ * position-area region, so `100%` there inflates the panel to the whole
+ * region — the second declaration re-pins it to the trigger's width and
+ * simply drops as invalid on engines without anchor positioning,
+ * leaving the fallback intact. `border-box` makes the re-pin match the
+ * trigger's border-box width exactly (content-box would add the panel's
+ * own border+padding on top of the anchor size).
  */
 const listbox = css`
+  box-sizing: border-box;
   min-width: 100%;
+  min-width: anchor-size(width);
   max-height: 200px;
   overflow-y: auto;
   border: 1px solid var(--haze-color-border);
@@ -75,7 +84,9 @@ const listbox = css`
  * border-box consumer (2px of panel border would overflow the cap).
  */
 const listboxVirtual = css`
+  box-sizing: border-box;
   min-width: 100%;
+  min-width: anchor-size(width);
   border: 1px solid var(--haze-color-border);
   border-radius: var(--haze-radius-md);
   background: var(--haze-color-bg);
@@ -132,6 +143,19 @@ export default function Combobox({
   const virtualized =
     virtualThreshold > 0 && filtered.length > virtualThreshold;
 
+  // Stable, SSR-safe DOM id per option row: listbox id + index, both
+  // deterministic across renders and re-opens (no random values). The
+  // input's aria-activedescendant points here so screen readers announce
+  // the keyboard highlight on options that never receive DOM focus.
+  const optionId = (index: number) => `${id}-option-${index}`;
+
+  // Only while the popup is open — a closed listbox must not own the
+  // input's active descendant, even though the highlight itself persists
+  // for reopen recovery. No highlight (or an out-of-range one after the
+  // option list shrank) omits the attribute entirely.
+  const activeDescendant =
+    open && filtered[highlightIndex] ? optionId(highlightIndex) : undefined;
+
   // The highlighted row must stay visible whenever it moves (keyboard
   // navigation) and whenever the panel (re)opens with a live highlight —
   // 'auto' alignment is a no-op for rows already on screen. Gated on
@@ -162,9 +186,13 @@ export default function Combobox({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+      // Arrows are also the keyboard open path — focus alone no longer
+      // opens the list (see the trigger comment).
+      setOpen(true);
       setHighlightIndex((i) => Math.min(i + 1, filtered.length - 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
+      setOpen(true);
       setHighlightIndex((i) => Math.max(i - 1, 0));
     } else if (
       e.key === 'Enter' &&
@@ -187,6 +215,7 @@ export default function Combobox({
         aria-expanded={open}
         aria-controls={id}
         aria-autocomplete="list"
+        aria-activedescendant={activeDescendant}
         className={input}
         value={query}
         placeholder={placeholder}
@@ -194,10 +223,15 @@ export default function Combobox({
           setQuery(e.target.value);
           setOpen(true);
         }}
-        onFocus={() => setOpen(true)}
-        // A click on an already-focused input light-dismisses the panel
-        // without refiring focus — reopen explicitly so the list stays up.
-        onClick={() => setOpen(true)}
+        // Open on click (via the suppression-aware toggle), never on
+        // pointer-driven focus: opening mid-gesture lets Chromium
+        // light-dismiss the just-shown popover, and the queued `toggle
+        // closed` echo lands after the click — leaving the panel closed
+        // on the first pointer click (Datepicker's onTriggerClick
+        // pattern avoids the race). Keyboard users open with ArrowDown
+        // or by typing, both below.
+        onPointerDown={floating.onTriggerPointerDown}
+        onClick={floating.onTriggerClick}
         onKeyDown={handleKeyDown}
       />
       <FloatingPanel
@@ -218,6 +252,9 @@ export default function Combobox({
             renderItem={(o, i) => (
               <ComboboxOption
                 value={o.value}
+                id={optionId(i)}
+                setSize={filtered.length}
+                posInSet={i + 1}
                 highlighted={i === highlightIndex}
                 selected={o.value === value}
                 onSelect={selectOption}
@@ -232,6 +269,9 @@ export default function Combobox({
             <ComboboxOption
               key={o.value}
               value={o.value}
+              id={optionId(i)}
+              setSize={filtered.length}
+              posInSet={i + 1}
               highlighted={i === highlightIndex}
               selected={o.value === value}
               onSelect={selectOption}

@@ -68,7 +68,7 @@ const closeBtn = css`
   font-size: inherit;
   line-height: 1;
   opacity: 0.6;
-  transition: opacity 0.15s;
+  transition: opacity var(--haze-duration-fast);
   display: inline-flex;
   align-items: center;
 

@@ -67,7 +67,7 @@ const closeBtn = css`
   font-size: var(--haze-text-lg);
   line-height: 1;
   opacity: 0.6;
-  transition: opacity 0.15s;
+  transition: opacity var(--haze-duration-fast);
 
   &:hover {
     opacity: 1;

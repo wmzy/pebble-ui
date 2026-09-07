@@ -38,8 +38,8 @@ const input = css`
   line-height: var(--haze-leading-normal);
   cursor: pointer;
   transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+    border-color var(--haze-duration-fast),
+    box-shadow var(--haze-duration-fast);
   box-sizing: border-box;
 
   &:focus {

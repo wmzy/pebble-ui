@@ -44,6 +44,24 @@ function jsxPlusPlugin(): Plugin {
  */
 export default defineConfig({
   root: path.resolve(repoRoot, 'e2e/app'),
+  // The Playwright webServer runs the dev server, which serves every
+  // file under root implicitly; this input list exists so `vite build`
+  // (if ever needed for debugging fixtures headlessly) emits exactly the
+  // harness pages, and doubles as the registry of fixture entries.
+  build: {
+    rollupOptions: {
+      input: [
+        path.resolve(repoRoot, 'e2e/app/index.html'),
+        path.resolve(repoRoot, 'e2e/app/collision.html'),
+        path.resolve(repoRoot, 'e2e/app/reduced-motion.html'),
+        path.resolve(repoRoot, 'e2e/app/snapshots.html'),
+        path.resolve(repoRoot, 'e2e/app/snapshots-overlays.html'),
+        path.resolve(repoRoot, 'e2e/app/components/button.html'),
+        path.resolve(repoRoot, 'e2e/app/components/pagination.html'),
+        path.resolve(repoRoot, 'e2e/app/components/chatcontainer.html'),
+      ],
+    },
+  },
   resolve: {
     alias: [
       {

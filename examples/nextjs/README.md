@@ -24,8 +24,10 @@ pnpm dev        # http://localhost:3000
 - `app/layout.tsx` imports `haze-ui/styles.css` once (global CSS lives in the
   root layout) and applies the same `lightTheme` / `spacing` / `typography`
   class combination the docs app uses to `<body>`.
-- `app/page.tsx` is a `'use client'` component — haze-ui ships no
-  `'use client'` directives, the consumer owns the client boundary.
+- `app/page.tsx` is a `'use client'` component — the consumer owns the
+  client boundary here. (Every haze-ui dist module also ships its own
+  `'use client'` directive, so importing haze-ui from a server component
+  resolves cleanly too; the directive is inert outside RSC bundlers.)
   Components render on the server and hydrate cleanly; see
   `src/lib/ssr-render.node.test.tsx` and `src/lib/ssr-hydration.test.tsx`
   in the repository root.

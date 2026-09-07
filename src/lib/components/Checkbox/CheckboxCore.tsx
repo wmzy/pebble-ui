@@ -22,9 +22,9 @@ const base = css`
   cursor: pointer;
   margin: 0.4375rem;
   transition:
-    background 0.15s,
-    border-color 0.15s,
-    box-shadow 0.15s;
+    background var(--haze-duration-fast),
+    border-color var(--haze-duration-fast),
+    box-shadow var(--haze-duration-fast);
   flex-shrink: 0;
   position: relative;
 

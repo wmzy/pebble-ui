@@ -19,7 +19,7 @@ const base = css`
   background: var(--haze-color-bg-muted);
   outline: none;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
 
   &::-webkit-slider-thumb {
     appearance: none;
@@ -31,8 +31,8 @@ const base = css`
     box-shadow: var(--haze-shadow-sm);
     cursor: pointer;
     transition:
-      background 0.15s,
-      box-shadow 0.15s;
+      background var(--haze-duration-fast),
+      box-shadow var(--haze-duration-fast);
   }
 
   &::-moz-range-thumb {

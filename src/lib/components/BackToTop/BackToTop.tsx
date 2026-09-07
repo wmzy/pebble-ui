@@ -28,7 +28,7 @@ const button = css`
   cursor: pointer;
   box-shadow: var(--haze-shadow-lg);
   font-size: var(--haze-text-lg);
-  transition: opacity 0.2s, transform 0.2s;
+  transition: opacity var(--haze-duration-normal), transform var(--haze-duration-normal);
 
   &:hover {
     transform: translateY(-2px);

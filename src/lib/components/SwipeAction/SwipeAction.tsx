@@ -43,7 +43,7 @@ const actionsRight = css`
 const content = css`
   position: relative;
   background: var(--haze-color-bg);
-  transition: transform 0.2s ease;
+  transition: transform var(--haze-duration-normal) ease;
   touch-action: pan-y;
   user-select: none;
 `;

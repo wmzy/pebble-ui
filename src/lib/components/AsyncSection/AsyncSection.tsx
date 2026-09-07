@@ -91,8 +91,8 @@ const retryButton = css`
   cursor: pointer;
   user-select: none;
   transition:
-    background 0.15s,
-    border-color 0.15s;
+    background var(--haze-duration-fast),
+    border-color var(--haze-duration-fast);
 
   &:hover {
     border-color: var(--haze-color-border-hover);

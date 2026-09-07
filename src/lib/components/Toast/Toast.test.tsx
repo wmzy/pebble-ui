@@ -23,9 +23,28 @@ describe('Toast', () => {
     spy.mockRestore();
   });
 
-  it('renders children with alert role', () => {
+  it('renders the default variant with a polite status role', () => {
     render(<Toast onClose={vi.fn()} duration={0}>Message</Toast>);
-    expect(screen.getByRole('alert')).toHaveTextContent('Message');
+    expect(screen.getByRole('status')).toHaveTextContent('Message');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('maps every variant to its live-region role', () => {
+    const variants = ['info', 'success', 'warning', 'danger'] as const;
+    for (const variant of variants) {
+      const { unmount } = render(
+        <Toast variant={variant} onClose={vi.fn()} duration={0}>
+          Message
+        </Toast>
+      );
+      // Only danger interrupts (role="alert"); the rest queue politely
+      // (role="status").
+      const expected = variant === 'danger' ? 'alert' : 'status';
+      const unexpected = expected === 'alert' ? 'status' : 'alert';
+      expect(screen.getByRole(expected)).toHaveTextContent('Message');
+      expect(screen.queryByRole(unexpected)).not.toBeInTheDocument();
+      unmount();
+    }
   });
 
   it('renders close button', () => {
@@ -224,19 +243,19 @@ describe('ToastContainer + useToast', () => {
     });
 
     // Entering: mounted with data-state="open" on the toast root.
-    expect(screen.getByRole('alert')).toHaveAttribute('data-state', 'open');
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'open');
     expect(screen.getByTestId('toast-count')).toHaveTextContent('1');
 
     await user.click(screen.getByRole('button', { name: 'Close' }));
 
     // Exit in flight: still mounted and listed, but flipped to closed.
-    expect(screen.getByRole('alert')).toHaveAttribute('data-state', 'closed');
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'closed');
     expect(screen.getByText('Temp')).toBeInTheDocument();
     expect(screen.getByTestId('toast-count')).toHaveTextContent('1');
 
     // Exit settled: unmounted from the DOM and removed from the list.
     await waitFor(() =>
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
     );
     expect(screen.getByTestId('toast-count')).toHaveTextContent('0');
   });
@@ -253,12 +272,12 @@ describe('ToastContainer + useToast', () => {
 
     // Simulate a browser that computed the toastOut animation (jsdom
     // itself reports no durations, making every exit settle instantly).
-    const alertEl = screen.getByRole('alert');
+    const toastEl = screen.getByRole('status');
     const real = window.getComputedStyle.bind(window);
     const styleSpy = vi
       .spyOn(window, 'getComputedStyle')
       .mockImplementation((element, pseudoElement) =>
-        element === alertEl
+        element === toastEl
           ? ({
               animationName: 'toastOut',
               animationDuration: '0.2s',
@@ -277,13 +296,13 @@ describe('ToastContainer + useToast', () => {
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 60));
       });
-      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByRole('status')).toBeInTheDocument();
 
       act(() => {
-        alertEl.dispatchEvent(new Event('animationend'));
+        toastEl.dispatchEvent(new Event('animationend'));
       });
       await waitFor(() =>
-        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+        expect(screen.queryByRole('status')).not.toBeInTheDocument()
       );
     } finally {
       styleSpy.mockRestore();
@@ -322,7 +341,7 @@ describe('ToastContainer + useToast', () => {
       result.current('Placed', { duration: 0 });
     });
 
-    const containerEl = screen.getByRole('alert').parentElement;
+    const containerEl = screen.getByRole('status').parentElement;
     expect(containerEl).toHaveClass(toastPlacements['top-right']);
     expect(containerEl).not.toHaveClass(toastPlacements['bottom-right']);
   });
@@ -337,7 +356,7 @@ describe('ToastContainer + useToast', () => {
       result.current('Placed', { duration: 0 });
     });
 
-    const containerEl = screen.getByRole('alert').parentElement;
+    const containerEl = screen.getByRole('status').parentElement;
     expect(containerEl).toHaveClass(toastPlacements['bottom-right']);
     expect(containerEl).not.toHaveClass(toastPlacements['top-right']);
   });
@@ -402,7 +421,7 @@ describe('imperative toast()', () => {
     expect(screen.queryByText('Queued 0')).not.toBeInTheDocument();
     expect(screen.getByText('Queued 1')).toBeInTheDocument();
     expect(screen.getByText('Queued 100')).toBeInTheDocument();
-    expect(screen.getAllByRole('alert')).toHaveLength(100);
+    expect(screen.getAllByRole('status')).toHaveLength(100);
   });
 
   it('shows toast() immediately once a container is mounted', () => {
@@ -439,7 +458,7 @@ describe('imperative toast()', () => {
       toast.success('Saved', { duration: 0 });
       toast.danger('Failed', { duration: 0 });
     });
-    const saved = screen.getByText('Saved').closest('[role="alert"]');
+    const saved = screen.getByText('Saved').closest('[role="status"]');
     const failed = screen.getByText('Failed').closest('[role="alert"]');
     expect(saved).toBeInTheDocument();
     expect(failed).toBeInTheDocument();
@@ -476,7 +495,7 @@ describe('imperative toast()', () => {
       toast.dismiss();
     });
     await waitFor(() =>
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
     );
   });
 
@@ -494,7 +513,7 @@ describe('imperative toast()', () => {
     toast('Queued two');
     toast.dismiss();
     render(<ToastContainer>{null}</ToastContainer>);
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('has no axe violations for imperative toasts', async () => {

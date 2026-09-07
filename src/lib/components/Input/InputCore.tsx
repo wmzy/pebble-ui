@@ -23,8 +23,8 @@ const base = css`
   font-family: var(--haze-font-sans);
   line-height: var(--haze-leading-normal);
   transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+    border-color var(--haze-duration-fast),
+    box-shadow var(--haze-duration-fast);
 
   &::placeholder {
     color: var(--haze-color-text-muted);

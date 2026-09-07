@@ -20,10 +20,10 @@ export const base = css`
   line-height: var(--haze-leading-tight);
   cursor: pointer;
   transition:
-    background 0.15s,
-    color 0.15s,
-    border-color 0.15s,
-    box-shadow 0.15s;
+    background var(--haze-duration-fast),
+    color var(--haze-duration-fast),
+    border-color var(--haze-duration-fast),
+    box-shadow var(--haze-duration-fast);
   user-select: none;
 
   &:focus-visible {

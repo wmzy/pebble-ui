@@ -7,6 +7,13 @@ import { useState } from 'react';
 
 import { useStrings } from '../LocaleProvider';
 
+import {
+  addMonths,
+  buildMonthCells,
+  formatDate,
+  parseCivilDate,
+} from './date';
+
 type CalendarProps = {
   /** Selected date as "YYYY-MM-DD"; empty string means nothing selected. */
   value?: ControlOrValue<string>;
@@ -177,14 +184,6 @@ function getWeekdayLabels(locale: string | undefined, weekStart: number) {
   return Array.from({ length: 7 }, (_, i) => byDay[(weekStart + i) % 7]!);
 }
 
-function getDaysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function formatDate(year: number, month: number, day: number) {
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
 export default function Calendar({
   value: valueControl,
   min,
@@ -198,36 +197,28 @@ export default function Calendar({
   const [value, setValue] = useControl(valueControl, '');
   const strings = useStrings('calendar');
 
-  const initial = value ? new Date(value) : new Date();
+  // Civil parse: `new Date(value)` would read the value as UTC midnight
+  // and land west-of-UTC users on the previous day — showing February
+  // for a '2026-03-01' value in America/New_York.
+  const initial = (value && parseCivilDate(value)) || new Date();
   const [viewYear, setViewYear] = useState(initial.getFullYear());
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
 
   const weekStart = resolveWeekStart(locale, weekStartsOn);
   const weekdayLabels = getWeekdayLabels(locale, weekStart);
 
-  const daysInMonth = getDaysInMonth(viewYear, viewMonth);
-  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
-  const prevMonthDays = getDaysInMonth(viewYear, viewMonth - 1);
-  const leadingDays = (firstDayOfWeek - weekStart + 7) % 7;
+  const cells = buildMonthCells(viewYear, viewMonth, weekStart);
 
   const goPrevMonth = () => {
-    setViewMonth((m) => {
-      if (m === 0) {
-        setViewYear((y) => y - 1);
-        return 11;
-      }
-      return m - 1;
-    });
+    const prev = addMonths(viewYear, viewMonth, -1);
+    setViewYear(prev.year);
+    setViewMonth(prev.month);
   };
 
   const goNextMonth = () => {
-    setViewMonth((m) => {
-      if (m === 11) {
-        setViewYear((y) => y + 1);
-        return 0;
-      }
-      return m + 1;
-    });
+    const next = addMonths(viewYear, viewMonth, 1);
+    setViewYear(next.year);
+    setViewMonth(next.month);
   };
 
   const goToday = () => {
@@ -241,30 +232,6 @@ export default function Calendar({
     if (max && dateStr > max) return true;
     return false;
   };
-
-  const cells: {
-    day: number;
-    month: number;
-    year: number;
-    outside: boolean;
-  }[] = [];
-
-  for (let i = leadingDays - 1; i >= 0; i--) {
-    const m = viewMonth === 0 ? 11 : viewMonth - 1;
-    const y = viewMonth === 0 ? viewYear - 1 : viewYear;
-    cells.push({ day: prevMonthDays - i, month: m, year: y, outside: true });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push({ day: d, month: viewMonth, year: viewYear, outside: false });
-  }
-  const remaining = 7 - (cells.length % 7);
-  if (remaining < 7) {
-    for (let d = 1; d <= remaining; d++) {
-      const m = viewMonth === 11 ? 0 : viewMonth + 1;
-      const y = viewMonth === 11 ? viewYear + 1 : viewYear;
-      cells.push({ day: d, month: m, year: y, outside: true });
-    }
-  }
 
   // Equivalent to the previous toLocaleString('default', …) call —
   // Date#toLocaleString delegates to Intl.DateTimeFormat — but also serves

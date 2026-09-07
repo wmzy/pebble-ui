@@ -28,7 +28,7 @@ const summary = css`
   cursor: pointer;
   list-style: none;
   user-select: none;
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
 
   &:hover {
     background: var(--haze-color-bg-subtle);
@@ -58,7 +58,7 @@ const summary = css`
     border-right: 2px solid var(--haze-color-text-muted);
     border-bottom: 2px solid var(--haze-color-text-muted);
     transform: rotate(-45deg);
-    transition: transform 0.2s;
+    transition: transform var(--haze-duration-normal);
     flex-shrink: 0;
   }
 

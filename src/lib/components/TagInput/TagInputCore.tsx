@@ -34,7 +34,7 @@ const container = css`
   font-family: var(--haze-font-sans);
   min-height: 2.25rem;
   align-items: center;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--haze-duration-fast), box-shadow var(--haze-duration-fast);
 
   &:focus-within {
     border-color: var(--haze-color-primary);

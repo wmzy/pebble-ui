@@ -45,6 +45,24 @@ distContract('dist 发布契约：Node ESM / vitest 可直接 import', () => {
       expect(offenders).toEqual([]);
     });
 
+    it('每个 JS 模块首非空行是 use client 指令（Next.js App Router 客户端边界）', () => {
+      // vite 库构建的 output.banner 注入。rolldown 的 oxc codegen 会把
+      // banner 里的指令重印为双引号（'use client' → "use client"），两种
+      // 引号对 Next.js / React Flight / SWC 完全等价，故都放行。指令必须
+      // 位于任何 import 之前——断言"首个非空行"即隐含该约束。全量扫描
+      // 严格强于抽查（子path 消费者可 import 任意模块，漏一个即在
+      // server component 里报 "needs useState"）。CSS 与 .d.ts 产物不经
+      // JS banner，天然不含指令。
+      const directive = /^\s*(['"])use client\1;/;
+      const offenders = jsFiles.filter(
+        (rel) =>
+          !directive.test(
+            readFileSync(path.join(distDir, rel), 'utf8')
+          )
+      );
+      expect(offenders).toEqual([]);
+    });
+
     it('入口在裸 Node ESM 下可完整链接并执行（UMD 具名导出回归在此复现）', () => {
       // 子进程裸跑 node，而非 vite 管线内的动态 import：vite 会把 .css
       // 当资源处理、把 CJS 转换包装，恰好掩盖上面两段历史坑。

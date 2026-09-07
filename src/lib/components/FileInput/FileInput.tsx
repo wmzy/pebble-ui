@@ -34,8 +34,8 @@ const trigger = css`
   font-weight: var(--haze-weight-medium);
   cursor: pointer;
   transition:
-    background 0.15s,
-    border-color 0.15s;
+    background var(--haze-duration-fast),
+    border-color var(--haze-duration-fast);
 
   &:hover {
     border-color: var(--haze-color-border-hover);

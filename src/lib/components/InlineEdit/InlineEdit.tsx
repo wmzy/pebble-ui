@@ -24,7 +24,7 @@ const display = css`
   min-height: 1.75rem;
   min-width: 2rem;
   border: 1px solid transparent;
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
 
   &:hover {
     background: var(--haze-color-bg-muted);

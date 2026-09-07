@@ -39,7 +39,7 @@ const item = css`
   padding: 2px 0;
   cursor: pointer;
   user-select: none;
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
   border-radius: var(--haze-radius-sm);
 
   &:hover {
@@ -82,7 +82,7 @@ const switcher = css`
   flex-shrink: 0;
   cursor: pointer;
   color: var(--haze-color-text-muted);
-  transition: transform 0.2s;
+  transition: transform var(--haze-duration-normal);
 
   &:hover {
     color: var(--haze-color-text);
@@ -110,7 +110,7 @@ const checkbox = css`
   border-radius: var(--haze-radius-sm);
   background: var(--haze-color-bg);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--haze-duration-fast);
 
   &:hover {
     border-color: var(--haze-color-primary);

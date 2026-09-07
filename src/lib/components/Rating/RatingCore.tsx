@@ -26,7 +26,7 @@ const star = css`
   height: 1.75rem;
   cursor: pointer;
   color: var(--haze-color-border);
-  transition: color 0.15s, transform 0.15s;
+  transition: color var(--haze-duration-fast), transform var(--haze-duration-fast);
   position: relative;
 
   &:hover {

@@ -169,7 +169,7 @@ const itemStyle = css`
   font-size: var(--haze-text-sm);
   color: var(--haze-color-text);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
 
   &:hover {
     background: var(--haze-color-bg-subtle);

@@ -61,8 +61,8 @@ const trigger = css`
   cursor: pointer;
   box-sizing: border-box;
   transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+    border-color var(--haze-duration-fast),
+    box-shadow var(--haze-duration-fast);
 
   &:focus-visible {
     outline: none;
@@ -136,7 +136,7 @@ const item = css`
   color: var(--haze-color-text);
   text-align: start;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background var(--haze-duration-fast);
 
   &:hover {
     background: var(--haze-color-bg-subtle);

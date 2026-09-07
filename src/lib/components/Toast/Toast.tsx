@@ -83,6 +83,20 @@ const variants = {
   `,
 } as const;
 
+/* Live-region semantics per variant (Radix / React-Aria convention):
+ * only danger may interrupt the screen reader — role="alert" is
+ * implicitly aria-live="assertive". info/success/warning announce
+ * politely via role="status" (implicitly aria-live="polite",
+ * aria-atomic="true") so they queue behind in-progress speech. Each
+ * toast is its own live region; ToastContainer's viewport must not add
+ * aria-live/role of its own or the same toast would be announced twice. */
+const liveRoles = {
+  info: 'status',
+  success: 'status',
+  warning: 'status',
+  danger: 'alert',
+} as const;
+
 const contentStyle = css`
   flex: 1;
 `;
@@ -173,7 +187,7 @@ export default function Toast({
 
   return (
     <div
-      role='alert'
+      role={liveRoles[variant]}
       x-class={[base, variants[variant], className]}
       onPointerEnter={() => {
         hoveredRef.current = true;

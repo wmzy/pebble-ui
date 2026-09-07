@@ -52,7 +52,7 @@ const navBtn = css`
   justify-content: center;
   cursor: pointer;
   box-shadow: var(--haze-shadow-md);
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
 
   &:hover {
     background: var(--haze-color-bg-subtle);
@@ -99,7 +99,7 @@ const dot = css`
   background: var(--haze-color-bg-muted);
   cursor: pointer;
   padding: 0.375rem;
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
 `;
 
 const dotActive = css`

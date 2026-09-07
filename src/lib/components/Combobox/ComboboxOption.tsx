@@ -6,6 +6,18 @@ type ComboboxOptionProps = {
   value: string;
   highlighted?: boolean;
   selected?: boolean;
+  /**
+   * DOM id of this option — what the combobox input points at via
+   * aria-activedescendant while the row holds the keyboard highlight.
+   */
+  id?: string;
+  /**
+   * Size of the whole option set, per aria-setsize. Must count every
+   * option, not just the rows a windowed (virtualized) list mounted.
+   */
+  setSize?: number;
+  /** 1-based position of this option in the set, per aria-posinset. */
+  posInSet?: number;
   onSelect?: (value: string) => void;
   className?: string;
   children: ReactNode;
@@ -43,6 +55,9 @@ export default function ComboboxOption({
   value,
   highlighted = false,
   selected = false,
+  id,
+  setSize,
+  posInSet,
   onSelect,
   className,
   children,
@@ -50,7 +65,13 @@ export default function ComboboxOption({
   return (
     <div
       role='option'
-      aria-selected={selected}
+      id={id}
+      // ARIA 1.2 combobox: both the keyboard-highlighted (visual focus)
+      // option and the selected value carry aria-selected=true — two
+      // distinct concepts sharing the attribute's true state.
+      aria-selected={selected || highlighted}
+      aria-setsize={setSize}
+      aria-posinset={posInSet}
       x-class={[
         option,
         highlighted && highlightedStyle,

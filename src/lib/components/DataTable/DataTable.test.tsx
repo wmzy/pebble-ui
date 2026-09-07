@@ -1,8 +1,10 @@
+import type { MockInstance } from 'vitest';
+
 import type { RowSelectionState } from '@tanstack/react-table';
 
 import type { DataTableColumnDef } from './DataTable';
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
@@ -310,6 +312,289 @@ describe('DataTable', () => {
     );
     // 'region' fires for any content outside a landmark — an artifact of
     // the bare test document, not the component.
+    const results = await axe(container, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('DataTable virtualization', () => {
+  // jsdom 30 has no layout (getBoundingClientRect is all zeros) and no
+  // ResizeObserver, so both are mocked after VirtualList's test pattern:
+  // the observer records targets and fires synchronously on observe
+  // (matching the spec's initial notification), while the rect mock
+  // fabricates the heights DataTable measures — the scroll region (a div)
+  // and the pinned header (a thead).
+  type ObserveCallback = (entries: ResizeObserverEntry[]) => void;
+
+  class MockResizeObserver {
+    observed = new Set<Element>();
+
+    constructor(private callback: ObserveCallback) {}
+
+    report(target: Element) {
+      this.callback([{ target } as ResizeObserverEntry]);
+    }
+
+    observe(target: Element) {
+      if (this.observed.has(target)) return;
+      this.observed.add(target);
+      this.report(target);
+    }
+
+    unobserve(target: Element) {
+      this.observed.delete(target);
+    }
+
+    disconnect() {
+      this.observed.clear();
+    }
+  }
+
+  let areaHeight = 400;
+  let headerHeight = 40;
+  let rectSpy: MockInstance;
+
+  beforeEach(() => {
+    areaHeight = 400;
+    headerHeight = 40;
+    vi.stubGlobal('ResizeObserver', MockResizeObserver);
+    rectSpy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.tagName === 'THEAD') {
+          return { height: headerHeight } as DOMRect;
+        }
+        if (this.tagName === 'DIV') {
+          return { height: areaHeight } as DOMRect;
+        }
+        return { height: 0 } as DOMRect;
+      });
+  });
+
+  afterEach(() => {
+    rectSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  const many: Person[] = Array.from({ length: 1000 }, (_, i) => ({
+    id: `u${i}`,
+    name: `Person ${i}`,
+    age: 20 + i,
+  }));
+
+  /** The VirtualList scrollport: parent chain of a rendered row wrapper. */
+  function getScrollport() {
+    const wrapper = document.querySelector<HTMLElement>('[data-index]');
+    const port = wrapper?.parentElement?.parentElement;
+    if (!port) throw new Error('no virtualized rows rendered');
+    return port;
+  }
+
+  function scrollTo(el: HTMLElement, scrollTop: number) {
+    act(() => {
+      el.scrollTop = scrollTop;
+      el.dispatchEvent(new Event('scroll'));
+    });
+  }
+
+  it('renders only the windowed slice of a 1000-row table', () => {
+    render(<DataTable columns={columns} data={many} virtualized getRowId={rowId} />);
+
+    // viewport 400 − header 40 = 360px at 34px/row → rows 0–10 visible,
+    // plus the default overscan of 5 → indices 0–15 mounted of 1000.
+    expect(bodyRows()).toHaveLength(16);
+    expect(bodyRows()[0]).toHaveTextContent('Person 0');
+    expect(bodyRows()[15]).toHaveTextContent('Person 15');
+    // The spacer keeps the scrollbar honest: 1000 × 34px.
+    expect(document.querySelector('[data-index]')?.parentElement).toHaveStyle(
+      { height: '34000px' }
+    );
+  });
+
+  it('advances the window after scrolling', () => {
+    render(<DataTable columns={columns} data={many} virtualized getRowId={rowId} />);
+
+    // scrollTop 3400 = 100 rows × 34px → window start 100−5, end 111+5.
+    scrollTo(getScrollport(), 3400);
+
+    expect(bodyRows()).toHaveLength(21);
+    expect(bodyRows()[0]).toHaveTextContent('Person 95');
+    expect(bodyRows()[20]).toHaveTextContent('Person 115');
+    expect(screen.queryByText('Person 94')).not.toBeInTheDocument();
+    expect(screen.queryByText('Person 116')).not.toBeInTheDocument();
+  });
+
+  it('honors an explicit rowHeight and overscan', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={many}
+        virtualized={{ rowHeight: 40, overscan: 0 }}
+        getRowId={rowId}
+      />
+    );
+
+    // 360px / 40px rows with no overscan → exactly rows 0–8.
+    expect(bodyRows()).toHaveLength(9);
+    expect(bodyRows()[8]).toHaveTextContent('Person 8');
+    expect(document.querySelector('[data-index]')?.parentElement).toHaveStyle(
+      { height: '40000px' }
+    );
+  });
+
+  it('sorts before windowing, so out-of-window rows move in and out', async () => {
+    const user = userEvent.setup();
+    // Reverse order: the window shows the tail until sorting reorders it.
+    const reversed = [...many].reverse();
+    render(
+      <DataTable
+        columns={columns}
+        data={reversed}
+        sortable
+        virtualized
+        getRowId={rowId}
+      />
+    );
+
+    expect(bodyRows()[0]).toHaveTextContent('Person 999');
+    expect(bodyRows()[15]).toHaveTextContent('Person 984');
+
+    await user.click(screen.getByRole('button', { name: 'Name' }));
+
+    // Ascending natural sort brings rows 0–15 into the window and pushes
+    // the previously visible tail out of it.
+    expect(
+      screen.getByRole('columnheader', { name: 'Name' })
+    ).toHaveAttribute('aria-sort', 'ascending');
+    expect(bodyRows()[0]).toHaveTextContent('Person 0');
+    expect(bodyRows()[15]).toHaveTextContent('Person 15');
+    expect(screen.queryByText('Person 999')).not.toBeInTheDocument();
+  });
+
+  it('selects rows inside the window and select-all across the dataset', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        columns={columns}
+        data={many}
+        selectable
+        virtualized
+        getRowId={rowId}
+      />
+    );
+
+    await user.click(screen.getByRole('checkbox', { name: 'Select row u1' }));
+    expect(
+      screen.getByRole('checkbox', { name: 'Select row u1' })
+    ).toBeChecked();
+    expect(
+      screen.getByRole('checkbox', { name: 'Select row u0' })
+    ).not.toBeChecked();
+
+    await user.click(screen.getByRole('checkbox', { name: 'Select all rows' }));
+    // All 1000 rows are selected even though only 16 are mounted.
+    expect(
+      screen.getByRole('checkbox', { name: 'Select row u0' })
+    ).toBeChecked();
+    expect(
+      screen.getByRole('checkbox', { name: 'Select row u15' })
+    ).toBeChecked();
+
+    await user.click(screen.getByRole('checkbox', { name: 'Select all rows' }));
+    expect(
+      screen.getByRole('checkbox', { name: 'Select row u1' })
+    ).not.toBeChecked();
+  });
+
+  it('paginates the virtualized window to the current page', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        columns={columns}
+        data={many}
+        pageSize={500}
+        virtualized
+        getRowId={rowId}
+      />
+    );
+
+    // Page 1: rows 0–999 sliced to 0–499, window 0–15 of that slice.
+    expect(bodyRows()[0]).toHaveTextContent('Person 0');
+    expect(bodyRows()[15]).toHaveTextContent('Person 15');
+    expect(screen.queryByText('Person 500')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '2' }));
+    expect(bodyRows()[0]).toHaveTextContent('Person 500');
+    expect(screen.queryByText('Person 0')).not.toBeInTheDocument();
+  });
+
+  it('shows the empty state when virtualized with no rows', () => {
+    render(<DataTable columns={columns} data={[]} virtualized />);
+
+    expect(screen.getByText('No data')).toBeInTheDocument();
+    expect(screen.getByText('No data').closest('td')).toHaveAttribute(
+      'colspan',
+      '2'
+    );
+    expect(document.querySelector('[data-index]')).toBeNull();
+  });
+
+  it('renders skeleton rows while loading and virtualized', () => {
+    render(
+      <DataTable columns={columns} data={many} loading pageSize={2} virtualized />
+    );
+
+    expect(screen.queryByText('Person 0')).not.toBeInTheDocument();
+    expect(bodyRows()).toHaveLength(2);
+  });
+
+  it('keeps every row a legal table structure with full cell semantics', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={many}
+        selectable
+        virtualized
+        getRowId={rowId}
+      />
+    );
+
+    for (const row of bodyRows()) {
+      expect(row.tagName).toBe('TR');
+      expect(row.closest('tbody')).toBeInstanceOf(HTMLTableSectionElement);
+      expect(row.closest('table')).toBeInstanceOf(HTMLTableElement);
+      // Checkbox column + two data columns.
+      expect(row.querySelectorAll('td')).toHaveLength(3);
+    }
+    // The header stays a real table row outside the scroll window.
+    const headerRow = screen
+      .getAllByRole('row')
+      .find((row) => row.querySelector('th'));
+    expect(headerRow).toBeDefined();
+    expect(headerRow?.closest('thead')).toBeInstanceOf(HTMLTableSectionElement);
+  });
+
+  it('renders every row when not virtualized', () => {
+    render(<DataTable columns={columns} data={many.slice(0, 40)} />);
+
+    expect(bodyRows()).toHaveLength(40);
+    expect(document.querySelector('[data-index]')).toBeNull();
+  });
+
+  it('has no axe violations when virtualized', async () => {
+    const { axe } = await import('jest-axe');
+    const { container } = render(
+      <DataTable
+        columns={columns}
+        data={many}
+        sortable
+        selectable
+        virtualized
+        getRowId={rowId}
+      />
+    );
     const results = await axe(container, {
       rules: { region: { enabled: false } },
     });

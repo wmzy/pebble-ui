@@ -10,6 +10,7 @@ English | [简体中文](./README-zh_CN.md)
 ## Features
 
 - Integrated [react use control](https://github.com/wmzy/react-use-control) provides component internal states
+- Built for React 19+ (`ref` as a prop, `ControlOrValue<T>` state protocol) — no React 18 compatibility layer
 - Keep strict, provide lightweight, composable, and easily extendable components
 - Support themes customization
 - Support Tree-shaking
@@ -31,6 +32,46 @@ npm i haze-ui
 // or
 pnpm add haze-ui
 ```
+
+### React 19+ by design
+
+The peer range is `react: ^19.0.0` on purpose — haze-ui is built on
+modern React rather than carrying a compatibility layer for 18:
+
+- **`ref` as a prop.** React 19 passes `ref` to function components
+  directly, so components that expose refs accept one prop instead of a
+  `forwardRef` wrapper layer.
+- **A modern-platform baseline.** Floating panels (Popover, DropdownMenu,
+  Tooltip, ContextMenu, Combobox, Datepicker) choose between three tiers
+  by feature detection — native `popover` + CSS anchor positioning,
+  `popover` alone, or a JS fallback — with the newest platform features
+  as the primary path, not an enhancement layered on top.
+- **`ControlOrValue<T>`** — the `Control<T> | T` state protocol — is
+  designed for modern React semantics throughout.
+
+On React 18? Upgrade first. haze-ui ships no React 18 compatibility
+layer, and none is planned.
+
+### Optional peer dependencies
+
+haze-ui's only required runtime dependency is `react-use-control` — the
+engine behind `ControlOrValue<T>`. Two integrations are optional peers,
+installed only when you use the components that need them:
+
+```sh
+npm i react-f0rm              # FormItem (peer range ^1.1.1)
+npm i @tanstack/react-table   # DataTable (peer range ^9.2.4)
+```
+
+Everything else — `Button`, `Input`, `Dialog`, `Select`, … — runs with
+nothing beyond `react` and `react-use-control`. The dist is ESM with
+`preserveModules` and side-effect-free JS, so bundlers (Next.js, Vite,
+webpack, Turbopack, Rollup) tree-shake the unused re-export chains and
+never resolve peers you haven't installed: `import { Button } from
+'haze-ui'` works without `react-f0rm`. Only bundler-less consumers
+(bare Node ESM importing the barrel, which links the module graph
+eagerly) must install both peers; the `haze-ui/form` and
+`haze-ui/components/DataTable` subpaths bypass the barrel entirely.
 
 ### Browser support
 
@@ -82,6 +123,27 @@ authoritative export → css-file mapping ships as data:
 included); `noCss` lists pure-logic exports with no css of their own.
 Bundler plugins and codemods should read this manifest instead of
 re-deriving file names — the mapping changes in lockstep with the build.
+
+### Server Components (Next.js App Router)
+
+Every JS module in `dist/` starts with the `'use client'` directive,
+injected at build time — the same convention Radix, Base UI and React
+Aria ship. In an App Router project you import haze-ui straight from
+your client components; there is no need for a wrapper module that
+re-exports the library under its own `'use client'` banner:
+
+```jsx
+// any client component — import straight from the package
+import { Button } from 'haze-ui';
+
+export function Actions() {
+  return <Button>Start</Button>;
+}
+```
+
+CSS loading is unchanged from the two modes above — `haze-ui/styles.css`
+in the root layout, or the `haze-ui/css/*` subpaths. A runnable Next.js
+15 project lives in [`examples/nextjs`](./examples/nextjs).
 
 ## ButtonLink: a real anchor with the Button skin
 
@@ -457,6 +519,12 @@ display, `validate`-only).
 
 ## Accessibility & RTL
 
+Accessibility is a baseline, not an opt-in: every component's test suite
+includes axe checks, and the token sheet ships a global
+`@media (prefers-reduced-motion: reduce)` block that collapses every
+animation duration token to `0ms` — motion-sensitive users get instant
+state changes with no per-component wiring.
+
 haze-ui supports RTL via CSS logical properties wherever a side is
 semantic (the *start/end* of reading flow), not just decorative. Set
 `dir="rtl"` (or `direction: rtl`) on an ancestor and those sides mirror
@@ -572,6 +640,12 @@ import 'haze-ui/css/button.css';
 
 No — haze-ui is ESM-only (`"type": "module"`). Use a bundler or runtime
 with ESM support (Vite, webpack 5, Next.js, Node ≥ 18, …).
+
+### Does haze-ui support React 18?
+
+No — the peer range is `react@^19.0.0` by design (see
+[React 19+ by design](#react-19-by-design)). Upgrade to React 19 first;
+haze-ui ships no React 18 compatibility layer.
 
 ### How do I detect (or degrade) the relative-color syntax?
 

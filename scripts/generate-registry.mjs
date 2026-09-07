@@ -99,8 +99,9 @@ const wrapper = ({ components, types, css }) => {
 // Theming (once per app): apply the token classes to a root element, e.g.
 //   import { lightTheme, spacing, typography } from 'haze-ui';
 //   <div className={\`\${lightTheme} \${spacing} \${typography}\`}>…</div>
-// (darkTheme is a drop-in swap). You also own the 'use client' boundary —
-// haze-ui ships no directives of its own.
+// (darkTheme is a drop-in swap). haze-ui dist modules ship their own
+// 'use client' directive, so imports resolve cleanly from RSC; the
+// wrapper inherits client semantics either way.
 
 import { ${importList} } from 'haze-ui';
 

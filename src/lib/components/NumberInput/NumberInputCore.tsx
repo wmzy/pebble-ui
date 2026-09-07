@@ -24,8 +24,8 @@ const wrapper = css`
   border-radius: var(--haze-radius-md);
   overflow: hidden;
   transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+    border-color var(--haze-duration-fast),
+    box-shadow var(--haze-duration-fast);
 
   &:focus-within {
     border-color: var(--haze-color-primary);
@@ -62,7 +62,7 @@ const stepBtn = css`
   justify-content: center;
   font-family: var(--haze-font-sans);
   font-weight: var(--haze-weight-medium);
-  transition: background 0.1s;
+  transition: background var(--haze-duration-fast);
   user-select: none;
 
   &:hover {

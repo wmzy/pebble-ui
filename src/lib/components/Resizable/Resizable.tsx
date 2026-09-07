@@ -98,7 +98,7 @@ type ResizableHandleProps = {
 const handleBase = css`
   flex: 0 0 auto;
   background: var(--haze-color-border);
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
   cursor: col-resize;
 
   &:hover {

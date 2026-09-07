@@ -98,15 +98,25 @@ const buildConfig = (() => {
           '@for-fun/event-emitter',
           // peer dependency — consumers bring their own copy
           'react-f0rm',
-          // regular dependency, but kept external so its CJS interop never
-          // leaks a `require()` call into the pure-ESM dist (the Node ESM
-          // contract test imports dist/index.js in bare node)
+          // optional peer dependency (DataTable's engine) — kept external so
+          // its CJS interop never leaks a `require()` call into the
+          // pure-ESM dist (the Node ESM contract test imports dist/index.js
+          // in bare node)
           '@tanstack/react-table',
         ],
         output: {
           preserveModules: true,
           preserveModulesRoot: 'src/lib',
           entryFileNames: '[name].js',
+          // Every JS chunk starts with the 'use client' directive so Next.js
+          // App Router users can import haze-ui from client components
+          // without "You're importing a component that needs useState"
+          // errors (same convention as Radix / Base UI / React-Aria dists).
+          // Applies to JS chunks only — rolldown emits CSS as separate
+          // assets that don't pass through the JS banner. Directive must
+          // precede every import statement; verified by the ESM contract
+          // test (dist-esm-contract.test.ts).
+          banner: "'use client';",
         },
       },
       // Vite's lib mode defaults cssCodeSplit to false (one merged CSS

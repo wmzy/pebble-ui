@@ -21,11 +21,46 @@ describe('Combobox', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
-  it('shows options on focus', async () => {
+  it('shows options on click', async () => {
     const user = userEvent.setup();
     render(<Combobox options={OPTIONS} />);
     await user.click(screen.getByRole('combobox'));
     expect(screen.getAllByRole('option')).toHaveLength(3);
+  });
+
+  it('does not open on focus alone (pointer-safe open path)', () => {
+    // Focus used to open the list mid-gesture, which Chromium
+    // light-dismissed — the first pointer click on an unfocused input
+    // left the panel closed. Opening now belongs to click/typing/arrows.
+    render(<Combobox options={OPTIONS} />);
+    const input = screen.getByRole('combobox');
+    input.focus();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('opens with ArrowDown from the closed state', async () => {
+    const user = userEvent.setup();
+    render(<Combobox options={OPTIONS} />);
+    const input = screen.getByRole('combobox');
+    input.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+    // The first arrow lands on the first option.
+    expect(input).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: 'Apple' }).id
+    );
+  });
+
+  it('toggles the listbox closed on a second click', async () => {
+    const user = userEvent.setup();
+    render(<Combobox options={OPTIONS} />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    await user.click(input);
+    expect(input).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('filters options by query', async () => {
@@ -51,6 +86,101 @@ describe('Combobox', () => {
     await user.click(input);
     await user.keyboard('{ArrowDown}{ArrowDown}{ArrowUp}{Enter}');
     expect(input).toHaveValue('Apple');
+  });
+
+  it('points aria-activedescendant at the keyboard-highlighted option', async () => {
+    const user = userEvent.setup();
+    render(<Combobox options={OPTIONS} />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    // No highlight yet — the attribute is absent, not empty.
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+
+    await user.keyboard('{ArrowDown}');
+    const apple = screen.getByRole('option', { name: 'Apple' });
+    expect(apple.id).not.toBe('');
+    expect(input).toHaveAttribute('aria-activedescendant', apple.id);
+
+    await user.keyboard('{ArrowDown}');
+    const banana = screen.getByRole('option', { name: 'Banana' });
+    expect(input).toHaveAttribute('aria-activedescendant', banana.id);
+  });
+
+  it('clears aria-activedescendant when the listbox closes', async () => {
+    const user = userEvent.setup();
+    render(
+      <div>
+        <Combobox options={OPTIONS} />
+        <button>outside</button>
+      </div>
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveAttribute('aria-activedescendant');
+    await user.keyboard('{Escape}');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+
+    // Reopen and close through light dismiss — same clearing.
+    await user.click(input);
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveAttribute('aria-activedescendant');
+    fireEvent.pointerDown(screen.getByText('outside'));
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('keeps option ids stable across open/close cycles', async () => {
+    const user = userEvent.setup();
+    render(<Combobox options={OPTIONS} />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{ArrowDown}');
+    const appleId = screen.getByRole('option', { name: 'Apple' }).id;
+    await user.keyboard('{Escape}');
+    await user.click(input);
+    expect(screen.getByRole('option', { name: 'Apple' }).id).toBe(appleId);
+    // The persistent highlight recovers on reopen, pointing at the same id.
+    expect(input).toHaveAttribute('aria-activedescendant', appleId);
+  });
+
+  it('marks the highlighted option aria-selected alongside the selected value', async () => {
+    const user = userEvent.setup();
+    render(<Combobox options={OPTIONS} />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{ArrowDown}{ArrowDown}{Enter}');
+    expect(input).toHaveValue('Banana');
+
+    // Reopen: the query 'Banana' filters the list down to the selected row.
+    await user.click(input);
+    expect(
+      screen.getByRole('option', { name: 'Banana' })
+    ).toHaveAttribute('aria-selected', 'true');
+
+    // A fresh query resets the highlight; ArrowDown highlights Apple while
+    // Banana stays the selected value — highlight and selection are both
+    // true, unhighlighted Cherry is not.
+    await user.clear(input);
+    await user.keyboard('{ArrowDown}');
+    expect(
+      screen.getByRole('option', { name: 'Apple' })
+    ).toHaveAttribute('aria-selected', 'true');
+    expect(
+      screen.getByRole('option', { name: 'Banana' })
+    ).toHaveAttribute('aria-selected', 'true');
+    expect(
+      screen.getByRole('option', { name: 'Cherry' })
+    ).toHaveAttribute('aria-selected', 'false');
+  });
+
+  it('exposes set size and position on each option', async () => {
+    const user = userEvent.setup();
+    render(<Combobox options={OPTIONS} />);
+    await user.click(screen.getByRole('combobox'));
+    screen.getAllByRole('option').forEach((option, i) => {
+      expect(option).toHaveAttribute('aria-setsize', '3');
+      expect(option).toHaveAttribute('aria-posinset', String(i + 1));
+    });
   });
 
   it('closes on Escape', async () => {
@@ -211,7 +341,31 @@ describe('Combobox', () => {
       expect(port.scrollTop).toBe(185);
     });
 
-    it('has no axe violations when the list is virtualized', async () => {
+    it('reports the full set size and position on windowed options', async () => {
+    const user = userEvent.setup();
+    render(<Combobox options={makeOptions(30)} virtualThreshold={10} />);
+    await user.click(screen.getByRole('combobox'));
+    // Windowed — only a slice is mounted, but the set is all 30 rows.
+    expect(screen.getAllByRole('option').length).toBeLessThan(30);
+    const first = screen.getByRole('option', { name: 'Option 0' });
+    expect(first).toHaveAttribute('aria-setsize', '30');
+    expect(first).toHaveAttribute('aria-posinset', '1');
+  });
+
+  it('keeps aria-activedescendant pointing at the mounted windowed row', async () => {
+    const user = userEvent.setup();
+    render(<Combobox options={makeOptions(30)} virtualThreshold={10} />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+    giveScrollRange(port, 30);
+
+    await user.keyboard('{ArrowDown}'.repeat(13));
+    const highlighted = screen.getByRole('option', { name: 'Option 12' });
+    expect(input).toHaveAttribute('aria-activedescendant', highlighted.id);
+  });
+
+  it('has no axe violations when the list is virtualized', async () => {
       const { axe } = await import('jest-axe');
       const user = userEvent.setup();
       render(<Combobox options={makeOptions(150)} placeholder="Search" />);

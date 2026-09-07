@@ -21,7 +21,7 @@ const item = css`
   font-size: var(--haze-text-sm);
   text-align: start;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background var(--haze-duration-fast);
 
   &:hover {
     background: var(--haze-color-bg-subtle);

@@ -18,7 +18,7 @@ const item = css`
   padding: var(--haze-space-3) var(--haze-space-4);
   cursor: pointer;
   border-radius: var(--haze-radius-md);
-  transition: background 0.15s;
+  transition: background var(--haze-duration-fast);
   text-align: start;
   width: 100%;
   border: none;

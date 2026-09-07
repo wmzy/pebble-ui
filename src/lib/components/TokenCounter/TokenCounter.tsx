@@ -26,7 +26,7 @@ const bar = css`
 const fill = css`
   height: 100%;
   border-radius: var(--haze-radius-full);
-  transition: width 0.3s ease;
+  transition: width var(--haze-duration-slow) ease;
 `;
 
 const fillNormal = css`background: var(--haze-color-primary);`;

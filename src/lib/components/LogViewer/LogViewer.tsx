@@ -46,7 +46,7 @@ const filterBtn = css`
   font-size: var(--haze-text-xs);
   font-family: var(--haze-font-mono);
   color: var(--haze-color-text-muted);
-  transition: background 0.15s, border-color 0.15s;
+  transition: background var(--haze-duration-fast), border-color var(--haze-duration-fast);
 
   &:hover {
     background: var(--haze-color-bg);

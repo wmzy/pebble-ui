@@ -38,7 +38,7 @@ const btn = css`
   cursor: pointer;
   font-family: var(--haze-font-sans);
   font-weight: var(--haze-weight-medium);
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--haze-duration-fast), color var(--haze-duration-fast);
   white-space: nowrap;
 
   &:hover:not(:disabled) {

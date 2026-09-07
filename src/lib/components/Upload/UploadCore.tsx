@@ -41,7 +41,7 @@ const dropzone = css`
   font-family: var(--haze-font-sans);
   font-size: var(--haze-text-sm);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color var(--haze-duration-fast), background var(--haze-duration-fast);
   text-align: center;
 
   &:hover {

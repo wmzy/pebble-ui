@@ -39,23 +39,25 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
-      // Firefox runs only the engine-agnostic collision spec (pinned via
-      // testMatch): it currently resolves the anchored tier like chromium
+      // Firefox runs the engine-sensitive behavioral specs (pinned via
+      // testMatch): the floating-collision spec plus the three overlay
+      // specs (popover, dialog, dropdown-menu) — those exercise the
+      // native popover/top-layer + anchor-positioning paths that vary
+      // across engines. Firefox resolves the anchored tier like chromium
       // (anchor positioning shipped in Firefox 141+), and falls to the
-      // JS-positioned tier on older engines — the spec asserts the same
-      // containment contract either way. Every other spec — including
-      // the pixel baselines, which have no firefox snapshots — stays
-      // chromium-only.
+      // JS-positioned tier on older engines — the specs assert the same
+      // contracts either way. Everything else stays chromium-only,
+      // including the pixel baselines, which have no firefox snapshots.
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      testMatch: /floating-collision\.spec\.ts/,
+      testMatch: /(floating-collision|popover|dialog|dropdown-menu)\.spec\.ts$/,
     },
     {
       // WebKit likewise (anchor positioning shipped in WebKit 2.46+);
-      // same single-spec scope as firefox.
+      // same engine-sensitive scope as firefox: collision + overlays.
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      testMatch: /floating-collision\.spec\.ts/,
+      testMatch: /(floating-collision|popover|dialog|dropdown-menu)\.spec\.ts$/,
     },
   ],
   webServer: {
