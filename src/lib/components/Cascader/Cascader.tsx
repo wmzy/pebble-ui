@@ -10,6 +10,7 @@ import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react
 import { isControl, useControl, useThru, watch } from 'react-use-control';
 
 import { FloatingPanel, useFloating } from '../../utils/floating';
+import { getDirection } from '../../utils/direction';
 import { useFocusScope } from '../../utils/focus-scope';
 import { useStrings } from '../LocaleProvider';
 
@@ -395,6 +396,13 @@ export default function Cascader({
     const columnEl = itemEl?.closest<HTMLElement>('[data-haze-cascader-column]');
     const level = itemEl ? Number(itemEl.dataset.level) : 0;
 
+    // Drill/back arrows mirror under RTL (← drills into the submenu that
+    // opens on the physical left) — direction read from the panel's DOM
+    // subtree at event time.
+    const drillKey =
+      getDirection(panel) === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
+    const backKey = drillKey === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
+
     switch (e.key) {
       case 'ArrowDown':
       case 'ArrowUp': {
@@ -412,16 +420,16 @@ export default function Cascader({
         items[next]?.focus();
         return;
       }
-      case 'ArrowRight': {
-        // Drill into the focused parent option (physical right = deeper,
-        // matching the placement convention; RTL mirrors visually only).
+      case drillKey: {
+        // Drill into the focused parent option (toward the inline-end
+        // column the submenu opens on).
         if (itemEl?.getAttribute('aria-haspopup') !== 'true') return;
         e.preventDefault();
         setActivePath([...activePath.slice(0, level), itemEl.dataset.value!]);
         pendingFocusRef.current = { level: level + 1, index: 0 };
         return;
       }
-      case 'ArrowLeft': {
+      case backKey: {
         if (!itemEl || activePath.length === 0) return;
         e.preventDefault();
         const removed = activePath[activePath.length - 1]!;

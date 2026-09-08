@@ -12,6 +12,7 @@ import {
   Skeleton,
 } from '@/lib';
 import { page, intro } from '@/views/ComponentDetail/styles';
+import { sourceUrl, shortCommit, versionInfo } from '@/views/version-info';
 
 const REPO = 'wmzy/haze-ui';
 const RELEASES_API = `https://api.github.com/repos/${REPO}/releases?per_page=30`;
@@ -109,6 +110,16 @@ const errorBlock = css`
   margin-bottom: var(--haze-space-3);
 `;
 
+/* 「当前文档对应版本」提示行。 */
+const currentNote = css`
+  margin-bottom: var(--haze-space-4);
+  color: var(--haze-color-text-muted);
+
+  a {
+    color: var(--haze-color-primary);
+  }
+`;
+
 export default function Changelog() {
   const [releases, setReleases] = useState<Release[] | null>(() => readCache());
   const [failed, setFailed] = useState(false);
@@ -140,6 +151,15 @@ export default function Changelog() {
       <p className={intro}>
         Releases are fully automated by semantic-release — every conventional
         commit on <code>main</code> ships a versioned npm release with notes.
+      </p>
+      <p className={currentNote}>
+        This documentation site was built from{' '}
+        <Badge>{versionInfo.version}</Badge>
+        {shortCommit && <code> @ {shortCommit}</code>} —{' '}
+        <a href={sourceUrl} target='_blank' rel='noreferrer'>
+          view the source at that tag
+        </a>
+        .
       </p>
       {failed && (
         <div>

@@ -10,6 +10,7 @@ import react from '@vitejs/plugin-react';
 import wyw from '@wyw-in-js/vite';
 
 import { writeProps } from './scripts/generate-props.mjs';
+import { isRscSafeModule } from './scripts/rsc-safe.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isLibBuild = process.env.BUILD_LIB === 'true';
@@ -102,6 +103,11 @@ const buildConfig = (() => {
           '@tanstack/react-table',
           // optional peer dependency (Chart's engine) — same rule
           'recharts',
+          // optional peer dependencies (drag-and-drop for the sortable
+          // TagInput/TagGroup modes) — same rule
+          '@dnd-kit/core',
+          '@dnd-kit/sortable',
+          '@dnd-kit/utilities',
         ],
         output: {
           preserveModules: true,
@@ -111,11 +117,18 @@ const buildConfig = (() => {
           // App Router users can import haze-ui from client components
           // without "You're importing a component that needs useState"
           // errors (same convention as Radix / Base UI / React-Aria dists).
-          // Applies to JS chunks only — rolldown emits CSS as separate
-          // assets that don't pass through the JS banner. Directive must
-          // precede every import statement; verified by the ESM contract
-          // test (dist-esm-contract.test.ts).
-          banner: "'use client';",
+          // EXCEPTION: modules on the RSC-safe list (scripts/rsc-safe.mjs —
+          // hook-free presentational components, design tokens and the
+          // classnames helper they compile against) skip the banner so they
+          // can be imported directly from React Server Components. The list
+          // is keyed by source path, so relativize the chunk's facade
+          // module id; chunks without a facade (or outside src/lib) keep
+          // the banner. Applies to JS chunks only — rolldown emits CSS as
+          // separate assets that don't pass through the JS banner. Directive
+          // must precede every import statement; both directions are
+          // verified by the ESM contract test (dist-esm-contract.test.ts).
+          banner: (chunk) =>
+            isRscSafeModule(chunk.facadeModuleId) ? '' : "'use client';",
         },
       },
       // Vite's lib mode defaults cssCodeSplit to false (one merged CSS

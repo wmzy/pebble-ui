@@ -42,6 +42,40 @@ describe('Tabs', () => {
     expect(screen.getByRole('tab', { name: 'Tab 1' })).toHaveAttribute('aria-selected', 'false');
   });
 
+  it('moves between tabs with ArrowRight/ArrowLeft, activating as focus lands', async () => {
+    const user = userEvent.setup();
+    render(<TabsFixture />);
+    const [tab1, tab2] = screen.getAllByRole('tab');
+    tab1!.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(tab2).toHaveFocus();
+    expect(tab2).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Panel 2')).toBeVisible();
+    await user.keyboard('{ArrowLeft}');
+    expect(tab1!).toHaveFocus();
+    expect(screen.getByText('Panel 1')).toBeVisible();
+  });
+
+  it('jumps to the ends with Home/End', async () => {
+    const user = userEvent.setup();
+    render(<TabsFixture />);
+    const [tab1, tab2] = screen.getAllByRole('tab');
+    tab1!.focus();
+    await user.keyboard('{End}');
+    expect(tab2).toHaveFocus();
+    expect(screen.getByText('Panel 2')).toBeVisible();
+    await user.keyboard('{Home}');
+    expect(tab1!).toHaveFocus();
+    expect(screen.getByText('Panel 1')).toBeVisible();
+  });
+
+  it('keeps exactly one tab stop: only the active tab is tabbable', () => {
+    render(<TabsFixture />);
+    const [tab1, tab2] = screen.getAllByRole('tab');
+    expect(tab1).toHaveAttribute('tabindex', '0');
+    expect(tab2).toHaveAttribute('tabindex', '-1');
+  });
+
   it('applies className to Tabs root', () => {
     const { container } = render(
       <Tabs className="custom">

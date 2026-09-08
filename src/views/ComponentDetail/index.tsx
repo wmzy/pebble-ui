@@ -27,6 +27,9 @@ import CascaderDemo from './demos/CascaderDemo';
 import SidebarDemo from './demos/SidebarDemo';
 
 import TourDemo from './demos/TourDemo';
+import AnchorDemo from './demos/AnchorDemo';
+import WatermarkDemo from './demos/WatermarkDemo';
+import FullscreenDemo from './demos/FullscreenDemo';
 import LocaleProviderDemo from './demos/LocaleProviderDemo';
 import ToggleDemo from './demos/ToggleDemo';
 import AppShellDemo from './demos/AppShellDemo';
@@ -324,6 +327,9 @@ const demos: Record<string, () => ReactNode> = {
   cascader: CascaderDemo,
   sidebar: SidebarDemo,
   tour: TourDemo,
+  anchor: AnchorDemo,
+  watermark: WatermarkDemo,
+  fullscreen: FullscreenDemo,
   localeprovider: LocaleProviderDemo,
   toggle: ToggleDemo,
   appshell: AppShellDemo,

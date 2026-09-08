@@ -107,12 +107,14 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
       { name: 'Timeline', route: 'timeline' },
       { name: 'Tree', route: 'tree' },
       { name: 'VirtualList', route: 'virtuallist' },
+      { name: 'Watermark', route: 'watermark' },
     ],
   },
   {
     group: 'Navigation',
     items: [
       { name: 'Affix', route: 'affix' },
+      { name: 'Anchor', route: 'anchor' },
       { name: 'BackToTop', route: 'backtotop' },
       { name: 'Breadcrumb', route: 'breadcrumb' },
       { name: 'Command', route: 'command' },
@@ -160,6 +162,7 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
     items: [
       { name: 'Collapsible', route: 'collapsible' },
       { name: 'Disclosure', route: 'disclosure' },
+      { name: 'Fullscreen', route: 'fullscreen' },
       { name: 'LocaleProvider', route: 'localeprovider' },
       { name: 'SwipeAction', route: 'swipeaction' },
     ],
@@ -187,6 +190,9 @@ export const ALIASES: Record<string, string[]> = {
   upload: ['drag', 'drop'],
   transfer: ['shuttle'],
   virtuallist: ['virtual', 'windowing'],
+  anchor: ['toc', 'scrollspy'],
+  watermark: ['copyright'],
+  fullscreen: ['maximize', 'immersive'],
 };
 
 /*

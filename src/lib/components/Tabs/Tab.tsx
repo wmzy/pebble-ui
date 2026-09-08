@@ -50,6 +50,11 @@ export default function Tab({ value, className, children }: TabProps) {
       role='tab'
       aria-selected={isActive}
       aria-controls={`tabpanel-${value}`}
+      // Roving tabindex (WAI-ARIA tabs): the active tab is the tab stop,
+      // arrow keys in TabList move it — Tab itself stays out of the
+      // page tab order.
+      tabIndex={isActive ? 0 : -1}
+      data-haze-tab-value={value}
       x-class={[base, isActive && active, className]}
       onClick={() => setValue(value)}
     >

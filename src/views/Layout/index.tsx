@@ -23,6 +23,7 @@ import {
   useMediaQuery,
 } from '@/lib';
 import { useTheme } from '@/contexts/theme';
+import { sourceUrl, shortCommit, versionInfo } from '@/views/version-info';
 
 import SidebarSearch, { MatchText } from './SidebarSearch';
 import { ALIASES, COMPONENT_GROUPS, type ComponentItem } from './component-groups';
@@ -89,6 +90,19 @@ const githubBtn = css`
 const starCount = css`
   color: var(--haze-color-text-secondary);
   font-weight: var(--haze-weight-normal);
+`;
+
+/* 页头版本徽标：链接到当前文档对应 tag 的源码 tree。 */
+const versionTag = css`
+  color: var(--haze-color-text-muted);
+  font-family: var(--haze-font-mono);
+  font-size: var(--haze-text-xs);
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--haze-color-text);
+  }
 `;
 
 const body = css`
@@ -477,6 +491,19 @@ export default function Layout() {
           </Link>
         </Tooltip>
         <div className={headerSpacer} />
+        <a
+          className={versionTag}
+          href={sourceUrl}
+          target='_blank'
+          rel='noreferrer'
+          title={
+            shortCommit
+              ? `View source at ${versionInfo.version} (${shortCommit})`
+              : 'View source on GitHub'
+          }
+        >
+          {versionInfo.version}
+        </a>
         <a
           className={githubBtn}
           href={`https://github.com/${REPO}`}

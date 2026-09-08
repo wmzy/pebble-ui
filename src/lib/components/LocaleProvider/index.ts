@@ -5,3 +5,5 @@ export type {HazeStringsOverrides} from './LocaleContext';
 export {defaultStrings, enUS} from './locale';
 export type {HazeStrings} from './locale';
 export {zhCN} from './zh-cn';
+export {createStrings} from './strings';
+export type {DeepPartial} from './strings';

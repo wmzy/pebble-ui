@@ -1,5 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import type { DropdownMenuHandle } from './DropdownMenu';
+
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { createRef } from 'react';
+import { useControl } from 'react-use-control';
 
 import DropdownMenu from './DropdownMenu';
 import DropdownMenuTrigger from './DropdownMenuTrigger';
@@ -373,6 +377,111 @@ describe('DropdownMenu', () => {
   it('getEnabledMenuItems returns empty list for a null container', async () => {
     const { getEnabledMenuItems } = await import('../../utils/menuKeyboard');
     expect(getEnabledMenuItems(null)).toEqual([]);
+  });
+});
+
+describe('DropdownMenu imperative handle', () => {
+  it('opens and closes through the handle, firing onOpenChange on each transition', async () => {
+    const onOpenChange = vi.fn();
+    const ref = createRef<DropdownMenuHandle>();
+    render(
+      <DropdownMenu ref={ref} onOpenChange={onOpenChange}>
+        <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    );
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+    act(() => ref.current!.open());
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    expect(onOpenChange).toHaveBeenCalledTimes(1);
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+
+    act(() => ref.current!.close());
+    // handle.close 走与触发器/菜单项相同的 handleSetOpen：动画退场后
+    // 卸载，onOpenChange(false) 恰好一次——不双发。
+    await waitFor(() =>
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    );
+    expect(screen.getByRole('button', { name: 'Open' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    );
+    expect(onOpenChange).toHaveBeenCalledTimes(2);
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('drives a controlled open control through the handle', async () => {
+    const ref = createRef<DropdownMenuHandle>();
+    function Harness() {
+      const [, setOpen, openCtrl] = useControl(undefined, false);
+      return (
+        <>
+          <button onClick={() => setOpen(true)}>Open via control</button>
+          <DropdownMenu ref={ref} open={openCtrl}>
+            <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Item 1</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      );
+    }
+    render(<Harness />);
+
+    act(() => {
+      fireEvent.click(screen.getByText('Open via control'));
+    });
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // handle.close 写的是外部传入的 control，受控方能看到关闭
+    act(() => ref.current!.close());
+    await waitFor(() =>
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    );
+  });
+
+  it('focuses the trigger through focusTrigger()', () => {
+    const ref = createRef<DropdownMenuHandle>();
+    render(
+      <>
+        <button type="button">Elsewhere</button>
+        <DropdownMenu ref={ref}>
+          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+        </DropdownMenu>
+      </>,
+    );
+    const elsewhere = screen.getByText('Elsewhere');
+    const trigger = screen.getByRole('button', { name: 'Open' });
+    elsewhere.focus();
+    expect(elsewhere).toHaveFocus();
+
+    act(() => ref.current!.focusTrigger());
+    expect(trigger).toHaveFocus();
+  });
+
+  it('does not crash when handle methods run after unmount', () => {
+    const ref = createRef<DropdownMenuHandle>();
+    const { unmount } = render(
+      <DropdownMenu ref={ref}>
+        <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+      </DropdownMenu>,
+    );
+    // React nulls ref.current on unmount — the guard under test is a
+    // consumer holding the handle object itself.
+    const handle = ref.current!;
+    unmount();
+    expect(() => {
+      handle.open();
+      handle.close();
+      handle.focusTrigger();
+    }).not.toThrow();
   });
 });
 

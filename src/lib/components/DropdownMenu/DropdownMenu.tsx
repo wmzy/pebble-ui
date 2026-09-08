@@ -1,14 +1,34 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 import type { CollisionPadding } from '../../utils/collision';
 
-import { useCallback, useId, useMemo, useRef } from 'react';
+import { useCallback, useId, useImperativeHandle, useMemo, useRef } from 'react';
 import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
 
 import { useFloating } from '../../utils/floating';
 
 import { DropdownMenuProvider } from './DropdownMenuContext';
+
+/**
+ * Imperative handle exposed through the React 19 `ref` prop (same API
+ * choice as VirtualList). `open`/`close` run through the same
+ * `handleSetOpen` the trigger and items use — `onOpenChange` fires, and
+ * the floating engine's popover visibility, animated exit and
+ * toggle-echo reconciliation stay in charge; the handle never calls
+ * `showPopover`/`hidePopover` directly.
+ */
+type DropdownMenuHandle = {
+  /** Show the menu, as if the trigger toggled it open (`onOpenChange(true)`). */
+  open: () => void;
+  /**
+   * Close the menu through the animated exit path
+   * (`onOpenChange(false)`).
+   */
+  close: () => void;
+  /** Focus the trigger element. */
+  focusTrigger: () => void;
+};
 
 type DropdownMenuProps = {
   open?: ControlOrValue<boolean>;
@@ -20,6 +40,7 @@ type DropdownMenuProps = {
   collisionPadding?: CollisionPadding;
   children: ReactNode;
   className?: string;
+  ref?: Ref<DropdownMenuHandle>;
 };
 
 const wrapper = css`
@@ -33,6 +54,7 @@ export default function DropdownMenu({
   collisionPadding,
   children,
   className,
+  ref,
 }: DropdownMenuProps) {
   const [open, setOpen] = useControl(openControl, false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -47,6 +69,25 @@ export default function DropdownMenu({
       onOpenChange?.(next);
     },
     [open, setOpen, onOpenChange]
+  );
+
+  // Imperative surface: `ref.current?.open()/close()/focusTrigger()`.
+  // open/close share handleSetOpen with the trigger and items, so
+  // onOpenChange fires and the floating engine drives the popover.
+  useImperativeHandle(
+    ref,
+    () => ({
+      open: () => {
+        handleSetOpen(true);
+      },
+      close: () => {
+        handleSetOpen(false);
+      },
+      focusTrigger: () => {
+        triggerRef.current?.focus();
+      },
+    }),
+    [handleSetOpen]
   );
 
   // Stable identity: useFloatingPosition re-runs its effect on every
@@ -82,4 +123,4 @@ export default function DropdownMenu({
   );
 }
 
-export type { DropdownMenuProps };
+export type { DropdownMenuProps, DropdownMenuHandle };

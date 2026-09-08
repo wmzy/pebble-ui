@@ -124,6 +124,53 @@
       },
       "otherTypes": {}
     },
+    "Anchor": {
+      "routeKey": "anchor",
+      "cssFamily": "anchor",
+      "imports": [
+        "Anchor"
+      ],
+      "propsTypes": {
+        "AnchorProps": [
+          {
+            "name": "items",
+            "type": "AnchorItem[]",
+            "required": true
+          },
+          {
+            "name": "activeId",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "onClick",
+            "type": "(id: string) => void",
+            "required": false
+          },
+          {
+            "name": "offsetTop",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "bounds",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "getContainer",
+            "type": "() => HTMLElement | Window",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "AppShell": {
       "routeKey": "appshell",
       "cssFamily": "app-shell",
@@ -476,6 +523,11 @@
             "required": false
           },
           {
+            "name": "viewTransition",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "children",
             "type": "ReactNode",
             "required": true
@@ -483,6 +535,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<BottomSheetHandle>",
             "required": false
           }
         ]
@@ -1830,6 +1887,11 @@
             "required": false
           },
           {
+            "name": "viewTransition",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1838,6 +1900,11 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          },
+          {
+            "name": "ref",
+            "type": "Ref<DialogHandle>",
+            "required": false
           }
         ]
       },
@@ -1948,6 +2015,11 @@
             "required": false
           },
           {
+            "name": "viewTransition",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1956,6 +2028,11 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          },
+          {
+            "name": "ref",
+            "type": "Ref<DrawerHandle>",
+            "required": false
           }
         ]
       },
@@ -2035,6 +2112,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<DropdownMenuHandle>",
             "required": false
           }
         ],
@@ -2155,6 +2237,38 @@
           {
             "name": "children",
             "type": "ReactNode",
+            "required": true
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Fullscreen": {
+      "routeKey": "fullscreen",
+      "cssFamily": "fullscreen",
+      "imports": [
+        "Fullscreen"
+      ],
+      "propsTypes": {
+        "FullscreenProps": [
+          {
+            "name": "fullscreen",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "(fullscreen: boolean) => void",
+            "required": false
+          },
+          {
+            "name": "target",
+            "type": "FullscreenTarget",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactElement<{ onClick?: MouseEventEventHandler | undefined; }, string | JSXElementConstructor<any>>",
             "required": true
           }
         ]
@@ -2494,13 +2608,19 @@
         "useStrings",
         "defaultStrings",
         "enUS",
-        "zhCN"
+        "zhCN",
+        "createStrings"
       ],
       "propsTypes": {
         "LocaleProviderProps": [
           {
             "name": "locale",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "direction",
+            "type": "'ltr' | 'rtl'",
             "required": false
           },
           {
@@ -3081,6 +3201,11 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          },
+          {
+            "name": "ref",
+            "type": "Ref<PopoverHandle>",
+            "required": false
           }
         ]
       },
@@ -3262,7 +3387,10 @@
       "imports": [
         "ResizableGroup",
         "ResizablePanel",
-        "ResizableHandle"
+        "ResizableHandle",
+        "SplitterGroup",
+        "SplitterPanel",
+        "SplitterHandle"
       ],
       "propsTypes": {
         "ResizableGroupProps": [
@@ -4208,6 +4336,16 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "sortable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onReorder",
+            "type": "(nextOrder: number[]) => void",
+            "required": false
           }
         ]
       },
@@ -4244,6 +4382,11 @@
           },
           {
             "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "sortable",
             "type": "boolean",
             "required": false
           },
@@ -4291,6 +4434,11 @@
           },
           {
             "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "sortable",
             "type": "boolean",
             "required": false
           },
@@ -5295,6 +5443,63 @@
           {
             "name": "ref",
             "type": "Ref<VirtualListHandle>",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Watermark": {
+      "routeKey": "watermark",
+      "cssFamily": "watermark",
+      "imports": [
+        "Watermark"
+      ],
+      "propsTypes": {
+        "WatermarkProps": [
+          {
+            "name": "content",
+            "type": "string | string[]",
+            "required": true
+          },
+          {
+            "name": "font",
+            "type": "WatermarkFont",
+            "required": false
+          },
+          {
+            "name": "rotate",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "gap",
+            "type": "number | [number, number]",
+            "required": false
+          },
+          {
+            "name": "offset",
+            "type": "[number, number]",
+            "required": false
+          },
+          {
+            "name": "zIndex",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "fullscreen",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
             "required": false
           }
         ]

@@ -1,19 +1,66 @@
-import { TagGroup, TagGroupItem } from '@/lib';
+import { useControl } from 'react-use-control';
+
+import { Switch, TagGroup, TagGroupItem } from '@/lib';
 
 import PropsTable from '../PropsTable';
 
 import A11yNote from '../A11yNote';
 
-import { intro, section } from '../styles';
+import { intro, section, fieldRow } from '../styles';
 
 import { noop } from './shared';
+
+/** Reorders `list` by the index permutation TagGroup reports. */
+function applyOrder<T>(list: T[], order: number[]): T[] {
+  return order.flatMap((index) => {
+    const item = list[index];
+    return item === undefined ? [] : [item];
+  });
+}
+
+/** Sortable chips: the tag array lives in one control, onReorder reports the
+ * new index order and the owner re-renders the children through it. */
+function SortableTagGroupExample() {
+  const [tags, setTags] = useControl(undefined, [
+    'React',
+    'TypeScript',
+    'Linaria',
+    'OKLCH',
+  ]);
+  const [sortable, , sortableCtrl] = useControl(undefined, true);
+
+  return (
+    <>
+      <div className={fieldRow}>
+        <Switch checked={sortableCtrl} aria-label='Toggle chip sorting' />
+        <TagGroup
+          sortable={sortable}
+          onReorder={(order) => setTags(applyOrder(tags, order))}
+        >
+          {tags.map((tag) => (
+            <TagGroupItem key={tag}>{tag}</TagGroupItem>
+          ))}
+        </TagGroup>
+      </div>
+      <p>Current order: {tags.join(' → ')}</p>
+    </>
+  );
+}
 
 // ─── TagGroup ───────────────────────────────────────────────────
 export default function TagGroupDemo() {
   return (
     <>
       <h1>TagGroup</h1>
-      <p className={intro}>Group of tags with optional close buttons.</p>
+      <p className={intro}>
+        Group of tags with optional close buttons, plus an opt-in sortable
+        mode built on <a href='https://dndkit.com'>dnd-kit</a> (optional
+        peers — install <code>@dnd-kit/core</code>,{' '}
+        <code>@dnd-kit/sortable</code> and <code>@dnd-kit/utilities</code>{' '}
+        only if you use <code>sortable</code>). Reordering is parent-driven:
+        <code>onReorder</code> reports the new index order and you re-render
+        the children accordingly.
+      </p>
 
       <div className={section}>
         <h2>Demo</h2>
@@ -22,6 +69,11 @@ export default function TagGroupDemo() {
           <TagGroupItem>TypeScript</TagGroupItem>
           <TagGroupItem onClose={noop}>Removable</TagGroupItem>
         </TagGroup>
+      </div>
+
+      <div className={section}>
+        <h2>Sortable chips</h2>
+        <SortableTagGroupExample />
       </div>
 
       <div className={section}>
@@ -40,6 +92,11 @@ export default function TagGroupDemo() {
           <ul>
             <li>Group uses <strong>role=&quot;group&quot;</strong></li>
             <li>Close button has <strong>aria-label=&quot;Remove&quot;</strong></li>
+            <li>
+              Sortable mode: focus a chip, press <strong>Space</strong> to
+              lift, arrow keys to move, <strong>Space</strong> to drop,{' '}
+              <strong>Escape</strong> to cancel
+            </li>
           </ul>
         </A11yNote>
       </div>

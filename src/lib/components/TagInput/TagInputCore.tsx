@@ -1,8 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { css } from '@linaria/core';
 
+import { rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+
 import { useStrings } from '../LocaleProvider';
 import { formatString } from '../LocaleProvider/locale';
+import { SortableRegion } from '../../utils/sortable';
+import { sortableItemStyle } from '../../utils/sortable-shared';
 
 type TagInputCoreProps = {
   value: string[];
@@ -10,6 +14,13 @@ type TagInputCoreProps = {
   placeholder?: string;
   maxTags?: number;
   disabled?: boolean;
+  /**
+   * Opt-in drag-and-drop tag reordering (@dnd-kit optional peers). Order
+   * changes leave through `onChange` with the new array — the same single
+   * exit as add/remove. Keyboard: focus a tag's label, Space lifts,
+   * arrows move, Space drops, Escape cancels.
+   */
+  sortable?: boolean;
   className?: string;
   /**
    * 字段 id（FormItem 桥生成）：必须挂到内部可聚焦的 input 上而非根
@@ -94,12 +105,69 @@ const inputEl = css`
   padding: 0;
 `;
 
+/* The sortable mode's drag handle: the label text span inside the li. The
+   li keeps its listitem role, so the handle carries the interactive bits. */
+const tagHandle = css`
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+`;
+
+const tagDragging = css`
+  /* Stack the translated tag above its siblings while dragging. */
+  position: relative;
+  z-index: 1;
+`;
+
+type SortableTagProps = {
+  id: number;
+  label: string;
+  removeLabel: string;
+  onRemove: () => void;
+};
+
+/** One sortable tag listitem. The li itself stays a plain listitem (axe
+ * aria-required-children: ul children must be listitems); the label span
+ * is the drag handle with dnd-kit's button semantics. */
+function SortableTag({ id, label, removeLabel, onRemove }: SortableTagProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={sortableItemStyle(transform, transition)}
+      x-class={[tag, isDragging && tagDragging]}
+    >
+      <span x-class={[tagHandle]} {...attributes} {...listeners}>
+        {label}
+      </span>
+      <button
+        x-class={[removeBtn]}
+        type="button"
+        onClick={onRemove}
+        onKeyDown={(e) => {
+          if (e.key === 'Backspace') {
+            e.preventDefault();
+            onRemove();
+          }
+        }}
+        aria-label={removeLabel}
+      >
+        x
+      </button>
+    </li>
+  );
+}
+
 export default function TagInputCore({
   value: tags,
   onChange,
   placeholder,
   maxTags,
   disabled,
+  sortable,
   className,
   id,
   'aria-invalid': ariaInvalid,
@@ -168,14 +236,21 @@ export default function TagInputCore({
     tags.length === 1 ? strings.tagCountSingular : strings.tagCount,
     { count: tags.length }
   );
+  // A disabled input must not offer drag handles either.
+  const sortableEnabled = sortable && !disabled;
 
-  return (
-    <div ref={containerRef} x-class={[container, className]}>
-      {/* Tags form the list; the input is a sibling so the list's
-          children are only listitems (axe aria-required-children) and
-          screen readers hear one listitem per tag. */}
-      <ul x-class={[listWrap]}>
-        {tags.map((t, i) => (
+  const tagList = (
+    <ul x-class={[listWrap]}>
+      {tags.map((t, i) =>
+        sortableEnabled ? (
+          <SortableTag
+            key={i}
+            id={i}
+            label={t}
+            removeLabel={formatString(strings.removeTag, { tag: t })}
+            onRemove={() => removeTag(i)}
+          />
+        ) : (
           <li key={i} x-class={[tag]}>
             {t}
             <button
@@ -197,8 +272,27 @@ export default function TagInputCore({
               x
             </button>
           </li>
-        ))}
-      </ul>
+        )
+      )}
+    </ul>
+  );
+
+  return (
+    <div ref={containerRef} x-class={[container, className]}>
+      {/* Tags form the list; the input is a sibling so the list's
+          children are only listitems (axe aria-required-children) and
+          screen readers hear one listitem per tag. */}
+      {sortableEnabled ? (
+        <SortableRegion
+          ids={tags.map((_, i) => i)}
+          strategy={rectSortingStrategy}
+          onMove={(from, to) => onChange(arrayMove(tags, from, to))}
+        >
+          {tagList}
+        </SortableRegion>
+      ) : (
+        tagList
+      )}
       <input
         ref={inputRef}
         x-class={[inputEl]}

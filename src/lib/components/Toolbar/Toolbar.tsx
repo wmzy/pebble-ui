@@ -4,6 +4,7 @@ import { css } from '@linaria/core';
 import { useCallback, useRef } from 'react';
 
 import { getEnabledMenuItems, useRovingTabindex } from '../../utils/menuKeyboard';
+import { getDirection } from '../../utils/direction';
 
 import { ToolbarProvider } from './ToolbarContext';
 
@@ -35,10 +36,13 @@ const vertical = css`
 /**
  * Toolbar keyboard roving (WAI-ARIA toolbar pattern): the orientation's
  * main-axis arrows move focus between registered items with wrapping,
- * Home/End jump to the first/last item. Composed here instead of
- * extending utils/menuKeyboard — menus are vertical-only with typeahead
- * and Escape/Tab semantics; a toolbar is orientation-aware, wraps
- * instead of stopping at the ends, and owns no open/close lifecycle.
+ * Home/End jump to the first/last item. Horizontal toolbars mirror the
+ * arrow semantics under `dir="rtl"` (← advances), read from the DOM at
+ * event time so the keys follow the painted layout. Composed here
+ * instead of extending utils/menuKeyboard — menus are vertical-only
+ * with typeahead and Escape/Tab semantics; a toolbar is
+ * orientation-aware, wraps instead of stopping at the ends, and owns no
+ * open/close lifecycle.
  */
 function useToolbarKeyboard(
   orientation: 'horizontal' | 'vertical',
@@ -46,8 +50,22 @@ function useToolbarKeyboard(
 ) {
   return useCallback(
     (event: ReactKeyboardEvent) => {
-      const nextKey = orientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown';
-      const prevKey = orientation === 'horizontal' ? 'ArrowLeft' : 'ArrowUp';
+      // Horizontal main axis mirrors under RTL; vertical never does.
+      const rtl =
+        orientation === 'horizontal' &&
+        getDirection(toolbarRef.current) === 'rtl';
+      const nextKey =
+        orientation === 'horizontal'
+          ? rtl
+            ? 'ArrowLeft'
+            : 'ArrowRight'
+          : 'ArrowDown';
+      const prevKey =
+        orientation === 'horizontal'
+          ? rtl
+            ? 'ArrowRight'
+            : 'ArrowLeft'
+          : 'ArrowUp';
       if (event.key !== nextKey && event.key !== prevKey && event.key !== 'Home' && event.key !== 'End') {
         return;
       }

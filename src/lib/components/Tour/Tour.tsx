@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { useControl } from 'react-use-control';
 
 import { computeFloatingPosition, resolvePadding } from '../../utils/collision';
+import { getDirection } from '../../utils/direction';
 import { Presence } from '../../utils/presence';
 import { useStrings } from '../LocaleProvider';
 import { formatString } from '../LocaleProvider/locale';
@@ -16,9 +17,9 @@ import { formatString } from '../LocaleProvider/locale';
 type TourCloseReason = 'done' | 'skip';
 
 /**
- * Step-card placement relative to the spotlighted target — physical
- * semantics, the anchorable subset of FloatingPlacement ('point' has no
- * meaning without a floating trigger pair).
+ * Step-card placement relative to the spotlighted target — logical
+ * semantics (mirrors under RTL, like FloatingPlacement), the anchorable
+ * subset ('point' has no meaning without a floating trigger pair).
  */
 type TourPlacement = Exclude<FloatingPlacement, 'point'>;
 
@@ -386,6 +387,7 @@ export default function Tour({
           before: CARD_GAP,
           after: CARD_GAP,
         },
+        dir: getDirection(card),
         strategy: { flip: true, shift: true, padding: resolvePadding() },
       });
       card.style.top = `${top}px`;
@@ -433,7 +435,8 @@ export default function Tour({
   }, [open, index]);
 
   // Global keyboard contract: Esc skips, arrows step. Arrow keys keep
-  // their caret meaning inside editable regions.
+  // their caret meaning inside editable regions. Under RTL the stepping
+  // arrows mirror (Left advances), matching the mirrored footer buttons.
   useEffect(() => {
     if (!open || total === 0) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -452,10 +455,19 @@ export default function Tour({
       ) {
         return;
       }
-      if (event.key === 'ArrowRight' && !last) {
+      // Direction of the subtree the keypress landed in — the card is
+      // the usual focus target while the tour runs.
+      const next =
+        getDirection(
+          node instanceof Element ? node : cardRef.current
+        ) === 'rtl'
+          ? 'ArrowLeft'
+          : 'ArrowRight';
+      const prev = next === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
+      if (event.key === next && !last) {
         event.preventDefault();
         goTo(index + 1);
-      } else if (event.key === 'ArrowLeft' && index > 0) {
+      } else if (event.key === prev && index > 0) {
         event.preventDefault();
         goTo(index - 1);
       }

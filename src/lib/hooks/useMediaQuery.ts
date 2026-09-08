@@ -23,6 +23,9 @@ const getServerSnapshot = (): boolean => false;
  * - SSR：服务端渲染与 hydration 首帧恒返回 `false`（不访问
  *   `window`、不建立订阅）；水合后与真实结果不一致时以一次额外
  *   渲染收敛，无 hydration mismatch。
+ * - 引擎无 `matchMedia`（jsdom 等测试环境）：快照恒 `false`、不建立
+ *   订阅——消费方（如 usePrefersReducedMotion → View Transitions）
+ *   在这类环境下拿到「未匹配」的稳定值而不是 throw。
  *
  * @param query CSS 媒体查询字符串，如 `'(min-width: 768px)'`。
  * @returns 当前是否匹配（SSR 阶段恒为 `false`）。
@@ -30,6 +33,7 @@ const getServerSnapshot = (): boolean => false;
 export function useMediaQuery(query: string): boolean {
   const subscribe = useCallback(
     (onChange: () => void) => {
+      if (typeof window.matchMedia !== 'function') return () => undefined;
       const mql = window.matchMedia(query);
       mql.addEventListener('change', onChange);
       return () => mql.removeEventListener('change', onChange);
@@ -38,7 +42,8 @@ export function useMediaQuery(query: string): boolean {
   );
 
   const getSnapshot = useCallback(
-    () => window.matchMedia(query).matches,
+    () =>
+      typeof window.matchMedia === 'function' ? window.matchMedia(query).matches : false,
     [query]
   );
 

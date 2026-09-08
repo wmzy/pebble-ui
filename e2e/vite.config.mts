@@ -59,6 +59,7 @@ export default defineConfig({
         path.resolve(repoRoot, 'e2e/app/components/button.html'),
         path.resolve(repoRoot, 'e2e/app/components/pagination.html'),
         path.resolve(repoRoot, 'e2e/app/components/chatcontainer.html'),
+        path.resolve(repoRoot, 'e2e/app/components/rtl-floating.html'),
       ],
     },
   },

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { css } from '@linaria/core';
 
 import { useStrings } from '../LocaleProvider';
+import { sortableHandle, useSortableHandle } from '../../utils/sortable-shared';
 
 type TagGroupItemProps = {
   children: ReactNode;
@@ -42,9 +43,27 @@ const closeBtn = css`
 
 export default function TagGroupItem({ children, onClose, className }: TagGroupItemProps) {
   const strings = useStrings('tagGroup');
+  // Inside a sortable TagGroup the label becomes the drag handle (Space
+  // lifts, arrows move, Space drops). Keeping the handle on the label — a
+  // sibling of the close button — avoids nesting interactive roles (axe
+  // nested-interactive); outside sortable groups the handle is null and
+  // the DOM is exactly as before.
+  const handle = useSortableHandle();
+  const label = handle ? (
+    <span
+      x-class={[sortableHandle]}
+      {...handle.attributes}
+      {...handle.listeners}
+    >
+      {children}
+    </span>
+  ) : (
+    children
+  );
+
   return (
     <span x-class={[tag, className]}>
-      {children}
+      {label}
       {onClose && (
         <button x-class={[closeBtn]} type="button" onClick={onClose} aria-label={strings.remove}>
           x

@@ -1,5 +1,9 @@
+import type { PopoverHandle } from './Popover';
+
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { createRef } from 'react';
+import { useControl } from 'react-use-control';
 
 import { placeFloatingPanel } from '../../utils/floating';
 
@@ -124,6 +128,91 @@ describe('Popover', () => {
   });
 });
 
+describe('Popover imperative handle', () => {
+  it('opens and closes through the handle', () => {
+    const ref = createRef<PopoverHandle>();
+    render(
+      <>
+        <button type="button">Elsewhere</button>
+        <Popover ref={ref} content="Popover body">
+          Trigger
+        </Popover>
+      </>
+    );
+    const trigger = screen.getByText('Trigger');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+    act(() => ref.current!.open());
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    act(() => ref.current!.close());
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('drives a controlled open control through the handle', () => {
+    const ref = createRef<PopoverHandle>();
+    function Harness() {
+      const [, setOpen, openCtrl] = useControl(undefined, false);
+      return (
+        <>
+          <button onClick={() => setOpen(true)}>Open via control</button>
+          <Popover ref={ref} content="Popover body" open={openCtrl}>
+            Trigger
+          </Popover>
+        </>
+      );
+    }
+    render(<Harness />);
+    const trigger = screen.getByText('Trigger');
+
+    act(() => {
+      fireEvent.click(screen.getByText('Open via control'));
+    });
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    // handle.close 写的是外部传入的 control，受控方能看到关闭
+    act(() => ref.current!.close());
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('focuses the trigger through focusTrigger()', () => {
+    const ref = createRef<PopoverHandle>();
+    render(
+      <>
+        <button type="button">Elsewhere</button>
+        <Popover ref={ref} content="Popover body">
+          Trigger
+        </Popover>
+      </>
+    );
+    const elsewhere = screen.getByText('Elsewhere');
+    const trigger = screen.getByText('Trigger');
+    elsewhere.focus();
+    expect(elsewhere).toHaveFocus();
+
+    act(() => ref.current!.focusTrigger());
+    expect(trigger).toHaveFocus();
+  });
+
+  it('does not crash when handle methods run after unmount', () => {
+    const ref = createRef<PopoverHandle>();
+    const { unmount } = render(
+      <Popover ref={ref} content="Popover body">
+        Trigger
+      </Popover>
+    );
+    // React nulls ref.current on unmount — the guard under test is a
+    // consumer holding the handle object itself.
+    const handle = ref.current!;
+    unmount();
+    expect(() => {
+      handle.open();
+      handle.close();
+      handle.focusTrigger();
+    }).not.toThrow();
+  });
+});
+
 // jsdom implements neither the Popover API nor ToggleEvent; polyfill the
 // minimal surface the component relies on (same approach as Dialog's
 // showModal/close mocks) to exercise the native path.
@@ -205,6 +294,36 @@ describe('Popover (native popover API)', () => {
     // the double rAF of whenExitSettles, hence waitFor.
     await waitFor(() => expect(hidePopoverMock).toHaveBeenCalledTimes(1));
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('drives showPopover/hidePopover through the imperative handle on the same state path', async () => {
+    // The handle must go through the engine's state path (setOpen), not
+    // call showPopover/hidePopover itself — otherwise the toggle-echo
+    // reconciliation (hideRequestedRef) would be bypassed.
+    // (vi.restoreAllMocks does not clear vi.fn history — see the
+    // afterEach above — so counts are rebased manually here.)
+    showPopoverMock.mockClear();
+    hidePopoverMock.mockClear();
+    const ref = createRef<PopoverHandle>();
+    render(
+      <Popover ref={ref} content="Body">
+        Trigger
+      </Popover>
+    );
+    const trigger = screen.getByText('Trigger');
+
+    act(() => ref.current!.open());
+    expect(showPopoverMock).toHaveBeenCalledTimes(1);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    act(() => ref.current!.close());
+    // Animated exit: hidePopover lands after the settle, with the
+    // engine's own echo bookkeeping in charge.
+    await waitFor(() => expect(hidePopoverMock).toHaveBeenCalledTimes(1));
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    // The closed toggle echo was ours (echo reconciliation ran): no
+    // state resurrection, still closed.
+    expect(getPanel()).toHaveAttribute('data-state', 'closed');
   });
 
   it('mirrors the animated lifecycle as data-state on the panel', () => {

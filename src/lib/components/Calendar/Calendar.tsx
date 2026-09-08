@@ -1,16 +1,18 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import { getDirection } from '../../utils/direction';
 import { useStrings } from '../LocaleProvider';
 
 import {
   addMonths,
   buildMonthCells,
   formatDate,
+  getDaysInMonth,
   parseCivilDate,
 } from './date';
 
@@ -184,6 +186,121 @@ function getWeekdayLabels(locale: string | undefined, weekStart: number) {
   return Array.from({ length: 7 }, (_, i) => byDay[(weekStart + i) % 7]!);
 }
 
+/** Day buttons of the rendered grid in DOM order (outside months and
+ * disabled days included — `focusFrom` skips the disabled ones). */
+function dayButtons(grid: HTMLElement | null): HTMLButtonElement[] {
+  return Array.from(
+    grid?.querySelectorAll<HTMLButtonElement>('button') ?? []
+  );
+}
+
+/**
+ * Move focus by `delta` slots on the 7-column grid, skipping disabled
+ * days in the direction of travel and stopping at the grid's edges (the
+ * month boundary is a real boundary — outside-month cells are rendered
+ * on both sides of it).
+ */
+function focusFrom(
+  buttons: HTMLButtonElement[],
+  from: number,
+  delta: number
+): number | null {
+  let index = from + delta;
+  while (index >= 0 && index < buttons.length && buttons[index]!.disabled) {
+    index += delta;
+  }
+  if (index < 0 || index >= buttons.length) return null;
+  return index;
+}
+
+/**
+ * Date-grid keyboard roving (WAI-ARIA grid pattern): ←/→ move one day,
+ * ↑/↓ one week, Home/End jump to the row's first/last day, PageUp/
+ * PageDown switch the month view keeping the same day (clamped to the
+ * month's length). Under `dir="rtl"` the horizontal arrows mirror (←
+ * moves to the next day), read from the DOM at event time so the keys
+ * follow the mirrored grid.
+ */
+function useGridKeyboard(
+  gridRef: RefObject<HTMLDivElement | null>,
+  view: { year: number; month: number },
+  setView: (next: { year: number; month: number }) => void,
+  pendingFocusRef: RefObject<string | null>
+) {
+  return (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const buttons = dayButtons(grid);
+    if (buttons.length === 0) return;
+    const current = buttons.indexOf(
+      (event.target as HTMLElement).closest('button')!
+    );
+
+    const forward =
+      getDirection(grid) === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
+    const backward = forward === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
+    const move = (delta: number) => {
+      const index = focusFrom(buttons, current < 0 ? 0 : current, delta);
+      if (index !== null) {
+        event.preventDefault();
+        buttons[index]!.focus();
+      }
+    };
+
+    switch (event.key) {
+      case forward:
+        move(1);
+        return;
+      case backward:
+        move(-1);
+        return;
+      case 'ArrowDown':
+        move(7);
+        return;
+      case 'ArrowUp':
+        move(-7);
+        return;
+      case 'Home': {
+        const rowStart = current < 0 ? 0 : current - (current % 7);
+        const index = focusFrom(buttons, rowStart - 1, 1);
+        if (index !== null) {
+          event.preventDefault();
+          buttons[index]!.focus();
+        }
+        return;
+      }
+      case 'End': {
+        const rowEnd = current < 0 ? 6 : current - (current % 7) + 6;
+        const index = focusFrom(buttons, rowEnd + 1, -1);
+        if (index !== null) {
+          event.preventDefault();
+          buttons[index]!.focus();
+        }
+        return;
+      }
+      case 'PageUp':
+      case 'PageDown': {
+        event.preventDefault();
+        const delta = event.key === 'PageDown' ? 1 : -1;
+        const next = addMonths(view.year, view.month, delta);
+        // Keep the focused day (clamped to the target month's length);
+        // falls back to the first day when nothing was focused.
+        const fromDay =
+          current >= 0
+            ? Number(buttons[current]!.textContent)
+            : 1;
+        const day = Math.min(
+          Math.max(fromDay, 1),
+          getDaysInMonth(next.year, next.month)
+        );
+        setView(next);
+        pendingFocusRef.current = formatDate(next.year, next.month, day);
+        return;
+      }
+    }
+  };
+}
+
 export default function Calendar({
   value: valueControl,
   min,
@@ -196,6 +313,10 @@ export default function Calendar({
 }: CalendarProps) {
   const [value, setValue] = useControl(valueControl, '');
   const strings = useStrings('calendar');
+  const gridRef = useRef<HTMLDivElement>(null);
+  // Day ("YYYY-MM-DD") to focus once the next view renders (PageUp/Down
+  // month hops — the cells do not exist until the state commits).
+  const pendingFocusRef = useRef<string | null>(null);
 
   // Civil parse: `new Date(value)` would read the value as UTC midnight
   // and land west-of-UTC users on the previous day — showing February
@@ -209,17 +330,32 @@ export default function Calendar({
 
   const cells = buildMonthCells(viewYear, viewMonth, weekStart);
 
-  const goPrevMonth = () => {
-    const prev = addMonths(viewYear, viewMonth, -1);
-    setViewYear(prev.year);
-    setViewMonth(prev.month);
-  };
-
-  const goNextMonth = () => {
-    const next = addMonths(viewYear, viewMonth, 1);
+  const setView = (next: { year: number; month: number }) => {
     setViewYear(next.year);
     setViewMonth(next.month);
   };
+
+  // Focus handover for keyboard month hops (Cascader's pendingFocus
+  // pattern): the day exists only after the view commits.
+  useEffect(() => {
+    const target = pendingFocusRef.current;
+    if (!target) return;
+    pendingFocusRef.current = null;
+    gridRef.current
+      ?.querySelector<HTMLButtonElement>(`[data-haze-day="${target}"]`)
+      ?.focus();
+  }, [viewYear, viewMonth]);
+
+  const handleGridKeyDown = useGridKeyboard(
+    gridRef,
+    { year: viewYear, month: viewMonth },
+    setView,
+    pendingFocusRef
+  );
+
+  const goPrevMonth = () => setView(addMonths(viewYear, viewMonth, -1));
+
+  const goNextMonth = () => setView(addMonths(viewYear, viewMonth, 1));
 
   const goToday = () => {
     const now = new Date();
@@ -275,7 +411,13 @@ export default function Calendar({
           </button>
         </span>
       </div>
-      <div x-class={[grid]} role='grid' aria-label={monthLabel}>
+      <div
+        ref={gridRef}
+        x-class={[grid]}
+        role='grid'
+        aria-label={monthLabel}
+        onKeyDown={handleGridKeyDown}
+      >
         <div role='row' x-class={[rowContents]}>
           {weekdayLabels.map((label, i) => (
             <span key={i} role='columnheader' x-class={[weekday]}>
@@ -296,6 +438,7 @@ export default function Calendar({
                 >
                   <button
                     type='button'
+                    data-haze-day={dateStr}
                     x-class={[
                       dayBtn,
                       dateStr === value && daySelected,

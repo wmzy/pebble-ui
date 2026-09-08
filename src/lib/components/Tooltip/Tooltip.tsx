@@ -120,7 +120,7 @@ export default function Tooltip({
         x-class={[
           bubble,
           ...floating.panelClasses,
-          ...floatingPlacementClasses(floating, placement),
+          ...floatingPlacementClasses(floating, placement, floating.direction),
         ]}
       >
         {content}

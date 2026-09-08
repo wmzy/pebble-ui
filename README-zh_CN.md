@@ -70,20 +70,23 @@ peer 依赖范围有意定为 `react: ^19.0.0`——haze-ui 构建在现代 Reac
   工程里背 polyfill 过来，但[「浏览器支持」](#浏览器支持)的地板要求适用。
 - **颜色是 OKLCH，交互态运行时派生。** 要求 Chrome/Edge 119+、
   Safari 16.4+ 或 Firefox 128+；不提供 HSL/hex 回退。
-- **`'use client'` 已预注入。** `dist/` 里每个模块都以该指令开头，
-  Next.js App Router 项目中直接从客户端组件导入 haze-ui 即可——不需要
-  再写一个把自己的 `'use client'` 旗帜挂在库上的再导出包装模块。
+- **`'use client'` 已预注入到交互模块。** `dist/` 里所有有状态模块都以该
+  指令开头；静态无 hook 的模块集（tokens 与纯展示组件）不带该指令，可作为
+  React Server Component 渲染（见「Server Components」一节）。
 
 ### 可选 peer 依赖
 
 haze-ui 唯一的必装运行时依赖是 `react-use-control`——`ControlOrValue<T>`
-背后的引擎。三个集成是可选依赖（peer dependency），只在使用到对应组件时
+背后的引擎。六个集成是可选依赖（peer dependency），只在使用到对应组件时
 才安装：
 
 ```sh
-npm i react-f0rm              # FormItem（peer 范围 ^1.1.1）
-npm i @tanstack/react-table   # DataTable（peer 范围 ^9.2.4）
-npm i recharts                # Chart（peer 范围 ^3.10.1）
+npm i react-f0rm                          # FormItem（peer 范围 ^1.1.1）
+npm i @tanstack/react-table               # DataTable（peer 范围 ^9.2.4）
+npm i recharts                            # Chart（peer 范围 ^3.10.1）
+npm i @dnd-kit/core @dnd-kit/sortable \
+      @dnd-kit/utilities                  # TagInput/TagGroup 拖拽排序
+                                           # （^6.3.1 / ^10.0.0 / ^3.2.2）
 ```
 
 其余一切——`Button`、`Input`、`Dialog`、`Select`……——只需要 `react` 和
@@ -146,10 +149,10 @@ export default function MyComponent() {
 
 ### Server Components（Next.js App Router）
 
-`dist/` 中的每个 JS 模块都以 `'use client'` 指令开头，由构建期注入——
-与 Radix、Base UI 和 React Aria 发布时采用的约定相同。在 App Router
-项目里，你可以直接从客户端组件导入 haze-ui；不需要再写一个把库挂在
-自己的 `'use client'` 旗帜下再导出的包装模块：
+`dist/` 中的交互模块以 `'use client'` 指令开头，由构建期注入——与 Radix、
+Base UI 和 React Aria 发布时采用的约定相同。在 App Router 项目里，你可以
+直接从客户端组件导入 haze-ui；不需要再写一个把库挂在自己的
+`'use client'` 旗帜下再导出的包装模块：
 
 ```jsx
 // 任意客户端组件——直接从包导入
@@ -159,6 +162,21 @@ export function Actions() {
   return <Button>Start</Button>;
 }
 ```
+
+**一个静态子集可作为 React Server Component 渲染。** 无 hook、无 DOM 访问
+的模块发布时不带该指令，可直接在服务端组件中导入、零客户端 JS 成本：
+
+- tokens：`haze-ui/tokens` 子路径的全部导出（`lightTheme`、`darkTheme`、
+  `spacing`、`typography`、`TOKEN_REGISTRY`、OKLCH 工具）
+- 组件：`AspectRatio`、`Badge`、`Card`、`CodeBlock`、`Container`、
+  `Divider`、`Flex`、`Grid`/`GridItem`、`Icon`、`Kbd`、`Skeleton`、
+  `Stat`/`StatGroup`、`Typography`（`Title`/`Text`/`Paragraph`）
+
+从子路径导入（`import { Badge } from 'haze-ui/components/Badge'`）或走
+barrel 均可——在 RSC 模块里构建器解析到的是模块本身而非带 client 标记的
+barrel 壳。产物标记带 Linaria 类名，CSS 引入方式不变。安全名单在
+`scripts/rsc-safe.mjs`，由 `src/lib/dist-esm-contract.test.ts` 强制（含
+传递闭包校验）。
 
 CSS 加载方式与上面两种模式一致——在根布局里引入 `haze-ui/styles.css`，
 或使用 `haze-ui/css/*` 子路径。可运行的 Next.js 15 示例工程在
@@ -258,7 +276,7 @@ function SettingsView() {
 ## AI 友好分发
 
 **llms.txt** —— 面向 AI 编码工具 / 爬虫的全库 markdown 概览（`ControlOrValue<T>`
-状态协议、两种 CSS 加载模式、按分组列出全部 104 个组件及一句话用途、token
+状态协议、两种 CSS 加载模式、按分组列出全部 107 个组件及一句话用途、token
 体系、浮层三 tier、表单集成）。位于仓库根 [llms.txt](./llms.txt)，文档站上也可
 访问 <https://wmzy.github.io/haze-ui/llms.txt>（`build:demo` 会把它拷入 `dist/`）。
 

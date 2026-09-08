@@ -1,12 +1,24 @@
-import type { FieldValidator } from '@/lib';
+import type { FieldValidator, HazeStrings } from '@/lib';
 
 import { useState } from 'react';
 import { css } from '@linaria/core';
 import { z } from 'zod';
 import { Form, reset, useForm } from 'react-f0rm';
+import { useControl } from 'react-use-control';
 
 
-import { Button, CodeBlock, FormItem, InputCore } from '@/lib';
+import {
+  Button,
+  CodeBlock,
+  Empty,
+  FormItem,
+  InputCore,
+  LocaleProvider,
+  Segmented,
+  TagInput,
+  localeDirection,
+  useDirection,
+} from '@/lib';
 import {
   fieldRow,
   intro,
@@ -16,15 +28,17 @@ import {
 } from '@/views/ComponentDetail/styles';
 
 import { zodValidator } from './zod-validator';
+import { arPack, frPack } from './locale-packs';
 
 // 展示的是真实适配器源码（?raw 导入），文档与实现永不漂移——同
 // ComponentDetail/DemoSource 的源码映射机制。
-const rawSources = import.meta.glob<string>('./zod-validator.ts', {
+const rawSources = import.meta.glob<string>('./{zod-validator,locale-packs}.ts', {
   query: '?raw',
   import: 'default',
   eager: true,
 });
 const adapterSource = rawSources['./zod-validator.ts'] ?? '';
+const packsSource = rawSources['./locale-packs.ts'] ?? '';
 
 const paragraph = css`
   font-family: var(--haze-font-sans);
@@ -53,6 +67,14 @@ const demoPanel = css`
   padding: var(--haze-space-4) var(--haze-space-4) var(--haze-space-2);
   margin: var(--haze-space-4) 0 var(--haze-space-6);
   max-width: 420px;
+`;
+
+const demoColumn = css`
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-4);
+  margin-top: var(--haze-space-4);
+  max-width: 360px;
 `;
 
 const codeMargin = css`
@@ -226,6 +248,54 @@ function ZodSignupDemo() {
   );
 }
 
+// ─── Adding a locale ────────────────────────────────────────────────────
+
+const LANGUAGES = [
+  { value: 'en-US', label: 'English' },
+  { value: 'fr-FR', label: 'Français' },
+  { value: 'zh-CN', label: '中文' },
+  { value: 'ar-EG', label: 'العربية' },
+] as const;
+
+type DemoLanguage = (typeof LANGUAGES)[number]['value'];
+
+const DEMO_PACKS: Partial<Record<DemoLanguage, HazeStrings>> = {
+  'fr-FR': frPack,
+  'ar-EG': arPack,
+};
+
+/** Mirrors the provider chain's declared direction so the demo shows it live. */
+function DirectionProbe() {
+  return <output className={hint}>useDirection(): {useDirection()}</output>;
+}
+
+/**
+ * Live demo: switch the resolved language and watch the pack, the
+ * `{count}` placeholder expansion, and the derived direction change —
+ * including rtl for the Arabic tag. The `dir` attribute on the column
+ * is set by this app, never by the provider.
+ */
+function LocalePackDemo() {
+  const [language, , languageCtrl] = useControl<DemoLanguage>(
+    undefined,
+    'en-US'
+  );
+  const [, , tagsCtrl] = useControl(undefined, ['ui']);
+
+  return (
+    <div>
+      <Segmented options={[...LANGUAGES]} value={languageCtrl} />
+      <LocaleProvider locale={language} strings={DEMO_PACKS[language]}>
+        <div dir={localeDirection(language) ?? 'ltr'} className={demoColumn}>
+          <TagInput value={tagsCtrl} aria-label='Tags' />
+          <Empty />
+          <DirectionProbe />
+        </div>
+      </LocaleProvider>
+    </div>
+  );
+}
+
 export default function Recipes() {
   return (
     <div className={page}>
@@ -234,7 +304,8 @@ export default function Recipes() {
         Integration recipes for pairing haze-ui with the ecosystem. Each
         recipe is a live demo plus the exact code behind it — start typing in
         the form below and watch schema errors, async checks and cancellation
-        all fire in real time.
+        all fire in real time, then switch languages in the locale recipe to
+        see packs, partial overrides and RTL derivation at work.
       </p>
 
       <div className={section}>
@@ -384,6 +455,157 @@ const validatePassword = zodValidator(passwordSchema);
           <code className={inlineCode}>undefined</code> instead of rejecting,
           cancelled checks stay invisible to both the form state and the
           console.
+        </p>
+      </div>
+
+      <div className={section}>
+        <h2>Adding a locale — custom copy &amp; RTL</h2>
+        <p className={paragraph}>
+          Every user-visible literal in haze-ui flows through{' '}
+          <code className={inlineCode}>useStrings</code>, so copy lives in
+          one place per language:{' '}
+          <code className={inlineCode}>HazeStrings</code>, a section-per-component
+          map derived from the English{' '}
+          <code className={inlineCode}>defaultStrings</code>. You can reword
+          individual messages, mount whole packs, and contribute new
+          languages back — the demo below switches between all three modes,
+          including an RTL tag.
+        </p>
+
+        <h3>Live demo</h3>
+        <div className={demoPanel}>
+          <LocalePackDemo />
+        </div>
+        <p className={hint}>
+          Switch to العربية: the tag <code className={inlineCode}>ar-EG</code>{' '}
+          derives direction <code className={inlineCode}>rtl</code> (shown by
+          the probe), and the Arabic copy renders mirrored because the demo —
+          not the library — set <code className={inlineCode}>dir</code> on the
+          column. Remove a tag in any language and watch the{' '}
+          <code className={inlineCode}>{'{count}'}</code> placeholder expand.
+        </p>
+
+        <h3>The packs</h3>
+        <p className={paragraph}>
+          The demo is powered by the real module below:{' '}
+          <code className={inlineCode}>createStrings</code> merges a partial
+          override onto a base pack and returns a complete{' '}
+          <code className={inlineCode}>HazeStrings</code>, so a derived pack
+          never forks the literals it does not touch. A full pack also
+          satisfies the provider&apos;s partial{' '}
+          <code className={inlineCode}>strings</code> shape:
+        </p>
+        <CodeBlock language='ts' className={codeMargin}>
+          {packsSource}
+        </CodeBlock>
+
+        <h3>Partial overrides without a pack</h3>
+        <p className={paragraph}>
+          For one-off rewording you do not need{' '}
+          <code className={inlineCode}>createStrings</code> at all — the{' '}
+          <code className={inlineCode}>strings</code> prop is already a deep
+          partial (<code className={inlineCode}>HazeStringsOverrides</code>).
+          Use <code className={inlineCode}>createStrings</code> when you need
+          the resolved pack as a <em>value</em>: deriving{' '}
+          <code className={inlineCode}>zhCN</code> with your terminology,
+          sharing one customized pack across providers, or handing it to
+          non-React code:
+        </p>
+        <CodeBlock language='tsx' className={codeMargin}>
+          {`// one message, everything else keeps the pack copy
+<LocaleProvider strings={{ pagination: { previous: '‹ Précédent' } }}>
+  <Pagination total={40} />
+</LocaleProvider>
+
+// or derive a complete pack once at module scope and reuse it
+const branded = createStrings(zhCN, {
+  confirmDialog: { confirm: '好的', cancel: '先不了' },
+});
+
+<LocaleProvider locale="zh-CN" strings={branded}>…</LocaleProvider>`}
+        </CodeBlock>
+
+        <h3>Authoring a complete language pack</h3>
+        <p className={paragraph}>
+          A full pack is a plain <code className={inlineCode}>const</code>{' '}
+          annotated <code className={inlineCode}>HazeStrings</code> — the
+          annotation is the contract: TypeScript fails the build the moment
+          either side drifts (a missing key, an extra key, a renamed
+          section). Start by copying{' '}
+          <code className={inlineCode}>defaultStrings</code> from{' '}
+          <code className={inlineCode}>src/lib/components/LocaleProvider/locale.ts</code>{' '}
+          as the translation baseline, and keep{' '}
+          <code className={inlineCode}>{'{name}'}</code> placeholders verbatim
+          — they are expanded at runtime and unknown placeholders are left
+          as-is, never blanked. This is exactly how the bundled{' '}
+          <code className={inlineCode}>zhCN</code> pack is written:
+        </p>
+        <CodeBlock language='ts' className={codeMargin}>
+          {`import type { HazeStrings } from 'haze-ui';
+
+const frFR: HazeStrings = {
+  alert: { close: 'Fermer' },
+  approvalCard: { title: 'Approbation requise', approve: 'Approuver', deny: 'Refuser' },
+  asyncSection: { loading: 'Chargement…', error: 'Une erreur est survenue', retry: 'Réessayer' },
+  avatarGroup: { more: '+{count}' },          // placeholders survive translation verbatim
+  // …every section of defaultStrings, 1:1 — the type enforces it
+};
+
+<LocaleProvider locale="fr-FR" strings={frFR}>…</LocaleProvider>`}
+        </CodeBlock>
+
+        <h3>RTL: declared direction vs derived direction</h3>
+        <p className={paragraph}>
+          <code className={inlineCode}>LocaleProvider</code> accepts an
+          explicit <code className={inlineCode}>direction</code> prop, and
+          when nobody declares one it derives the direction from the locale:
+          the primary subtag is matched against the RTL language list —{' '}
+          <code className={inlineCode}>
+            ar, he, fa, ur, ps, sd, ug, yi, dv, ckb, ku, iw
+          </code>{' '}
+          (the last is the legacy Hebrew tag; Latin-script Kurdish stays ltr —
+          declare a direction explicitly then). The provider never writes a{' '}
+          <code className={inlineCode}>dir</code> attribute: setting the
+          document&apos;s direction is the app&apos;s job. The library only
+          consumes the value through two exported helpers:
+        </p>
+        <CodeBlock language='tsx' className={codeMargin}>
+          {`import { LocaleProvider, useDirection, localeDirection } from 'haze-ui';
+
+// declared intent for render-time decisions (falls back to the document)
+useDirection(); // 'rtl' under <LocaleProvider locale="ar-EG">
+
+// pure helper: the direction a BCP 47 tag implies
+localeDirection('ar-EG'); // 'rtl'
+localeDirection('he-IL'); // 'rtl'
+localeDirection('fr-FR'); // 'ltr'
+
+// explicit beats derivation, and survives nested locale-only providers
+<LocaleProvider locale="ar-EG" direction="ltr">…</LocaleProvider>`}
+        </CodeBlock>
+        <p className={paragraph}>
+          For interaction-time code (arrow-key mirroring, JS-assisted
+          placement) the library reads layout truth from the DOM via{' '}
+          <code className={inlineCode}>getDirection(element)</code> — the
+          nearest <code className={inlineCode}>[dir]</code> ancestor — so
+          mirrored behavior follows what the user actually sees, whatever the
+          provider declared.
+        </p>
+
+        <h3>Contributing a pack upstream</h3>
+        <p className={paragraph}>
+          New languages are merged the same way{' '}
+          <code className={inlineCode}>zhCN</code> was: copy{' '}
+          <code className={inlineCode}>defaultStrings</code> as the baseline,
+          translate it (keys 1:1, placeholders verbatim), and open a PR adding{' '}
+          <code className={inlineCode}>src/lib/components/LocaleProvider/&lt;tag&gt;.ts</code>{' '}
+          following the <code className={inlineCode}>zh-cn.ts</code> file
+          layout. The maintainer-side step is registering the tag mapping in{' '}
+          <code className={inlineCode}>useStrings&apos;</code> pack
+          resolution, after which{' '}
+          <code className={inlineCode}>locale=&quot;fr-FR&quot;</code> selects
+          the pack automatically for every consumer — no{' '}
+          <code className={inlineCode}>strings</code> prop needed.
         </p>
       </div>
     </div>

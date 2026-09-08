@@ -31,6 +31,29 @@ describe('Rating', () => {
     expect(onChange).toHaveBeenCalledWith(3);
   });
 
+  it('steps the selection with arrow keys and follows focus (radiogroup pattern)', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Rating value={2} onChange={onChange} />);
+    const stars = screen.getAllByRole('radio');
+    stars[1]!.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(onChange).toHaveBeenLastCalledWith(3);
+    expect(stars[2]).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(onChange).toHaveBeenLastCalledWith(2);
+    expect(stars[1]).toHaveFocus();
+  });
+
+  it('steps in half increments with allowHalf', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Rating value={2} allowHalf onChange={onChange} />);
+    screen.getAllByRole('radio')[1]!.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(onChange).toHaveBeenLastCalledWith(2.5);
+  });
+
   it('highlights stars up to value', () => {
     const { container } = render(<Rating value={3} />);
     const stars = container.querySelectorAll('[role="radio"]');

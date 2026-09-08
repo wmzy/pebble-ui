@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useControl } from 'react-use-control';
 
 import Carousel from './Carousel';
 import CarouselSlide from './CarouselSlide';
@@ -85,6 +86,37 @@ describe('Carousel', () => {
       </Carousel>
     );
     await user.click(screen.getByRole('button', { name: 'Go to slide 2' }));
+  });
+
+  it('steps slides with the region arrow keys and Home/End', async () => {
+    const user = userEvent.setup();
+    function KeyboardCarousel() {
+      const [current, , control] = useControl(undefined, 0);
+      return (
+        <>
+          <Carousel value={control}>
+            <CarouselSlide>A</CarouselSlide>
+            <CarouselSlide>B</CarouselSlide>
+            <CarouselSlide>C</CarouselSlide>
+          </Carousel>
+          <output data-testid="slide">{current}</output>
+        </>
+      );
+    }
+    render(<KeyboardCarousel />);
+    const region = screen.getByRole('region', { name: 'Carousel' });
+    region.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByTestId('slide')).toHaveTextContent('1');
+    await user.keyboard('{ArrowLeft}');
+    expect(screen.getByTestId('slide')).toHaveTextContent('0');
+    // Wraps in both directions.
+    await user.keyboard('{ArrowLeft}');
+    expect(screen.getByTestId('slide')).toHaveTextContent('2');
+    await user.keyboard('{End}');
+    expect(screen.getByTestId('slide')).toHaveTextContent('2');
+    await user.keyboard('{Home}');
+    expect(screen.getByTestId('slide')).toHaveTextContent('0');
   });
 
   it('applies className', () => {

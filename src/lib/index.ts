@@ -21,11 +21,11 @@ export type { ToggleProps, ToggleCoreProps } from './components/Toggle';
 export { Badge } from './components/Badge';
 export type { BadgeProps } from './components/Badge';
 export { Dialog } from './components/Dialog';
-export type { DialogProps } from './components/Dialog';
+export type { DialogProps, DialogHandle } from './components/Dialog';
 export { Tooltip } from './components/Tooltip';
 export type { TooltipProps } from './components/Tooltip';
 export { Popover } from './components/Popover';
-export type { PopoverProps } from './components/Popover';
+export type { PopoverProps, PopoverHandle } from './components/Popover';
 export { Card } from './components/Card';
 export type { CardProps } from './components/Card';
 export { Radio, RadioGroup, RadioGroupCore } from './components/Radio';
@@ -113,7 +113,7 @@ export type { PaginationProps } from './components/Pagination';
 export { Grid, GridItem } from './components/Grid';
 export type { GridProps, GridItemProps } from './components/Grid';
 export { Drawer } from './components/Drawer';
-export type { DrawerProps } from './components/Drawer';
+export type { DrawerProps, DrawerHandle } from './components/Drawer';
 
 export { Stepper, Step } from './components/Stepper';
 export type { StepperProps, StepProps } from './components/Stepper';
@@ -121,6 +121,16 @@ export { Command, CommandInput, CommandList, CommandItem } from './components/Co
 export type { CommandProps, CommandInputProps, CommandListProps, CommandItemProps } from './components/Command';
 export { ResizableGroup, ResizablePanel, ResizableHandle } from './components/Resizable';
 export type { ResizableGroupProps, ResizablePanelProps, ResizableHandleProps } from './components/Resizable';
+export {
+  SplitterGroup,
+  SplitterPanel,
+  SplitterHandle,
+} from './components/Resizable';
+export type {
+  ResizableGroupProps as SplitterGroupProps,
+  ResizablePanelProps as SplitterPanelProps,
+  ResizableHandleProps as SplitterHandleProps,
+} from './components/Resizable';
 export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './components/Collapsible';
 export type { CollapsibleProps, CollapsibleTriggerProps, CollapsibleContentProps } from './components/Collapsible';
 export { Transfer, TransferCore } from './components/Transfer';
@@ -159,7 +169,7 @@ export type { MentionsProps, MentionsCoreProps, MentionsOption } from './compone
 export { InlineEdit } from './components/InlineEdit';
 export type { InlineEditProps } from './components/InlineEdit';
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from './components/DropdownMenu';
-export type { DropdownMenuProps, DropdownMenuTriggerProps, DropdownMenuContentProps, DropdownMenuItemProps, DropdownMenuSeparatorProps } from './components/DropdownMenu';
+export type { DropdownMenuProps, DropdownMenuTriggerProps, DropdownMenuContentProps, DropdownMenuItemProps, DropdownMenuSeparatorProps, DropdownMenuHandle } from './components/DropdownMenu';
 export { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator } from './components/ContextMenu';
 export type { ContextMenuProps, ContextMenuTriggerProps, ContextMenuContentProps, ContextMenuItemProps, ContextMenuSeparatorProps } from './components/ContextMenu';
 export { NavigationBar, NavLink } from './components/NavigationBar';
@@ -183,14 +193,20 @@ export type { VirtualListProps, VirtualListHandle, VirtualListGroup, VirtualList
 export { TagGroup, TagGroupItem } from './components/TagGroup';
 export type { TagGroupProps, TagGroupItemProps } from './components/TagGroup';
 export { BottomSheet } from './components/BottomSheet';
-export type { BottomSheetProps } from './components/BottomSheet';
+export type { BottomSheetProps, BottomSheetHandle } from './components/BottomSheet';
 export { SwipeAction } from './components/SwipeAction';
 export type { SwipeActionProps } from './components/SwipeAction';
 
 // i18n
 export { default as LocaleProvider, useStrings } from './components/LocaleProvider';
-export { defaultStrings, enUS, zhCN } from './components/LocaleProvider';
+export { defaultStrings, enUS, zhCN, createStrings } from './components/LocaleProvider';
 export type { LocaleProviderProps, HazeStrings } from './components/LocaleProvider';
+export type { DeepPartial } from './components/LocaleProvider';
+
+// direction (RTL): declared intent from the LocaleProvider chain and
+// layout truth read off the DOM — see utils/direction.ts
+export { useDirection, getDirection, localeDirection } from './utils/direction';
+export type { Direction } from './utils/direction';
 
 // data table (TanStack headless + haze styles)
 export { DataTable } from './components/DataTable';
@@ -230,6 +246,12 @@ export type {
 } from './components/Sidebar';
 export { Tour } from './components/Tour';
 export type { TourProps, TourStep, TourCloseReason, TourPlacement } from './components/Tour';
+export { Anchor } from './components/Anchor';
+export type { AnchorProps, AnchorItem } from './components/Anchor';
+export { Watermark } from './components/Watermark';
+export type { WatermarkProps, WatermarkFont } from './components/Watermark';
+export { Fullscreen } from './components/Fullscreen';
+export type { FullscreenProps } from './components/Fullscreen';
 
 // agent components
 export { ChatMessage } from './components/ChatMessage';
@@ -271,8 +293,10 @@ export {
   useDebouncedValue,
   useDebouncedCallback,
   useClipboard,
+  useFullscreen,
 } from './hooks';
 export type { UseClipboardResult } from './hooks';
+export type { FullscreenTarget, UseFullscreenHandle } from './hooks';
 
 // form integration (react-f0rm peer)
 export { FormItem } from './form';

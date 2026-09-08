@@ -1,3 +1,4 @@
+import type { Direction } from '../../utils/direction';
 import type { HazeStrings } from './locale';
 
 import { createContext } from 'react';
@@ -15,6 +16,14 @@ type HazeStringsOverrides = {
 type LocaleContextValue = {
   /** BCP 47 tag; `useStrings` resolves it to a built-in string pack. */
   locale?: string;
+  /**
+   * Declared writing direction: an explicit `direction` prop on some
+   * provider in the chain, else derived from the resolved locale.
+   * `undefined` only when no provider is mounted. Note this is declared
+   * intent — layout truth stays the DOM's `[dir]` resolution (see
+   * `utils/direction.ts`).
+   */
+  direction?: Direction;
   strings?: HazeStringsOverrides;
   parent?: LocaleContextValue;
 };

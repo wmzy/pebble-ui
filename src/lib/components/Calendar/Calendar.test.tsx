@@ -191,6 +191,28 @@ describe('Calendar', () => {
     expect(root.querySelector('[role="grid"]')).toBeInTheDocument();
   });
 
+  it('moves grid focus with arrow keys, Home/End rows, and PageUp/Down month hops', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Calendar value='2026-01-15' />);
+    const day = (date: string) =>
+      container.querySelector<HTMLButtonElement>(`[data-haze-day="${date}"]`);
+    day('2026-01-15')!.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(day('2026-01-16')).toHaveFocus();
+    await user.keyboard('{ArrowDown}');
+    expect(day('2026-01-23')).toHaveFocus();
+    await user.keyboard('{Home}');
+    // Row of Jan 23 (Friday) starts on Sunday Jan 18.
+    expect(day('2026-01-18')).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(day('2026-01-24')).toHaveFocus();
+    await user.keyboard('{PageDown}');
+    // February view, same day of the month as the focused day (the 24th).
+    expect(day('2026-02-24')).toHaveFocus();
+    await user.keyboard('{PageUp}');
+    expect(day('2026-01-24')).toHaveFocus();
+  });
+
   it('has no axe violations', async () => {
     const { axe } = await import('jest-axe');
     render(<Calendar value='2025-01-15' />);

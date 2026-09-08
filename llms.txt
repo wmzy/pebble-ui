@@ -4,9 +4,12 @@
 > component accepts one state prop (`checked?: Control<T> | T`) that works controlled *and*
 > uncontrolled, powered by [react-use-control](https://github.com/wmzy/react-use-control).
 
-104 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
-against `--haze-*` design tokens. ESM-only, `preserveModules` dist, tree-shakeable,
-`'use client'` directives pre-injected for React Server Components. Peer range
+107 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
+against `--haze-*` design tokens. ESM-only, `preserveModules` dist, tree-shakeable.
+`'use client'` is pre-injected on interactive modules; 36 static, hook-free modules
+(tokens + presentational components) ship without it and render as React Server
+Components. RTL is systemic: logical CSS properties, mirrored horizontal-key
+semantics and mirrored floating placements under `dir="rtl"`. Peer range
 `react: ^19.0.0` — no React 18 compatibility layer.
 
 ## Install
@@ -14,9 +17,11 @@ against `--haze-*` design tokens. ESM-only, `preserveModules` dist, tree-shakeab
 ```sh
 npm i haze-ui
 # optional peers, only for the components that need them:
-npm i react-f0rm              # FormItem
-npm i @tanstack/react-table   # DataTable
-npm i recharts                # Chart
+npm i react-f0rm                            # FormItem
+npm i @tanstack/react-table                 # DataTable
+npm i recharts                              # Chart
+npm i @dnd-kit/core @dnd-kit/sortable \
+      @dnd-kit/utilities                    # TagInput/TagGroup sortable
 ```
 
 ## CSS: two loading modes
@@ -49,7 +54,7 @@ re-deriving file names.
 - **Divider** — content separator line, horizontal or vertical.
 - **Icon** — inline SVG icon wrapper with token-sized `sm`/`md`/`lg` boxes.
 - **Tag** — compact status label with variant color and optional close button.
-- **TagGroup** — flex-wrap container laying out Tag children with consistent gap.
+- **TagGroup** — flex-wrap container laying out Tag children with consistent gap; `sortable` + `onReorder(nextOrder)` for dnd-kit drag reordering.
 - **Typography** — text primitives: `Title`, `Text`, `Paragraph` on typography tokens.
 
 ### Layout
@@ -59,7 +64,7 @@ re-deriving file names.
 - **Container** — centered max-width page container with horizontal padding.
 - **Flex** — flexbox layout primitive mapping props to flex CSS.
 - **Grid** — CSS grid layout primitive.
-- **Resizable** — split-pane group with draggable dividers (`ResizableGroup`, horizontal or vertical).
+- **Resizable** — split-pane group with draggable dividers (`ResizableGroup`, horizontal or vertical); also exported as `SplitterGroup`/`SplitterPanel`/`SplitterHandle` (AntD-style naming).
 - **ScrollArea** — scrollable region with custom-styled thin scrollbars and `maxHeight`.
 - **Sidebar** — app sidebar shell with controllable collapsed state (`aside` + rail width tokens).
 
@@ -84,7 +89,7 @@ re-deriving file names.
 - **Select** — dropdown select over `SelectCore` with `<option>` children.
 - **Slider** — native range slider with controllable value.
 - **Switch** — toggle switch (`role="switch"`) with controllable `checked`.
-- **TagInput** — enter-to-commit token input over `TagInputCore`.
+- **TagInput** — enter-to-commit token input over `TagInputCore`; `sortable` enables dnd-kit drag reordering (new order via `onChange`).
 - **Textarea** — multiline text input.
 - **TimePicker** — time-of-day input with controllable value.
 - **Toggle** — two-state pressed button (`aria-pressed`) with sizes and `square` icon mode; `ToolbarToggle` variant rides toolbar roving focus.
@@ -123,10 +128,12 @@ re-deriving file names.
 - **Timeline** — vertical timeline container for `TimelineItem` children.
 - **Tree** — hierarchical tree with expand, select and check state.
 - **VirtualList** — windowed list rendering only visible rows; fixed or measured dynamic heights.
+- **Watermark** — tiled canvas watermark layer over children (or `fullscreen`); theme-aware color, degrades gracefully without canvas 2d support.
 
 ### Navigation
 
 - **Affix** — fixes children to a viewport edge once scrolled past an offset.
+- **Anchor** — sticky scroll-spy navigation: `items` list highlighting the active section (IntersectionObserver, controllable `activeId`), click scrolls with `offsetTop`.
 - **BackToTop** — floating scroll-to-top button appearing past a scroll threshold.
 - **Breadcrumb** — breadcrumb trail nav with configurable separator.
 - **Command** — command palette surface: `CommandInput` plus filterable `CommandItem`s.
@@ -168,7 +175,8 @@ re-deriving file names.
 
 - **Collapsible** — unstyled open/close container with controllable `open` state.
 - **Disclosure** — summary-header disclosure panel (details/summary semantics).
-- **LocaleProvider** — supplies UI string packs (built-in English and zh-CN) to locale-aware components.
+- **Fullscreen** — wrap-mode Fullscreen API binding around a single trigger child with controllable `fullscreen` state; `useFullscreen()` hook also exported.
+- **LocaleProvider** — supplies UI string packs (built-in English and zh-CN) to locale-aware components; `direction` (explicit or locale-derived) feeds `useDirection()`; `createStrings(base, overrides)` derives packs without forking the table. RTL locales (ar/he/fa/…) are derived automatically.
 - **SwipeAction** — swipe-to-reveal row actions on left/right edges with a commit threshold.
 
 ## Design tokens
@@ -191,15 +199,23 @@ Popover, DropdownMenu, Tooltip, ContextMenu, Combobox and Datepicker panels pick
 engine by feature detection: (1) native `popover` attribute + CSS anchor positioning
 (position-area grid with fallbacks), (2) `popover` alone, (3) a JS-positioned fallback.
 Modern engines take tier 1; positioning and light-dismiss behavior stay consistent
-across tiers. Panel placement APIs use physical sides (`'bottom'`, `'bottom-end'`, …).
+across tiers. Panel placements are logical: under `dir="rtl"` the horizontal side
+mirrors automatically (tier 1 uses logical `position-area` values where engines
+accept them, tier 2 mirrors in JS).
 
-## Headless primitives (experimental)
+Dialog, Drawer, BottomSheet, Popover and DropdownMenu accept a `ref` exposing
+`{ open(), close(), focusTrigger() }` — the same state outlet as user interaction,
+controlled-mode aware. Dialog, Drawer and BottomSheet also take `viewTransition?: boolean`:
+open/close flips wrapped in the View Transitions API (`startViewTransition` + `flushSync`),
+auto-degrading without engine support or under reduced motion.
+
+## Headless primitives
 
 `haze-ui/headless` re-exports the behavior layer the components are built on —
 `useFloating` (the three-tier floating engine), `Presence` (exit animations),
 the focus-scope hooks and the `computeFloatingPosition` collision math — for
 component authors assembling their own panels. Same source, same version as
-the styled library; experimental while the API settles.
+the styled library; stable public API with the same semver commitment.
 
 ## Forms: react-f0rm integration
 

@@ -4,9 +4,16 @@ import ConfirmDialog from '../ConfirmDialog/ConfirmDialog';
 import Empty from '../Empty/Empty';
 import Pagination from '../Pagination/Pagination';
 
+import { useDirection } from '../../utils/direction';
+
 import LocaleProvider from './LocaleProvider';
 import { defaultStrings, enUS } from './locale';
 import { zhCN } from './zh-cn';
+
+/** Renders the useDirection() resolution for provider-chain assertions. */
+function DirectionProbe() {
+  return <output data-testid="direction">{useDirection()}</output>;
+}
 
 describe('LocaleProvider', () => {
   it('renders default copy with no provider mounted', () => {
@@ -185,6 +192,48 @@ describe('LocaleProvider', () => {
     );
     expect(screen.getAllByText('暂无数据')).toHaveLength(2);
     expect(screen.getByText('No data')).toBeInTheDocument();
+  });
+
+  it('derives the direction from the locale (useDirection)', () => {
+    render(
+      <LocaleProvider locale="ar-SA">
+        <DirectionProbe />
+      </LocaleProvider>
+    );
+    expect(screen.getByTestId('direction')).toHaveTextContent('rtl');
+  });
+
+  it('lets an explicit direction prop win over locale derivation', () => {
+    render(
+      <LocaleProvider locale="ar" direction="ltr">
+        <DirectionProbe />
+      </LocaleProvider>
+    );
+    expect(screen.getByTestId('direction')).toHaveTextContent('ltr');
+  });
+
+  it('keeps an outer explicit direction through inner locale picks', () => {
+    render(
+      <LocaleProvider direction="rtl">
+        <DirectionProbe />
+        <LocaleProvider locale="en-US">
+          <DirectionProbe />
+        </LocaleProvider>
+      </LocaleProvider>
+    );
+    const directions = screen.getAllByTestId('direction');
+    expect(directions).toHaveLength(2);
+    for (const probe of directions) expect(probe).toHaveTextContent('rtl');
+  });
+
+  it('falls back to the document direction without a provider', () => {
+    document.documentElement.dir = 'rtl';
+    try {
+      render(<DirectionProbe />);
+      expect(screen.getByTestId('direction')).toHaveTextContent('rtl');
+    } finally {
+      document.documentElement.dir = '';
+    }
   });
 
   it('has no axe violations', async () => {

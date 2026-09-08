@@ -10,6 +10,13 @@ type TagInputProps = {
   placeholder?: string;
   maxTags?: number;
   disabled?: boolean;
+  /**
+   * Opt-in drag-and-drop tag reordering (@dnd-kit optional peers). Order
+   * changes leave through `onChange` with the new array — the same single
+   * exit as add/remove. Keyboard: focus a tag's label, Space lifts,
+   * arrows move, Space drops, Escape cancels.
+   */
+  sortable?: boolean;
   className?: string;
   /**
    * 字段 id（FormItem 桥生成）：必须挂到内部可聚焦的 input 上而非根
@@ -29,6 +36,7 @@ export default function TagInput({
   placeholder,
   maxTags,
   disabled,
+  sortable,
   className,
   id,
   'aria-invalid': ariaInvalid,
@@ -46,6 +54,7 @@ export default function TagInput({
       placeholder={placeholder}
       maxTags={maxTags}
       disabled={disabled}
+      sortable={sortable}
       className={className}
       id={id}
       aria-invalid={ariaInvalid}

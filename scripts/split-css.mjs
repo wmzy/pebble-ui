@@ -74,6 +74,11 @@ const sharedLayers = {
     'popover',
     'tooltip',
   ],
+  // Sortable primitives (components in utils/sortable.tsx, hooks/styles in
+  // utils/sortable-shared.ts): their classes ride along with the two
+  // components that have opt-in `sortable` modes.
+  'utils/sortable': ['tag-input', 'tag-group'],
+  'utils/sortable-shared': ['tag-input', 'tag-group'],
 };
 
 /**

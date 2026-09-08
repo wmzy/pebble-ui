@@ -46,7 +46,7 @@
   "scripts": {
     "start": "vite",
     "build": "BUILD_LIB=true vite build && node scripts/split-css.mjs && node scripts/generate-registry.mjs && tsc -p tsconfig.lib.json && tsc-alias -p tsconfig.lib.json",
-    "build:demo": "BABEL_ENV=development BUILD_DEMO=true vite build && cp dist/index.html dist/404.html && cp llms.txt dist/",
+    "build:demo": "node scripts/write-version.mjs && BABEL_ENV=development BUILD_DEMO=true vite build && cp dist/index.html dist/404.html && cp llms.txt dist/",
     "commit": "lint-staged && git-cz -n",
     "coverage": "vitest run --coverage",
     "lint": "eslint --fix src *.mjs",
@@ -83,12 +83,24 @@
   "author": "wmzy",
   "license": "MIT",
   "peerDependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@tanstack/react-table": "^9.2.4",
     "react": "^19.0.0",
     "react-f0rm": "^1.1.1",
     "recharts": "^3.10.1"
   },
   "peerDependenciesMeta": {
+    "@dnd-kit/core": {
+      "optional": true
+    },
+    "@dnd-kit/sortable": {
+      "optional": true
+    },
+    "@dnd-kit/utilities": {
+      "optional": true
+    },
     "@tanstack/react-table": {
       "optional": true
     },
@@ -107,6 +119,9 @@
     "@babel/core": "^8.0.1",
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-typescript": "^8.0.1",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@for-fun/event-emitter": "^1.1.0",
     "@linaria/core": "^8.2.0",
     "@native-router/core": "^1.16.1",

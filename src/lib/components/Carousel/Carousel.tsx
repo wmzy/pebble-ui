@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { css } from '@linaria/core';
@@ -7,6 +7,7 @@ import { useControl } from 'react-use-control';
 
 import { useStrings } from '../LocaleProvider';
 import { formatString } from '../LocaleProvider/locale';
+import { getDirection } from '../../utils/direction';
 
 type CarouselProps = {
   value?: ControlOrValue<number>;
@@ -115,6 +116,7 @@ export default function Carousel({
 }: CarouselProps) {
   const [current, setCurrent] = useControl(valueControl, 0);
   const trackRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const count = Children.count(children);
   const strings = useStrings('carousel');
 
@@ -141,12 +143,46 @@ export default function Carousel({
   const goPrev = () => setCurrent((prev) => (prev - 1 + count) % count);
   const goNext = () => setCurrent((prev) => (prev + 1) % count);
 
+  /**
+   * Keyboard contract (WAI-ARIA carousel): the region is a tab stop and
+   * its arrows step the slides (Home/End jump to the ends). Under
+   * `dir="rtl"` the arrows mirror (← advances), read from the DOM at
+   * event time so the keys follow the mirrored slide order.
+   */
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (count <= 1) return;
+    const nextKey =
+      getDirection(wrapperRef.current) === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
+    const prevKey = nextKey === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
+    switch (event.key) {
+      case nextKey:
+        event.preventDefault();
+        goNext();
+        return;
+      case prevKey:
+        event.preventDefault();
+        goPrev();
+        return;
+      case 'Home':
+        event.preventDefault();
+        setCurrent(0);
+        return;
+      case 'End':
+        event.preventDefault();
+        setCurrent(count - 1);
+        return;
+    }
+  };
+
   return (
     <div
+      ref={wrapperRef}
       x-class={[wrapper, className]}
       role='region'
       aria-roledescription='carousel'
       aria-label={strings.label}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
     >
       <div ref={trackRef} className={track}>
         {children}

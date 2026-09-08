@@ -98,6 +98,47 @@
       "description": "Alert content"
     }
   ],
+  "AnchorProps": [
+    {
+      "name": "items",
+      "type": "AnchorItem[]",
+      "description": "Anchor sections in document order; each id must match an element rendered on the page"
+    },
+    {
+      "name": "activeId",
+      "type": "ControlOrValue<string>",
+      "default": "first item's id",
+      "description": "Highlighted section id — accepts a control (controlled) or a plain value (uncontrolled initial). Scroll-spy and clicks write through it"
+    },
+    {
+      "name": "onClick",
+      "type": "(id: string) => void",
+      "description": "Fires when a link is clicked (the highlight moves and scrolling is queued first)"
+    },
+    {
+      "name": "offsetTop",
+      "type": "number",
+      "default": "0",
+      "description": "Gap kept between the container top and the section top when scrolling (sticky header height), px"
+    },
+    {
+      "name": "bounds",
+      "type": "number",
+      "default": "5",
+      "description": "Scroll-spy trigger line, px from the container top (engines without IntersectionObserver)"
+    },
+    {
+      "name": "getContainer",
+      "type": "() => HTMLElement | Window",
+      "default": "() => window",
+      "description": "Scroll container the anchors navigate and observe"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
   "ApprovalCardProps": [
     {
       "name": "title",
@@ -1174,6 +1215,30 @@
       "description": "Flex children"
     }
   ],
+  "FullscreenProps": [
+    {
+      "name": "fullscreen",
+      "type": "ControlOrValue<boolean>",
+      "default": "false",
+      "description": "Whether the target should be fullscreen — accepts a control (controlled) or a plain value (uncontrolled initial). Browser-side changes (Esc) write back through it"
+    },
+    {
+      "name": "onChange",
+      "type": "(fullscreen: boolean) => void",
+      "description": "Fires whenever the actual fullscreen state changes — trigger toggle, prop drives, or the Esc shortcut"
+    },
+    {
+      "name": "target",
+      "type": "FullscreenTarget",
+      "default": "document.documentElement",
+      "description": "Element (or ref holding it) taken fullscreen"
+    },
+    {
+      "name": "children",
+      "type": "ReactElement",
+      "description": "The single trigger element; its click toggles fullscreen (own onClick is preserved)"
+    }
+  ],
   "GridItemProps": [
     {
       "name": "span",
@@ -1776,6 +1841,11 @@
       "name": "children",
       "type": "ReactNode",
       "description": "ResizablePanel and ResizableHandle elements"
+    },
+    {
+      "name": "SplitterGroup · SplitterPanel · SplitterHandle",
+      "type": "aliases",
+      "description": "AntD migration entry: `import { SplitterGroup, SplitterPanel, SplitterHandle } from 'haze-ui'` maps 1:1 onto ResizableGroup / ResizablePanel / ResizableHandle (same props)"
     }
   ],
   "ResizablePanelProps": [
@@ -2780,6 +2850,59 @@
       "type": "number",
       "default": "5",
       "description": "Extra items to render outside viewport"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
+  "WatermarkProps": [
+    {
+      "name": "content",
+      "type": "string | string[]",
+      "description": "Watermark text; an array renders stacked lines"
+    },
+    {
+      "name": "font",
+      "type": "WatermarkFont",
+      "default": "{ size: 14, color: theme text-muted, weight: 400 }",
+      "description": "Typography of the drawn text: size (px), color, weight, family"
+    },
+    {
+      "name": "rotate",
+      "type": "number",
+      "default": "-22",
+      "description": "Tile rotation in degrees"
+    },
+    {
+      "name": "gap",
+      "type": "number | [number, number]",
+      "default": "100",
+      "description": "Space between tiles, px — one number or [x, y]"
+    },
+    {
+      "name": "offset",
+      "type": "[number, number]",
+      "default": "[0, 0]",
+      "description": "Offset of the tile grid origin, px"
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "default": "9",
+      "description": "Overlay stacking order"
+    },
+    {
+      "name": "fullscreen",
+      "type": "boolean",
+      "default": "false",
+      "description": "Cover the whole viewport (fixed layer) instead of the container"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Content to watermark; with children the component acts as their container"
     },
     {
       "name": "className",

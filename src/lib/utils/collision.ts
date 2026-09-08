@@ -83,11 +83,45 @@ const verticals = {
 } as const;
 
 /**
+ * Inline-axis mirror of each placement: what the logical name means in
+ * physical terms once the writing direction flips. Start/end alignments
+ * swap sides and the horizontal placements change sides; centers and the
+ * block axis are direction-invariant.
+ */
+const mirroredPlacements = {
+  bottom: 'bottom-end',
+  'bottom-span': 'bottom-end',
+  'bottom-center': 'bottom-center',
+  'bottom-end': 'bottom',
+  top: 'top',
+  left: 'right',
+  right: 'left',
+} as const satisfies Record<CollisionPlacement, CollisionPlacement>;
+
+/**
+ * Resolve a placement to physical terms for a writing direction: the
+ * identity for LTR, the inline-axis mirror for RTL.
+ */
+export function mirrorPlacement<
+  P extends keyof typeof mirroredPlacements,
+>(placement: P, dir: 'ltr' | 'rtl' = 'ltr') {
+  return dir === 'rtl' ? mirroredPlacements[placement] : placement;
+}
+
+/**
  * Resolve a fixed-panel position from literal rects: baseline coordinates →
  * flip on the primary axis → shift on the cross axis → primary-axis clamp.
  * The baseline and flip math mirror placeFloatingPanel in floating.tsx, so
  * with zero padding and both strategies enabled the output is
  * pixel-identical to the legacy behavior.
+ *
+ * `placement` is logical, not physical: under `dir: 'rtl'` it mirrors on
+ * the inline axis first (see `mirrorPlacement`) — 'left' lands beside the
+ * trigger's physical right, and the start/end alignments of the vertical
+ * placements swap. The returned `placement` is the physical side the panel
+ * actually landed on, so collision outcomes stay comparable across
+ * directions. Omitting `dir` (or passing 'ltr') keeps the historical
+ * physical behavior.
  */
 export function computeFloatingPosition({
   trigger: rect,
@@ -96,6 +130,7 @@ export function computeFloatingPosition({
   placement,
   gap,
   strategy,
+  dir,
 }: {
   trigger: TriggerRect;
   panel: Size;
@@ -105,7 +140,13 @@ export function computeFloatingPosition({
   strategy: Required<Pick<CollisionStrategy, 'flip' | 'shift'>> & {
     padding: Record<CollisionSide, number>;
   };
+  /** Writing direction the placement resolves against; defaults to LTR. */
+  dir?: 'ltr' | 'rtl';
 }): {top: number; left: number; placement: CollisionSide} {
+  // Logical → physical before any geometry: the collision math below
+  // then works in plain physical coordinates, unchanged from the LTR
+  // baseline.
+  const physical = mirrorPlacement(placement, dir);
   const {flip, shift, padding} = strategy;
   // Padded viewport edges — the collision bounds for every check below.
   const edge = {
@@ -145,30 +186,30 @@ export function computeFloatingPosition({
         : rect.left - box.width - gap.before,
   });
 
-  const horizontal = placement === 'left' || placement === 'right';
+  const horizontal = physical === 'left' || physical === 'right';
   let {top, left} = horizontal
-    ? horizontalPos(placement)
-    : verticalPos(verticals[placement].side, verticals[placement].align);
+    ? horizontalPos(physical)
+    : verticalPos(verticals[physical].side, verticals[physical].align);
   let side: CollisionSide = horizontal
-    ? placement
-    : verticals[placement].side;
+    ? physical
+    : verticals[physical].side;
 
   if (horizontal) {
     const overflows =
-      placement === 'right'
+      physical === 'right'
         ? left + box.width > edge.right
         : left < edge.left;
     const fitsFlipped =
-      placement === 'right'
+      physical === 'right'
         ? rect.left - box.width - gap.before >= edge.left
         : rect.right + box.width + gap.after <= edge.right;
     if (flip && overflows && fitsFlipped) {
-      const flipped = placement === 'right' ? 'left' : 'right';
+      const flipped = physical === 'right' ? 'left' : 'right';
       ({top, left} = horizontalPos(flipped));
       side = flipped;
     }
   } else {
-    const {side: primary, align} = verticals[placement];
+    const {side: primary, align} = verticals[physical];
     const overflows =
       primary === 'bottom'
         ? top + box.height > edge.bottom

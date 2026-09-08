@@ -2,6 +2,8 @@ import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react';
 
 import { useCallback, useEffect, useRef } from 'react';
 
+import { getDirection } from './direction';
+
 /** How long typed characters keep accumulating before the buffer resets. */
 const TYPEAHEAD_WINDOW_MS = 500;
 
@@ -30,18 +32,27 @@ type UseMenuKeyboardOptions = {
    * `[role=option]` list of a Command palette.
    */
   selector?: string;
+  /**
+   * Layout axis of the item container. Vertical (default) moves with
+   * ↑/↓; horizontal moves with ←/→, mirrored under `dir="rtl"` (←
+   * advances) so the keys follow the mirrored layout. Home/End, Escape,
+   * Tab-close and typeahead are direction-invariant either way.
+   */
+  orientation?: 'horizontal' | 'vertical';
 };
 
 /**
  * Keyboard behavior for a roving-tabindex item container (WAI-ARIA menu
- * button / listbox pattern): ↑/↓ move focus (wrapping, skipping disabled
- * items), Home/End jump to the ends, Escape closes (returning focus to
- * the trigger), Tab closes, and printable characters run typeahead.
+ * button / listbox pattern): the orientation's main-axis arrows move
+ * focus (wrapping, skipping disabled items), Home/End jump to the ends,
+ * Escape closes (returning focus to the trigger), Tab closes, and
+ * printable characters run typeahead.
  */
 export function useMenuKeyboard({
   menuRef,
   onClose,
   selector,
+  orientation = 'vertical',
 }: UseMenuKeyboardOptions) {
   const typedRef = useRef('');
   const resetTimerRef = useRef(0);
@@ -59,12 +70,28 @@ export function useMenuKeyboard({
 
       const focus = (index: number) => items[index]?.focus();
 
+      // Main-axis arrows for the orientation; horizontal mirrors under
+      // RTL (direction read from the DOM at event time — the layout
+      // truth the focus order must follow).
+      const forward =
+        orientation === 'horizontal'
+          ? getDirection(menuRef.current) === 'rtl'
+            ? 'ArrowLeft'
+            : 'ArrowRight'
+          : 'ArrowDown';
+      const backward =
+        orientation === 'horizontal'
+          ? getDirection(menuRef.current) === 'rtl'
+            ? 'ArrowRight'
+            : 'ArrowLeft'
+          : 'ArrowUp';
+
       switch (event.key) {
-        case 'ArrowDown':
+        case forward:
           event.preventDefault();
           focus((current + 1) % items.length);
           return;
-        case 'ArrowUp':
+        case backward:
           event.preventDefault();
           focus((current - 1 + items.length) % items.length);
           return;
@@ -119,7 +146,7 @@ export function useMenuKeyboard({
         }
       }
     },
-    [menuRef, onClose, selector]
+    [menuRef, onClose, selector, orientation]
   );
 }
 

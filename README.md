@@ -15,6 +15,12 @@ English | [简体中文](./README-zh_CN.md)
 - Keep strict, provide lightweight, composable, and easily extendable components
 - Support themes customization
 - Support Tree-shaking
+- RTL by construction: CSS logical properties, mirrored horizontal-key
+  semantics (Tabs, Rating, Slider, Carousel, Calendar, menus, …) and
+  mirrored floating placements under `dir="rtl"`
+- RSC-aware dist: interactive modules carry `'use client'`; 36 static,
+  hook-free modules (tokens, Badge, Card, Typography, …) ship without it
+  so they render as React Server Components
 - Tested like a product: 120+ unit test files, axe accessibility cases in
   every component test suite, ~50 Playwright e2e scenarios across
   Chromium/Firefox/WebKit, and pixel-locked visual baselines
@@ -79,21 +85,25 @@ checklist:
 - **Colors are OKLCH with runtime-derived interaction states.** Requires
   Chrome/Edge 119+, Safari 16.4+ or Firefox 128+; no HSL/hex fallbacks
   are shipped.
-- **`'use client'` is pre-injected.** Every module in `dist/` starts with
-  the directive, so in a Next.js App Router project you import haze-ui
-  straight from your client components — no wrapper module re-exporting
-  the library under its own `'use client'` banner.
+- **`'use client'` is pre-injected on interactive modules.** Every
+  stateful module in `dist/` starts with the directive; the static,
+  hook-free set (tokens and presentational components) ships without it
+  so those render as React Server Components (see
+  [Server Components](#server-components-nextjs-app-router)).
 
 ### Optional peer dependencies
 
 haze-ui's only required runtime dependency is `react-use-control` — the
-engine behind `ControlOrValue<T>`. Three integrations are optional peers,
+engine behind `ControlOrValue<T>`. Six integrations are optional peers,
 installed only when you use the components that need them:
 
 ```sh
-npm i react-f0rm              # FormItem (peer range ^1.1.1)
-npm i @tanstack/react-table   # DataTable (peer range ^9.2.4)
-npm i recharts                # Chart (peer range ^3.10.1)
+npm i react-f0rm                          # FormItem (peer range ^1.1.1)
+npm i @tanstack/react-table               # DataTable (peer range ^9.2.4)
+npm i recharts                            # Chart (peer range ^3.10.1)
+npm i @dnd-kit/core @dnd-kit/sortable \
+      @dnd-kit/utilities                  # TagInput/TagGroup sortable
+                                           # (^6.3.1 / ^10.0.0 / ^3.2.2)
 ```
 
 Everything else — `Button`, `Input`, `Dialog`, `Select`, … — runs with
@@ -160,7 +170,7 @@ re-deriving file names — the mapping changes in lockstep with the build.
 
 ### Server Components (Next.js App Router)
 
-Every JS module in `dist/` starts with the `'use client'` directive,
+Interactive modules in `dist/` carry the `'use client'` directive,
 injected at build time — the same convention Radix, Base UI and React
 Aria ship. In an App Router project you import haze-ui straight from
 your client components; there is no need for a wrapper module that
@@ -174,6 +184,26 @@ export function Actions() {
   return <Button>Start</Button>;
 }
 ```
+
+**A static subset renders as React Server Components.** Modules with no
+hooks and no DOM access ship *without* the directive, so they can be
+imported directly into server components and cost zero client JS:
+
+- tokens: everything on the `haze-ui/tokens` subpath (`lightTheme`,
+  `darkTheme`, `spacing`, `typography`, `TOKEN_REGISTRY`, OKLCH utils)
+- components: `AspectRatio`, `Badge`, `Card`, `CodeBlock`, `Container`,
+  `Divider`, `Flex`, `Grid`/`GridItem`, `Icon`, `Kbd`, `Skeleton`,
+  `Stat`/`StatGroup`, `Typography` (`Title`/`Text`/`Paragraph`)
+
+Import them from the subpath (`import { Badge } from
+'haze-ui/components/Badge'`) or the barrel — in an RSC module the
+bundler resolves the module itself, not the client-marked barrel shell.
+The emitted markup carries the usual Linaria class names, so CSS loading
+is unchanged (`haze-ui/styles.css` or the `css/*` subpaths). The safe
+list lives in `scripts/rsc-safe.mjs` and is enforced by
+`src/lib/dist-esm-contract.test.ts` (including a transitive-closure
+check: every static import inside a safe module must itself be safe) —
+new components only join the list when they stay hook-free.
 
 CSS loading is unchanged from the two modes above — `haze-ui/styles.css`
 in the root layout, or the `haze-ui/css/*` subpaths. A runnable Next.js
@@ -256,6 +286,95 @@ function SettingsView() {
 }
 ```
 
+## Anchor: scroll-spy navigation
+
+Sticky anchor navigation with an IntersectionObserver scroll-spy (a
+scroll-listener fallback covers engines without IO). Pass `items`, and
+the highlighted section is a controllable state like everything else —
+`activeId?: ControlOrValue<string>`. Clicks scroll the container
+(`getContainer` defaults to the window) with an `offsetTop` adjustment,
+and the active link carries `aria-current="true"`.
+
+```jsx
+import 'haze-ui/css/tokens.css';
+import 'haze-ui/css/anchor.css';
+import { Anchor } from 'haze-ui';
+
+<Anchor items={[{ id: 'intro', label: 'Intro' }, { id: 'api', label: 'API' }]} />;
+```
+
+## Watermark: tiled canvas watermark
+
+A canvas-tiled watermark layer: text rows (`content: string | string[]`)
+rendered onto an off-screen tile (rotated, `gap`-spaced,
+device-pixel-ratio aware) and repeated as a background over the
+container — or the whole viewport with `fullscreen`. Default color
+follows the theme's `--haze-color-text-muted`; the layer is
+`pointer-events: none` and `aria-hidden`, and engines without a canvas
+2d context degrade to no watermark rather than crashing.
+
+```jsx
+<Watermark content="CONFIDENTIAL" rotate={-22}>
+  <Report />
+</Watermark>
+```
+
+## Fullscreen: wrap-mode fullscreen binding
+
+`useFullscreen(target?)` returns `[isFullscreen, toggle, handle]` — the
+Fullscreen API wired to `ControlOrValue` semantics: `Fullscreen`
+wraps a single trigger child (its `onClick` is preserved and composed)
+and exposes `fullscreen?: ControlOrValue<boolean>`, so browser-side
+exits (Esc, OS gestures) write back through the control and fire
+`onChange` exactly once.
+
+```jsx
+const [fs, setFs, fsCtrl] = useControl(undefined, false);
+<Fullscreen fullscreen={fsCtrl} onChange={setFs}>
+  <Button>Enter focus mode</Button>
+</Fullscreen>
+```
+
+## Sortable tags and chips (optional dnd-kit peers)
+
+`TagInput` and `TagGroup` accept `sortable?: boolean` — opt-in drag
+reordering powered by `@dnd-kit/core` / `@dnd-kit/sortable` /
+`@dnd-kit/utilities` (optional peers, same tree-shaking contract as
+recharts and TanStack Table). `TagInput` writes the new array through
+`onChange`; `TagGroup` reports `onReorder(nextOrder)` (the new
+arrangement of original child indexes) and leaves re-rendering to the
+parent. Sorting is keyboard-complete: focus a tag, `Space` to lift,
+arrows to move, `Space` to drop, `Escape` to cancel.
+
+## Imperative overlay handles
+
+`Dialog`, `Drawer`, `BottomSheet`, `Popover` and `DropdownMenu` accept a
+`ref` (React 19 style — no `forwardRef`) exposing
+`{ open(), close(), focusTrigger() }`. The methods drive the same state
+outset as user interaction — `Dialog`'s `close()` goes through the
+native `close` event path so `onClose` and focus restoration fire
+exactly once — and they honor controlled mode, writing through the
+control.
+
+```tsx
+const dialog = useRef<DialogHandle>(null);
+<Dialog ref={dialog} …>…</Dialog>;
+<button onClick={() => dialog.current?.open()}>Show</button>;
+```
+
+## View Transitions on modals (opt-in)
+
+`Dialog`, `Drawer` and `BottomSheet` accept `viewTransition?: boolean`
+(default `false`). When enabled, their open/close state flips are wrapped
+in `document.startViewTransition(() => flushSync(...))` — the synchronous
+DOM-update pattern React requires — so modals animate through the native
+View Transitions API alongside their regular enter/exit animations. The
+transition itself degrades to a plain state flip when the engine lacks
+`startViewTransition` or the user prefers reduced motion; transition
+appearance is yours to style via `::view-transition-*`. Controlled
+consumers' own flips happen outside the component and are intentionally
+not wrapped.
+
 ## Design tokens export (Figma)
 
 `toDesignTokens()` converts the token registry into a [W3C Design Tokens](https://tr.designtokens.org/) JSON file — grouped by category (`color` / `font` / `spacing` / `dimension` / `shadow`), each token carrying a W3C `$type` and the source CSS variable in `$extensions['haze-ui.css-var']`, with `$value` being the resolved value of the chosen theme (`light` by default). The Theme Editor ships a one-click entry: the **Export W3C tokens (.json)** button in the toolbar downloads the file for the mode currently being edited, live edits included. The exported file can be imported directly into Figma Tokens / Tokens Studio.
@@ -282,7 +401,7 @@ function SettingsView() {
 ## AI-friendly distribution
 
 **llms.txt** — a markdown overview of the whole library (the `ControlOrValue<T>`
-state protocol, both CSS loading modes, all 104 components grouped with one-line
+state protocol, both CSS loading modes, all 107 components grouped with one-line
 purposes, the token system, the floating-overlay tiers, form integration) written
 for AI coding tools and crawlers. It lives at the repo root
 ([llms.txt](./llms.txt)) and, on the docs site, at
@@ -309,7 +428,7 @@ want different styles or behavior, fork the generated wrapper file — it
 is your customization layer, not a source drop. Coverage, to be precise:
 only the **agent components** (the AI & Chat group plus AsyncSection).
 
-## Headless primitives (experimental)
+## Headless primitives
 
 The behavior layer the styled components are built on ships as its own
 subpath: `haze-ui/headless`. Component authors assembling their own panels
@@ -329,8 +448,8 @@ with the same version, no re-implementation:
 import { useFloating, Presence } from 'haze-ui/headless';
 ```
 
-Experimental while the API settles — additions are non-breaking, but
-signatures may tighten before the surface is declared stable.
+Stable public API — same semver commitment as the component library:
+breaking changes land only on a major version.
 
 ## react-f0rm Integration
 
@@ -615,10 +734,25 @@ state changes with no per-component wiring.
 haze-ui supports RTL via CSS logical properties wherever a side is
 semantic (the *start/end* of reading flow), not just decorative. Set
 `dir="rtl"` (or `direction: rtl`) on an ancestor and those sides mirror
-automatically — no component props change. A regression smoke test
-(`src/lib/rtl.test.tsx`) renders Progress, Alert, Badge, Tag and Dialog
-in a `dir="rtl"` subtree asserting rendering, axe cleanliness and
-unchanged aria contracts.
+automatically — no component props change. The same goes for keyboard
+semantics: horizontal arrow keys invert their meaning in RTL (Tabs,
+Rating, Slider, Carousel, Calendar, Toolbar, Cascader, Tour and
+horizontal menus), and floating placements are logical — a panel with
+`placement="bottom"` in an RTL document lands on the mirrored inline
+side without passing a mirrored placement. `src/lib/rtl.test.tsx` is a
+four-layer contract suite (rendering + axe, keyboard mirroring, floating
+mirroring, and a CSS-codemod guard with an explicit exemption list),
+backed by `e2e/rtl.spec.ts` cross-engine checks.
+
+`LocaleProvider` takes an optional `direction` prop (`'ltr' | 'rtl'`,
+explicit wins over derivation from the locale — Arabic, Hebrew, Farsi
+and friends are derived automatically) and feeds `useDirection()`, the
+hook components use internally. `getDirection(el)` (DOM resolution with
+`[dir]` fallback) and `localeDirection(locale)` are exported from the
+barrel alongside it, plus `createStrings(base, overrides)` — a
+`DeepPartial<HazeStrings>` deep-merge for deriving locale packs without
+forking a whole string table (see the *Adding a locale* recipe on the
+docs site).
 
 ### Direction-responsive by construction (no physical CSS)
 
@@ -658,12 +792,13 @@ Checkbox's rotated checkmark, Radio's centered dot, Affix's symmetric
 ### Partial support: known gaps
 
 - **Floating panels (Popover, DropdownMenu, Tooltip, ContextMenu,
-  Combobox, Datepicker)** — placements are physical sides
-  (`'left'`/`'right'`/`'bottom-end'`, …). The CSS anchor-positioning
-  `position-area` grid keywords and the JS collision math
-  (`utils/collision.ts`, viewport coordinates) are physical; migrating to
-  logical `position-area` keywords is a tracked future change. In RTL the
-  panels position identically to LTR.
+  Combobox, Datepicker)** — *fixed*: `FloatingPlacement` is logical now.
+  Tier 1 uses logical `position-area` values (`span-inline-end
+  block-end`, …) where engines accept them and falls back to
+  dir-switched physical classes; the tier-2 JS math
+  (`utils/collision.ts` → `computeFloatingPosition(..., { dir })`)
+  mirrors the x-axis. In RTL the panels open on the mirrored side
+  automatically.
 - **Input adornments** — `SelectCore` / `ModelPicker` chevrons
   (`background-position: right …` + `padding-right`) and
   `PasswordInputCore`'s absolute reveal button sit on the physical right

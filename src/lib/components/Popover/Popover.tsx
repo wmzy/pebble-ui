@@ -1,12 +1,29 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 import type { CollisionPadding } from '../../utils/collision';
 
 import { css } from '@linaria/core';
-import { useId, useMemo, useRef } from 'react';
+import { useId, useImperativeHandle, useMemo, useRef } from 'react';
 import { useControl } from 'react-use-control';
 
 import { FloatingPanel, useFloating } from '../../utils/floating';
+
+/**
+ * Imperative handle exposed through the React 19 `ref` prop (same API
+ * choice as VirtualList). `open`/`close` are state writes going through
+ * the same `useFloating` path as the trigger's own clicks — the popover
+ * visibility, animated exit and the toggle-echo reconciliation in the
+ * floating engine stay in charge; the handle never calls
+ * `showPopover`/`hidePopover` directly.
+ */
+type PopoverHandle = {
+  /** Show the popover, as if the trigger toggled it open. */
+  open: () => void;
+  /** Close the popover through the animated exit path. */
+  close: () => void;
+  /** Focus the trigger element. */
+  focusTrigger: () => void;
+};
 
 type PopoverProps = {
   content: ReactNode;
@@ -18,6 +35,7 @@ type PopoverProps = {
   collisionPadding?: CollisionPadding;
   className?: string;
   children: ReactNode;
+  ref?: Ref<PopoverHandle>;
 };
 
 const container = css`
@@ -44,6 +62,7 @@ export default function Popover({
   collisionPadding,
   className,
   children,
+  ref,
 }: PopoverProps) {
   const [open, setOpen] = useControl(openControl, false);
   const id = useId();
@@ -64,6 +83,26 @@ export default function Popover({
     animated: true,
     collision,
   });
+
+  // Imperative surface: `ref.current?.open()/close()/focusTrigger()`.
+  // open/close only write the state the floating engine reacts to (the
+  // same path as the trigger's clicks), leaving showPopover/hidePopover
+  // and the toggle-echo reconciliation to the engine's effect.
+  useImperativeHandle(
+    ref,
+    () => ({
+      open: () => {
+        setOpen(true);
+      },
+      close: () => {
+        setOpen(false);
+      },
+      focusTrigger: () => {
+        triggerRef.current?.focus();
+      },
+    }),
+    [setOpen]
+  );
 
   return (
     <span className={container}>
@@ -107,4 +146,4 @@ export default function Popover({
   );
 }
 
-export type { PopoverProps };
+export type { PopoverProps, PopoverHandle };

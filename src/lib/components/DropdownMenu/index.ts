@@ -3,7 +3,7 @@ export {default as DropdownMenuTrigger} from './DropdownMenuTrigger';
 export {default as DropdownMenuContent} from './DropdownMenuContent';
 export {default as DropdownMenuItem} from './DropdownMenuItem';
 export {default as DropdownMenuSeparator} from './DropdownMenuSeparator';
-export type {DropdownMenuProps} from './DropdownMenu';
+export type {DropdownMenuProps, DropdownMenuHandle} from './DropdownMenu';
 export type {DropdownMenuTriggerProps} from './DropdownMenuTrigger';
 export type {DropdownMenuContentProps} from './DropdownMenuContent';
 export type {DropdownMenuItemProps} from './DropdownMenuItem';

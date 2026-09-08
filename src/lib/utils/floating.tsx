@@ -15,7 +15,8 @@ import type { CollisionStrategy } from './collision';
 import { css } from '@linaria/core';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
-import { computeFloatingPosition, resolvePadding } from './collision';
+import { computeFloatingPosition, mirrorPlacement, resolvePadding } from './collision';
+import { getDirection } from './direction';
 import { whenExitSettles } from './presence';
 
 /**
@@ -24,12 +25,15 @@ import { whenExitSettles } from './presence';
  * the library entry — the public surface is curated behind the
  * `haze-ui/headless` subpath; consumers compose their own panels on top.
  *
- * RTL note: placement names and geometry are deliberately PHYSICAL —
- * 'left' means the physical left of the trigger, matching the industry
- * convention (Radix, Floating UI) where side/alignment is the consumer's
- * call. An RTL app passes the mirrored placement itself (e.g. 'right'
- * where an LTR app passes 'left'); the collision math below is
- * direction-agnostic because it works on raw viewport rects.
+ * RTL note: placement names are LOGICAL relative to the writing
+ * direction. Under `dir="rtl"` every placement mirrors on the inline
+ * axis — 'left' renders beside the trigger's physical right, and the
+ * start/end alignments of the vertical placements swap ('bottom' hugs
+ * the trigger's right edge, 'bottom-end' its left). Under LTR the names
+ * resolve to the historical physical geometry, pixel-identical. The
+ * direction is read from the DOM (`[dir]` resolution — see
+ * utils/direction.ts), so the mirror always matches what the CSS
+ * logical properties painted.
  *
  * Three rendering tiers, chosen by feature detection:
  *
@@ -204,6 +208,77 @@ const anchoredRight = css`
 `;
 
 /**
+ * Anchored path, logical position-area values: identical geometry to the
+ * physical classes above under LTR, and mirrored for free under RTL —
+ * the logical keywords resolve against the panel's containing block
+ * (the viewport for fixed/top-layer panels), so no JS-side mirror is
+ * needed on this path. Preferred whenever the engine understands the
+ * logical keywords; the physical classes + `mirrorPlacement` cover
+ * engines that shipped anchor positioning without them.
+ *
+ * Syntax trap (probed on Chromium 142): logical span keywords only
+ * parse in the inline-axis slot with a logical block partner —
+ * `bottom span-inline-end` is REJECTED while `span-inline-end block-end`
+ * is accepted — so the block axis is spelled logically too.
+ */
+const anchoredLogicalBottom = css`
+  position-area: span-inline-end block-end;
+  margin-block-start: var(--haze-space-1);
+  position-try-fallbacks: flip-block;
+`;
+
+const anchoredLogicalBottomCenter = css`
+  position-area: block-end center;
+  margin-block-start: var(--haze-space-1);
+  position-try-fallbacks: flip-block;
+`;
+
+const anchoredLogicalBottomEnd = css`
+  position-area: span-inline-start block-end;
+  margin-block-start: var(--haze-space-1);
+  position-try-fallbacks: flip-block;
+`;
+
+const anchoredLogicalTop = css`
+  position-area: block-start center;
+  margin-block-end: var(--haze-space-1);
+  position-try-fallbacks: flip-block;
+`;
+
+const anchoredLogicalLeft = css`
+  position-area: inline-start center;
+  margin-inline-end: var(--haze-space-1);
+  position-try-fallbacks: flip-inline;
+`;
+
+const anchoredLogicalRight = css`
+  position-area: inline-end center;
+  margin-inline-start: var(--haze-space-1);
+  position-try-fallbacks: flip-inline;
+`;
+
+/** Lazy detection (jsdom's CSS.supports accepts anything — see above). */
+let logicalPositionArea: boolean | undefined;
+
+/**
+ * Whether the anchored tier can use logical `position-area` keywords.
+ * Probes the exact value shape the logical classes declare (see the
+ * syntax trap above), gated on anchor positioning itself for the same
+ * reason `supportsAnchorPositioning` gates on the popover API.
+ */
+export function supportsLogicalPositionArea(): boolean {
+  if (logicalPositionArea === undefined) {
+    logicalPositionArea =
+      supportsAnchorPositioning() &&
+      typeof CSS !== 'undefined' &&
+      typeof CSS.supports === 'function' &&
+      CSS.supports('position-area: span-inline-end block-end') &&
+      CSS.supports('position-area: inline-start center');
+  }
+  return logicalPositionArea;
+}
+
+/**
  * Fallback path: absolute positioning inside the trigger's container
  * (consumers render it `position: relative`). Matches the geometry the
  * anchored classes express.
@@ -289,6 +364,17 @@ const anchoredPlacements = {
   right: anchoredRight,
 } as const;
 
+/** Same placements expressed with logical position-area values (RTL-free). */
+const anchoredLogicalPlacements = {
+  bottom: anchoredLogicalBottom,
+  'bottom-span': anchoredLogicalBottom,
+  'bottom-center': anchoredLogicalBottomCenter,
+  'bottom-end': anchoredLogicalBottomEnd,
+  top: anchoredLogicalTop,
+  left: anchoredLogicalLeft,
+  right: anchoredLogicalRight,
+} as const;
+
 const fallbackPlacements = {
   bottom: fallbackBottom,
   'bottom-span': fallbackBottomSpan,
@@ -312,8 +398,10 @@ const gapPlacements = {
 type AnchorablePlacement = keyof typeof anchoredPlacements;
 
 /**
- * Panel placement relative to the trigger. `point` leaves positioning
- * entirely to the consumer (e.g. ContextMenu at the pointer coordinates).
+ * Panel placement relative to the trigger, logical (inline-relative):
+ * under `dir='rtl'` the horizontal placements and the start/end
+ * alignments mirror (see the module's RTL note). `point` leaves
+ * positioning entirely to the consumer (e.g. ContextMenu at the pointer coordinates).
  */
 export type FloatingPlacement = AnchorablePlacement | 'point';
 
@@ -374,6 +462,13 @@ export type FloatingBehavior = {
   exited: boolean;
   /** Collision strategy FloatingPanel forwards to useFloatingPosition. */
   collision: CollisionStrategy | undefined;
+  /**
+   * Rendered writing direction of the trigger's subtree (`[dir]`
+   * resolution): drives the RTL mirror of the placement classes on the
+   * JS-positioned tiers. Read per render from the trigger element, so a
+   * panel that opens after mount always sees the live direction.
+   */
+  direction: 'ltr' | 'rtl';
   /** Unique CSS anchor name for this instance (anchored path). */
   anchorName: string;
   /** Inline style for the trigger: declares `anchor-name`. */
@@ -614,6 +709,18 @@ export function useFloating({
     setOpen((prev) => !prev);
   }, [setOpen]);
 
+  // Direction for the JS-positioned placement mirror, resolved from the
+  // trigger's [dir] chain in an effect (ref reads stay out of render).
+  // Re-synced whenever the panel opens: the open render then always
+  // carries the live direction, and the initial 'ltr' only shows on the
+  // closed first paint — where it only matters on engines without
+  // logical position-area, the only ones needing the physical mirror.
+  const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr');
+  useEffect(() => {
+    const next = getDirection(triggerRef.current);
+    setDirection((prev) => (prev === next ? prev : next));
+  }, [triggerRef, open]);
+
   return {
     open,
     native,
@@ -623,6 +730,7 @@ export function useFloating({
     dataState: animated ? (open ? 'open' : 'closed') : undefined,
     exited: animated ? exited : !open,
     collision,
+    direction,
     anchorName,
     triggerStyle: anchored ? { anchorName } : undefined,
     onTriggerPointerDown,
@@ -650,16 +758,34 @@ export function useFloating({
 // Placement classes + JS positioning (tier 2)
 // ---------------------------------------------------------------------------
 
-/** x-class entries placing the panel relative to the trigger, per tier. */
+/**
+ * x-class entries placing the panel relative to the trigger, per tier.
+ *
+ * `placement` is logical (see the module's RTL note): under `dir='rtl'`
+ * it mirrors on the inline axis. The anchored tier prefers logical
+ * `position-area` classes, which mirror themselves in CSS; engines
+ * without the logical keywords get the physical class of the mirrored
+ * placement. The JS-positioned tiers (gap margins, fallback offsets)
+ * are physical declarations, so the mirror is applied to the lookup
+ * here — the same `mirrorPlacement` `placeFloatingPanel` resolves
+ * coordinates with, keeping the gap class and the JS math on the same
+ * side.
+ */
 export function floatingPlacementClasses(
   behavior: Pick<FloatingBehavior, 'native' | 'anchored'>,
-  placement: FloatingPlacement
+  placement: FloatingPlacement,
+  dir: 'ltr' | 'rtl' = 'ltr'
 ): (string | false)[] {
   if (placement === 'point') return [];
+  const physical = mirrorPlacement(placement, dir);
   return [
-    behavior.native && behavior.anchored && anchoredPlacements[placement],
-    behavior.native && !behavior.anchored && gapPlacements[placement],
-    !behavior.native && fallbackPlacements[placement],
+    behavior.native &&
+      behavior.anchored &&
+      (supportsLogicalPositionArea()
+        ? anchoredLogicalPlacements[placement]
+        : anchoredPlacements[physical]),
+    behavior.native && !behavior.anchored && gapPlacements[physical],
+    !behavior.native && fallbackPlacements[physical],
   ];
 }
 
@@ -721,12 +847,16 @@ export function placeFloatingPanel(
     before: readGap(panel, 'marginRight'),
     after: readGap(panel, 'marginLeft'),
   };
+  // Logical placement → physical coordinates under the trigger's
+  // rendered direction; the gap sides flip with the same mirror the
+  // class pick in floatingPlacementClasses applied.
   const {top, left} = computeFloatingPosition({
     trigger: rect,
     panel: box,
     viewport,
     placement,
     gap,
+    dir: getDirection(trigger),
     strategy: {
       flip: collision?.flip ?? true,
       shift: collision?.shift ?? true,
@@ -891,7 +1021,9 @@ export function FloatingPanel({
       x-class={[
         visualClass,
         ...behavior.panelClasses,
-        ...(placement ? floatingPlacementClasses(behavior, placement) : []),
+        ...(placement
+          ? floatingPlacementClasses(behavior, placement, behavior.direction)
+          : []),
         className,
       ]}
     >

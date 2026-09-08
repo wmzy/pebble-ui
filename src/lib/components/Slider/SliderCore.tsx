@@ -1,6 +1,8 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, KeyboardEvent as ReactKeyboardEvent } from 'react';
 
 import { css } from '@linaria/core';
+
+import { getDirection } from '../../utils/direction';
 
 type SliderCoreProps = {
   value: number;
@@ -60,11 +62,47 @@ const base = css`
   }
 `;
 
+/**
+ * Arrow semantics under RTL: the native control's ←/→ handling tracks
+ * the engine's own (inconsistent) range-flip support, so the mirrored
+ * behavior is enforced here — ← increases, → decreases — stepping by
+ * the input's own min/max/step. LTR stays fully native (untouched).
+ */
+type NativeChangeHandler = ComponentPropsWithoutRef<'input'>['onChange'];
+
+function mirrorRangeArrows(
+  event: ReactKeyboardEvent<HTMLInputElement>,
+  value: number,
+  onChange: (value: number) => void,
+  onNativeChange?: NativeChangeHandler
+) {
+  const el = event.currentTarget;
+  if (
+    el.disabled ||
+    getDirection(el) !== 'rtl' ||
+    (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')
+  ) {
+    return;
+  }
+  event.preventDefault();
+  const step = el.step === '' || el.step === 'any' ? 1 : Number(el.step);
+  const min = el.min === '' ? 0 : Number(el.min);
+  const max = el.max === '' ? 100 : Number(el.max);
+  const delta = event.key === 'ArrowLeft' ? step : -step;
+  const next = Math.min(Math.max(value + delta, min), max);
+  onChange(Math.round(next * 1e6) / 1e6);
+  // The passthrough expects a change event; a synthesized one is not
+  // constructible cross-engine, and this key event targets the same
+  // input — close enough for consumers tracking value changes.
+  (onNativeChange as ((event: unknown) => void) | undefined)?.(event);
+}
+
 export default function SliderCore({
   value,
   onChange,
   onNativeChange,
   className,
+  onKeyDown,
   ...rest
 }: SliderCoreProps) {
   return (
@@ -75,6 +113,12 @@ export default function SliderCore({
       onChange={(e) => {
         onChange(Number(e.target.value));
         onNativeChange?.(e);
+      }}
+      onKeyDown={(e) => {
+        onKeyDown?.(e);
+        if (!e.defaultPrevented) {
+          mirrorRangeArrows(e, value, onChange, onNativeChange);
+        }
       }}
       {...rest}
     />

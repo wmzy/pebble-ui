@@ -1,17 +1,47 @@
-import type { ReactNode, ComponentPropsWithoutRef  } from 'react';
+import type { ReactNode, ComponentPropsWithoutRef, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
 import { css } from '@linaria/core';
+import { useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 
 import { useFocusScope } from '../../utils/focus-scope';
 import { Presence } from '../../utils/presence';
+import { useViewTransitionFlip } from '../../utils/view-transition';
+
+/**
+ * Imperative handle exposed through the React 19 `ref` prop (same API
+ * choice as VirtualList). Unlike Dialog/Drawer there is no native close
+ * event to defer to — every exit path (overlay click, Escape, handle)
+ * runs through the same `handleClose`, so `onClose` still fires exactly
+ * once per close.
+ */
+type BottomSheetHandle = {
+  /** Show the sheet (Presence mounts it, focus moves in). */
+  open: () => void;
+  /** Close the sheet through the animated exit; `onClose` fires once. */
+  close: () => void;
+  /** Focus the element that held focus when the sheet last opened. */
+  focusTrigger: () => void;
+};
 
 type BottomSheetProps = {
   open?: ControlOrValue<boolean>;
   onClose?: () => void;
+  /**
+   * 开/关状态翻转是否包进 View Transitions API（默认 `false`，行为与
+   * 不传完全一致）。开启后每次显隐翻转都运行在
+   * `document.startViewTransition(() => flushSync(...))` 里（React 官方
+   * 要求的同步 DOM 更新模式），页面获得原生过渡；命令式 handle、
+   * Esc、遮罩点击等路径共用同一出口。引擎不支持
+   * `startViewTransition` 或用户偏好 `prefers-reduced-motion: reduce`
+   * 时自动退化为直接翻转。过渡外观由消费方的 `::view-transition-*`
+   * 样式定义，组件自身的进退场动画照常运行在新快照内。
+   */
+  viewTransition?: boolean;
   children: ReactNode;
   className?: string;
+  ref?: Ref<BottomSheetHandle>;
 } & Omit<ComponentPropsWithoutRef<'div'>, 'children'>;
 
 const overlay = css`
@@ -93,17 +123,52 @@ const handle = css`
 export default function BottomSheet({
   open: openControl,
   onClose,
+  viewTransition = false,
   children,
   className,
+  ref,
   ...rest
 }: BottomSheetProps) {
   const [open, setOpen] = useControl(openControl, false);
+  // open/close 翻转的统一出口：viewTransition 开启时每次翻转包在
+  // document.startViewTransition(() => flushSync(...)) 里（不支持或
+  // reduce 偏好时退化为直接 setOpen）。
+  const flipOpen = useViewTransitionFlip(viewTransition, setOpen);
+  const openerRef = useRef<HTMLElement | null>(null);
+  // Opener capture for the imperative handle's focusTrigger(). Declared
+  // BEFORE useFocusScope on purpose: effects run in declaration order,
+  // and the scope's effect is what moves focus into the sheet —
+  // capturing later would record the sheet itself. This mirrors the
+  // element the scope restores focus to on close.
+  useEffect(() => {
+    if (!open) return;
+    const active = document.activeElement;
+    openerRef.current = active instanceof HTMLElement ? active : null;
+  }, [open]);
   const setScope = useFocusScope({ enabled: open, trapped: true });
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleClose = useCallback(() => {
+    flipOpen(false);
     onClose?.();
-  };
+  }, [flipOpen, onClose]);
+
+  // Imperative surface: `ref.current?.open()/close()/focusTrigger()`.
+  // close shares handleClose with the overlay-click and Escape paths —
+  // the single exit every consumer of onClose sees.
+  useImperativeHandle(
+    ref,
+    () => ({
+      open: () => {
+        flipOpen(true);
+      },
+      close: handleClose,
+      focusTrigger: () => {
+        const target = openerRef.current;
+        if (target?.isConnected) target.focus();
+      },
+    }),
+    [flipOpen, handleClose]
+  );
 
   return (
     <Presence present={open}>
@@ -133,4 +198,4 @@ export default function BottomSheet({
   );
 }
 
-export type { BottomSheetProps };
+export type { BottomSheetProps, BottomSheetHandle };
