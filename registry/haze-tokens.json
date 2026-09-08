@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "haze-tokens",
+  "type": "registry:item",
+  "title": "Haze UI Tokens",
+  "description": "haze-ui 设计令牌（OKLCH 色板、间距、排版、动效）的引入与主题化指南。Design-token onboarding guide: where tokens.css lives and how to load, theme and interop it.",
+  "author": "wmzy <https://github.com/wmzy>",
+  "docs": "haze-ui ships JS and CSS separately. Import the stylesheet once in your app entry: `import 'haze-ui/styles.css'` (full sheet) or `import 'haze-ui/css/tokens.css'` plus per-component CSS. Activate tokens with the `lightTheme`/`darkTheme` + `spacing` + `typography` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+  "dependencies": [
+    "haze-ui"
+  ],
+  "files": [
+    {
+      "path": "registry/haze-tokens/haze-tokens.md",
+      "type": "registry:file",
+      "target": "~/docs/haze-tokens.md",
+      "content": "# Haze UI Design Tokens\n\nThis item is an onboarding guide for the haze-ui design tokens. The token\nstylesheet itself is **not** vendored here — it is generated at build time\nand consumed from the published `haze-ui` npm package (see [Why this file is\na guide, not a stylesheet](#why-this-file-is-a-guide-not-a-stylesheet)).\n\n## What the tokens are\n\n`tokens.css` is the single source of truth for every visual value in\nhaze-ui: a 12-step OKLCH color scale per hue, semantic aliases\n(`--haze-color-primary`, `--haze-color-border`, …), interaction-state\nformulas via CSS relative colors\n(`oklch(from var(--haze-color-primary) calc(l - 0.045) c h)`), spacing,\nradius, shadow, typography and motion tokens. All tokens are plain CSS\ncustom properties prefixed `--haze-*`.\n\nThe generator pipeline:\n\n```\nsrc/lib/tokens/palette.ts   (source of truth — OKLCH math + scales)\n  → scripts/split-css.mjs   (pnpm build, groups Linaria output)\n  → dist/css/tokens.css     (published inside the npm package)\n```\n\n## How to consume it\n\nThe `haze-ui` package (installed as a dependency of this item) exposes the\nstylesheet through package exports:\n\n```js\n// Full sheet: tokens + every component (~12kB gzipped)\nimport 'haze-ui/styles.css';\n\n// or tokens only, then each component you use:\nimport 'haze-ui/css/tokens.css';\n```\n\nWithout a bundler, the same file is available from any npm CDN:\n\n```\nhttps://unpkg.com/haze-ui@latest/dist/css/tokens.css\n```\n\nThen activate the tokens on a container — usually `<body>` or `<html>`:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n<body className={`${lightTheme} ${spacing} ${typography}`}>\n```\n\nUse `darkTheme` for dark mode, or both toggled by your theme switcher. The\nclasses are stable Linaria class names; theme overrides are as simple as\nsetting `--haze-color-primary` (and friends) inline on the element that\ncarries the theme class — interaction states re-derive at runtime via CSS\nrelative colors, with no rebuild.\n\n## Why this file is a guide, not a stylesheet\n\nshadcn GitHub registries resolve every `files[].path` **from the repository\nitself** — the CLI rejects remote file paths (`registry validate` fails with\n\"remote file paths are not supported\"). `tokens.css` only exists as a build\nartifact (`dist/css/`), and committing a copy of generated CSS here would\ndrift from `src/lib/tokens/palette.ts`. So this item ships the pointer, and\nthe npm package remains the single distribution channel for the stylesheet.\n\n## Tailwind interop\n\nThe tokens are plain CSS custom properties, so they interoperate with a\nTailwind v4 `@theme` block:\n\n```css\n@import 'tailwindcss';\n\n:root {\n  --color-primary: var(--haze-color-primary);\n}\n```\n\nFull documentation: <https://github.com/wmzy/haze-ui#readme>\n"
+    }
+  ]
+}

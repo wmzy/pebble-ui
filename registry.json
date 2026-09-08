@@ -4,13 +4,900 @@
   "homepage": "https://github.com/wmzy/haze-ui",
   "items": [
     {
+      "name": "accordion",
+      "type": "registry:ui",
+      "title": "Accordion / AccordionItem",
+      "description": "Collapsible section list with titled `AccordionItem` sections.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/accordion.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/accordion.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/accordion.tsx"
+        }
+      ]
+    },
+    {
+      "name": "affix",
+      "type": "registry:ui",
+      "title": "Affix",
+      "description": "Fixes children to a viewport edge once scrolled past an offset.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/affix.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/affix.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/affix.tsx"
+        }
+      ]
+    },
+    {
+      "name": "alert",
+      "type": "registry:ui",
+      "title": "Alert",
+      "description": "Inline status message box.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/alert.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/alert.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/alert.tsx"
+        }
+      ]
+    },
+    {
+      "name": "anchor",
+      "type": "registry:ui",
+      "title": "Anchor",
+      "description": "Sticky scroll-spy navigation: an `items` list highlighting the active section, click scrolls with an offset.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/anchor.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/anchor.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/anchor.tsx"
+        }
+      ]
+    },
+    {
+      "name": "app-shell",
+      "type": "registry:ui",
+      "title": "AppShell",
+      "description": "Application frame with sticky header, collapsible sidebar, content and footer slots; the sidebar becomes an overlay below 768px.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/app-shell.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/app-shell.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/app-shell.tsx"
+        }
+      ]
+    },
+    {
+      "name": "approval-card",
+      "type": "registry:ui",
+      "title": "ApprovalCard",
+      "description": "Approval gate with approve / deny actions for agent-initiated operations.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/approval-card.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/approval-card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/approval-card.tsx"
+        }
+      ]
+    },
+    {
+      "name": "aspect-ratio",
+      "type": "registry:ui",
+      "title": "AspectRatio",
+      "description": "Boxes children to a fixed width/height ratio.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/aspect-ratio.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/aspect-ratio.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/aspect-ratio.tsx"
+        }
+      ]
+    },
+    {
+      "name": "async-section",
+      "type": "registry:ui",
+      "title": "AsyncSection",
+      "description": "Declarative loading / error / content states for async data.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/async-section.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/async-section.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/async-section.tsx"
+        }
+      ]
+    },
+    {
+      "name": "avatar",
+      "type": "registry:ui",
+      "title": "Avatar",
+      "description": "User avatar with image, size variants and fallback content when the image is missing.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/avatar.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/avatar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/avatar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "avatar-group",
+      "type": "registry:ui",
+      "title": "AvatarGroup",
+      "description": "Stacks avatars in overlapping rows with a `+N` overflow chip (`max`/`total`).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/avatar-group.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/avatar-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/avatar-group.tsx"
+        }
+      ]
+    },
+    {
+      "name": "back-to-top",
+      "type": "registry:ui",
+      "title": "BackToTop",
+      "description": "Floating scroll-to-top button appearing past a scroll threshold.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/back-to-top.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/back-to-top.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/back-to-top.tsx"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "Small inline status label with variant and color options.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/badge.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/badge.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/badge.tsx"
+        }
+      ]
+    },
+    {
+      "name": "banner",
+      "type": "registry:ui",
+      "title": "Banner",
+      "description": "Dismissible top banner with info/success/warning/danger variants.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/banner.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/banner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/banner.tsx"
+        }
+      ]
+    },
+    {
+      "name": "bottom-sheet",
+      "type": "registry:ui",
+      "title": "BottomSheet",
+      "description": "Mobile-style sheet sliding from the bottom screen edge.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/bottom-sheet.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/bottom-sheet.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/bottom-sheet.tsx"
+        }
+      ]
+    },
+    {
+      "name": "breadcrumb",
+      "type": "registry:ui",
+      "title": "Breadcrumb / BreadcrumbItem",
+      "description": "Breadcrumb trail nav with configurable separator.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/breadcrumb.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/breadcrumb.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/breadcrumb.tsx"
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button / ButtonLink",
+      "description": "Action button with `variant`/`size`/`square` options over a native `<button>`; `ButtonLink` renders the same styles as an anchor.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/button.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/button.tsx"
+        }
+      ]
+    },
+    {
+      "name": "calendar",
+      "type": "registry:ui",
+      "title": "Calendar",
+      "description": "Month-grid date surface with `min`/`max`, locale and `weekStartsOn`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/calendar.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/calendar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/calendar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "title": "Card",
+      "description": "Content card with `elevated`/`outlined`/`filled` variants.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/card.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/card.tsx"
+        }
+      ]
+    },
+    {
+      "name": "carousel",
+      "type": "registry:ui",
+      "title": "Carousel / CarouselSlide",
+      "description": "Slideshow with controllable active index and autoplay.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/carousel.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/carousel.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/carousel.tsx"
+        }
+      ]
+    },
+    {
+      "name": "cascader",
+      "type": "registry:ui",
+      "title": "Cascader",
+      "description": "Multi-level drill-down selector committing a path of option values.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/cascader.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/cascader.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/cascader.tsx"
+        }
+      ]
+    },
+    {
+      "name": "chart",
+      "type": "registry:ui",
+      "title": "Chart",
+      "description": "Line/area/bar charts over recharts with colors and axes on haze tokens; series cycle the semantic palette.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/chart.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui",
+        "recharts"
+      ],
+      "files": [
+        {
+          "path": "registry/chart.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/chart.tsx"
+        }
+      ]
+    },
+    {
+      "name": "chat-container",
+      "type": "registry:ui",
+      "title": "ChatContainer",
+      "description": "Chat transcript scroll container with stick-to-bottom auto-scroll.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/chat-container.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/chat-container.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/chat-container.tsx"
+        }
+      ]
+    },
+    {
+      "name": "chat-input",
+      "type": "registry:ui",
+      "title": "ChatInput",
+      "description": "Message composer with a controllable value and onSend callback.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/chat-input.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/chat-input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/chat-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "chat-message",
+      "type": "registry:ui",
+      "title": "ChatMessage",
+      "description": "Chat bubble with role-based layout (user / assistant / system), avatar, name, timestamp and delivery status.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/chat-message.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/chat-message.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/chat-message.tsx"
+        }
+      ]
+    },
+    {
+      "name": "checkbox",
+      "type": "registry:ui",
+      "title": "Checkbox / CheckboxCore",
+      "description": "Checkbox input with controllable `checked` state; `CheckboxCore` is the headless form-bindable core.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/checkbox.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/checkbox.tsx"
+        }
+      ]
+    },
+    {
+      "name": "chip",
+      "type": "registry:ui",
+      "title": "Chip",
+      "description": "Rounded status chip with optional icon and close button.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/chip.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/chip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/chip.tsx"
+        }
+      ]
+    },
+    {
+      "name": "code-block",
+      "type": "registry:ui",
+      "title": "CodeBlock",
+      "description": "Monospace code container with a language badge.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/code-block.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/code-block.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/code-block.tsx"
+        }
+      ]
+    },
+    {
+      "name": "collapsible",
+      "type": "registry:ui",
+      "title": "Collapsible / CollapsibleTrigger / CollapsibleContent",
+      "description": "Unstyled open/close container with controllable `open` state (`CollapsibleTrigger`, `CollapsibleContent`).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/collapsible.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/collapsible.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/collapsible.tsx"
+        }
+      ]
+    },
+    {
+      "name": "color-picker",
+      "type": "registry:ui",
+      "title": "ColorPicker / ColorPickerCore",
+      "description": "Color selector with controllable value and preset swatches.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/color-picker.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/color-picker.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/color-picker.tsx"
+        }
+      ]
+    },
+    {
+      "name": "combobox",
+      "type": "registry:ui",
+      "title": "Combobox",
+      "description": "Autocomplete text input with filterable option list.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/combobox.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/combobox.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/combobox.tsx"
+        }
+      ]
+    },
+    {
+      "name": "command",
+      "type": "registry:ui",
+      "title": "Command / CommandInput / CommandList / CommandItem",
+      "description": "Command palette surface: `CommandInput` plus filterable `CommandItem`s in a `CommandList`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/command.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/command.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/command.tsx"
+        }
+      ]
+    },
+    {
+      "name": "confirm-dialog",
+      "type": "registry:ui",
+      "title": "ConfirmDialog",
+      "description": "Ready-made confirm dialog with confirm/cancel actions and a danger variant.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/confirm-dialog.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/confirm-dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/confirm-dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "container",
+      "type": "registry:ui",
+      "title": "Container",
+      "description": "Centered max-width page container with horizontal padding.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/container.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/container.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/container.tsx"
+        }
+      ]
+    },
+    {
+      "name": "context-menu",
+      "type": "registry:ui",
+      "title": "ContextMenu / ContextMenuTrigger / ContextMenuContent / ContextMenuItem / ContextMenuSeparator",
+      "description": "Floating menu opened on right-click.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/context-menu.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/context-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/context-menu.tsx"
+        }
+      ]
+    },
+    {
+      "name": "conversation-list",
+      "type": "registry:ui",
+      "title": "ConversationList / ConversationItem",
+      "description": "Selectable list of conversations for a chat-history sidebar.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/conversation-list.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/conversation-list.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/conversation-list.tsx"
+        }
+      ]
+    },
+    {
+      "name": "data-table",
+      "type": "registry:ui",
+      "title": "DataTable",
+      "description": "Feature table on @tanstack/react-table with sorting, pagination and row selection.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/data-table.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui",
+        "@tanstack/react-table"
+      ],
+      "files": [
+        {
+          "path": "registry/data-table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/data-table.tsx"
+        }
+      ]
+    },
+    {
+      "name": "date-range-picker",
+      "type": "registry:ui",
+      "title": "DateRangePicker / DateRangePickerCore",
+      "description": "Picks a start/end date range.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/date-range-picker.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/date-range-picker.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/date-range-picker.tsx"
+        }
+      ]
+    },
+    {
+      "name": "datepicker",
+      "type": "registry:ui",
+      "title": "Datepicker / DatepickerCore",
+      "description": "Date input with popup calendar (`YYYY-MM-DD` value); `DatepickerCore` is the headless core.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/datepicker.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/datepicker.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/datepicker.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:ui",
+      "title": "Dialog",
+      "description": "Modal dialog with focus trapping.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/dialog.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/dialog.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "diff-viewer",
+      "type": "registry:ui",
+      "title": "DiffViewer",
+      "description": "Renders the line diff between old and new content for agent-proposed edits.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/diff-viewer.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/diff-viewer.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/diff-viewer.tsx"
+        }
+      ]
+    },
+    {
+      "name": "disclosure",
+      "type": "registry:ui",
+      "title": "Disclosure",
+      "description": "Summary-header disclosure panel (details/summary semantics).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/disclosure.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/disclosure.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/disclosure.tsx"
+        }
+      ]
+    },
+    {
+      "name": "divider",
+      "type": "registry:ui",
+      "title": "Divider",
+      "description": "Content separator line, horizontal or vertical.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/divider.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/divider.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/divider.tsx"
+        }
+      ]
+    },
+    {
+      "name": "drawer",
+      "type": "registry:ui",
+      "title": "Drawer",
+      "description": "Edge-anchored sliding panel (`placement` left/right).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/drawer.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/drawer.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/drawer.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "registry:ui",
+      "title": "DropdownMenu / DropdownMenuTrigger / DropdownMenuContent / DropdownMenuItem / DropdownMenuSeparator / DropdownMenuSub / DropdownMenuSubTrigger / DropdownMenuSubContent",
+      "description": "Click-triggered floating menu with `DropdownMenuTrigger`/`Content`/`Item`/`Separator` parts.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/dropdown-menu.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/dropdown-menu.tsx"
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "type": "registry:ui",
+      "title": "Empty",
+      "description": "Empty-state placeholder with image and description.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/empty.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/empty.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/empty.tsx"
+        }
+      ]
+    },
+    {
+      "name": "file-input",
+      "type": "registry:ui",
+      "title": "FileInput",
+      "description": "Trigger element that opens a hidden native file input.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/file-input.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/file-input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/file-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "flex",
+      "type": "registry:ui",
+      "title": "Flex",
+      "description": "Flexbox layout primitive mapping props to flex CSS.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/flex.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/flex.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/flex.tsx"
+        }
+      ]
+    },
+    {
+      "name": "form",
+      "type": "registry:ui",
+      "title": "FormItem",
+      "description": "react-f0rm field wrapper adding label, error and aria wiring to controlled cores.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/form.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui",
+        "react-f0rm"
+      ],
+      "files": [
+        {
+          "path": "registry/form.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/form.tsx"
+        }
+      ]
+    },
+    {
+      "name": "grid",
+      "type": "registry:ui",
+      "title": "Grid / GridItem",
+      "description": "CSS grid layout primitive with `GridItem` children.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/grid.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/grid.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/grid.tsx"
+        }
+      ]
+    },
+    {
       "name": "haze-tokens",
       "type": "registry:item",
       "title": "Haze UI Tokens",
       "description": "haze-ui 设计令牌（OKLCH 色板、间距、排版、动效）的引入与主题化指南。Design-token onboarding guide: where tokens.css lives and how to load, theme and interop it.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui"],
       "docs": "haze-ui ships JS and CSS separately. Import the stylesheet once in your app entry: `import 'haze-ui/styles.css'` (full sheet) or `import 'haze-ui/css/tokens.css'` plus per-component CSS. Activate tokens with the `lightTheme`/`darkTheme` + `spacing` + `typography` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
           "path": "registry/haze-tokens/haze-tokens.md",
@@ -20,122 +907,1052 @@
       ]
     },
     {
-      "name": "button",
+      "name": "hover-card",
       "type": "registry:ui",
-      "title": "Button",
-      "description": "按钮与链接按钮的薄再导出，组件本体由 haze-ui npm 包提供。Thin re-export of haze-ui Button — versioned and tree-shaken through npm.",
+      "title": "HoverCard",
+      "description": "Non-modal floating preview (avatar card, link summary) anchored to its trigger.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui"],
-      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/button.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/hover-card.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
-          "path": "registry/ui/button.tsx",
-          "type": "registry:ui"
+          "path": "registry/hover-card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/hover-card.tsx"
         }
       ]
     },
     {
-      "name": "dialog",
+      "name": "icon",
       "type": "registry:ui",
-      "title": "Dialog",
-      "description": "基于原生 dialog 元素的对话框，open 状态可控。Thin re-export of haze-ui Dialog — native <dialog> element with a controllable open state.",
+      "title": "Icon",
+      "description": "Inline SVG icon wrapper with token-sized `sm`/`md`/`lg` boxes.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui"],
-      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/dialog.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/icon.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
-          "path": "registry/ui/dialog.tsx",
-          "type": "registry:ui"
+          "path": "registry/icon.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/icon.tsx"
         }
       ]
     },
     {
-      "name": "dropdown-menu",
+      "name": "image",
       "type": "registry:ui",
-      "title": "Dropdown Menu",
-      "description": "下拉菜单复合组件（Trigger/Content/Item/Separator）薄再导出。Thin re-export of the haze-ui DropdownMenu compound family, built on the native Popover API.",
+      "title": "Image",
+      "description": "Image with fallback and `aspectRatio`/`objectFit` control.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui"],
-      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/dropdown-menu.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/image.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
-          "path": "registry/ui/dropdown-menu.tsx",
-          "type": "registry:ui"
+          "path": "registry/image.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/image.tsx"
         }
       ]
     },
     {
-      "name": "combobox",
+      "name": "inline-edit",
       "type": "registry:ui",
-      "title": "Combobox",
-      "description": "输入框加过滤选项列表的组合框，取值可控。Thin re-export of haze-ui Combobox — input plus filtered option list with a controllable value.",
+      "title": "InlineEdit",
+      "description": "Click-to-edit text value in place.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui"],
-      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/combobox.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/inline-edit.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
-          "path": "registry/ui/combobox.tsx",
-          "type": "registry:ui"
+          "path": "registry/inline-edit.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/inline-edit.tsx"
         }
       ]
     },
     {
-      "name": "form",
+      "name": "input",
       "type": "registry:ui",
-      "title": "Form",
-      "description": "将 haze-ui 字段接入 react-f0rm 表单的 FormItem 薄再导出。Thin re-export of haze-ui FormItem — binds any haze-ui field into a react-f0rm form.",
+      "title": "Input / InputCore",
+      "description": "Text input with adornments; `InputCore` is the headless form-bindable core.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui", "react-f0rm"],
-      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/form.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/input.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
-          "path": "registry/ui/form.tsx",
-          "type": "registry:ui"
+          "path": "registry/input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/input.tsx"
         }
       ]
     },
     {
-      "name": "data-table",
+      "name": "kbd",
       "type": "registry:ui",
-      "title": "Data Table",
-      "description": "TanStack Table 无头内核加 haze 样式的数据表薄再导出。Thin re-export of haze-ui DataTable — TanStack Table headless core with haze styling.",
+      "title": "Kbd",
+      "description": "Keyboard key-cap styling for shortcuts.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui", "@tanstack/react-table"],
-      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/data-table.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/kbd.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
-          "path": "registry/ui/data-table.tsx",
-          "type": "registry:ui"
+          "path": "registry/kbd.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/kbd.tsx"
+        }
+      ]
+    },
+    {
+      "name": "list",
+      "type": "registry:ui",
+      "title": "List / ListItem",
+      "description": "Styled `ul`/`ol`/plain list with `ListItem` children.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/list.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/list.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/list.tsx"
+        }
+      ]
+    },
+    {
+      "name": "log-viewer",
+      "type": "registry:ui",
+      "title": "LogViewer",
+      "description": "Scrollable log stream with severity-level filtering.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/log-viewer.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/log-viewer.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/log-viewer.tsx"
+        }
+      ]
+    },
+    {
+      "name": "markdown-renderer",
+      "type": "registry:ui",
+      "title": "MarkdownRenderer",
+      "description": "Renders markdown content (including code blocks) for assistant responses.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/markdown-renderer.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/markdown-renderer.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/markdown-renderer.tsx"
+        }
+      ]
+    },
+    {
+      "name": "mentions",
+      "type": "registry:ui",
+      "title": "Mentions / MentionsCore",
+      "description": "Mentions input with trigger-character suggestions picked from an option list (`MentionsCore` is the headless core).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/mentions.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/mentions.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/mentions.tsx"
+        }
+      ]
+    },
+    {
+      "name": "menu",
+      "type": "registry:ui",
+      "title": "Menu / MenuItem / MenuDivider / MenuSub / MenuSubTrigger / MenuSubContent",
+      "description": "Lightweight toggle menu with a trigger and statically positioned panel (`MenuItem`, `MenuDivider`).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/menu.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/menu.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/menu.tsx"
+        }
+      ]
+    },
+    {
+      "name": "model-picker",
+      "type": "registry:ui",
+      "title": "ModelPicker",
+      "description": "Controllable dropdown for selecting the active model.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/model-picker.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/model-picker.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/model-picker.tsx"
+        }
+      ]
+    },
+    {
+      "name": "navigation-bar",
+      "type": "registry:ui",
+      "title": "NavigationBar / NavLink",
+      "description": "Top nav bar with `brand` and `end` slots plus `NavLink` items.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/navigation-bar.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/navigation-bar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/navigation-bar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "number-input",
+      "type": "registry:ui",
+      "title": "NumberInput / NumberInputCore",
+      "description": "Numeric input with `min`/`max`/`step`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/number-input.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/number-input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/number-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "otp-input",
+      "type": "registry:ui",
+      "title": "OTPInput / OTPInputCore",
+      "description": "One-time-password input of `length` segmented character boxes.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/otp-input.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/otp-input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/otp-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "pagination",
+      "type": "registry:ui",
+      "title": "Pagination",
+      "description": "Page navigation with controllable `page` and ellipsis windows.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/pagination.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/pagination.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/pagination.tsx"
+        }
+      ]
+    },
+    {
+      "name": "password-input",
+      "type": "registry:ui",
+      "title": "PasswordInput / PasswordInputCore",
+      "description": "Text input with a visibility reveal toggle.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/password-input.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/password-input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/password-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "popover",
+      "type": "registry:ui",
+      "title": "Popover",
+      "description": "Floating popover anchored to a trigger element.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/popover.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/popover.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/popover.tsx"
+        }
+      ]
+    },
+    {
+      "name": "progress",
+      "type": "registry:ui",
+      "title": "Progress",
+      "description": "Progress bar or circle driven by a percentage `value`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/progress.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/progress.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/progress.tsx"
+        }
+      ]
+    },
+    {
+      "name": "radio",
+      "type": "registry:ui",
+      "title": "Radio / RadioGroup / RadioGroupCore",
+      "description": "Radio option and group with controllable selection (`Radio`, `RadioGroup`, headless `RadioGroupCore`).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/radio.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/radio.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/radio.tsx"
+        }
+      ]
+    },
+    {
+      "name": "rating",
+      "type": "registry:ui",
+      "title": "Rating / RatingCore",
+      "description": "Star rating with half-step support.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/rating.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/rating.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/rating.tsx"
+        }
+      ]
+    },
+    {
+      "name": "resizable",
+      "type": "registry:ui",
+      "title": "ResizableGroup / ResizablePanel / ResizableHandle / SplitterGroup / SplitterPanel / SplitterHandle",
+      "description": "Split-pane group with draggable dividers, horizontal or vertical; also exported as `SplitterGroup`/`SplitterPanel`/`SplitterHandle` (AntD-style naming).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/resizable.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/resizable.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/resizable.tsx"
+        }
+      ]
+    },
+    {
+      "name": "scroll-area",
+      "type": "registry:ui",
+      "title": "ScrollArea",
+      "description": "Scrollable region with custom-styled thin scrollbars and `maxHeight`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/scroll-area.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/scroll-area.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/scroll-area.tsx"
+        }
+      ]
+    },
+    {
+      "name": "segmented",
+      "type": "registry:ui",
+      "title": "Segmented / SegmentedCore",
+      "description": "Segmented control selecting one option from a compact set.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/segmented.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/segmented.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/segmented.tsx"
+        }
+      ]
+    },
+    {
+      "name": "select",
+      "type": "registry:ui",
+      "title": "Select / Option / SelectCore",
+      "description": "Dropdown select over `SelectCore` with `<option>` children.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/select.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/select.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/select.tsx"
+        }
+      ]
+    },
+    {
+      "name": "sidebar",
+      "type": "registry:ui",
+      "title": "Sidebar / SidebarGroup / SidebarItem / SidebarFooter / SidebarToggle",
+      "description": "App sidebar shell with controllable collapsed state: `SidebarGroup`/`SidebarItem`/`SidebarFooter`/`SidebarToggle` parts.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/sidebar.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/sidebar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/sidebar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "skeleton",
+      "type": "registry:ui",
+      "title": "Skeleton",
+      "description": "Shimmering loading placeholder (`text`/`circular`/`rectangular`).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/skeleton.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/skeleton.tsx"
+        }
+      ]
+    },
+    {
+      "name": "slider",
+      "type": "registry:ui",
+      "title": "Slider / SliderCore",
+      "description": "Native range slider with controllable value.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/slider.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/slider.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/slider.tsx"
+        }
+      ]
+    },
+    {
+      "name": "spinner",
+      "type": "registry:ui",
+      "title": "Spinner",
+      "description": "Loading spinner.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/spinner.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/spinner.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/spinner.tsx"
+        }
+      ]
+    },
+    {
+      "name": "stat",
+      "type": "registry:ui",
+      "title": "Stat / StatGroup",
+      "description": "Metric display with title, value and trend indicator (`StatGroup` container).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/stat.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/stat.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/stat.tsx"
+        }
+      ]
+    },
+    {
+      "name": "step-timeline",
+      "type": "registry:ui",
+      "title": "StepTimeline / StepTimelineItem",
+      "description": "Vertical timeline of agent execution steps with per-step status.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/step-timeline.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/step-timeline.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/step-timeline.tsx"
+        }
+      ]
+    },
+    {
+      "name": "stepper",
+      "type": "registry:ui",
+      "title": "Stepper / Step",
+      "description": "Step indicator driven by `activeStep` (`Step` children).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/stepper.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/stepper.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/stepper.tsx"
+        }
+      ]
+    },
+    {
+      "name": "streaming-text",
+      "type": "registry:ui",
+      "title": "StreamingText",
+      "description": "Typewriter effect that reveals streaming text character by character, with an optional cursor.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/streaming-text.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/streaming-text.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/streaming-text.tsx"
+        }
+      ]
+    },
+    {
+      "name": "swipe-action",
+      "type": "registry:ui",
+      "title": "SwipeAction",
+      "description": "Swipe-to-reveal row actions on left/right edges with a commit threshold.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/swipe-action.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/swipe-action.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/swipe-action.tsx"
+        }
+      ]
+    },
+    {
+      "name": "switch",
+      "type": "registry:ui",
+      "title": "Switch / SwitchCore",
+      "description": "Toggle switch (`role=\"switch\"`) with controllable `checked`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/switch.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/switch.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/switch.tsx"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table / TableHead / TableBody / TableRow / TableCell",
+      "description": "Styled semantic table (`striped`, `bordered`) with head/body/row/cell parts.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/table.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/table.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/table.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs / TabList / Tab / TabPanel",
+      "description": "Tab panel switcher with controllable active tab (`TabList`, `Tab`, `TabPanel`).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/tabs.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/tabs.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/tabs.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tag",
+      "type": "registry:ui",
+      "title": "Tag",
+      "description": "Compact status label with variant color and optional close button.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/tag.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/tag.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/tag.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tag-group",
+      "type": "registry:ui",
+      "title": "TagGroup / TagGroupItem",
+      "description": "Flex-wrap container laying out Tag children with consistent gap; `sortable` + `onReorder` for dnd-kit drag reordering.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/tag-group.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui",
+        "@dnd-kit/core",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities"
+      ],
+      "files": [
+        {
+          "path": "registry/tag-group.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/tag-group.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tag-input",
+      "type": "registry:ui",
+      "title": "TagInput / TagInputCore",
+      "description": "Enter-to-commit token input; `sortable` enables dnd-kit drag reordering (new order via `onChange`).",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/tag-input.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui",
+        "@dnd-kit/core",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities"
+      ],
+      "files": [
+        {
+          "path": "registry/tag-input.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/tag-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "textarea",
+      "type": "registry:ui",
+      "title": "Textarea / TextareaCore",
+      "description": "Multiline text input.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/textarea.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/textarea.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/textarea.tsx"
+        }
+      ]
+    },
+    {
+      "name": "thinking-indicator",
+      "type": "registry:ui",
+      "title": "ThinkingIndicator",
+      "description": "Animated bouncing-dots indicator that the agent is processing.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/thinking-indicator.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/thinking-indicator.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/thinking-indicator.tsx"
+        }
+      ]
+    },
+    {
+      "name": "time-picker",
+      "type": "registry:ui",
+      "title": "TimePicker / TimePickerCore",
+      "description": "Time-of-day input with controllable value.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/time-picker.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/time-picker.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/time-picker.tsx"
+        }
+      ]
+    },
+    {
+      "name": "timeline",
+      "type": "registry:ui",
+      "title": "Timeline / TimelineItem",
+      "description": "Vertical timeline container for `TimelineItem` children.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/timeline.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/timeline.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/timeline.tsx"
         }
       ]
     },
     {
       "name": "toast",
       "type": "registry:ui",
-      "title": "Toast",
-      "description": "Toast 通知全家桶：组件、容器、useToast hook 与命令式 toast()。Thin re-export of the haze-ui Toast family — component, container, useToast hook and imperative toast().",
+      "title": "Toast / ToastContainer / useToast / toast",
+      "description": "Toast notifications via `useToast` + `ToastContainer`, with the imperative `toast()` helper.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui"],
-      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/toast.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. Mount `ToastContainer` once near the app root; `useToast` consumers must render below it. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/toast.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
-          "path": "registry/ui/toast.tsx",
-          "type": "registry:ui"
+          "path": "registry/toast.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/toast.tsx"
         }
       ]
     },
     {
-      "name": "chat-message",
+      "name": "toggle",
       "type": "registry:ui",
-      "title": "Chat Message",
-      "description": "AI 聊天消息组件薄再导出，haze-ui AI 组件套件的代表。Thin re-export of haze-ui ChatMessage — role-aware message bubble, the anchor of the AI chat kit.",
+      "title": "Toggle / ToggleCore",
+      "description": "Two-state pressed button (`aria-pressed`) with sizes and `square` icon mode.",
       "author": "wmzy <https://github.com/wmzy>",
-      "dependencies": ["haze-ui"],
-      "docs": "haze-ui ships JS and CSS separately — after installing, import styles once in your app entry: `import 'haze-ui/styles.css'` or `import 'haze-ui/css/tokens.css'` + `import 'haze-ui/css/chat-message.css'`, and apply the `lightTheme`/`darkTheme` classes from 'haze-ui'. The rest of the AI kit (ChatContainer, ChatInput, StreamingText, MarkdownRenderer) imports from 'haze-ui' directly. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/toggle.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
       "files": [
         {
-          "path": "registry/ui/chat-message.tsx",
-          "type": "registry:ui"
+          "path": "registry/toggle.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/toggle.tsx"
+        }
+      ]
+    },
+    {
+      "name": "token-counter",
+      "type": "registry:ui",
+      "title": "TokenCounter",
+      "description": "Context-window token usage counter with budget progress.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/token-counter.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/token-counter.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/token-counter.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tokens",
+      "type": "registry:lib",
+      "title": "Theme tokens (lightTheme / darkTheme / spacing / typography)",
+      "description": "Theme classes for haze-ui: `lightTheme`/`darkTheme` plus `spacing` and `typography`, applied to a root element to activate the `--haze-*` design tokens.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "Theme setup item: the wrapper re-exports the 'lightTheme' (or 'darkTheme'), 'spacing' and 'typography' classes from 'haze-ui' and imports 'haze-ui/css/tokens.css'. Apply the classes to a root element to activate the --haze-* design tokens. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/tokens.tsx",
+          "type": "registry:lib",
+          "target": "@lib/haze/tokens.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tool-call-card",
+      "type": "registry:ui",
+      "title": "ToolCallCard",
+      "description": "Card presenting an agent tool call — name, input, output and running state.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/tool-call-card.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/tool-call-card.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/tool-call-card.tsx"
+        }
+      ]
+    },
+    {
+      "name": "toolbar",
+      "type": "registry:ui",
+      "title": "Toolbar / ToolbarButton / ToolbarSeparator / ToolbarToggle",
+      "description": "Button group with toolbar a11y (roving tabindex): `ToolbarButton`, `ToolbarSeparator`, `ToolbarToggle`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/toolbar.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/toolbar.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/toolbar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tooltip",
+      "type": "registry:ui",
+      "title": "Tooltip",
+      "description": "Hover/focus hint bubble.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/tooltip.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/tooltip.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tour",
+      "type": "registry:ui",
+      "title": "Tour",
+      "description": "Guided walkthrough spotlighting `steps` behind a mask, controllable `current`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/tour.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/tour.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/tour.tsx"
+        }
+      ]
+    },
+    {
+      "name": "transfer",
+      "type": "registry:ui",
+      "title": "Transfer / TransferCore",
+      "description": "Two-column shuttle moving options between source and target lists.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/transfer.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/transfer.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/transfer.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tree",
+      "type": "registry:ui",
+      "title": "Tree",
+      "description": "Hierarchical tree with expand, select and check state.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/tree.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/tree.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/tree.tsx"
+        }
+      ]
+    },
+    {
+      "name": "typography",
+      "type": "registry:ui",
+      "title": "Title / Text / Paragraph",
+      "description": "Text primitives: `Title`, `Text`, `Paragraph` on typography tokens.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/typography.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/typography.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/typography.tsx"
+        }
+      ]
+    },
+    {
+      "name": "upload",
+      "type": "registry:ui",
+      "title": "Upload / UploadCore",
+      "description": "File picker with accumulating `File[]` value, `accept`/`multiple`.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/upload.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/upload.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/upload.tsx"
+        }
+      ]
+    },
+    {
+      "name": "virtual-list",
+      "type": "registry:ui",
+      "title": "VirtualList",
+      "description": "Windowed list rendering only visible rows; fixed or measured dynamic heights.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/virtual-list.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/virtual-list.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/virtual-list.tsx"
+        }
+      ]
+    },
+    {
+      "name": "watermark",
+      "type": "registry:ui",
+      "title": "Watermark",
+      "description": "Tiled canvas watermark layer over children (or `fullscreen`), theme-aware color.",
+      "author": "wmzy <https://github.com/wmzy>",
+      "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/watermark.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "dependencies": [
+        "haze-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/watermark.tsx",
+          "type": "registry:ui",
+          "target": "@ui/haze/watermark.tsx"
         }
       ]
     }

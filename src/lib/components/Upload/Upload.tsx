@@ -9,6 +9,14 @@ type UploadProps = {
   /** Selected files; uncontrolled (accumulating internally) when omitted. */
   value?: ControlOrValue<File[]>;
   accept?: string;
+  /** Renders the drag-and-drop drop area (default) or a plain
+   * click-only picker area — see `UploadCoreProps.droppable`. */
+  droppable?: boolean;
+  /** Gatekeeper for every picked or dropped file — see
+   * `UploadCoreProps.beforeUpload`. */
+  beforeUpload?: (file: File) => boolean | Promise<boolean>;
+  /** Cap for the committed list — see `UploadCoreProps.maxCount`. */
+  maxCount?: number;
   multiple?: boolean;
   /** Fires with the freshly picked files only — the accumulated list is
    * the `value` channel (or internal state when uncontrolled). */
@@ -20,6 +28,9 @@ type UploadProps = {
 export default function Upload({
   value: valueControl,
   accept,
+  droppable,
+  beforeUpload,
+  maxCount,
   multiple = false,
   onChange,
   className,
@@ -36,6 +47,9 @@ export default function Upload({
         onChange?.(picked);
       }}
       accept={accept}
+      droppable={droppable}
+      beforeUpload={beforeUpload}
+      maxCount={maxCount}
       multiple={multiple}
       className={className}
     >

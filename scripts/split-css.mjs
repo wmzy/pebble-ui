@@ -72,6 +72,7 @@ const sharedLayers = {
     'dropdown-menu',
     'menu',
     'popover',
+    'select',
     'tooltip',
   ],
   // Sortable primitives (components in utils/sortable.tsx, hooks/styles in

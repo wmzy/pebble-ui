@@ -34,6 +34,25 @@ import { VirtualList } from '../VirtualList';
 type DataTableColumnMeta = {
   /** Column-level sorting switch — overrides the table-level `sortable` default. */
   sortable?: boolean;
+  /**
+   * Column width, applied through a `<colgroup>` shared by every table in
+   * the layout: a number is px, strings pass through as CSS lengths
+   * (`'25%'`, `'12rem'`). Wins over the native TanStack `size` field, which
+   * is read as a px fallback. Columns without any width keep their previous
+   * sizing — content-driven in normal mode, an equal share of the remainder
+   * when `virtualized`.
+   */
+  width?: number | string;
+  /**
+   * Pin the column to the scroll area's left/right edge so it stays visible
+   * while the table scrolls horizontally. Normal mode only — ignored when
+   * `virtualized`, where each row is its own table with no shared
+   * scrollport. The sticky offset sums the widths of the preceding fixed
+   * columns on the same side, starting from the selection column, so fixed
+   * columns should declare numeric px widths; non-numeric widths contribute
+   * nothing to the offset math. Honored on leaf columns.
+   */
+  fixed?: 'left' | 'right';
 };
 
 /** Windowing configuration for the table body, reusing `VirtualList`. */
@@ -63,11 +82,15 @@ const dataTableFeatures = tableFeatures({
 });
 
 /** Column definition accepted by DataTable — a TanStack Table column def
- * bound to DataTable's feature set and column meta. */
+ * bound to DataTable's feature set and column meta. The native `size`
+ * field is typed in TanStack by the column-sizing feature, which stays
+ * unregistered here (no sizing state or resize APIs are driven); it is
+ * re-declared so a static px width hint can be given without `meta.width`,
+ * and is read as the colgroup width fallback. */
 type DataTableColumnDef<TData extends RowData> = ColumnDef<
   typeof dataTableFeatures,
   TData
->;
+> & { size?: number };
 
 type DataTableProps<TData extends RowData> = {
   /** Column definitions: accessors, headers and cell templates. */
@@ -107,13 +130,22 @@ type DataTableProps<TData extends RowData> = {
    * `display: table-row` — so rows cannot stay in the header's table.
    * Instead each row renders as a complete sibling `<table><tbody><tr>`
    * inside the wrapper. Rows remain legal, axe-clean table structures
-   * with row/cell roles, and `table-layout: fixed` on header and rows
-   * distributes columns equally in both, keeping them aligned without a
-   * column-width measurement pass. Consequences:
+   * with row/cell roles. One shared `<colgroup>` — the selection column
+   * plus every leaf column's `meta.width` (falling back to the native
+   * `size`) — is mirrored into the header table and every row table, and
+   * `table-layout: fixed` honors it identically in each sibling: columns
+   * with a width are fixed at it, columns without one split the remaining
+   * space equally. That mirrored sequence is the alignment contract
+   * between the sibling tables — no column-width measurement pass.
+   * Consequences:
    * - Fixed row height only — dynamic or wrapping row heights are not
    *   supported; content taller than `rowHeight` overlaps the next row.
-   * - Columns distribute equally instead of auto-sizing to content;
-   *   per-column widths are not supported in this mode.
+   * - Column widths are declarative (`meta.width` / `size`), never
+   *   content-driven: columns without a width share the remainder equally
+   *   instead of auto-sizing to content.
+   * - `meta.fixed` is ignored in this mode — each row is its own table
+   *   inside its own absolutely positioned wrapper, so there is no shared
+   *   horizontal scrollport for cells to stick against.
    * - The header sits outside the scroll window (always visible) — the
    *   `stickyHeader` behavior is implied.
    * - The root must be height-bounded by the consumer (e.g. a
@@ -154,6 +186,60 @@ function withSortable<TData extends RowData>(
   return resolved;
 }
 
+/** Resolves a column def's effective width: `meta.width` wins, then the
+ * native TanStack `size` as a px fallback. Returns a CSS length string, or
+ * undefined when neither is declared. Read off the raw definition — the
+ * column-sizing feature is not registered, so no default size is merged in
+ * and "unspecified" stays distinguishable. */
+function columnWidthCss(def: {
+  meta?: DataTableColumnMeta;
+  size?: number;
+}): string | undefined {
+  const width = def.meta?.width ?? def.size;
+  return typeof width === 'number' ? `${width}px` : width;
+}
+
+/** Sticky-column presentation resolved for one rendered cell: which edge,
+ * the CSS length to offset it by, and whether this is the innermost column
+ * of a pinned run (the one carrying the scroll-hint shadow). */
+type FixedCellSpec = {
+  side: 'left' | 'right';
+  offset: string;
+  edge: boolean;
+};
+
+/** Sums CSS length fragments into a single length expression. Fragments are
+ * plain lengths (`'120px'`) or parenthesized expressions (the selection
+ * column's token math), so anything non-trivial is wrapped in `calc()`. */
+function sumLengths(parts: string[]): string {
+  if (parts.length === 0) return '0px';
+  const [first] = parts;
+  if (parts.length === 1 && first !== undefined && !first.includes('(')) {
+    return first;
+  }
+  return `calc(${parts.join(' + ')})`;
+}
+
+/** Inline style carrying a fixed cell's sticky edge offset; the position,
+ * background and z-index come from the fixed-cell classes. */
+function fixedOffsetStyle(spec: FixedCellSpec | undefined) {
+  return spec
+    ? {
+        left: spec.side === 'left' ? spec.offset : undefined,
+        right: spec.side === 'right' ? spec.offset : undefined,
+      }
+    : undefined;
+}
+
+/** Selection column width wherever a colgroup owns it: 2 × `--haze-space-3`
+ * cell padding + one checkbox (`--haze-space-5`). The `calc` form keeps
+ * token overrides live; the parenthesized twin is the fragment summed into
+ * fixed-column offsets. */
+const SELECTION_COL_WIDTH =
+  'calc(var(--haze-space-3) * 2 + var(--haze-space-5))';
+const SELECTION_WIDTH_PART =
+  '(var(--haze-space-3) * 2 + var(--haze-space-5))';
+
 /** Default `virtualized` row height: 2 × `--haze-space-2` cell padding
  * (16px) + one `--haze-text-sm` (14px) line box + the 1px row border. */
 const VIRTUAL_DEFAULT_ROW_HEIGHT = 34;
@@ -188,8 +274,9 @@ const virtualArea = css`
   scrollbar-gutter: stable;
 `;
 
-/* Shared by the header table and every virtualized row table: equal column
- * distribution is the alignment contract between sibling tables. */
+/* Shared by the header table and every virtualized row table: `table-layout:
+ * fixed` honors the mirrored `<colgroup>` identically in each sibling — the
+ * alignment contract between them. */
 const fixedLayout = css`
   table-layout: fixed;
 `;
@@ -199,14 +286,6 @@ const fixedLayout = css`
  * between content and the fixed row height. */
 const virtualRowTable = css`
   height: 100%;
-`;
-
-/* `checkCell`'s `width: 1%` shrink-to-fit trick is meaningless under
- * `table-layout: fixed` — the checkbox column gets a real fixed width:
- * 2 × `--haze-space-3` cell padding + one checkbox (`--haze-space-5`). */
-const virtualCheckCell = css`
-  width: calc(var(--haze-space-3) * 2 + var(--haze-space-5));
-  white-space: nowrap;
 `;
 
 const tableBase = css`
@@ -221,7 +300,9 @@ const stickyHead = css`
   & th {
     position: sticky;
     top: 0;
-    z-index: 1;
+    /* Above sticky fixed-column body cells (z-index 1): at equal z-indexes
+     * the later-in-DOM body cells would paint over the header row. */
+    z-index: 2;
     background: var(--haze-color-bg);
     box-shadow: var(--haze-shadow-sm);
   }
@@ -272,9 +353,61 @@ const clickableRow = css`
   cursor: pointer;
 `;
 
+/* Selection column without a colgroup (normal mode, no declared widths):
+ * the `width: 1%` shrink-to-fit trick under auto layout. */
 const checkCell = css`
   width: 1%;
   white-space: nowrap;
+`;
+
+/* Selection column under a colgroup — always in virtual mode, and in normal
+ * mode once any column declares a width. The `<col>` owns the sizing
+ * (`SELECTION_COL_WIDTH`), the cell keeps only `nowrap`. */
+const checkCellCol = css`
+  white-space: nowrap;
+`;
+
+/* Sticky fixed columns (normal mode). Opaque background so scrolled cells
+ * slide beneath. The row hover/selected backgrounds live on the `tr` and
+ * would be covered by the cell's own background, so they are re-created on
+ * the cell itself. */
+const fixedCell = css`
+  position: sticky;
+  z-index: 1;
+  background: var(--haze-color-bg);
+
+  tr:hover & {
+    background: var(--haze-color-bg-subtle);
+  }
+`;
+
+/* Selected-row background for fixed cells — defined after `fixedCell` and
+ * at equal-or-higher specificity (plus the `:hover` form), so it wins over
+ * the plain and hovered backgrounds above. */
+const fixedCellSelected = css`
+  tr &,
+  tr:hover & {
+    background: var(--haze-color-primary-subtle);
+  }
+`;
+
+/* A fixed cell inside a sticky header is the scroll corner — it must
+ * outrank both the header row (z-index 2) and fixed body cells (1). */
+const fixedHeadCell = css`
+  z-index: 3;
+`;
+
+/* Scroll-hint shadow on the inner edge of the outermost pinned column;
+ * `clip-path` confines it to that edge. Body cells only — the header row's
+ * own shadow must not be replaced. */
+const fixedLeftEdge = css`
+  clip-path: inset(0 -8px 0 0);
+  box-shadow: 6px 0 8px -6px var(--haze-color-border);
+`;
+
+const fixedRightEdge = css`
+  clip-path: inset(0 0 0 -8px);
+  box-shadow: -6px 0 8px -6px var(--haze-color-border);
 `;
 
 const emptyCell = css`
@@ -389,6 +522,78 @@ export default function DataTable<TData extends RowData>({
   const columnCount = leafHeaders.length + (selectable ? 1 : 0);
   const rows = table.getRowModel().rows;
 
+  // Per-column widths: `meta.width` wins over the native `size`. In normal
+  // mode a colgroup is only emitted once some column declares a width —
+  // without one the rendering stays exactly as before; virtualized mode
+  // always emits it, since the mirrored col sequence is how the header
+  // table and the per-row sibling tables stay aligned.
+  const leafWidths = leafHeaders.map((header) =>
+    columnWidthCss(header.column.columnDef)
+  );
+  const hasColumnWidths = leafWidths.some((width) => width !== undefined);
+
+  // Fixed columns are a normal-mode feature; virtualized rows are separate
+  // sibling tables with no shared horizontal scrollport to stick against.
+  const leafFixed = leafHeaders.map(
+    (header) => header.column.columnDef.meta?.fixed
+  );
+  const selectionFixedSpec: FixedCellSpec | undefined =
+    !virtual && selectable && leafFixed.some((side) => side === 'left')
+      ? { side: 'left', offset: '0px', edge: leafFixed[0] !== 'left' }
+      : undefined;
+  const fixedById = new Map<string, FixedCellSpec>();
+  if (!virtual) {
+    // Sticky offsets accumulate the widths of the preceding fixed columns
+    // on the same side (the selection column seeds the left run). Pin
+    // contiguous runs: a non-fixed column between pinned ones scrolls
+    // under the block they form at the edge.
+    const leftParts: string[] = selectionFixedSpec
+      ? [SELECTION_WIDTH_PART]
+      : [];
+    leafHeaders.forEach((header, index) => {
+      if (leafFixed[index] !== 'left') return;
+      fixedById.set(header.column.id, {
+        side: 'left',
+        offset: sumLengths(leftParts),
+        edge: leafFixed[index + 1] !== 'left',
+      });
+      const width = leafWidths[index];
+      if (width) leftParts.push(width);
+    });
+    const rightParts: string[] = [];
+    for (let index = leafHeaders.length - 1; index >= 0; index -= 1) {
+      const header = leafHeaders[index];
+      if (!header || leafFixed[index] !== 'right') continue;
+      fixedById.set(header.column.id, {
+        side: 'right',
+        offset: sumLengths(rightParts),
+        edge: leafFixed[index - 1] !== 'right',
+      });
+      const width = leafWidths[index];
+      if (width) rightParts.push(width);
+    }
+  }
+
+  const colgroup =
+    virtual || hasColumnWidths ? (
+      <colgroup>
+        {selectable && <col style={{ width: SELECTION_COL_WIDTH }} />}
+        {leafHeaders.map((header, index) => (
+          <col
+            key={header.id}
+            style={
+              leafWidths[index] ? { width: leafWidths[index] } : undefined
+            }
+          />
+        ))}
+      </colgroup>
+    ) : undefined;
+
+  // The selection cell keeps only `nowrap` wherever a colgroup owns its
+  // width; otherwise the 1% shrink-to-fit trick sizes it under auto layout.
+  const checkCellStyle =
+    virtual || hasColumnWidths ? checkCellCol : checkCell;
+
   const handleRowClick = onRowClick
     ? (row: TData, event: MouseEvent<HTMLTableRowElement>) => {
         // Interactive content inside the cell owns the click.
@@ -402,9 +607,6 @@ export default function DataTable<TData extends RowData>({
       }
     : undefined;
 
-  // `checkCell`'s 1% width collapses under the virtual mode's fixed layout.
-  const checkCellStyle = virtual ? virtualCheckCell : checkCell;
-
   const header = (
     <TableHead className={stickyHeader ? stickyHead : undefined}>
       {headerGroups.map((headerGroup, groupIndex) => (
@@ -412,10 +614,15 @@ export default function DataTable<TData extends RowData>({
           {selectable && groupIndex === 0 && (
             <TableCell
               as='th'
-              x-class={[checkCellStyle]}
+              x-class={[
+                checkCellStyle,
+                selectionFixedSpec && fixedCell,
+                selectionFixedSpec && fixedHeadCell,
+              ]}
               rowSpan={
                 headerGroups.length > 1 ? headerGroups.length : undefined
               }
+              style={fixedOffsetStyle(selectionFixedSpec)}
             >
               <span ref={selectAllRef}>
                 <CheckboxCore
@@ -439,12 +646,23 @@ export default function DataTable<TData extends RowData>({
               );
             }
             const sorted = header.column.getIsSorted();
+            // Fixed columns are honored on leaf headers — a group header
+            // spanning several columns has no single edge to stick to.
+            const fixedSpec =
+              header.subHeaders.length === 0
+                ? fixedById.get(header.column.id)
+                : undefined;
             return (
               <TableCell
                 as='th'
                 key={header.id}
                 colSpan={header.colSpan > 1 ? header.colSpan : undefined}
                 rowSpan={header.rowSpan > 1 ? header.rowSpan : undefined}
+                x-class={[
+                  fixedSpec && fixedCell,
+                  fixedSpec && fixedHeadCell,
+                ]}
+                style={fixedOffsetStyle(fixedSpec)}
                 aria-sort={
                   sorted === 'asc'
                     ? 'ascending'
@@ -494,7 +712,15 @@ export default function DataTable<TData extends RowData>({
       }
     >
       {selectable && (
-        <TableCell x-class={[checkCellStyle]}>
+        <TableCell
+          x-class={[
+            checkCellStyle,
+            selectionFixedSpec && fixedCell,
+            selectionFixedSpec?.edge && fixedLeftEdge,
+            row.getIsSelected() && fixedCellSelected,
+          ]}
+          style={fixedOffsetStyle(selectionFixedSpec)}
+        >
           <CheckboxCore
             checked={row.getIsSelected()}
             onChange={(checked) => row.toggleSelected(checked)}
@@ -502,26 +728,56 @@ export default function DataTable<TData extends RowData>({
           />
         </TableCell>
       )}
-      {row.getAllCells().map((cell) => (
-        <TableCell key={cell.id}>
-          <table.FlexRender cell={cell} />
-        </TableCell>
-      ))}
+      {row.getAllCells().map((cell) => {
+        const fixedSpec = fixedById.get(cell.column.id);
+        return (
+          <TableCell
+            key={cell.id}
+            x-class={[
+              fixedSpec && fixedCell,
+              fixedSpec?.edge &&
+                (fixedSpec.side === 'left' ? fixedLeftEdge : fixedRightEdge),
+              row.getIsSelected() && fixedCellSelected,
+            ]}
+            style={fixedOffsetStyle(fixedSpec)}
+          >
+            <table.FlexRender cell={cell} />
+          </TableCell>
+        );
+      })}
     </tr>
   );
 
   const renderSkeletonRow = (rowIndex: number) => (
     <tr key={`skeleton-${rowIndex}`}>
       {selectable && (
-        <TableCell x-class={[checkCellStyle]}>
+        <TableCell
+          x-class={[
+            checkCellStyle,
+            selectionFixedSpec && fixedCell,
+            selectionFixedSpec?.edge && fixedLeftEdge,
+          ]}
+          style={fixedOffsetStyle(selectionFixedSpec)}
+        >
           <Skeleton />
         </TableCell>
       )}
-      {leafHeaders.map((header) => (
-        <TableCell key={header.id}>
-          <Skeleton />
-        </TableCell>
-      ))}
+      {leafHeaders.map((header) => {
+        const fixedSpec = fixedById.get(header.column.id);
+        return (
+          <TableCell
+            key={header.id}
+            x-class={[
+              fixedSpec && fixedCell,
+              fixedSpec?.edge &&
+                (fixedSpec.side === 'left' ? fixedLeftEdge : fixedRightEdge),
+            ]}
+            style={fixedOffsetStyle(fixedSpec)}
+          >
+            <Skeleton />
+          </TableCell>
+        );
+      })}
     </tr>
   );
 
@@ -543,10 +799,12 @@ export default function DataTable<TData extends RowData>({
       {virtual ? (
         <div ref={virtualAreaRef} x-class={[virtualArea]}>
           <table x-class={[tableBase, fixedLayout]} {...rest}>
+            {colgroup}
             {header}
           </table>
           {loading ? (
             <table x-class={[tableBase, fixedLayout]}>
+              {colgroup}
               <TableBody>{skeletonRows}</TableBody>
             </table>
           ) : rows.length > 0 ? (
@@ -557,12 +815,14 @@ export default function DataTable<TData extends RowData>({
               overscan={overscan}
               renderItem={(row) => (
                 <table x-class={[tableBase, fixedLayout, virtualRowTable]}>
+                  {colgroup}
                   <TableBody>{renderRow(row)}</TableBody>
                 </table>
               )}
             />
           ) : (
             <table x-class={[tableBase, fixedLayout]}>
+              {colgroup}
               <TableBody>{emptyRow}</TableBody>
             </table>
           )}
@@ -570,6 +830,7 @@ export default function DataTable<TData extends RowData>({
       ) : (
         <div x-class={[stickyHeader ? stickyScrollArea : scrollArea]}>
           <table x-class={[tableBase]} {...rest}>
+            {colgroup}
             {header}
             <TableBody>
               {loading ? (

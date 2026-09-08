@@ -2046,7 +2046,10 @@
         "DropdownMenuTrigger",
         "DropdownMenuContent",
         "DropdownMenuItem",
-        "DropdownMenuSeparator"
+        "DropdownMenuSeparator",
+        "DropdownMenuSub",
+        "DropdownMenuSubTrigger",
+        "DropdownMenuSubContent"
       ],
       "propsTypes": {
         "DropdownMenuContentProps": [
@@ -2125,6 +2128,57 @@
             "name": "className",
             "type": "string",
             "required": false
+          }
+        ],
+        "DropdownMenuSubContentProps": [
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "DropdownMenuSubProps": [
+          {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "onOpenChange",
+            "type": "(open: boolean) => void",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "DropdownMenuSubTriggerProps": [
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
           }
         ],
         "DropdownMenuTriggerProps": [
@@ -2421,6 +2475,33 @@
         "Image"
       ],
       "propsTypes": {
+        "ImagePreviewProps": [
+          {
+            "name": "src",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "alt",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "zoom",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "rotate",
+            "type": "boolean",
+            "required": false
+          }
+        ],
         "ImageProps": [
           {
             "name": "src",
@@ -2448,8 +2529,8 @@
             "required": false
           },
           {
-            "name": "className",
-            "type": "string",
+            "name": "preview",
+            "type": "boolean | ImagePreviewConfig",
             "required": false
           }
         ]
@@ -2785,7 +2866,10 @@
       "imports": [
         "Menu",
         "MenuItem",
-        "MenuDivider"
+        "MenuDivider",
+        "MenuSub",
+        "MenuSubTrigger",
+        "MenuSubContent"
       ],
       "propsTypes": {
         "MenuItemProps": [
@@ -2819,6 +2903,57 @@
           {
             "name": "trigger",
             "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "MenuSubContentProps": [
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "MenuSubProps": [
+          {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "onOpenChange",
+            "type": "(open: boolean) => void",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "MenuSubTriggerProps": [
+          {
+            "name": "disabled",
+            "type": "boolean",
             "required": false
           },
           {
@@ -3553,17 +3688,27 @@
         "SelectCoreProps": [
           {
             "name": "value",
-            "type": "string",
+            "type": "string | string[]",
             "required": true
           },
           {
             "name": "onChange",
-            "type": "(value: string) => void",
+            "type": "(value: string | string[]) => void",
             "required": true
           },
           {
             "name": "onNativeChange",
             "type": "ChangeEventHandler<HTMLSelectElement, HTMLSelectElement> | undefined",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "multiple",
+            "type": "boolean",
             "required": false
           },
           {
@@ -3582,10 +3727,57 @@
             "required": false
           }
         ],
+        "SelectMultipleProps": [
+          {
+            "name": "value",
+            "type": "string | string[]",
+            "required": true
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string[]) => void",
+            "required": true
+          },
+          {
+            "name": "options",
+            "type": "SelectOptionData[]",
+            "required": true
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "size",
+            "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
         "SelectProps": [
           {
             "name": "value",
-            "type": "ControlOrValue<string>",
+            "type": "ControlOrValue<string | string[]>",
+            "required": false
+          },
+          {
+            "name": "multiple",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onValuesChange",
+            "type": "(value: string | string[]) => void",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
             "required": false
           },
           {
@@ -3749,12 +3941,12 @@
         "SliderCoreProps": [
           {
             "name": "value",
-            "type": "number",
+            "type": "number | [number, number]",
             "required": true
           },
           {
             "name": "onChange",
-            "type": "(value: number) => void",
+            "type": "(value: number | [number, number]) => void",
             "required": true
           },
           {
@@ -3763,15 +3955,40 @@
             "required": false
           },
           {
+            "name": "range",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "aria-label",
+            "type": "string | [string, string]",
             "required": false
           }
         ],
         "SliderProps": [
           {
             "name": "value",
-            "type": "ControlOrValue<number>",
+            "type": "ControlOrValue<number | [number, number]>",
+            "required": false
+          },
+          {
+            "name": "range",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onValuesChange",
+            "type": "(value: number | [number, number]) => void",
+            "required": false
+          },
+          {
+            "name": "aria-label",
+            "type": "string | [string, string]",
             "required": false
           }
         ]
@@ -5342,6 +5559,21 @@
             "required": false
           },
           {
+            "name": "droppable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "beforeUpload",
+            "type": "(file: File) => boolean | Promise<boolean>",
+            "required": false
+          },
+          {
+            "name": "maxCount",
+            "type": "number",
+            "required": false
+          },
+          {
             "name": "multiple",
             "type": "boolean",
             "required": false
@@ -5366,6 +5598,21 @@
           {
             "name": "accept",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "droppable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "beforeUpload",
+            "type": "(file: File) => boolean | Promise<boolean>",
+            "required": false
+          },
+          {
+            "name": "maxCount",
+            "type": "number",
             "required": false
           },
           {

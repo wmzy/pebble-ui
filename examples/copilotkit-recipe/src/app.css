@@ -1,0 +1,136 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+/* CopilotSidebar is a fixed overlay panel on the right; keep the page
+   content clear of it on wide screens. */
+.app-root {
+  min-height: 100dvh;
+}
+
+.page {
+  max-width: 44rem;
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding: var(--haze-space-6) var(--haze-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-4);
+  background: var(--haze-color-bg);
+  color: var(--haze-color-text);
+}
+
+.page-header h1 {
+  margin: 0 0 var(--haze-space-2);
+  font-size: var(--haze-text-xl);
+  font-weight: var(--haze-font-semibold);
+}
+
+.page-header p {
+  margin: 0;
+  font-size: var(--haze-text-sm);
+  max-width: 38rem;
+}
+
+.console-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-4);
+}
+
+.console-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--haze-space-4);
+}
+
+.console-field {
+  display: flex;
+  align-items: center;
+  gap: var(--haze-space-3);
+}
+
+.console-field label {
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-text-secondary);
+}
+
+.console-field select {
+  min-width: 10rem;
+}
+
+.activity-card h2 {
+  margin: 0 0 var(--haze-space-3);
+  font-size: var(--haze-text-md);
+  font-weight: var(--haze-font-semibold);
+}
+
+.activity-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-2);
+}
+
+.activity-list li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--haze-space-2);
+  font-size: var(--haze-text-sm);
+}
+
+.activity-source-user,
+.activity-source-agent {
+  font-family: var(--haze-font-mono);
+  font-size: var(--haze-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.activity-source-user {
+  color: var(--haze-color-text-muted);
+}
+
+.activity-source-agent {
+  color: var(--haze-color-primary);
+}
+
+.activity-text {
+  color: var(--haze-color-text-secondary);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--haze-space-2);
+  margin-top: var(--haze-space-4);
+}
+
+.error-banner {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 60;
+  padding: var(--haze-space-2) var(--haze-space-4);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-danger);
+  background: var(--haze-color-bg);
+  border-block-start: 1px solid var(--haze-color-border);
+}
+
+.muted {
+  color: var(--haze-color-text-muted);
+}
+
+.small {
+  font-size: var(--haze-text-sm);
+}

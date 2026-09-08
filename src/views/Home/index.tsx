@@ -1,7 +1,10 @@
+import {useState} from 'react';
 import {css} from '@linaria/core';
 import {Link} from '@native-router/react';
 
 import {Button, Flex, Badge, Card} from '@/lib';
+
+import sizeReportJson from '@/generated/size-report.json';
 
 const wrapper = css`
   background: var(--haze-color-bg);
@@ -150,6 +153,97 @@ const compareTable = css`
   }
 `;
 
+const sizeSection = css`
+  padding: var(--haze-space-8) var(--haze-space-4);
+  max-width: 960px;
+  margin: 0 auto;
+`;
+
+const sizeToolbar = css`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--haze-space-3);
+  margin-bottom: var(--haze-space-3);
+`;
+
+const sizeSummary = css`
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-text-secondary);
+`;
+
+const sizeScroll = css`
+  max-height: 440px;
+  overflow-y: auto;
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-md);
+`;
+
+const sizeTable = css`
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  line-height: var(--haze-leading-normal);
+  color: var(--haze-color-text-secondary);
+
+  & th,
+  & td {
+    padding: var(--haze-space-2) var(--haze-space-3);
+    border-bottom: 1px solid var(--haze-color-border);
+    white-space: nowrap;
+  }
+
+  & thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--haze-color-bg-muted);
+    color: var(--haze-color-text);
+    font-weight: var(--haze-weight-semibold);
+    text-align: left;
+  }
+
+  & thead th:not(:first-child),
+  & td:not(:first-child) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  & tbody th {
+    color: var(--haze-color-text);
+    font-weight: var(--haze-weight-medium);
+    font-family: var(--haze-font-mono);
+  }
+
+  & tbody td {
+    font-family: var(--haze-font-mono);
+  }
+
+  & tbody tr:last-child th,
+  & tbody tr:last-child td {
+    border-bottom: none;
+  }
+`;
+
+const sizeNote = css`
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-xs);
+  color: var(--haze-color-text-muted);
+  margin: var(--haze-space-2) 0 0;
+`;
+
+const sizeHint = css`
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-text-muted);
+  text-align: center;
+  margin: 0;
+`;
+
 const statsSection = css`
   padding: var(--haze-space-8) var(--haze-space-4);
   background: var(--haze-color-bg-subtle);
@@ -240,6 +334,25 @@ const footer = css`
   }
 `;
 
+/** One row of src/generated/size-report.json (scripts/generate-size-report.mjs). */
+type FamilySize = {
+  family: string;
+  cssBytes: number;
+  cssGzipBytes: number;
+};
+
+type SizeReport = {
+  generatedAt: string;
+  distAvailable: boolean;
+  families: FamilySize[];
+  aggregate: FamilySize | null;
+};
+
+const sizeReport = sizeReportJson as SizeReport;
+
+const formatBytes = (bytes: number) =>
+  bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} kB`;
+
 const FEATURES = [
   {
     icon: '\u26a1',
@@ -324,6 +437,12 @@ const COMPARE_ROWS = [
 ] as const;
 
 export default function Home() {
+  // Bundle-size table ordering: gzip descending by default, toggleable.
+  const [sizeSortDesc, setSizeSortDesc] = useState(true);
+  const sizeRows = [...sizeReport.families].sort((a, b) =>
+    sizeSortDesc ? b.cssGzipBytes - a.cssGzipBytes : a.cssGzipBytes - b.cssGzipBytes
+  );
+
   return (
     <div className={wrapper}>
       <section className={hero}>
@@ -410,6 +529,63 @@ export default function Home() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className={sizeSection} id="bundle-size">
+        <h2 className={sectionTitle}>Bundle size</h2>
+        <p className={sectionSubtitle}>
+          Per-family CSS, measured from the local library build. Ship tokens.css
+          once, then only the components you render.
+        </p>
+        {sizeReport.distAvailable && sizeReport.aggregate ? (
+          <>
+            <div className={sizeToolbar}>
+              <span className={sizeSummary}>
+                {sizeReport.families.length} CSS families &middot; full bundle
+                (haze-ui.css): {formatBytes(sizeReport.aggregate.cssBytes)} /{' '}
+                {formatBytes(sizeReport.aggregate.cssGzipBytes)} gzip
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label={`Sort families by gzip size, currently ${sizeSortDesc ? 'descending' : 'ascending'}`}
+                onClick={() => setSizeSortDesc((desc) => !desc)}
+              >
+                Sort by gzip {sizeSortDesc ? '\u2193' : '\u2191'}
+              </Button>
+            </div>
+            <div className={sizeScroll}>
+              <table className={sizeTable}>
+                <thead>
+                  <tr>
+                    <th scope="col">Family</th>
+                    <th scope="col">CSS</th>
+                    <th scope="col">CSS (gzip)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sizeRows.map((row) => (
+                    <tr key={row.family}>
+                      <th scope="row">{row.family}</th>
+                      <td>{formatBytes(row.cssBytes)}</td>
+                      <td>{formatBytes(row.cssGzipBytes)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className={sizeNote}>
+              Measured {new Date(sizeReport.generatedAt).toLocaleDateString()} by
+              scripts/generate-size-report.mjs (gzip level 9) &middot; run pnpm
+              build to regenerate.
+            </p>
+          </>
+        ) : (
+          <p className={sizeHint}>
+            No local build output found &mdash; run pnpm build to regenerate this
+            report.
+          </p>
+        )}
       </section>
 
       <section className={codeSection}>

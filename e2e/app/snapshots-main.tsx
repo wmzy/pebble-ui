@@ -12,6 +12,14 @@
  * opacity — when capturing. Pinning them to their unanimated base frame
  * keeps those baselines byte-stable while still covering shape, color
  * and size.
+ *
+ * The expansion sections cover the newer interactive surfaces: the
+ * Button variant×size matrix, the multiple Select trigger (chip pills),
+ * single + range Slider, and a width-bounded DataTable with pinned
+ * columns (the spec scrolls it to its midpoint before capturing). The
+ * `darkfields` section re-declares the theme on its own wrapper
+ * (`darkTheme`) — the token classes apply to any ancestor, so a nested
+ * dark island covers theme regressions without a second fixture page.
  */
 import { css } from '@linaria/core';
 
@@ -22,6 +30,8 @@ import { Button } from '../../src/lib/components/Button';
 import { Card } from '../../src/lib/components/Card';
 import { ChatMessage } from '../../src/lib/components/ChatMessage';
 import { Checkbox } from '../../src/lib/components/Checkbox';
+import { DataTable } from '../../src/lib/components/DataTable';
+import type { DataTableColumnDef } from '../../src/lib/components/DataTable';
 import { Input } from '../../src/lib/components/Input';
 import { MarkdownRenderer } from '../../src/lib/components/MarkdownRenderer';
 import { Pagination } from '../../src/lib/components/Pagination';
@@ -29,6 +39,7 @@ import { Progress } from '../../src/lib/components/Progress';
 import { Radio, RadioGroup } from '../../src/lib/components/Radio';
 import { Option, Select } from '../../src/lib/components/Select';
 import { Skeleton } from '../../src/lib/components/Skeleton';
+import { Slider } from '../../src/lib/components/Slider';
 import { Spinner } from '../../src/lib/components/Spinner';
 import { Switch } from '../../src/lib/components/Switch';
 import { Tab, TabList, TabPanel, Tabs } from '../../src/lib/components/Tabs';
@@ -41,6 +52,8 @@ import {
 } from '../../src/lib/components/Table';
 import { Tag } from '../../src/lib/components/Tag';
 import { Textarea } from '../../src/lib/components/Textarea';
+
+import { darkTheme } from '../../src/lib/tokens/colors';
 
 import { mountPage } from './components/mount';
 
@@ -76,6 +89,47 @@ const tabsWidth = css`
   width: 360px;
 `;
 
+/* Button matrix: one baseline for the full variant×size grid. */
+const matrix = css`
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-items: start;
+  gap: var(--haze-space-2) var(--haze-space-4);
+`;
+
+/* Dark theme island: re-declares every token on the wrapper (the theme
+   classes are plain custom-property sets) and paints its own background,
+   so the nested components render as they would inside a dark app. */
+const darkPanel = css`
+  background: var(--haze-color-bg);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-lg);
+  padding: var(--haze-space-4) var(--haze-space-5);
+`;
+
+const sliderWidth = css`
+  width: 260px;
+`;
+
+/* Two triggers side by side (260 + 260 + gap) fit the 40rem shell. */
+const selectMultiWidth = css`
+  width: 260px;
+`;
+
+/* Narrower than the declared column widths, so the fixed left/right
+   columns actually pin against a scrolling middle. The table itself
+   must size to its <colgroup> sum: shrink-to-fit would instead squeeze
+   the declared widths into the 520px container (auto table layout
+   treats <col> widths as preferences), leaving nothing to scroll. */
+const dataTableWidth = css`
+  width: 520px;
+
+  & table {
+    width: max-content;
+    min-width: 100%;
+  }
+`;
+
 const frozen = css`
   & * {
     animation: none !important;
@@ -89,6 +143,40 @@ const MARKDOWN = [
   '- relative-color hover and active formulas',
   '> Contrast floors verified at 4.5:1.',
 ].join('\n\n');
+
+/* Widths deliberately overflow the 520px wrapper so the pinned columns
+   have a scrollport to stick against; the spec scrolls to the midpoint
+   before capturing. */
+type PackageRow = {
+  id: number;
+  module: string;
+  description: string;
+  owner: string;
+  version: string;
+  released: string;
+};
+
+const PACKAGES: PackageRow[] = [
+  { id: 1, module: 'tokens', description: 'OKLCH palette and semantic aliases', owner: 'core', version: '1.13.0', released: '2026-09-05' },
+  { id: 2, module: 'button', description: 'Variant and size skin over base control', owner: 'core', version: '1.13.0', released: '2026-09-05' },
+  { id: 3, module: 'datatable', description: 'TanStack Table v9 with pinned columns', owner: 'data', version: '1.12.0', released: '2026-08-28' },
+  { id: 4, module: 'select', description: 'Single and multiple selection triggers', owner: 'forms', version: '1.12.0', released: '2026-08-28' },
+  { id: 5, module: 'slider', description: 'Single and range thumbs on one rail', owner: 'forms', version: '1.12.0', released: '2026-08-28' },
+  { id: 6, module: 'image', description: 'Fallback states and fullscreen preview', owner: 'media', version: '1.11.2', released: '2026-08-14' },
+];
+
+const PACKAGE_COLUMNS: DataTableColumnDef<PackageRow>[] = [
+  {
+    accessorKey: 'module',
+    header: 'Module',
+    cell: (info) => <strong>{info.getValue() as string}</strong>,
+    meta: { width: 140, fixed: 'left' },
+  },
+  { accessorKey: 'description', header: 'Description', meta: { width: 260 } },
+  { accessorKey: 'owner', header: 'Owner', meta: { width: 140 } },
+  { accessorKey: 'version', header: 'Version', meta: { width: 90 } },
+  { accessorKey: 'released', header: 'Released', meta: { width: 120, fixed: 'right' } },
+];
 
 mountPage(
   <>
@@ -288,5 +376,94 @@ mountPage(
     <section data-snap="markdown" className={section}>
       <MarkdownRenderer content={MARKDOWN} />
     </section>
+
+    <section data-snap="buttonmatrix" className={section}>
+      <div className={matrix}>
+        {(['sm', 'md', 'lg'] as const).flatMap((size) =>
+          (['solid', 'outline', 'ghost'] as const).map((variant) => (
+            <Button key={`${size}-${variant}`} size={size} variant={variant}>
+              Action
+            </Button>
+          ))
+        )}
+        <Button variant="solid" disabled>
+          Disabled
+        </Button>
+      </div>
+    </section>
+
+    <section data-snap="selectmultiple" className={section}>
+      <div className={row}>
+        <div className={selectMultiWidth}>
+          <Select
+            multiple
+            value={['apple', 'cherry']}
+            aria-label="Selected fruits"
+          >
+            <Option value="apple">Apple</Option>
+            <Option value="banana">Banana</Option>
+            <Option value="cherry">Cherry</Option>
+            <Option value="durian">Durian</Option>
+          </Select>
+        </div>
+        <div className={selectMultiWidth}>
+          <Select
+            multiple
+            placeholder="Pick fruits"
+            aria-label="Empty fruit selection"
+          >
+            <Option value="apple">Apple</Option>
+            <Option value="banana">Banana</Option>
+            <Option value="cherry">Cherry</Option>
+            <Option value="durian">Durian</Option>
+          </Select>
+        </div>
+      </div>
+    </section>
+
+    <section data-snap="slider" className={section}>
+      <Slider value={62} aria-label="Volume" className={sliderWidth} />
+      <Slider
+        range
+        value={[25, 65]}
+        aria-label={['Minimum volume', 'Maximum volume']}
+        className={sliderWidth}
+      />
+    </section>
+
+    <section data-snap="datatable" className={section}>
+      <div className={dataTableWidth}>
+        <DataTable
+          columns={PACKAGE_COLUMNS}
+          data={PACKAGES}
+          getRowId={(row) => String(row.id)}
+        />
+      </div>
+    </section>
+
+    <div className={`${darkPanel} ${darkTheme}`}>
+      <section data-snap="darkfields" className={section}>
+        <div className={row}>
+          <Input
+            value="haze@example.com"
+            aria-label="Dark email"
+            style={{ width: '220px' }}
+          />
+          <Select value="banana" aria-label="Dark fruit" style={{ width: '160px' }}>
+            <Option value="apple">Apple</Option>
+            <Option value="banana">Banana</Option>
+            <Option value="cherry">Cherry</Option>
+          </Select>
+          <Switch checked aria-label="Dark notifications" />
+          <Checkbox checked label="Locked in" />
+        </div>
+        <div className={row}>
+          <Button variant="solid">Solid</Button>
+          <Button variant="outline">Outline</Button>
+          <Badge variant="success">Passing</Badge>
+          <Badge variant="danger">Failing</Badge>
+        </div>
+      </section>
+    </div>
   </>
 );

@@ -4,6 +4,9 @@
 > component accepts one state prop (`checked?: Control<T> | T`) that works controlled *and*
 > uncontrolled, powered by [react-use-control](https://github.com/wmzy/react-use-control).
 
+- [Full API reference (llms-full.txt)](llms-full.txt): every component's props, types,
+  defaults and descriptions in one generated file.
+
 107 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
 against `--haze-*` design tokens. ESM-only, `preserveModules` dist, tree-shakeable.
 `'use client'` is pre-injected on interactive modules; 36 static, hook-free modules
@@ -23,6 +26,10 @@ npm i recharts                              # Chart
 npm i @dnd-kit/core @dnd-kit/sortable \
       @dnd-kit/utilities                    # TagInput/TagGroup sortable
 ```
+
+shadcn CLI users can instead `pnpm dlx shadcn@latest add wmzy/haze-ui/<item>`
+— this repo is a GitHub registry (root `registry.json`); each item installs a
+thin wrapper that re-exports from the npm package (see `registry/README.md`).
 
 ## CSS: two loading modes
 
@@ -235,6 +242,48 @@ binding via `as`/`input` props. The sugar components (`Input`, `Select`, …) ke
   published component and import its stylesheet — haze-ui stays an npm dependency
   underneath, so wrappers are your customization layer, not vendored source.
 - `haze-ui/css-manifest.json` maps every export to its css file (see "CSS" above).
+
+## For coding agents
+
+A self-contained, machine-executable setup protocol — every step is copy-paste safe.
+
+1. Install the library, then only the optional peers the components you use need:
+
+   ```sh
+   npm i haze-ui
+   npm i react-f0rm                 # FormItem only
+   npm i @tanstack/react-table      # DataTable only
+   npm i recharts                   # Chart only
+   npm i @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities  # sortable TagGroup/TagInput only
+   ```
+
+   Peer range is `react: ^19.0.0`; there is no React 18 compatibility layer.
+
+2. Load CSS — the JS entry imports no stylesheet, so pick one mode:
+
+   ```jsx
+   import 'haze-ui/styles.css'; // mode 1: full stylesheet (simplest)
+   ```
+
+   ```jsx
+   import 'haze-ui/css/tokens.css'; // mode 2: tokens once…
+   import 'haze-ui/css/button.css'; // …plus each component you use
+   ```
+
+3. Derive per-component CSS file names from `haze-ui/css-manifest.json`
+   (build-generated export → css-file map, with family absorption and a
+   `noCss` list) — never hardcode or re-derive file names yourself.
+
+4. Stateful props are `ControlOrValue<T>`: pass a plain value for uncontrolled
+   use, or a `Control<T>` from `react-use-control` for controlled use — one
+   prop, no `defaultXxx` mirror API.
+
+5. Every component's full props table (name/type/default/description, types
+   verbatim from source) lives in [llms-full.txt](llms-full.txt) — generated,
+   always current.
+
+To install the agent components via the shadcn CLI instead, see README ›
+Install via shadcn CLI.
 
 ## Links
 

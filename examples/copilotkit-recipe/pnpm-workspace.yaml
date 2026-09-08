@@ -1,0 +1,17 @@
+# Deliberately package-less marker: pnpm walks up to the nearest
+# pnpm-workspace.yaml to find the install root, and without this file
+# `pnpm install` here would silently install the repository root
+# instead of this example. With it, this directory is its own root.
+#
+# pnpm 11's supply-chain age gate (minimumReleaseAge) may append a
+# minimumReleaseAgeExclude block to this file when a freshly published
+# dependency is resolved — same pattern as the repository root's own
+# pnpm-workspace.yaml; keep any entries it writes.
+#
+# Explicit build-script denials (same idea as the repository root):
+# esbuild's binary ships as an optional platform dependency, its
+# postinstall is only a fallback; @scarf/scarf is telemetry. Denying both
+# keeps `pnpm install` from exiting non-zero on the ignored-builds prompt.
+allowBuilds:
+  esbuild: false
+  '@scarf/scarf': false

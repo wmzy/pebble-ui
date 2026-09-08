@@ -28,6 +28,18 @@ type DialogHandle = {
   focusTrigger: () => void;
 };
 
+/**
+ * Component-level tokens: Dialog can be rethemed per-component by setting
+ * `--haze-dialog-*` custom properties on `:root` or any ancestor. The
+ * library never defines them — the stylesheet only carries fallback
+ * chains, so unset variables keep the shipped look:
+ *
+ * - `--haze-dialog-width` — panel max-width (fallback `480px`)
+ * - `--haze-dialog-radius` — panel corner radius (fallback `--haze-radius-xl`)
+ * - `--haze-dialog-padding` — panel body padding (fallback `--haze-space-6`)
+ * - `--haze-dialog-title-gap` — gap between title and body (fallback `--haze-space-4`)
+ * - `--haze-dialog-title-font-size` — title text size (fallback `--haze-text-lg`)
+ */
 type DialogProps = {
   open?: ControlOrValue<boolean>;
   onClose?: () => void;
@@ -55,13 +67,13 @@ type DialogProps = {
 
 const overlay = css`
   border: none;
-  border-radius: var(--haze-radius-xl);
-  padding: var(--haze-space-6);
+  border-radius: var(--haze-dialog-radius, var(--haze-radius-xl));
+  padding: var(--haze-dialog-padding, var(--haze-space-6));
   background: var(--haze-color-bg);
   color: var(--haze-color-text);
   font-family: var(--haze-font-sans);
   box-shadow: var(--haze-shadow-xl);
-  max-width: 480px;
+  max-width: var(--haze-dialog-width, 480px);
   width: 100%;
 
   &[open][data-state='open'] {
@@ -121,8 +133,8 @@ const overlay = css`
 `;
 
 const titleText = css`
-  margin: 0 0 var(--haze-space-4);
-  font-size: var(--haze-text-lg);
+  margin: 0 0 var(--haze-dialog-title-gap, var(--haze-space-4));
+  font-size: var(--haze-dialog-title-font-size, var(--haze-text-lg));
   font-weight: var(--haze-weight-semibold);
 `;
 

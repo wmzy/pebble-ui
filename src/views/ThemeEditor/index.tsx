@@ -2,11 +2,12 @@ import type {ChangeEvent} from 'react';
 import type {TokenDef} from '@/lib';
 import type {Oklch} from '@/lib/tokens';
 import type {CustomTheme, ResolvedMode, ThemeTokens} from '@/contexts/theme';
+import type {ExportScope} from './export-theme';
 
 import {useCallback, useMemo, useRef, useState} from 'react';
 import {css} from '@linaria/core';
 
-import {Pencil, Copy, Download, Trash2, Save, RotateCcw, Upload, Sun, Moon} from 'lucide-react';
+import {Pencil, Copy, Download, Trash2, Save, RotateCcw, Upload, Sun, Moon, ClipboardCopy, FileDown, Check} from 'lucide-react';
 
 import {
   TOKEN_REGISTRY,
@@ -25,11 +26,16 @@ import {
   Checkbox,
   Switch,
   Slider,
+  useClipboard,
+  useToast,
+  ToastContainer,
 } from '@/lib';
 import {formatOklch, parseHex, parseOklch} from '@/lib/tokens';
 import {useTheme, buildDefaultTokens} from '@/contexts/theme';
 import {toDesignTokens} from '@/util/design-tokens';
 import {page, section} from '@/views/ComponentDetail/styles';
+
+import {exportThemeCss} from './export-theme';
 
 const editorGrid = css`
   display: grid;
@@ -222,6 +228,17 @@ const modeToggle = css`
   margin-bottom: var(--haze-space-4);
 `;
 
+const toolbarDivider = css`
+  width: 1px;
+  align-self: stretch;
+  background: var(--haze-color-border);
+`;
+
+const scopeToggle = css`
+  display: flex;
+  gap: var(--haze-space-1);
+`;
+
 const themeListStyle = css`
   margin-bottom: var(--haze-space-6);
   border: 1px solid var(--haze-color-border);
@@ -356,7 +373,7 @@ function countTokens(tokens: ThemeTokens): number {
   return Object.keys(tokens.light).length + Object.keys(tokens.dark).length;
 }
 
-export default function ThemeEditor() {
+function ThemeEditorInner() {
   const {saveTheme, deleteTheme, customThemes, setActiveTheme} = useTheme();
 
   const [activeMode, setActiveMode] = useState<ResolvedMode>('light');
@@ -364,7 +381,10 @@ export default function ThemeEditor() {
   const [darkEdits, setDarkEdits] = useState<Record<string, string>>({});
   const [themeName, setThemeName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [exportScope, setExportScope] = useState<ExportScope>('changed');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {copied, copy} = useClipboard();
+  const toast = useToast();
 
   const lightDefaults = useMemo(() => buildDefaultTokens('light'), []);
   const darkDefaults = useMemo(() => buildDefaultTokens('dark'), []);
@@ -464,6 +484,34 @@ export default function ThemeEditor() {
     URL.revokeObjectURL(url);
   }, [activeMode, edits, defaults, themeName]);
 
+  /** Current export payload: standalone CSS overrides for both modes. */
+  const exportCss = useMemo(
+    () => exportThemeCss({light: lightEdits, dark: darkEdits}, {scope: exportScope}),
+    [lightEdits, darkEdits, exportScope],
+  );
+
+  const handleCopyCss = useCallback(() => {
+    if (!exportCss) return;
+    void copy(exportCss).then((ok) => {
+      toast(
+        ok ? 'Theme CSS copied to clipboard' : 'Copy failed — clipboard unavailable',
+        {variant: ok ? 'success' : 'danger'},
+      );
+    });
+  }, [exportCss, copy, toast]);
+
+  /** Download the same CSS payload the Copy button writes, as haze-theme.css. */
+  const handleDownloadCss = useCallback(() => {
+    if (!exportCss) return;
+    const blob = new Blob([exportCss], {type: 'text/css'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'haze-theme.css';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [exportCss]);
+
   const handleImport = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -517,6 +565,8 @@ export default function ThemeEditor() {
         Customize design tokens for both light and dark modes. Each theme stores separate overrides per mode.
         Color values are OKLCH — edit lightness / chroma / hue per token, or paste any CSS color;
         overriding a base color re-derives its hover / active / subtle states live in the preview.
+        When you are happy with the result, take it with you: export the overrides (or the full set)
+        as standalone CSS — copy to clipboard or download a .css file.
       </p>
 
       {customThemes.length > 0 && (
@@ -593,6 +643,33 @@ export default function ThemeEditor() {
         <Tooltip content="Export W3C tokens (.json)">
           <Button size="sm" square variant="outline" onClick={handleExportW3cTokens}>
             <Icon icon={Download} size="sm" />
+          </Button>
+        </Tooltip>
+        <span className={toolbarDivider} aria-hidden="true" />
+        <div className={scopeToggle} role="group" aria-label="CSS export scope">
+          <Button
+            size="sm"
+            variant={exportScope === 'changed' ? 'solid' : 'ghost'}
+            onClick={() => setExportScope('changed')}
+          >
+            Changed only
+          </Button>
+          <Button
+            size="sm"
+            variant={exportScope === 'all' ? 'solid' : 'ghost'}
+            onClick={() => setExportScope('all')}
+          >
+            All tokens
+          </Button>
+        </div>
+        <Tooltip content={exportCss ? 'Copy theme CSS' : 'Nothing to export yet — edit a token or switch to “All tokens”'}>
+          <Button size="sm" square variant="outline" onClick={handleCopyCss} disabled={!exportCss}>
+            <Icon icon={copied ? Check : ClipboardCopy} size="sm" />
+          </Button>
+        </Tooltip>
+        <Tooltip content={exportCss ? 'Download haze-theme.css' : 'Nothing to export yet — edit a token or switch to “All tokens”'}>
+          <Button size="sm" square variant="outline" onClick={handleDownloadCss} disabled={!exportCss}>
+            <Icon icon={FileDown} size="sm" />
           </Button>
         </Tooltip>
       </div>
@@ -713,5 +790,14 @@ export default function ThemeEditor() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** useToast consumers must be descendants of ToastContainer (ToastDemo pattern). */
+export default function ThemeEditor() {
+  return (
+    <ToastContainer>
+      <ThemeEditorInner />
+    </ToastContainer>
   );
 }

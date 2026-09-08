@@ -46,7 +46,7 @@
   "scripts": {
     "start": "vite",
     "build": "BUILD_LIB=true vite build && node scripts/split-css.mjs && node scripts/generate-registry.mjs && tsc -p tsconfig.lib.json && tsc-alias -p tsconfig.lib.json",
-    "build:demo": "node scripts/write-version.mjs && BABEL_ENV=development BUILD_DEMO=true vite build && cp dist/index.html dist/404.html && cp llms.txt dist/",
+    "build:demo": "node scripts/write-version.mjs && BABEL_ENV=development BUILD_DEMO=true vite build && cp dist/index.html dist/404.html && cp llms.txt dist/ && cp llms-full.txt dist/",
     "commit": "lint-staged && git-cz -n",
     "coverage": "vitest run --coverage",
     "lint": "eslint --fix src *.mjs",

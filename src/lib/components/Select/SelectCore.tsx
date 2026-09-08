@@ -2,16 +2,39 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import SelectMultiple from './SelectMultiple';
+import { extractSelectOptions } from './select-options';
+
 type SelectCoreProps = {
-  value: string;
-  onChange: (value: string) => void;
+  /** `string` in single mode, `string[]` when `multiple` is set. */
+  value: string | string[];
+  /** Notifies the next value: `string` in single mode, `string[]` when
+   * `multiple` is set. */
+  onChange: (value: string | string[]) => void;
   /** Native change event passthrough — invoked with the DOM event after
-   * `onChange`, so a spread can never override the controlled callback. */
+   * `onChange`, so a spread can never override the controlled callback.
+   * Single mode only; the multiple path has no native select element. */
   onNativeChange?: ComponentPropsWithoutRef<'select'>['onChange'];
+  /**
+   * Placeholder for the multiple trigger (falls back to the
+   * `select.placeholder` locale string). A native `<select>` has no
+   * placeholder attribute, so single mode consumes and drops it.
+   */
+  placeholder?: string;
+  /**
+   * Multiple selection mode: the native `<select>` is replaced by a
+   * button trigger rendering the selected values as removable Chips,
+   * opening a floating multi-select listbox. Default (`false`) keeps
+   * the native single-select path untouched.
+   */
+  multiple?: boolean;
   size?: 'sm' | 'md' | 'lg';
   children: ReactNode;
   className?: string;
-} & Omit<ComponentPropsWithoutRef<'select'>, 'value' | 'onChange' | 'size'>;
+} & Omit<
+  ComponentPropsWithoutRef<'select'>,
+  'value' | 'onChange' | 'size' | 'multiple'
+>;
 
 const base = css`
   display: block;
@@ -74,11 +97,35 @@ export default function SelectCore({
   value,
   onChange,
   onNativeChange,
+  multiple = false,
   size = 'md',
   className,
+  placeholder,
   children,
   ...rest
 }: SelectCoreProps) {
+  if (multiple) {
+    return (
+      <SelectMultiple
+        value={value}
+        onChange={onChange}
+        options={extractSelectOptions(children)}
+        size={size}
+        className={className}
+        placeholder={placeholder}
+        // Select-typed passthrough re-hosted on the multiple trigger's
+        // button: only the element-generic event handler types differ
+        // between the two attribute sets, so this one widening cast at
+        // the mode boundary is sound. Omitted to the shape SelectMultiple
+        // reserves for its own props, so the spread cannot shadow them.
+        {...(rest as Omit<
+          ComponentPropsWithoutRef<'button'>,
+          'value' | 'onChange' | 'size' | 'type' | 'children'
+        >)}
+      />
+    );
+  }
+
   return (
     <select
       x-class={[base, sizes[size], className]}

@@ -6,6 +6,23 @@ import {css} from '@linaria/core';
  * components' visual contract in one place (one edit re-skins both) and
  * keeps component files free of style internals; split-css groups the
  * emitted CSS into `haze-ui/css/button.css` with them.
+ *
+ * ## Component-level tokens
+ *
+ * The skin exposes component-scoped custom properties for per-component
+ * theming. The library never *defines* them — every usage below is a
+ * fallback chain, so the shipped look is the fallback until a consumer
+ * sets the variable on `:root` or any ancestor (scoping is plain CSS
+ * inheritance: set it on a wrapper to retheme only that subtree):
+ *
+ * - `--haze-button-height-sm` / `-md` / `-lg` — height per size
+ *   (fallback `auto`: content-driven, the unchanged shipped look)
+ * - `--haze-button-font-size-sm` / `-md` / `-lg` — label size per size
+ *   (fallbacks `--haze-text-sm` / `--haze-text-sm` / `--haze-text-base`)
+ * - `--haze-button-radius` — corner radius (fallback `--haze-radius-md`)
+ *
+ * `Button`, `ButtonLink`, `Toggle` and the Toolbar items all wear this
+ * skin, so one variable rethemes the whole family.
  */
 
 export const base = css`
@@ -14,7 +31,7 @@ export const base = css`
   justify-content: center;
   gap: var(--haze-space-2);
   border: 1px solid transparent;
-  border-radius: var(--haze-radius-md);
+  border-radius: var(--haze-button-radius, var(--haze-radius-md));
   font-family: var(--haze-font-sans);
   font-weight: var(--haze-weight-medium);
   line-height: var(--haze-leading-tight);
@@ -80,33 +97,39 @@ export const variants = {
 } as const;
 
 export const sizeSm = css`
+  height: var(--haze-button-height-sm, auto);
   padding: var(--haze-space-1) var(--haze-space-3);
-  font-size: var(--haze-text-sm);
+  font-size: var(--haze-button-font-size-sm, var(--haze-text-sm));
 `;
 
 export const sizeMd = css`
+  height: var(--haze-button-height-md, auto);
   padding: var(--haze-space-2) var(--haze-space-4);
-  font-size: var(--haze-text-sm);
+  font-size: var(--haze-button-font-size-md, var(--haze-text-sm));
 `;
 
 export const sizeLg = css`
+  height: var(--haze-button-height-lg, auto);
   padding: var(--haze-space-3) var(--haze-space-6);
-  font-size: var(--haze-text-base);
+  font-size: var(--haze-button-font-size-lg, var(--haze-text-base));
 `;
 
 export const squareSm = css`
+  height: var(--haze-button-height-sm, auto);
   padding: var(--haze-space-1);
-  font-size: var(--haze-text-sm);
+  font-size: var(--haze-button-font-size-sm, var(--haze-text-sm));
 `;
 
 export const squareMd = css`
+  height: var(--haze-button-height-md, auto);
   padding: var(--haze-space-2);
-  font-size: var(--haze-text-sm);
+  font-size: var(--haze-button-font-size-md, var(--haze-text-sm));
 `;
 
 export const squareLg = css`
+  height: var(--haze-button-height-lg, auto);
   padding: var(--haze-space-3);
-  font-size: var(--haze-text-base);
+  font-size: var(--haze-button-font-size-lg, var(--haze-text-base));
 `;
 
 export const sizes = {

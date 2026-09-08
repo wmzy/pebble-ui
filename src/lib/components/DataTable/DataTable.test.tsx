@@ -298,11 +298,130 @@ describe('DataTable', () => {
     );
   });
 
+  it('applies per-column widths through a colgroup', () => {
+    const widthColumns: DataTableColumnDef<Person>[] = [
+      { accessorKey: 'name', header: 'Name', meta: { width: 160 } },
+      { accessorKey: 'age', header: 'Age', size: 80 },
+      { accessorKey: 'id', header: 'ID', meta: { width: '10%' } },
+    ];
+    const { container } = render(
+      <DataTable columns={widthColumns} data={people} selectable getRowId={rowId} />
+    );
+
+    const cols = Array.from(container.querySelectorAll('col'));
+    // Selection column first at its fixed narrow width, then one col per
+    // data column: meta.width (px), the native `size` fallback, string
+    // passthrough.
+    expect(cols).toHaveLength(4);
+    expect(cols[0]!.style.width).toBe(
+      'calc(var(--haze-space-3) * 2 + var(--haze-space-5))'
+    );
+    expect(cols[1]!.style.width).toBe('160px');
+    expect(cols[2]!.style.width).toBe('80px');
+    expect(cols[3]!.style.width).toBe('10%');
+
+    // Columns without a width stay auto — no width on the col.
+    const partialColumns: DataTableColumnDef<Person>[] = [
+      { accessorKey: 'name', header: 'Name', meta: { width: 160 } },
+      { accessorKey: 'age', header: 'Age' },
+    ];
+    const partial = render(
+      <DataTable columns={partialColumns} data={people} />
+    ).container;
+    const partialCols = Array.from(partial.querySelectorAll('col'));
+    expect(partialCols).toHaveLength(2);
+    expect(partialCols[1]!.style.width).toBe('');
+  });
+
+  it('renders no colgroup when no column declares a width', () => {
+    const { container } = render(
+      <DataTable columns={columns} data={people} selectable />
+    );
+
+    expect(container.querySelector('colgroup')).toBeNull();
+    expect(container.querySelectorAll('col')).toHaveLength(0);
+    // Unfixed cells carry no sticky offsets.
+    container.querySelectorAll<HTMLElement>('th, td').forEach((cell) => {
+      expect(cell.style.left).toBe('');
+      expect(cell.style.right).toBe('');
+      expect(cell.className).not.toContain('fixedCell');
+    });
+  });
+
+  it('sticks fixed columns to the scroll edges with accumulated offsets', async () => {
+    const user = userEvent.setup();
+    const fixedColumns: DataTableColumnDef<Person>[] = [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        meta: { width: 120, fixed: 'left' },
+      },
+      { accessorKey: 'age', header: 'Age', size: 100, meta: { fixed: 'left' } },
+      { accessorKey: 'id', header: 'ID', meta: { width: 90, fixed: 'right' } },
+    ];
+    render(
+      <DataTable
+        columns={fixedColumns}
+        data={people}
+        selectable
+        getRowId={rowId}
+      />
+    );
+
+    const [selectionHeader, nameHeader, ageHeader, idHeader] =
+      screen.getAllByRole('columnheader');
+    // The selection column pins itself at the left edge and its width seeds
+    // the offset of the first fixed data column; the second fixed column
+    // accumulates the first one's width.
+    expect(selectionHeader!.style.left).toBe('0px');
+    expect(nameHeader!.style.left).toBe(
+      'calc((var(--haze-space-3) * 2 + var(--haze-space-5)))'
+    );
+    expect(ageHeader!.style.left).toBe(
+      'calc((var(--haze-space-3) * 2 + var(--haze-space-5)) + 120px)'
+    );
+    // Right-fixed columns pin from the right edge.
+    expect(idHeader!.style.right).toBe('0px');
+    expect(idHeader!.style.left).toBe('');
+    expect(nameHeader!.className).toContain('fixedCell');
+    expect(nameHeader!.className).toContain('fixedHeadCell');
+
+    const rowCells = Array.from(bodyRows()[0]!.querySelectorAll('td'));
+    expect(rowCells[0]!.style.left).toBe('0px');
+    expect(rowCells[1]!.style.left).toBe(
+      'calc((var(--haze-space-3) * 2 + var(--haze-space-5)))'
+    );
+    expect(rowCells[2]!.style.left).toBe(
+      'calc((var(--haze-space-3) * 2 + var(--haze-space-5)) + 120px)'
+    );
+    expect(rowCells[3]!.style.right).toBe('0px');
+    // The innermost column of each pinned run carries the scroll hint —
+    // on body cells only, never on the header row.
+    expect(rowCells[2]!.className).toContain('fixedLeftEdge');
+    expect(rowCells[1]!.className).not.toContain('fixedLeftEdge');
+    expect(rowCells[3]!.className).toContain('fixedRightEdge');
+    expect(ageHeader!.className).not.toContain('fixedLeftEdge');
+
+    // Selecting a row re-creates the selected background on fixed cells,
+    // whose own background would otherwise cover the row's.
+    await user.click(screen.getByRole('checkbox', { name: 'Select row u1' }));
+    rowCells.forEach((cell) =>
+      expect(cell.className).toContain('fixedCellSelected')
+    );
+  });
+
   it('has no axe violations', async () => {
     const { axe } = await import('jest-axe');
     const { container } = render(
       <DataTable
-        columns={columns}
+        columns={[
+          {
+            accessorKey: 'name',
+            header: 'Name',
+            meta: { width: 120, fixed: 'left' },
+          },
+          { accessorKey: 'age', header: 'Age' },
+        ]}
         data={people}
         sortable
         selectable
@@ -581,6 +700,77 @@ describe('DataTable virtualization', () => {
 
     expect(bodyRows()).toHaveLength(40);
     expect(document.querySelector('[data-index]')).toBeNull();
+  });
+
+  it('mirrors one colgroup into the header and every row table', () => {
+    const widthColumns: DataTableColumnDef<Person>[] = [
+      { accessorKey: 'name', header: 'Name', meta: { width: 200 } },
+      { accessorKey: 'age', header: 'Age' },
+    ];
+    const { container } = render(
+      <DataTable
+        columns={widthColumns}
+        data={many}
+        selectable
+        virtualized
+        getRowId={rowId}
+      />
+    );
+
+    const tables = Array.from(container.querySelectorAll('table'));
+    const widthsOf = (table: Element) =>
+      Array.from(table.querySelectorAll('col')).map((col) => col.style.width);
+
+    // Header table plus the windowed row tables — every sibling carries the
+    // same col sequence, which is how they stay column-aligned.
+    expect(tables.length).toBeGreaterThan(2);
+    for (const table of tables) {
+      expect(widthsOf(table)).toEqual(widthsOf(tables[0]!));
+    }
+    // Selection column fixed, `meta.width` pinned, remainder shared.
+    expect(widthsOf(tables[0]!)).toEqual([
+      'calc(var(--haze-space-3) * 2 + var(--haze-space-5))',
+      '200px',
+      '',
+    ]);
+  });
+
+  it('leaves unspecified columns width-free so fixed layout shares the remainder equally', () => {
+    const { container } = render(
+      <DataTable columns={columns} data={many} virtualized getRowId={rowId} />
+    );
+
+    const headerTable = container.querySelector('table');
+    expect(headerTable?.className).toContain('fixedLayout');
+    const cols = headerTable?.querySelectorAll('col');
+    expect(cols).toHaveLength(2);
+    cols?.forEach((col) => expect(col.style.width).toBe(''));
+  });
+
+  it('ignores fixed columns when virtualized', () => {
+    const fixedColumns: DataTableColumnDef<Person>[] = [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        meta: { width: 120, fixed: 'left' },
+      },
+      { accessorKey: 'age', header: 'Age', meta: { fixed: 'right' } },
+    ];
+    const { container } = render(
+      <DataTable
+        columns={fixedColumns}
+        data={many}
+        selectable
+        virtualized
+        getRowId={rowId}
+      />
+    );
+
+    container.querySelectorAll<HTMLElement>('th, td').forEach((cell) => {
+      expect(cell.style.left).toBe('');
+      expect(cell.style.right).toBe('');
+      expect(cell.className).not.toContain('fixedCell');
+    });
   });
 
   it('has no axe violations when virtualized', async () => {

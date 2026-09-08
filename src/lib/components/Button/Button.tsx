@@ -2,6 +2,13 @@ import type { ComponentPropsWithoutRef } from 'react';
 
 import { base, sizes, squareSizes, variants } from './styles';
 
+/**
+ * Component-level tokens: Button can be rethemed per-component by setting
+ * `--haze-button-*` custom properties on `:root` or any ancestor —
+ * `--haze-button-height-sm|md|lg`, `--haze-button-font-size-sm|md|lg`,
+ * `--haze-button-radius` (fallbacks and usage documented in ./styles).
+ * ButtonLink and Toggle wear the same skin and follow along.
+ */
 type ButtonProps = {
   variant?: 'solid' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';

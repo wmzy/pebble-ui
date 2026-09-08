@@ -23,6 +23,9 @@ import { base, sizes, squareSizes, variants } from './styles';
  * `aria-disabled` (and `tabIndex={-1}` to drop it from the focus
  * order) — ButtonLink styles `aria-disabled` exactly like Button's
  * `:disabled`.
+ *
+ * Component-level theming tokens (`--haze-button-*`) apply here too —
+ * this anchor wears the exact same skin as Button (see ./styles).
  */
 type ButtonLinkProps = {
   variant?: 'solid' | 'outline' | 'ghost';

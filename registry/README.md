@@ -14,67 +14,77 @@ no published JSON payloads.
 > components, while the implementation itself keeps coming from the
 > `haze-ui` package. Use whichever path fits your project; you can mix both.
 
+Everything here is **generated** by
+[`scripts/generate-registry.mjs`](../scripts/generate-registry.mjs) on every
+`pnpm build` (self-checking; it fails the build on schema drift). Don't edit
+the generated files — edit the script. Only `README.md`, `tsconfig.json`,
+`css.d.ts` and `haze-tokens/haze-tokens.md` are hand-maintained.
+
 ## Install
 
 ```bash
-# any single item
+# any single item — every styled export in the library is covered
 npx shadcn@latest add wmzy/haze-ui/button
 
 # several at once
 npx shadcn@latest add wmzy/haze-ui/button wmzy/haze-ui/dialog wmzy/haze-ui/toast
+
+# browse the catalog / inspect an item payload
+npx shadcn@latest list wmzy/haze-ui
+npx shadcn@latest view wmzy/haze-ui/sidebar
 ```
 
-Wrappers land in your configured `components/ui` directory (from
-`components.json`, as with any `registry:ui` item).
+Wrappers land under your configured `components/ui` directory inside a
+`haze/` namespace (from `components.json`, via the `@ui/` target
+placeholder) — e.g. `components/ui/haze/button.tsx` — so they never collide
+with your own components. To pin a release, append a tag or commit SHA:
+`npx shadcn@latest add wmzy/haze-ui/button#v1.13.0`.
 
 ## Items
 
-| Item | Install | What you get |
-| --- | --- | --- |
-| `haze-tokens` | `npx shadcn@latest add wmzy/haze-ui/haze-tokens` | Token onboarding guide (`docs/haze-tokens.md`): what `tokens.css` contains, where it lives, how to load and theme it |
-| `button` | `npx shadcn@latest add wmzy/haze-ui/button` | `Button`, `ButtonLink` re-exports |
-| `dialog` | `npx shadcn@latest add wmzy/haze-ui/dialog` | `Dialog` (native `<dialog>`, controllable `open`) |
-| `dropdown-menu` | `npx shadcn@latest add wmzy/haze-ui/dropdown-menu` | `DropdownMenu` compound family |
-| `combobox` | `npx shadcn@latest add wmzy/haze-ui/combobox` | `Combobox` (input + filtered list) |
-| `form` | `npx shadcn@latest add wmzy/haze-ui/form` | `FormItem` (react-f0rm binding) |
-| `data-table` | `npx shadcn@latest add wmzy/haze-ui/data-table` | `DataTable` (TanStack Table + haze styles) |
-| `toast` | `npx shadcn@latest add wmzy/haze-ui/toast` | `Toast`, `ToastContainer`, `useToast`, `toast()` |
-| `chat-message` | `npx shadcn@latest add wmzy/haze-ui/chat-message` | `ChatMessage` (AI chat kit anchor) |
+Generated coverage: **every styled export of the main barrel** — 107 css
+families, 185 components, one item per family. Multi-export families ship
+together (e.g. `tabs` → `Tabs`/`TabList`/`Tab`/`TabPanel`, `resizable` →
+`Resizable*` plus the `Splitter*` aliases, `toast` → `Toast`,
+`ToastContainer`, `useToast`, `toast()`), and the `tokens` item wraps the
+theme classes (`lightTheme`/`darkTheme`/`spacing`/`typography`).
 
-Each item declares `dependencies: ["haze-ui"]`, so the CLI installs the
-npm package automatically. `form` additionally installs `react-f0rm` and
-`data-table` installs `@tanstack/react-table` (both peer dependencies of
-haze-ui that their APIs surface).
+A few examples:
 
-Useful commands (see the
-[GitHub registry docs](https://ui.shadcn.com/docs/registry/github)):
+| Item | What you get |
+| --- | --- |
+| `tokens` | Theme classes: `lightTheme`/`darkTheme` + `spacing` + `typography` |
+| `haze-tokens` | Token onboarding guide installed as `docs/haze-tokens.md` |
+| `button` | `Button`, `ButtonLink` re-exports |
+| `input` | `Input`, `InputCore` (form-bindable core) |
+| `dialog` | `Dialog` (native `<dialog>`, controllable `open`) |
+| `select` | `Select`, `Option`, `SelectCore` |
+| `tabs` | `Tabs`, `TabList`, `Tab`, `TabPanel` |
+| `sidebar` | `Sidebar`, `SidebarGroup`, `SidebarItem`, `SidebarFooter`, `SidebarToggle` |
+| `form` | `FormItem` (react-f0rm binding) |
+| `data-table` | `DataTable` (TanStack Table + haze styles) |
+| `chart` | `Chart` (recharts + haze tokens) |
+| `toast` | `Toast`, `ToastContainer`, `useToast`, `toast()` |
+| `chat-message` | `ChatMessage` (AI chat kit anchor) |
 
-```bash
-npx shadcn@latest list wmzy/haze-ui          # browse the catalog
-npx shadcn@latest view wmzy/haze-ui/button   # inspect an item payload
-npx shadcn@latest add wmzy/haze-ui/button --dry-run
-```
+Each item declares `dependencies: ["haze-ui"]`, so the CLI installs the npm
+package automatically. Items whose components need optional peers declare
+them too (detected from the source import closure): `form` → `react-f0rm`,
+`data-table` → `@tanstack/react-table`, `chart` → `recharts`,
+`tag-input`/`tag-group` → `@dnd-kit/core` + `@dnd-kit/sortable` +
+`@dnd-kit/utilities`.
 
-To pin a release, append a tag or commit SHA:
-`npx shadcn@latest add wmzy/haze-ui/button#v1.13.0`.
+Skipped on purpose (no css of their own — import from `haze-ui` directly):
+hooks (`useMediaQuery`, `useClipboard`, …), `TOKEN_REGISTRY` /
+`COMPONENT_TOKENS`, `LocaleProvider` + string packs, direction utils,
+`Fullscreen`, and the `useControl` re-export.
 
-## You still need the CSS
+## You still need the theme — but not the stylesheet imports
 
-haze-ui ships JS and CSS as separate entry points — installing a wrapper
-does **not** import any stylesheet. In your app entry (e.g. `main.tsx` /
-`app/layout.tsx`):
-
-```js
-// Full sheet, simplest (~12kB gzipped)
-import 'haze-ui/styles.css';
-
-// or pay only for what you render: tokens once, then each component
-import 'haze-ui/css/tokens.css';
-import 'haze-ui/css/button.css';
-import 'haze-ui/css/dialog.css';
-```
-
-Then activate the design tokens on a container — usually `<body>`:
+The generated wrappers import their own stylesheets
+(`haze-ui/css/tokens.css` + the family css), so bundler-based projects need
+no extra stylesheet setup. What every consumer still needs is the token
+activation on a container — usually `<body>`:
 
 ```jsx
 import { lightTheme, spacing, typography } from 'haze-ui';
@@ -82,14 +92,15 @@ import { lightTheme, spacing, typography } from 'haze-ui';
 <body className={`${lightTheme} ${spacing} ${typography}`}>
 ```
 
-Swap in `darkTheme` for dark mode. The `haze-tokens` item installs the
-full token guide (including Tailwind v4 `@theme` interop and CDN URLs)
-into `docs/haze-tokens.md` if you want it in your project.
+Swap in `darkTheme` for dark mode. The `tokens` registry item is exactly
+this re-export if you prefer owning it as a file; the `haze-tokens` item
+installs the full token guide (including Tailwind v4 `@theme` interop and
+CDN URLs) into `docs/haze-tokens.md`.
 
 ## npm vs registry
 
 | | npm (`npm i haze-ui`) | shadcn registry |
-| --- | --- | --- |
+| --- | --- |
 | What lands in your repo | nothing (dependency) | one thin wrapper file per item |
 | Implementation source | `haze-ui` package | `haze-ui` package (via `dependencies`) |
 | Updates | semver via package manager | re-run `shadcn add` (pin with `#tag`) |
@@ -99,23 +110,19 @@ into `docs/haze-tokens.md` if you want it in your project.
 ## Repository layout
 
 ```
-registry.json                      # shadcn registry manifest (repo root)
+registry.json                      # shadcn registry index (repo root, generated)
 registry/
 ├── README.md                      # this file
+├── tsconfig.json                  # typechecks the wrappers (haze-ui self-reference)
+├── css.d.ts                       # ambient declarations for the css side-effect imports
 ├── haze-tokens/haze-tokens.md     # token guide installed by the haze-tokens item
-└── ui/                            # thin re-export wrappers (one file per item)
-    ├── button.tsx
-    ├── dialog.tsx
-    ├── dropdown-menu.tsx
-    ├── combobox.tsx
-    ├── form.tsx
-    ├── data-table.tsx
-    ├── toast.tsx
-    └── chat-message.tsx
+├── <item>.tsx                     # wrapper source (one per css family, generated)
+└── <item>.json                    # flat registry-item payload with the wrapper
+                                   # source embedded (direct .json address installs)
 ```
 
-Note: `registry.json` here is unrelated to the `registry.json` **export** of
-the npm package (`haze-ui/registry.json` under `dist/`) — that one is the
-machine-readable design-token registry (`TOKEN_REGISTRY` /
-`COMPONENT_TOKENS`). This one follows the
-[shadcn registry.json schema](https://ui.shadcn.com/schema/registry.json).
+Note: the root `registry.json` is unrelated to the `registry.json` **export**
+of the npm package (`haze-ui/registry.json` under `dist/`, also on
+<https://unpkg.com/haze-ui/registry.json>) — that one carries the same items
+with wrapper source embedded for URL/registry-server consumption. Both are
+generated by the same script from the same data.

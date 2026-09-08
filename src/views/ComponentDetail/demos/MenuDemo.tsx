@@ -1,4 +1,4 @@
-import { Button, Menu, MenuItem, MenuDivider } from '@/lib';
+import { Button, Menu, MenuItem, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } from '@/lib';
 
 import PropsTable from '../PropsTable';
 
@@ -29,6 +29,47 @@ export default function MenuDemo() {
       </div>
 
       <div className={section}>
+        <h2>Nested submenus</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          Compose submenus from <code>MenuSub</code> wrapping a{' '}
+          <code>MenuSubTrigger</code> + <code>MenuSubContent</code> pair —
+          and nest them arbitrarily. Hover opens after a short intent
+          delay, click toggles, <strong>ArrowRight</strong> (LTR) enters
+          with focus on the first item, and <strong>Esc</strong> closes one
+          level at a time. The panel mirrors to the inline-start edge
+          under <code>dir=&quot;rtl&quot;</code>.
+        </p>
+        <div className={row}>
+          <Menu trigger={<Button variant='outline'>Open Nested Menu</Button>}>
+            <MenuItem onSelect={noop}>Rename</MenuItem>
+            <MenuSub>
+              <MenuSubTrigger>Share</MenuSubTrigger>
+              <MenuSubContent>
+                <MenuItem onSelect={noop}>Copy link</MenuItem>
+                <MenuItem onSelect={noop}>Embed</MenuItem>
+                <MenuSub>
+                  <MenuSubTrigger>More</MenuSubTrigger>
+                  <MenuSubContent>
+                    <MenuItem onSelect={noop}>Email</MenuItem>
+                    <MenuItem onSelect={noop}>QR code</MenuItem>
+                    <MenuItem disabled>Webhook</MenuItem>
+                  </MenuSubContent>
+                </MenuSub>
+              </MenuSubContent>
+            </MenuSub>
+            <MenuDivider />
+            <MenuItem onSelect={noop}>Archive</MenuItem>
+          </Menu>
+        </div>
+      </div>
+
+      <div className={section}>
         <h2>Menu Props</h2>
         <PropsTable of='MenuProps' />
       </div>
@@ -36,6 +77,11 @@ export default function MenuDemo() {
       <div className={section}>
         <h2>MenuItem Props</h2>
         <PropsTable of='MenuItemProps' />
+      </div>
+
+      <div className={section}>
+        <h2>MenuSub Props</h2>
+        <PropsTable of='MenuSubProps' />
       </div>
 
       <div className={section}>
@@ -49,6 +95,10 @@ export default function MenuDemo() {
             <li>Click outside closes the menu</li>
             <li>
               Disabled items have <strong>disabled</strong> attribute
+            </li>
+            <li>
+              Submenu triggers expose <strong>aria-haspopup</strong> /{' '}
+              <strong>aria-expanded</strong>; focus is contained per level
             </li>
           </ul>
         </A11yNote>

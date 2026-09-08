@@ -4,7 +4,7 @@ import PropsTable from '../PropsTable';
 
 import A11yNote from '../A11yNote';
 
-import { intro, section } from '../styles';
+import { intro, section, row } from '../styles';
 
 import { CssVarsSection } from './shared';
 
@@ -41,6 +41,41 @@ export default function ImageDemo() {
       </div>
 
       <div className={section}>
+        <h2>Preview</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>preview</code> enables a fullscreen click-to-preview overlay:
+          zoom 25%–400% (buttons, wheel, or drag to pan), rotate in 90°
+          steps, <strong>Esc</strong> to close. Pass an object to opt out
+          per control — <code>preview=&#123;&#123; rotate: false &#125;&#125;</code>{' '}
+          keeps zoom and pan but drops the rotate button.
+        </p>
+        <div className={row}>
+          <div style={{ maxWidth: 320 }}>
+            <Image
+              src='https://picsum.photos/640/360'
+              alt='Clickable landscape opening the full preview'
+              aspectRatio='16/9'
+              preview
+            />
+          </div>
+          <div style={{ maxWidth: 320 }}>
+            <Image
+              src='https://picsum.photos/360/640'
+              alt='Clickable portrait with rotate disabled'
+              aspectRatio='9/16'
+              preview={{ rotate: false }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={section}>
         <h2>Props</h2>
         <PropsTable of='ImageProps' />
       </div>
@@ -54,6 +89,11 @@ export default function ImageDemo() {
               <strong>alt</strong> text
             </li>
             <li>Fallback content is visible to screen readers</li>
+            <li>
+              The preview overlay is a dialog closed with{' '}
+              <strong>Esc</strong>; controls carry{' '}
+              <strong>aria-label</strong>s
+            </li>
           </ul>
         </A11yNote>
       </div>

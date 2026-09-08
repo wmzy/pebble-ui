@@ -13,6 +13,15 @@
  * regenerated popover/dialog/dropdown baselines stay comparable to the
  * originals. Generous vertical gaps keep open panels clear of the next
  * section's trigger, like the smoke page.
+ *
+ * The expansion sections add the newer overlay surfaces: the Image
+ * fullscreen preview (opened by clicking its thumbnail; the SVG source
+ * is an inline data URI — deterministic, no network), a DropdownMenu
+ * with one expanded submenu (the spec captures the viewport: both
+ * panels are top-layer popovers), the multiple Select's open listbox,
+ * and a dark-theme Dialog (`darkTheme` re-declared on its wrapper — a
+ * native <dialog> stays in the DOM subtree, so the top-layer panel and
+ * its ::backdrop inherit the dark tokens).
  */
 import { css } from '@linaria/core';
 import { createRoot } from 'react-dom/client';
@@ -26,12 +35,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '../../src/lib/components/DropdownMenu';
+import { Image } from '../../src/lib/components/Image';
 import { Popover } from '../../src/lib/components/Popover';
+import { Option, Select } from '../../src/lib/components/Select';
 import { ToastContainer, useToast } from '../../src/lib/components/Toast';
 import { Tooltip } from '../../src/lib/components/Tooltip';
-import { lightTheme } from '../../src/lib/tokens/colors';
+import { darkTheme, lightTheme } from '../../src/lib/tokens/colors';
 import { motion } from '../../src/lib/tokens/motion';
 import { spacing } from '../../src/lib/tokens/spacing';
 import { typography } from '../../src/lib/tokens/typography';
@@ -61,6 +75,26 @@ const comboboxWidth = css`
   width: 240px;
 `;
 
+const thumbWidth = css`
+  width: 320px;
+`;
+
+const selectMultiWidth = css`
+  width: 280px;
+`;
+
+/* Fully inlined SVG fixture image — no network, deterministic
+   rasterization, and both the thumbnail and the fullscreen preview
+   decode from the same bytes. */
+const PREVIEW_SRC = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400">
+  <rect width="640" height="400" fill="#0f172a"/>
+  <circle cx="220" cy="170" r="90" fill="#3b82f6"/>
+  <rect x="360" y="90" width="180" height="160" rx="16" fill="#f59e0b"/>
+  <path d="M80 330h480" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round"/>
+</svg>`
+)}`;
+
 const FRUITS = [
   { value: 'apple', label: 'Apple' },
   { value: 'banana', label: 'Banana' },
@@ -86,6 +120,7 @@ function ToastDemo() {
 
 function App() {
   const [, setDialogOpen, dialogControl] = useControl(undefined, false);
+  const [, setDarkDialogOpen, darkDialogControl] = useControl(undefined, false);
 
   return (
     <div className={`${shell} ${lightTheme} ${spacing} ${typography} ${motion}`}>
@@ -138,6 +173,74 @@ function App() {
         >
           <p>Dialog body</p>
         </Dialog>
+      </section>
+
+      <section data-snap="imagepreview">
+        <Image
+          src={PREVIEW_SRC}
+          alt="Fixture artwork"
+          preview
+          aspectRatio="8/5"
+          className={thumbWidth}
+        />
+      </section>
+
+      <section data-snap="submenu">
+        <DropdownMenu>
+          <DropdownMenuTrigger>File</DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>New file</DropdownMenuItem>
+            <DropdownMenuItem>Open recent…</DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Share</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem>Copy link</DropdownMenuItem>
+                <DropdownMenuItem>Embed</DropdownMenuItem>
+                <DropdownMenuItem disabled>Email</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Archive</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </section>
+
+      <section data-snap="selectmultipleopen">
+        <div className={selectMultiWidth}>
+          <Select
+            multiple
+            value={['apple', 'cherry']}
+            aria-label="Overlay fruits"
+          >
+            <Option value="apple">Apple</Option>
+            <Option value="banana">Banana</Option>
+            <Option value="cherry">Cherry</Option>
+            <Option value="durian">Durian</Option>
+          </Select>
+        </div>
+      </section>
+
+      {/* Dark-theme dialog: the token classes apply to any ancestor, and
+          a native <dialog> stays in the DOM subtree (no portal), so the
+          top-layer panel and its ::backdrop both inherit the dark set. */}
+      <section data-snap="dialogdark">
+        <div className={darkTheme}>
+          <button
+            type="button"
+            id="dark-dialog-opener"
+            className={demoBtn}
+            onClick={() => setDarkDialogOpen(true)}
+          >
+            Open dark dialog
+          </button>
+          <Dialog
+            open={darkDialogControl}
+            onClose={() => setDarkDialogOpen(false)}
+            title="Confirm deletion"
+          >
+            <p>This permanently deletes the file.</p>
+          </Dialog>
+        </div>
       </section>
 
       <ToastContainer>

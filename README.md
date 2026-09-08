@@ -43,6 +43,31 @@ npm i haze-ui
 pnpm add haze-ui
 ```
 
+### Install via shadcn CLI (GitHub registry)
+
+The repository is also a [shadcn registry](https://ui.shadcn.com/docs/registry/github),
+so the shadcn CLI installs any component directly from GitHub — no manual
+npm setup:
+
+```sh
+pnpm dlx shadcn@latest add wmzy/haze-ui/button
+pnpm dlx shadcn@latest add wmzy/haze-ui/dialog wmzy/haze-ui/tabs
+pnpm dlx shadcn@latest list wmzy/haze-ui   # browse all items
+```
+
+Every **styled** export is covered (107 items — one per CSS family, so
+compound components like `tabs` arrive as `Tabs`/`TabList`/`Tab`/
+`TabPanel` together). What lands in your project is a thin **wrapper
+file** under `components/ui/haze/` that re-exports the component from
+`haze-ui` and imports its stylesheet — not vendored source. The wrapper is
+your customization layer (fork it, wrap it, restyle it), while `haze-ui`
+itself is installed as a normal npm dependency and keeps updating through
+your package manager. Common items: `button`, `input`, `select`, `dialog`,
+`tabs`, `toast`, `sidebar`, `form`, `data-table`, `chart`, `chat-message`,
+plus `tokens` (the theme classes) and `haze-tokens` (a token onboarding
+guide doc). See [registry/README.md](./registry/README.md) for the full
+picture.
+
 ### React 19+ by design
 
 The peer range is `react: ^19.0.0` on purpose — haze-ui is built on
@@ -398,6 +423,61 @@ not wrapped.
 }
 ```
 
+## Component-level tokens
+
+Global `--haze-*` tokens theme the whole system; **component-level tokens**
+theme one component family without touching anything else. They are plain
+CSS custom properties consumed through a fallback chain baked into the
+component's own stylesheet:
+
+```css
+/* inside haze-ui/css/button.css */
+height: var(--haze-button-height-md, auto);
+```
+
+The library never defines these variables — nothing to register, no
+runtime. When you set one on `:root` or any ancestor of the component, your
+value wins; when you don't, the built-in fallback applies and the component
+looks exactly as shipped. Scoping is ordinary CSS inheritance: set the
+variable on a wrapper element to retheme only that subtree.
+
+`Button`/`ButtonLink` (pilot — they share one skin, so both change
+together; `Toggle` and the Toolbar items wearing the same skin follow
+along):
+
+| Token                              | Fallback (default look) |
+| ---------------------------------- | ----------------------- |
+| `--haze-button-height-sm/md/lg`    | `auto` (content-driven) |
+| `--haze-button-font-size-sm/md`    | `var(--haze-text-sm)`   |
+| `--haze-button-font-size-lg`       | `var(--haze-text-base)` |
+| `--haze-button-radius`             | `var(--haze-radius-md)` |
+
+`Dialog`:
+
+| Token                            | Fallback (default look)  |
+| -------------------------------- | ------------------------ |
+| `--haze-dialog-width`            | `480px` (on `max-width`) |
+| `--haze-dialog-radius`           | `var(--haze-radius-xl)`  |
+| `--haze-dialog-padding`          | `var(--haze-space-6)`    |
+| `--haze-dialog-title-gap`        | `var(--haze-space-4)`    |
+| `--haze-dialog-title-font-size`  | `var(--haze-text-lg)`    |
+
+```css
+/* app-wide denser buttons; every other component keeps its sizing */
+:root {
+  --haze-button-height-md: 32px;
+}
+
+/* only dialogs inside this subtree get wider */
+.wide-dialogs {
+  --haze-dialog-width: 720px;
+}
+```
+
+`COMPONENT_TOKENS` (exported from `haze-ui` and `haze-ui/tokens`) lists
+each component's component-level tokens alongside the global tokens it
+consumes.
+
 ## AI-friendly distribution
 
 **llms.txt** — a markdown overview of the whole library (the `ControlOrValue<T>`
@@ -425,8 +505,11 @@ That is the point: AI coding agents (and anyone who wants a fast setup
 while keeping the npm update path) get working imports in one step,
 without the copy-paste expectation of owning pasted source. When you
 want different styles or behavior, fork the generated wrapper file — it
-is your customization layer, not a source drop. Coverage, to be precise:
-only the **agent components** (the AI & Chat group plus AsyncSection).
+is your customization layer, not a source drop. Coverage: **every styled
+export** (107 css families / 185 components), generated from the build's
+own css manifest. The same items are also installable straight from this
+GitHub repository — see
+[Install via shadcn CLI (GitHub registry)](#install-via-shadcn-cli-github-registry).
 
 ## Headless primitives
 

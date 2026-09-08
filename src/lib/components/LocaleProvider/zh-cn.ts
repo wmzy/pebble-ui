@@ -92,6 +92,13 @@ const zhCN: HazeStrings = {
   fileInput: {
     label: '选择文件',
   },
+  image: {
+    zoomIn: '放大',
+    zoomOut: '缩小',
+    reset: '重置',
+    rotate: '旋转',
+    close: '关闭',
+  },
   inlineEdit: {
     placeholder: '点击编辑',
   },
@@ -128,6 +135,10 @@ const zhCN: HazeStrings = {
   rating: {
     star: '{count} 颗星',
     stars: '{count} 颗星',
+  },
+  select: {
+    placeholder: '请选择',
+    listboxLabel: '选项',
   },
   spinner: {
     loading: '加载中',
@@ -170,6 +181,8 @@ const zhCN: HazeStrings = {
   },
   upload: {
     hint: '将文件拖拽到此处，或点击上传',
+    clickHint: '点击浏览文件',
+    label: '上传文件',
   },
 };
 

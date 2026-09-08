@@ -14,7 +14,7 @@ import A11yNote from '../A11yNote';
 
 import { intro, section, row } from '../styles';
 
-import { CssVarsSection } from './shared';
+import { CssVarsSection, dataTableNote } from './shared';
 
 // ─── DataTable ─────────────────────────────────────────────────
 type EmployeeStatus = 'active' | 'away' | 'offline';
@@ -60,6 +60,28 @@ const baseColumns: DataTableColumnDef<EmployeeRow>[] = [
   },
   { accessorKey: 'score', header: 'Score' },
   { accessorKey: 'joined', header: 'Joined' },
+];
+
+// Column widths + pinned columns: meta.width (number = px, or a CSS
+// length string) flows into a shared <colgroup>; meta.fixed pins the
+// column to the scroll area's edge. Fixed columns should declare px
+// widths — the sticky offset sums the preceding fixed widths.
+const wideColumns: DataTableColumnDef<EmployeeRow>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Name',
+    cell: (info) => <strong>{info.getValue() as string}</strong>,
+    meta: { width: 140, fixed: 'left' },
+  },
+  { accessorKey: 'role', header: 'Role', meta: { width: '32%' } },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: (info) => statusBadge(info.getValue() as EmployeeStatus),
+    meta: { sortable: false },
+  },
+  { accessorKey: 'score', header: 'Score', meta: { width: 90 } },
+  { accessorKey: 'joined', header: 'Joined', meta: { width: 120, fixed: 'right' } },
 ];
 
 export default function DataTableDemo() {
@@ -108,6 +130,28 @@ export default function DataTableDemo() {
           data={PEOPLE.slice(0, 4)}
           getRowId={(employee) => String(employee.id)}
         />
+      </div>
+
+      <div className={section}>
+        <h2>Column widths &amp; fixed columns</h2>
+        <p className={dataTableNote}>
+          Declare sizing through <code>meta.width</code> — a number is px,
+          strings pass through as CSS lengths (<code>&apos;32%&apos;</code>,{' '}
+          <code>&apos;12rem&apos;</code>; the native TanStack{' '}
+          <code>size</code> field works as a px fallback). Pin columns with{' '}
+          <code>meta.fixed</code> so they stay visible while the rest
+          scrolls horizontally — here <em>Name</em> sticks left and{' '}
+          <em>Joined</em> right in a narrowed viewport. Normal mode only;
+          virtualized tables ignore <code>fixed</code>.
+        </p>
+        <div style={{ maxWidth: 560 }}>
+          <DataTable
+            columns={wideColumns}
+            data={PEOPLE}
+            sortable
+            getRowId={(employee) => String(employee.id)}
+          />
+        </div>
       </div>
 
       <div className={section}>

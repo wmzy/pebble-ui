@@ -5,11 +5,16 @@ import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import { useControl } from 'react-use-control';
 
+import { SUBMENU_CLOSE_GRACE_MS, SUBMENU_OPEN_DELAY_MS } from '../../utils/submenu';
+
 import DropdownMenu from './DropdownMenu';
 import DropdownMenuTrigger from './DropdownMenuTrigger';
 import DropdownMenuContent from './DropdownMenuContent';
 import DropdownMenuItem from './DropdownMenuItem';
 import DropdownMenuSeparator from './DropdownMenuSeparator';
+import DropdownMenuSub from './DropdownMenuSub';
+import DropdownMenuSubTrigger from './DropdownMenuSubTrigger';
+import DropdownMenuSubContent from './DropdownMenuSubContent';
 
 function renderMenu(props?: { itemDisabled?: boolean }) {
   render(
@@ -482,6 +487,370 @@ describe('DropdownMenu imperative handle', () => {
       handle.close();
       handle.focusTrigger();
     }).not.toThrow();
+  });
+});
+
+describe('DropdownMenu submenu', () => {
+  function renderSubmenu() {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Alpha</DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>More</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem>Sub One</DropdownMenuItem>
+              <DropdownMenuItem>Zed</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuItem>Gamma</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    );
+    return screen.getByRole('button', { name: 'Open' });
+  }
+
+  /** Open the menu by keyboard and enter the submenu by keyboard. */
+  async function openSubmenuWithKeyboard(user: ReturnType<typeof userEvent.setup>) {
+    const trigger = renderSubmenu();
+    trigger.focus();
+    await user.keyboard('{ArrowDown}'); // focus Alpha
+    await user.keyboard('{ArrowDown}'); // focus the sub trigger
+    await user.keyboard('{ArrowRight}');
+    return trigger;
+  }
+
+  it('renders the sub trigger with submenu aria wiring while open', async () => {
+    const user = userEvent.setup();
+    const trigger = renderSubmenu();
+    // Content unmounts while closed — no nested menu in the DOM yet.
+    expect(screen.queryByRole('menuitem', { name: 'More' })).not.toBeInTheDocument();
+
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    const more = screen.getByRole('menuitem', { name: 'More' });
+    expect(more).toHaveAttribute('aria-haspopup', 'menu');
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    expect(more).not.toHaveAttribute('aria-owns');
+  });
+
+  it('opens with ArrowRight, focuses the first item and owns the nested menu', async () => {
+    const user = userEvent.setup();
+    await openSubmenuWithKeyboard(user);
+    const more = screen.getByRole('menuitem', { name: 'More' });
+    expect(more).toHaveAttribute('aria-expanded', 'true');
+    const subMenu = screen.getByText('Sub One').closest('[role="menu"]')!;
+    expect(more).toHaveAttribute('aria-owns', subMenu.id);
+    expect(subMenu).toHaveAttribute('data-state', 'open');
+    expect(screen.getByText('Sub One')).toHaveFocus();
+    expect(screen.getAllByRole('menu')).toHaveLength(2);
+  });
+
+  it('keeps ArrowDown traversal inside the submenu level, wrapping', async () => {
+    const user = userEvent.setup();
+    await openSubmenuWithKeyboard(user);
+    await user.keyboard('{ArrowDown}'); // Sub One -> Zed
+    expect(screen.getByText('Zed')).toHaveFocus();
+    await user.keyboard('{ArrowDown}'); // wraps inside the submenu
+    expect(screen.getByText('Sub One')).toHaveFocus();
+    // never escapes into the parent level's items
+    expect(screen.getByText('Alpha')).not.toHaveFocus();
+  });
+
+  it('scopes typeahead to the submenu level', async () => {
+    const user = userEvent.setup();
+    await openSubmenuWithKeyboard(user);
+    // 'z' matches Zed inside the submenu
+    await user.keyboard('z');
+    expect(screen.getByText('Zed')).toHaveFocus();
+  });
+
+  it('does not leak typeahead from the submenu into the parent level', async () => {
+    const user = userEvent.setup();
+    await openSubmenuWithKeyboard(user);
+    // 'a' would match the parent-level Alpha if the buffer leaked up;
+    // within the submenu it matches nothing, so focus stays put.
+    await user.keyboard('a');
+    expect(screen.getByText('Sub One')).toHaveFocus();
+  });
+
+  it('Escape inside the submenu closes only that level and returns focus to the trigger', async () => {
+    const user = userEvent.setup();
+    const trigger = await openSubmenuWithKeyboard(user);
+    const more = screen.getByRole('menuitem', { name: 'More' });
+    await user.keyboard('{Escape}');
+    // the submenu unmounts after its animated exit…
+    await waitFor(() =>
+      expect(screen.queryByText('Sub One')).not.toBeInTheDocument()
+    );
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    // …while the root menu stays open
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+    expect(more).toHaveFocus();
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('ArrowLeft inside the submenu closes it back to the trigger', async () => {
+    const user = userEvent.setup();
+    await openSubmenuWithKeyboard(user);
+    const more = screen.getByRole('menuitem', { name: 'More' });
+    await user.keyboard('{ArrowLeft}');
+    await waitFor(() =>
+      expect(screen.queryByText('Sub One')).not.toBeInTheDocument()
+    );
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(more).toHaveFocus();
+  });
+
+  it('Escape on an open submenu trigger closes only the submenu', async () => {
+    const user = userEvent.setup();
+    await openSubmenuWithKeyboard(user);
+    const more = screen.getByRole('menuitem', { name: 'More' });
+    more.focus();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(screen.queryByText('Sub One')).not.toBeInTheDocument()
+    );
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('Tab inside the submenu closes the whole stack and focuses the root trigger', async () => {
+    const user = userEvent.setup();
+    const trigger = await openSubmenuWithKeyboard(user);
+    await user.keyboard('{Tab}');
+    await waitFor(() =>
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    );
+    expect(trigger).toHaveFocus();
+  });
+
+  it('selecting an item inside the submenu closes the whole menu', async () => {
+    const user = userEvent.setup();
+    const trigger = await openSubmenuWithKeyboard(user);
+    await user.click(screen.getByText('Sub One'));
+    await waitFor(() =>
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    );
+    expect(trigger).toHaveFocus();
+  });
+
+  it('toggles the submenu on trigger click while the menu stays open', async () => {
+    const trigger = renderSubmenu();
+    fireEvent.click(trigger);
+    const more = screen.getByRole('menuitem', { name: 'More' });
+    fireEvent.click(more);
+    expect(more).toHaveAttribute('aria-expanded', 'true');
+    // root menu + nested submenu both present
+    expect(screen.getAllByRole('menu')).toHaveLength(2);
+    fireEvent.click(more);
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    // the submenu panel unmounts once its animated exit settles; the
+    // root menu itself stays open throughout
+    await waitFor(() => expect(screen.getAllByRole('menu')).toHaveLength(1));
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+  });
+
+  it('opens on hover after the intent delay, without stealing focus', () => {
+    vi.useFakeTimers();
+    try {
+      const trigger = renderSubmenu();
+      trigger.focus();
+      fireEvent.click(trigger);
+      const more = screen.getByRole('menuitem', { name: 'More' });
+      fireEvent.pointerOver(more);
+      expect(more).toHaveAttribute('aria-expanded', 'false');
+      act(() => {
+        vi.advanceTimersByTime(SUBMENU_OPEN_DELAY_MS - 1);
+      });
+      expect(more).toHaveAttribute('aria-expanded', 'false');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(more).toHaveAttribute('aria-expanded', 'true');
+      // hover never moves keyboard focus (still on the root trigger)
+      expect(trigger).toHaveFocus();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('closes a hover-opened submenu after a grace period once the pointer settles elsewhere', () => {
+    vi.useFakeTimers();
+    try {
+      const trigger = renderSubmenu();
+      fireEvent.click(trigger);
+      const more = screen.getByRole('menuitem', { name: 'More' });
+      fireEvent.pointerOver(more);
+      act(() => {
+        vi.advanceTimersByTime(SUBMENU_OPEN_DELAY_MS);
+      });
+      expect(more).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.pointerOver(screen.getByText('Alpha'));
+      act(() => {
+        vi.advanceTimersByTime(SUBMENU_CLOSE_GRACE_MS - 1);
+      });
+      expect(more).toHaveAttribute('aria-expanded', 'true');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(more).toHaveAttribute('aria-expanded', 'false');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('supports two nesting levels with per-level Escape', async () => {
+    const user = userEvent.setup();
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>More</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Deeper</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem>Deep Item</DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    );
+    screen.getByRole('button', { name: 'Open' }).focus();
+    await user.keyboard('{ArrowDown}');
+    await user.keyboard('{ArrowRight}');
+    const more = screen.getByRole('menuitem', { name: 'More' });
+    expect(more).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{ArrowRight}');
+    const deeper = screen.getByRole('menuitem', { name: 'Deeper' });
+    expect(deeper).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('Deep Item')).toHaveFocus();
+    await user.keyboard('{Escape}');
+    // innermost level only
+    await waitFor(() =>
+      expect(screen.queryByText('Deep Item')).not.toBeInTheDocument()
+    );
+    expect(deeper).toHaveAttribute('aria-expanded', 'false');
+    expect(more).toHaveAttribute('aria-expanded', 'true');
+    expect(deeper).toHaveFocus();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(screen.queryByText('Deeper')).not.toBeInTheDocument()
+    );
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    expect(more).toHaveFocus();
+  });
+
+  it('keeps one roving tab stop per level', async () => {
+    const user = userEvent.setup();
+    await openSubmenuWithKeyboard(user);
+    const zed = screen.getByText('Zed');
+    zed.focus();
+    const stops = screen
+      .getAllByRole('menuitem')
+      .filter((el) => el.tabIndex === 0);
+    // one stop in the root level (the sub trigger), one in the submenu
+    expect(stops).toHaveLength(2);
+    expect(stops.map((el) => el.textContent)).toEqual(['More', 'Zed']);
+  });
+
+  it('mirrors the horizontal keys under dir=rtl: ArrowLeft opens, ArrowRight closes', async () => {
+    const user = userEvent.setup();
+    const container = document.createElement('div');
+    container.setAttribute('dir', 'rtl');
+    document.body.appendChild(container);
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Alpha</DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>More</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem>Sub One</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+      { container },
+    );
+    const trigger = screen.getByRole('button', { name: 'Open' });
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    await user.keyboard('{ArrowDown}');
+    const more = screen.getByRole('menuitem', { name: 'More' });
+    await user.keyboard('{ArrowLeft}');
+    expect(more).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('Sub One')).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    await waitFor(() =>
+      expect(screen.queryByText('Sub One')).not.toBeInTheDocument()
+    );
+    expect(more).toHaveFocus();
+  });
+
+  it('hands focus into the submenu on the native popover tier (shown-gated)', async () => {
+    // jsdom has no popover API: polyfill the minimal surface (same mock
+    // as the collisionPadding suite below) so the sub's floating instance
+    // drives visibility through showPopover/toggle like a real engine.
+    // jsdom's UA sheet hides [popover] panels, so assertions use direct
+    // DOM queries instead of role queries.
+    installNativePopover();
+    try {
+      const user = userEvent.setup();
+      const trigger = renderSubmenu();
+      trigger.focus();
+      await user.keyboard('{ArrowDown}');
+      await user.keyboard('{ArrowDown}');
+      const more = screen.getByText('More');
+      await user.keyboard('{ArrowRight}');
+      // The focus handoff only runs once the popover is really shown —
+      // before the toggle echo lands, focus would be dropped.
+      expect(more).toHaveAttribute('aria-expanded', 'true');
+      const subPanel = screen.getByText('Sub One').closest('[popover]')!;
+      expect(subPanel.hasAttribute('data-popover-open')).toBe(true);
+      expect(screen.getByText('Sub One')).toHaveFocus();
+      await user.keyboard('{Escape}');
+      await waitFor(() =>
+        expect(screen.queryByText('Sub One')).not.toBeInTheDocument()
+      );
+      // the root menu is untouched by the inner Escape
+      expect(screen.getByText('Alpha')).toBeInTheDocument();
+      expect(more).toHaveFocus();
+    } finally {
+      removeNativePopover();
+    }
+  });
+
+  it('has no axe violations with the submenu open', async () => {
+    const { axe } = await import('jest-axe');
+    render(
+      <DropdownMenu open>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Alpha</DropdownMenuItem>
+          <DropdownMenuSub open>
+            <DropdownMenuSubTrigger>More</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem>Sub One</DropdownMenuItem>
+              <DropdownMenuItem>Zed</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    );
+    // 'region' fires for any content outside a landmark — an artifact of
+    // the bare test document, not the component.
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
   });
 });
 

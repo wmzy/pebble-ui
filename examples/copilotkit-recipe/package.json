@@ -1,0 +1,31 @@
+{
+  "name": "haze-ui-copilotkit-recipe",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:runtime": "tsx server.ts",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@copilotkit/react-core": "^1.70.1",
+    "@copilotkit/runtime": "^1.70.1",
+    "haze-ui": "link:../..",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-use-control": "^1.6.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.0",
+    "vite": "^8.2.2"
+  }
+}

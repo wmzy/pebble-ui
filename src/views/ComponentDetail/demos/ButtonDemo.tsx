@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 import { Button, ButtonLink, Icon } from '@/lib';
 
 import PropsTable from '../PropsTable';
@@ -7,6 +9,14 @@ import A11yNote from '../A11yNote';
 import { intro, section, row } from '../styles';
 
 import { CssVarsSection, StrokeSvg } from './shared';
+
+// Component-level tokens: set --haze-button-* on any ancestor to retheme
+// the buttons inside (sizes that aren't overridden keep their fallbacks).
+const tokenScope = {
+  '--haze-button-height-md': '3rem',
+  '--haze-button-font-size-md': 'var(--haze-text-base)',
+  '--haze-button-radius': '999px',
+} as CSSProperties;
 
 // ─── Button ────────────────────────────────────────────────────
 export default function ButtonDemo() {
@@ -30,6 +40,36 @@ export default function ButtonDemo() {
           <Button size='sm'>Small</Button>
           <Button size='md'>Medium</Button>
           <Button size='lg'>Large</Button>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Component-level tokens</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          Buttons read <code>--haze-button-*</code> custom properties with
+          global-token fallbacks, so an ancestor can retheme just the
+          buttons it wraps: this container sets{' '}
+          <code>--haze-button-height-md</code>,{' '}
+          <code>--haze-button-font-size-md</code> and{' '}
+          <code>--haze-button-radius</code> — medium buttons inside grow
+          and go pill-shaped, while the small one keeps its height (only
+          the size-less radius reaches it). Set them on{' '}
+          <code>:root</code> instead to retheme every button at once.
+        </p>
+        <div className={row} style={tokenScope}>
+          <Button size='md'>Scoped Medium</Button>
+          <Button size='md' variant='outline'>
+            Scoped Outline
+          </Button>
+          <Button size='sm' variant='ghost'>
+            Small (height untouched)
+          </Button>
         </div>
       </div>
 

@@ -91,6 +91,13 @@ const defaultStrings = {
   fileInput: {
     label: 'Choose file',
   },
+  image: {
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
+    reset: 'Reset',
+    rotate: 'Rotate',
+    close: 'Close',
+  },
   inlineEdit: {
     placeholder: 'Click to edit',
   },
@@ -127,6 +134,10 @@ const defaultStrings = {
   rating: {
     star: '{count} star',
     stars: '{count} stars',
+  },
+  select: {
+    placeholder: 'Select…',
+    listboxLabel: 'Options',
   },
   spinner: {
     loading: 'Loading',
@@ -169,6 +180,8 @@ const defaultStrings = {
   },
   upload: {
     hint: 'Drag & drop files here, or click to upload',
+    clickHint: 'Click to browse files',
+    label: 'Upload files',
   },
 };
 

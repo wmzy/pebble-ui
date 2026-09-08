@@ -10,6 +10,8 @@ import react from '@vitejs/plugin-react';
 import wyw from '@wyw-in-js/vite';
 
 import { writeProps } from './scripts/generate-props.mjs';
+import { writeLlmsFull } from './scripts/generate-llms-full.mjs';
+import { writeSizeReport } from './scripts/generate-size-report.mjs';
 import { isRscSafeModule } from './scripts/rsc-safe.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -62,8 +64,9 @@ function jsxPlusPlugin(): Plugin {
 }
 
 // Docs app only: regenerate src/generated/props.json (PropsTable `of` data
-// and the Copy-import index) before the module graph resolves it. Skipped
-// for lib builds and vitest — neither reads the generated file.
+// and the Copy-import index) before the module graph resolves it, then the
+// repo-root llms-full.txt single-file API reference built on top of it.
+// Skipped for lib builds and vitest — neither reads the generated file.
 function propsDocgenPlugin(): Plugin {
   return {
     name: 'haze-ui-props-docgen',
@@ -72,6 +75,18 @@ function propsDocgenPlugin(): Plugin {
       if (changed) {
         console.log(
           `props-docgen: regenerated src/generated/props.json (${componentCount} components)`
+        );
+      }
+      const llms = writeLlmsFull(__dirname);
+      if (llms.changed) {
+        console.log(
+          `props-docgen: regenerated llms-full.txt (${llms.componentCount} components)`
+        );
+      }
+      const size = writeSizeReport(__dirname);
+      if (size.changed) {
+        console.log(
+          `props-docgen: regenerated size-report.json (${size.familyCount} families)`
         );
       }
     },

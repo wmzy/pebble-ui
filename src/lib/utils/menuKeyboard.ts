@@ -16,7 +16,18 @@ export function getEnabledMenuItems(
   selector: string = MENU_ITEM_SELECTOR
 ): HTMLElement[] {
   if (!container) return [];
-  return Array.from(container.querySelectorAll<HTMLElement>(selector));
+  const items = Array.from(container.querySelectorAll<HTMLElement>(selector));
+  // Nested submenus keep their panel inside the parent menu's DOM (the
+  // popover top layer only changes paint order, not the tree). For menu
+  // containers keep only items whose NEAREST menu ancestor is the
+  // container itself, so each level's keyboard traversal, typeahead and
+  // roving tabindex see exactly its own items — a submenu trigger
+  // belongs to the parent level, the submenu's items do not. Non-menu
+  // containers (listbox, toolbar) never nest menus and pass through.
+  if (container.getAttribute('role') === 'menu') {
+    return items.filter((el) => el.closest('[role="menu"]') === container);
+  }
+  return items;
 }
 
 type UseMenuKeyboardOptions = {
@@ -32,6 +43,13 @@ type UseMenuKeyboardOptions = {
    * `[role=option]` list of a Command palette.
    */
   selector?: string;
+  /**
+   * Submenu levels only: called for the inline-start arrow (ArrowLeft in
+   * LTR, ArrowRight under `dir="rtl"` — mirrored like the horizontal
+   * orientation) so this level closes and focus returns to its trigger.
+   * Root menus leave it unset and the key stays inert.
+   */
+  onCloseToStart?: () => void;
   /**
    * Layout axis of the item container. Vertical (default) moves with
    * ↑/↓; horizontal moves with ←/→, mirrored under `dir="rtl"` (←
@@ -52,6 +70,7 @@ export function useMenuKeyboard({
   menuRef,
   onClose,
   selector,
+  onCloseToStart,
   orientation = 'vertical',
 }: UseMenuKeyboardOptions) {
   const typedRef = useRef('');
@@ -85,6 +104,21 @@ export function useMenuKeyboard({
             ? 'ArrowRight'
             : 'ArrowLeft'
           : 'ArrowUp';
+
+      // Submenu level: the inline-start arrow closes this level (and the
+      // caller returns focus to its trigger) before the switch — a
+      // submenu is always vertical, so the key is otherwise inert.
+      if (onCloseToStart) {
+        const startKey =
+          getDirection(menuRef.current) === 'rtl'
+            ? 'ArrowRight'
+            : 'ArrowLeft';
+        if (event.key === startKey) {
+          event.preventDefault();
+          onCloseToStart();
+          return;
+        }
+      }
 
       switch (event.key) {
         case forward:
@@ -146,7 +180,7 @@ export function useMenuKeyboard({
         }
       }
     },
-    [menuRef, onClose, selector, orientation]
+    [menuRef, onClose, selector, onCloseToStart, orientation]
   );
 }
 
@@ -192,7 +226,13 @@ export function useRovingTabindex({
     observer.observe(menu, { childList: true, subtree: true });
 
     const handleFocusIn = (event: FocusEvent) => {
-      getEnabledMenuItems(menu, selector).forEach((el) => {
+      const items = getEnabledMenuItems(menu, selector);
+      // Focus landing outside this level's items (a nested submenu's
+      // panel lives inside this container's DOM) must not strip the
+      // level's tab stop — the stop moves only with focus on its own
+      // items.
+      if (!items.includes(event.target as HTMLElement)) return;
+      items.forEach((el) => {
         el.tabIndex = el === event.target ? 0 : -1;
       });
     };
