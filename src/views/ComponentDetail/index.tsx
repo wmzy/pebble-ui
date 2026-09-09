@@ -193,6 +193,8 @@ import TagInputDemo from './demos/TagInputDemo';
 
 import MentionsDemo from './demos/MentionsDemo';
 
+import PromptInputDemo from './demos/PromptInputDemo';
+
 import AsyncSectionDemo from './demos/AsyncSectionDemo';
 
 import InlineEditDemo from './demos/InlineEditDemo';
@@ -304,6 +306,7 @@ const demos: Record<string, () => ReactNode> = {
   passwordinput: PasswordInputDemo,
   taginput: TagInputDemo,
   mentions: MentionsDemo,
+  promptinput: PromptInputDemo,
   inlineedit: InlineEditDemo,
   dropdownmenu: DropdownMenuDemo,
   contextmenu: ContextMenuDemo,

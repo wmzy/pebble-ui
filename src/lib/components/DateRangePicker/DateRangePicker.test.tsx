@@ -35,6 +35,125 @@ describe('DateRangePicker', () => {
     render(<DateRangePicker separator="to" />);
     expect(screen.getByText('to')).toBeInTheDocument();
   });
+
+  it('renders no calendar grid by default', () => {
+    render(<DateRangePicker />);
+    expect(document.querySelector('[role="grid"]')).not.toBeInTheDocument();
+  });
+});
+
+describe('DateRangePicker dual-month panel', () => {
+  function monthLabel(year: number, month: number) {
+    return new Date(year, month).toLocaleString('default', {
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  it('renders two adjacent month grids below the inputs', () => {
+    render(<DateRangePicker startDate="2026-01-15" months={2} />);
+    expect(
+      screen.getByRole('grid', { name: monthLabel(2026, 0) })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('grid', { name: monthLabel(2026, 1) })
+    ).toBeInTheDocument();
+    // The two date inputs stay in place.
+    expect(document.querySelectorAll('input[type="date"]')).toHaveLength(2);
+  });
+
+  it('completes a cross-month range from calendar clicks', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <DateRangePicker startDate="2026-01-15" months={2} />
+    );
+    const february = screen.getByRole('grid', { name: monthLabel(2026, 1) });
+    // A start date is already set, so the first calendar pick completes
+    // the range with the end date.
+    await user.click(february.querySelector('[data-haze-day="2026-02-10"]')!);
+    expect(screen.getByLabelText('Start date')).toHaveValue('2026-01-15');
+    expect(screen.getByLabelText('End date')).toHaveValue('2026-02-10');
+
+    // Cross-month range highlight spans both panes.
+    const cell = (date: string) =>
+      container
+        .querySelector(`[data-haze-day="${date}"]`)!
+        .closest('[role="gridcell"]')!;
+    expect(cell('2026-01-15')).toHaveAttribute('aria-selected', 'true');
+    expect(cell('2026-01-25')).toHaveAttribute('aria-selected', 'true');
+    expect(cell('2026-02-05')).toHaveAttribute('aria-selected', 'true');
+    expect(cell('2026-02-10')).toHaveAttribute('aria-selected', 'true');
+    expect(cell('2026-01-08')).toHaveAttribute('aria-selected', 'false');
+    expect(cell('2026-02-20')).toHaveAttribute('aria-selected', 'false');
+  });
+
+  it('sets the start on the first pick and completes it on the second', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 15));
+    try {
+      const onStartChange = vi.fn();
+      const onEndChange = vi.fn();
+      // Pinned "today" makes the initial view deterministic: January +
+      // February 2026. Core is fully controlled, so the harness feeds
+      // each pick back through rerender like a real owner would.
+      const props = (start: string, end: string) => (
+        <DateRangePickerCore
+          startDate={start}
+          endDate={end}
+          months={2}
+          onStartChange={onStartChange}
+          onEndChange={onEndChange}
+        />
+      );
+      const view = render(props('', ''));
+
+      // First pick starts a fresh range (end cleared).
+      const january = screen.getByRole('grid', { name: monthLabel(2026, 0) });
+      fireEvent.click(january.querySelector('[data-haze-day="2026-01-20"]')!);
+      expect(onStartChange).toHaveBeenCalledWith('2026-01-20');
+      expect(onEndChange).toHaveBeenCalledWith('');
+
+      // Second pick at or after the start completes the range.
+      view.rerender(props('2026-01-20', ''));
+      const february = screen.getByRole('grid', { name: monthLabel(2026, 1) });
+      fireEvent.click(february.querySelector('[data-haze-day="2026-02-10"]')!);
+      expect(onEndChange).toHaveBeenCalledWith('2026-02-10');
+      expect(onStartChange).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('restarts the range when the second pick precedes the start', async () => {
+    const user = userEvent.setup();
+    render(<DateRangePicker startDate="2026-01-15" months={2} />);
+    const january = screen.getByRole('grid', { name: monthLabel(2026, 0) });
+    await user.click(january.querySelector('[data-haze-day="2026-01-20"]')!);
+    await user.click(january.querySelector('[data-haze-day="2026-01-08"]')!);
+    expect(screen.getByLabelText('Start date')).toHaveValue('2026-01-08');
+    expect(screen.getByLabelText('End date')).toHaveValue('');
+  });
+
+  it('moves both grids together with prev/next', async () => {
+    const user = userEvent.setup();
+    render(<DateRangePicker startDate="2026-01-15" months={2} />);
+    await user.click(screen.getByRole('button', { name: 'Next month' }));
+    expect(
+      screen.getByRole('grid', { name: monthLabel(2026, 1) })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('grid', { name: monthLabel(2026, 2) })
+    ).toBeInTheDocument();
+  });
+
+  it('has no axe violations with the panel open', async () => {
+    const { axe } = await import('jest-axe');
+    render(<DateRangePicker startDate="2026-01-15" months={2} separator="to" />);
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
 });
 
 describe('DateRangePickerCore', () => {

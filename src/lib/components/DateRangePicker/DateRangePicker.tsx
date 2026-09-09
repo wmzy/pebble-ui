@@ -11,6 +11,13 @@ type DateRangePickerProps = {
   onStartChange?: (value: string) => void;
   onEndChange?: (value: string) => void;
   separator?: ReactNode;
+  /**
+   * Number of month grids in the range panel. `2` renders an inline
+   * dual-month calendar below the inputs for visual range picking
+   * (first pick sets the start, second completes the range).
+   * @default 1
+   */
+  months?: 1 | 2;
   className?: string;
 };
 
@@ -20,6 +27,7 @@ export default function DateRangePicker({
   onStartChange,
   onEndChange,
   separator,
+  months,
   className,
 }: DateRangePickerProps) {
   const [startDate, setStartDate] = useControl(
@@ -44,6 +52,7 @@ export default function DateRangePicker({
         onEndChange?.(next);
       }}
       separator={separator}
+      months={months}
       className={className}
     />
   );

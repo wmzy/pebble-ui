@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useControl } from 'react-use-control';
 
 import { Calendar } from '@/lib';
 
@@ -12,7 +12,8 @@ import { CssVarsSection, noop } from './shared';
 
 // ─── Calendar ──────────────────────────────────────────────────
 export default function CalendarDemo() {
-  const [date, setDate] = useState('');
+  const [, , dateCtrl] = useControl(undefined, '');
+  const [date] = useControl(dateCtrl);
 
   return (
     <>
@@ -25,11 +26,52 @@ export default function CalendarDemo() {
       <div className={section}>
         <h2>Controlled selection</h2>
         <div className={row}>
-          <Calendar value={date} onSelect={setDate} />
+          <Calendar value={dateCtrl} />
         </div>
         <p>
           Selected: <strong>{date || 'none'}</strong>
         </p>
+      </div>
+
+      <div className={section}>
+        <h2>Month quick select</h2>
+        <p>
+          The header title is a button: click it (or focus it and press
+          Enter) to swap the day grid for a year stepper plus a 12-month
+          grid. Picking a month returns to its day grid focused on day 1;
+          Escape cancels and hands focus back to the title.
+        </p>
+        <div className={row}>
+          <Calendar onSelect={noop} />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Week numbers</h2>
+        <div className={row}>
+          <Calendar showWeekNumbers onSelect={noop} />
+        </div>
+        <div className={row}>
+          <Calendar showWeekNumbers weekStartsOn={1} onSelect={noop} />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Dual month grid</h2>
+        <p>
+          <code>months={2}</code> renders two adjacent grids under one
+          navigation — prev/next, Today and the quick select move both
+          panes together.
+        </p>
+        <div className={row}>
+          <Calendar
+            months={2}
+            showWeekNumbers
+            rangeStart='2026-01-20'
+            rangeEnd='2026-01-27'
+            locale='en-GB'
+          />
+        </div>
       </div>
 
       <div className={section}>
@@ -67,15 +109,19 @@ export default function CalendarDemo() {
           <ul>
             <li>
               Grid uses <strong>role=&quot;grid&quot;</strong> with rows,
-              columnheaders and gridcells
+              columnheaders and gridcells — the month quick select keeps the
+              same grid pattern with its own roving focus
             </li>
             <li>
               The selected day is exposed via{' '}
-              <strong>aria-selected</strong> on its gridcell
+              <strong>aria-selected</strong> on its gridcell (range days
+              included)
             </li>
             <li>
               Navigation buttons carry localized labels (previous month, next
-              month, today) via <strong>useStrings</strong>
+              month, today, previous year, next year) via{' '}
+              <strong>useStrings</strong>; the week-number column header is
+              localized the same way
             </li>
           </ul>
         </A11yNote>

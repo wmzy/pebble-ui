@@ -282,4 +282,174 @@ describe('Cascader', () => {
     });
     expect(results.violations).toEqual([]);
   });
+
+  describe('virtualization', () => {
+    // Row height of the virtualized path — ITEM_ROW_HEIGHT in
+    // Cascader.tsx (space-2 padding top+bottom + text-sm at
+    // leading-normal = 8 + 21 + 8).
+    const ROW_HEIGHT = 37;
+
+    function makeLeaves(count: number): CascaderOption[] {
+      return Array.from({ length: count }, (_, i) => ({
+        label: `Leaf ${i}`,
+        value: `leaf-${i}`,
+      }));
+    }
+
+    // 20 parent groups × 100 leaf children.
+    function makeTree(): CascaderOption[] {
+      return Array.from({ length: 20 }, (_, p) => ({
+        label: `Group ${p}`,
+        value: `group-${p}`,
+        children: Array.from({ length: 100 }, (_, c) => ({
+          label: `Child ${p}-${c}`,
+          value: `child-${p}-${c}`,
+        })),
+      }));
+    }
+
+    function columnPort(level: number) {
+      return document.querySelector<HTMLElement>(
+        `[data-haze-cascader-column="${level}"] [data-virtualized]`
+      )!;
+    }
+
+    // jsdom has no layout: scrollHeight reads 0, which clamps every
+    // programmatic scrollTop to 0. Give the scrollport a real range.
+    function giveScrollRange(port: HTMLElement, rows: number) {
+      Object.defineProperty(port, 'scrollHeight', {
+        value: rows * ROW_HEIGHT,
+        configurable: true,
+      });
+    }
+
+    it('mounts only the visible window for a 1000-item column', async () => {
+      const user = userEvent.setup();
+      render(
+        <Cascader options={makeLeaves(1000)} virtualized placeholder='Select' />
+      );
+      await user.click(screen.getByRole('button', { name: 'Select' }));
+      const items = screen.getAllByRole('menuitem');
+      expect(items.length).toBeGreaterThan(0);
+      expect(items.length).toBeLessThan(60);
+      // Windowed rows keep complete set semantics for the whole column.
+      expect(items[0]).toHaveAttribute('aria-setsize', '1000');
+      expect(items[0]).toHaveAttribute('aria-posinset', '1');
+      // The column caps at the plain path's 220px max-height.
+      expect(columnPort(0).style.height).toBe('220px');
+    });
+
+    it('keeps the full plain DOM columns when off', async () => {
+      const user = userEvent.setup();
+      render(
+        <Cascader options={makeLeaves(1000)} placeholder='Select' />
+      );
+      await user.click(screen.getByRole('button', { name: 'Select' }));
+      expect(document.querySelector('[data-virtualized]')).toBeNull();
+      expect(screen.getAllByRole('menuitem')).toHaveLength(1000);
+    });
+
+    it('moves focus across the window edge with synced scrolling', async () => {
+      const user = userEvent.setup();
+      render(
+        <Cascader options={makeLeaves(1000)} virtualized placeholder='Select' />
+      );
+      const port = columnPort(0);
+      giveScrollRange(port, 1000);
+      await user.click(screen.getByRole('button', { name: 'Select' }));
+      // Opening puts focus on the first option.
+      expect(screen.getByRole('menuitem', { name: 'Leaf 0' })).toHaveFocus();
+
+      await user.keyboard('{ArrowDown}'.repeat(15));
+      // Highlight reaches row 15. Rows leave the 220px viewport once
+      // top+37 > scrollTop+220: scrolling trips at row 5 (→185), row 10
+      // (→370) and row 15 (→555).
+      expect(port.scrollTop).toBe(555);
+      expect(screen.getByRole('menuitem', { name: 'Leaf 15' })).toHaveFocus();
+
+      await user.keyboard('{End}');
+      // Row 999 aligns to the top, clamped to max scroll 37000 − 220.
+      expect(port.scrollTop).toBe(36780);
+      expect(screen.getByRole('menuitem', { name: 'Leaf 999' })).toHaveFocus();
+
+      await user.keyboard('{Home}');
+      // Row 0 enters from above → 'end' alignment clamps to 0.
+      expect(port.scrollTop).toBe(0);
+      expect(screen.getByRole('menuitem', { name: 'Leaf 0' })).toHaveFocus();
+    });
+
+    it('drills into a windowed child column and commits a leaf', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Cascader
+          options={makeTree()}
+          virtualized
+          placeholder='Select'
+          onChange={onChange}
+        />
+      );
+      const port1 = () => columnPort(1);
+      await user.click(screen.getByRole('button', { name: 'Select' }));
+      expect(screen.getByRole('menuitem', { name: /Group 0/ })).toHaveFocus();
+
+      // Drill: the child column mounts windowed (100 children) and
+      // focus follows into its first item.
+      await user.keyboard('{ArrowRight}');
+      expect(menuCount()).toBe(3);
+      expect(screen.getByRole('menuitem', { name: 'Child 0-0' })).toHaveFocus();
+      expect(screen.getAllByRole('menuitem').length).toBeLessThan(60);
+      giveScrollRange(port1(), 100);
+
+      await user.keyboard('{ArrowDown}'.repeat(3));
+      expect(screen.getByRole('menuitem', { name: 'Child 0-3' })).toHaveFocus();
+
+      // Back collapses the child column; focus returns to the parent.
+      await user.keyboard('{ArrowLeft}');
+      expect(menuCount()).toBe(2);
+      expect(screen.getByRole('menuitem', { name: /Group 0/ })).toHaveFocus();
+
+      // Re-drill and commit.
+      await user.keyboard('{ArrowRight}' + '{ArrowDown}'.repeat(3) + '{Enter}');
+      expect(onChange).toHaveBeenCalledWith(['group-0', 'child-0-3']);
+      expect(
+        screen.getByRole('button', { name: /Group 0\/Child 0-3/ })
+      ).toBeInTheDocument();
+    });
+
+    it('recovers focus on a committed value outside the initial window', async () => {
+      const user = userEvent.setup();
+      render(
+        <Cascader
+          options={makeLeaves(1000)}
+          value={['leaf-500']}
+          virtualized
+          placeholder='Select'
+        />
+      );
+      const port = columnPort(0);
+      giveScrollRange(port, 1000);
+      await user.click(
+        screen.getByRole('button', { name: /Leaf 500/ })
+      );
+      // The deepest selected row is scrolled into the window and
+      // focused (500 × 37).
+      expect(port.scrollTop).toBe(18500);
+      expect(screen.getByRole('menuitem', { name: 'Leaf 500' })).toHaveFocus();
+    });
+
+    it('has no axe violations when the columns are virtualized', async () => {
+      const { axe } = await import('jest-axe');
+      const user = userEvent.setup();
+      render(
+        <Cascader options={makeTree()} virtualized placeholder='Select' />
+      );
+      await user.click(screen.getByRole('button', { name: 'Select' }));
+      await user.keyboard('{ArrowRight}{ArrowDown}{ArrowDown}');
+      const results = await axe(document.body, {
+        rules: { region: { enabled: false } },
+      });
+      expect(results.violations).toEqual([]);
+    });
+  });
 });

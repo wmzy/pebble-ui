@@ -1,7 +1,7 @@
 # Haze UI — Full API Reference
 
-> Complete props reference for all 107 Haze UI components in one
-> file (189 type tables), generated from the library source. Do not
+> Complete props reference for all 108 Haze UI components in one
+> file (190 type tables), generated from the library source. Do not
 > edit by hand — regenerate with `node scripts/generate-llms-full.mjs`. For the
 > curated index with overviews, design tokens and architecture notes, see
 > [llms.txt](llms.txt).
@@ -275,6 +275,8 @@ import { BottomSheet } from 'haze-ui';
 | `open` | `ControlOrValue<boolean>` | — | Controlled open state |
 | `onClose` | `() => void` | — | Called when sheet closes |
 | `viewTransition` | `boolean` | — |  |
+| `swipeToDismiss` | `boolean` | `false` | Drag the sheet down to dismiss (pointer gesture; keyboard users keep Escape/overlay paths) |
+| `virtualKeyboard` | `boolean` | `false` | Track visualViewport so the sheet lifts above the on-screen keyboard and clears the safe-area inset |
 | `children` | `ReactNode` | — | Sheet content |
 | `className` | `string` | — | Additional CSS class |
 | `ref` | `Ref<BottomSheetHandle>` | — |  |
@@ -341,6 +343,10 @@ import { Calendar } from 'haze-ui';
 | `max` | `string` | — |  |
 | `locale` | `string` | — |  |
 | `weekStartsOn` | `0 \| 1` | — |  |
+| `showWeekNumbers` | `boolean` | `false` | Prepend an ISO-8601 week-number column to the day grid |
+| `months` | `1 \| 2` | `1` | Render two adjacent month grids sharing navigation and range highlight |
+| `rangeStart` | `string` | — | Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting |
+| `rangeEnd` | `string` | — | Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting |
 | `onSelect` | `(date: string) => void` | — |  |
 
 ## Card
@@ -396,6 +402,7 @@ import { Cascader } from 'haze-ui';
 | `placeholder` | `string` | — |  |
 | `changeOnSelect` | `boolean` | — |  |
 | `expandTrigger` | `'click' \| 'hover'` | — |  |
+| `virtualized` | `boolean \| CascaderVirtualizedConfig` | — | Window each cascading panel list with VirtualList for large option trees |
 | `className` | `string` | — |  |
 
 ## Chart
@@ -605,6 +612,7 @@ import { Combobox, ComboboxOption } from 'haze-ui';
 | `options` | `{ value: string; label: string; }[]` | — | List of options |
 | `placeholder` | `string` | — | Input placeholder text |
 | `virtualThreshold` | `number` | — |  |
+| `virtualized` | `boolean \| ComboboxVirtualizedConfig` | — | Force the option list virtualization on/off; by default it kicks in past a threshold of options |
 | `className` | `string` | — | Additional CSS class |
 
 ## Command
@@ -770,6 +778,13 @@ import { DataTable } from 'haze-ui';
 | `getRowId` | `(row: TData, index: number) => string` | — |  |
 | `onRowClick` | `(row: TData, event: MouseEvent<HTMLTableRowElement, MouseEvent>) => void` | — |  |
 | `empty` | `ReactNode` | — |  |
+| `resizable` | `boolean` | `false` | Enable column resizing: drag (or focus + Arrow keys) the handle on resizable column headers; double-click resets |
+| `expanded` | `ControlOrValue<ExpandedState>` | — | Controlled expanded-row state (TanStack ExpandedState) |
+| `getRowCanExpand` | `(row: Row<{ rowPaginationFeature: TableFeature; paginatedRowModel: (table: Table<any, any>) => () => RowModel<any, any>; rowSelectionFeature: TableFeature; ... 11 more ...; columnMeta: DataTableColumnMeta; }, TData>) => boolean` | — | Per-row switch for the expander column; defaults to expandable when only renderExpandedRow is given |
+| `renderExpandedRow` | `(row: Row<{ rowPaginationFeature: TableFeature; paginatedRowModel: (table: Table<any, any>) => () => RowModel<any, any>; rowSelectionFeature: TableFeature; ... 11 more ...; columnMeta: DataTableColumnMeta; }, TData>) => ReactNode` | — | Renders an expansion panel row spanning all visible columns |
+| `columnVisibility` | `ControlOrValue<ColumnVisibilityState>` | — | Controlled column visibility state (TanStack VisibilityState) |
+| `columnToggle` | `boolean` | `false` | Render the column settings menu (hideable columns only; meta.hideable === false pins a column) |
+| `filterable` | `boolean` | `false` | Render a filter row under the header; per-column opt-in/out via meta.filterable |
 | `className` | `string` | — |  |
 
 ## DateRangePicker
@@ -787,6 +802,7 @@ import { DateRangePicker, DateRangePickerCore } from 'haze-ui';
 | `onStartChange` | `(value: string) => void` | — |  |
 | `onEndChange` | `(value: string) => void` | — |  |
 | `separator` | `ReactNode` | — |  |
+| `months` | `1 \| 2` | — |  |
 | `className` | `string` | — |  |
 
 ### DateRangePickerProps
@@ -798,6 +814,7 @@ import { DateRangePicker, DateRangePickerCore } from 'haze-ui';
 | `onStartChange` | `(value: string) => void` | — | Called when start date changes |
 | `onEndChange` | `(value: string) => void` | — | Called when end date changes |
 | `separator` | `ReactNode` | `'–'` | Separator between inputs |
+| `months` | `1 \| 2` | `1` | Show a two-month inline panel for range picking |
 | `className` | `string` | — | Additional CSS class |
 
 ## Datepicker
@@ -1505,6 +1522,29 @@ import { Progress } from 'haze-ui';
 | `color` | `'success' \| 'warning' \| 'danger' \| 'primary'` | `'primary'` | Color variant |
 | `className` | `string` | — | Additional CSS class |
 
+## PromptInput
+
+```jsx
+import { PromptInput } from 'haze-ui';
+```
+
+### PromptInputProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `ControlOrValue<string>` | — | Free-text draft (auto-growing textarea) |
+| `onChange` | `(value: string) => void` | — |  |
+| `tags` | `ControlOrValue<string[]>` | — | Inline removable tokens rendered before the text |
+| `onTagsChange` | `(tags: string[]) => void` | — |  |
+| `triggers` | `string[]` | `['@']` | Characters that open the suggestion popover at the word start |
+| `getSuggestions` | `(trigger: string, query: string) => string[] \| Promise<string[]>` | — | Suggestion source per trigger; async responses are guarded against stale races |
+| `onSubmit` | `() => void` | — | Fires when submitKey is pressed with non-empty input |
+| `submitKey` | `'enter' \| 'mod-enter'` | `'enter'` | Key combination that submits (Shift+Enter always inserts a newline) |
+| `placeholder` | `string` | — |  |
+| `disabled` | `boolean` | — |  |
+| `maxRows` | `number` | — | Auto-grow cap in rows; the textarea scrolls beyond it |
+| `className` | `string` | — |  |
+
 ## Radio
 
 ```jsx
@@ -1656,6 +1696,7 @@ import { Select, SelectCore, Option } from 'haze-ui';
 | `placeholder` | `string` | — |  |
 | `multiple` | `boolean` | — |  |
 | `size` | `'sm' \| 'md' \| 'lg'` | — |  |
+| `virtualized` | `boolean \| SelectVirtualizedConfig` | — |  |
 | `children` | `ReactNode` | — |  |
 | `className` | `string` | — |  |
 
@@ -1668,6 +1709,7 @@ import { Select, SelectCore, Option } from 'haze-ui';
 | `options` | `SelectOptionData[]` | — |  |
 | `placeholder` | `string` | — |  |
 | `size` | `'sm' \| 'md' \| 'lg'` | — |  |
+| `virtualized` | `boolean \| SelectVirtualizedConfig` | — |  |
 | `className` | `string` | — |  |
 
 ### SelectProps
@@ -1676,6 +1718,7 @@ import { Select, SelectCore, Option } from 'haze-ui';
 | --- | --- | --- | --- |
 | `value` | `ControlOrValue<string \| string[]>` | — | Controlled value or control object |
 | `multiple` | `boolean` | — |  |
+| `virtualized` | `boolean \| SelectVirtualizedConfig` | — | Multiple mode: window the option listbox with VirtualList for large option sets (single mode is a native select and ignores this) |
 | `onValuesChange` | `(value: string \| string[]) => void` | — |  |
 | `placeholder` | `string` | — |  |
 | `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Size of the select |

@@ -52,21 +52,32 @@ npm setup:
 ```sh
 pnpm dlx shadcn@latest add wmzy/haze-ui/button
 pnpm dlx shadcn@latest add wmzy/haze-ui/dialog wmzy/haze-ui/tabs
+pnpm dlx shadcn@latest add wmzy/haze-ui/base   # everything at once
 pnpm dlx shadcn@latest list wmzy/haze-ui   # browse all items
 ```
 
-Every **styled** export is covered (107 items — one per CSS family, so
-compound components like `tabs` arrive as `Tabs`/`TabList`/`Tab`/
-`TabPanel` together). What lands in your project is a thin **wrapper
-file** under `components/ui/haze/` that re-exports the component from
-`haze-ui` and imports its stylesheet — not vendored source. The wrapper is
-your customization layer (fork it, wrap it, restyle it), while `haze-ui`
-itself is installed as a normal npm dependency and keeps updating through
-your package manager. Common items: `button`, `input`, `select`, `dialog`,
-`tabs`, `toast`, `sidebar`, `form`, `data-table`, `chart`, `chat-message`,
-plus `tokens` (the theme classes) and `haze-tokens` (a token onboarding
-guide doc). See [registry/README.md](./registry/README.md) for the full
-picture.
+The `base` item (type `registry:base`) is the one-command path: it
+installs the theme-token activation plus a wrapper for every component in
+a single `shadcn add` — the 107 component items are pulled in through
+`registryDependencies` (full `wmzy/haze-ui/<item>` addresses, since plain
+names would resolve against the official shadcn registry).
+
+Every **styled** export is covered (107 component items — one per CSS
+family, so compound components like `tabs` arrive as `Tabs`/`TabList`/
+`Tab`/`TabPanel` together). What lands in your project is a thin
+**wrapper** file under `components/ui/haze/` that re-exports the
+component from `haze-ui` and imports its stylesheet — not vendored
+source. The wrapper is your customization layer (fork it, wrap it,
+restyle it), while `haze-ui` itself is installed as a normal npm
+dependency and keeps updating through your package manager. Common items:
+`button`, `input`, `select`, `dialog`, `tabs`, `toast`, `sidebar`,
+`form`, `data-table`, `chart`, `chat-message`, plus `tokens` (the theme
+classes) and `haze-tokens` (a token onboarding guide doc). Each item also
+carries `docs` (markdown usage — description, install command, theme
+activation — printed by `shadcn view`) and `categories` (kebab-case tags
+— `form`, `overlay`, `data-display`, `agent`, … — used by registry
+search/filter tooling). See [registry/README.md](./registry/README.md)
+for the full picture.
 
 ### React 19+ by design
 
@@ -360,6 +371,27 @@ const [fs, setFs, fsCtrl] = useControl(undefined, false);
 </Fullscreen>
 ```
 
+## Utility hooks
+
+All hooks ship on the main barrel (no separate import path) and follow
+the same conventions as the components: `ControlOrValue` where state is
+user-controllable, SSR/jsdom-safe when the underlying API is missing.
+
+| Hook | Returns | Notes |
+| --- | --- | --- |
+| `useClipboard(resetMs?)` | `{ copied, copy }` | `copied` resets after `resetMs` |
+| `useDebouncedCallback(fn, delayMs)` | debounced `fn` | Stable identity across renders |
+| `useDebouncedValue(value, delayMs)` | `T` | Trails the input by `delayMs` |
+| `useFullscreen(target?)` | `[isFullscreen, toggle, handle]` | See section above |
+| `useHotkeys(map, options?)` | — | `'mod+s'`-style specs (`mod` normalizes to ⌘ on macOS, Ctrl elsewhere); skips events from editable targets unless `allowInInput`; `hotkey(...keys)` builds specs type-safely |
+| `useInView(options?)` | `[refCallback, inView]` | IntersectionObserver; `once` freezes after the first hit; `false` forever when the API is missing (SSR) |
+| `useLocalStorage(key, control?, initial?)` | `[value, setValue]` | `ControlOrValue` semantics, cross-tab `storage` sync, corrupt JSON self-heals to `initial` |
+| `useSessionStorage(key, control?, initial?)` | `[value, setValue]` | Same kernel, `sessionStorage` scope |
+| `useMediaQuery(query)` | `boolean` | Reactive `matchMedia`; `false` when missing |
+| `usePrefersReducedMotion()` | `boolean` | Token-aware animation gating |
+| `useTitle(title)` | — | Document title while mounted |
+| `useToast()` | toast API | Requires a `ToastContainer` ancestor |
+
 ## Sortable tags and chips (optional dnd-kit peers)
 
 `TagInput` and `TagGroup` accept `sortable?: boolean` — opt-in drag
@@ -510,6 +542,57 @@ export** (107 css families / 185 components), generated from the build's
 own css manifest. The same items are also installable straight from this
 GitHub repository — see
 [Install via shadcn CLI (GitHub registry)](#install-via-shadcn-cli-github-registry).
+
+## AI runtime integration (Vercel AI SDK `useChat`)
+
+haze-ui ships the agent chat surface as **presentational** components —
+`ChatContainer` (scrolling), `ChatMessage` (bubbles), `StreamingText`
+(typewriter reveal), `ToolCallCard` (tool input/output), `ThinkingIndicator`
+(waiting dots), `ChatInput` (composer) — with no opinion about where
+messages come from. The Vercel AI SDK's `useChat` is the stateful half: it
+owns `messages` (a `UIMessage[]` of typed `parts`), `status`
+(`submitted | streaming | ready | error`) and the `sendMessage`/`stop`
+pair. One small adapter bridges them — pure functions over duck-typed
+shapes, so the `ai` package never enters your dependency tree through
+haze-ui:
+
+```tsx
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import { Button, ChatContainer, ChatInput } from 'haze-ui';
+
+import { useHazeChat } from './ai-chat-adapter'; // the recipe module
+
+function SupportChat() {
+  const chat = useChat({ transport: new DefaultChatTransport({ api: '/api/chat' }) });
+  const { messages, busy, send, stop } = useHazeChat(chat);
+
+  return (
+    <div>
+      <ChatContainer>{messages}</ChatContainer>
+      <ChatInput disabled={busy} onSend={send} />
+      {busy && <Button variant='outline' onClick={stop}>Stop</Button>}
+    </div>
+  );
+}
+```
+
+The mapping rules: text parts → `ChatMessage` bubbles (`StreamingText`
+typewriter while a part streams), reasoning → `ThinkingIndicator` then a
+collapsible transcript, `tool-*` parts → `ToolCallCard` driven by v5
+`states` (with v4 `tool-call`/`tool-result` pairs folded into one card by
+`toolCallId`), sources → links; `status: submitted` → thinking dots before
+the first token, `error` → a system bubble with the transport error. The
+whole thing is one small, unit-tested module that never throws on odd
+payloads — unknown part types are skipped, so future SDK parts degrade
+instead of crashing.
+
+The full recipe — live runnable demo (same adapter over a mock streaming
+source, no network), the complete adapter source, the `useHazeChat` hook,
+per-part mapping table and known limits (attachments, branching, voice out
+of scope; `StreamingText` restart-on-grow caveat for char-by-char
+transports) — lives on the docs site:
+**<https://wmzy.github.io/haze-ui/recipes>**.
 
 ## Headless primitives
 

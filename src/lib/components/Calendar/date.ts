@@ -109,6 +109,30 @@ export function buildMonthCells(
 }
 
 /**
+ * ISO 8601 week number of a civil date. ISO weeks run Monday–Sunday and
+ * week 1 is the week containing the year's first Thursday, so days at the
+ * year's edges borrow the neighbor year's numbering (2025-12-31 is week 1
+ * of 2026; 2027-01-01 is week 53 of 2026). The weekday is read from the
+ * local-midnight Date of the civil triple (a calendar date's weekday is a
+ * civil property, identical in every zone); the day arithmetic then moves
+ * to UTC milliseconds — whole-day multiples with no DST drift — to reach
+ * the week's Thursday, whose year is the ISO year, and counts seven-day
+ * spans from that ISO year's January 1.
+ */
+export function getISOWeekNumber(
+  year: number,
+  month: number,
+  day: number
+): number {
+  const weekday = new Date(year, month, day).getDay();
+  const isoWeekday = weekday === 0 ? 7 : weekday;
+  const thursdayMs = Date.UTC(year, month, day + 4 - isoWeekday);
+  const isoYear = new Date(thursdayMs).getUTCFullYear();
+  const days = (thursdayMs - Date.UTC(isoYear, 0, 1)) / 86400000;
+  return Math.floor(days / 7) + 1;
+}
+
+/**
  * Format a civil date as the `"YYYY-MM-DD"` string Calendar uses as its
  * value. Value semantics: the string denotes the **local** civil date — it
  * is a plain calendar date, not a UTC timestamp (parsing it with

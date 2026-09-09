@@ -23,6 +23,10 @@ the generated files — edit the script. Only `README.md`, `tsconfig.json`,
 ## Install
 
 ```bash
+# the whole design system in one command — theme tokens plus a wrapper
+# for every component (107 items pulled in via registryDependencies)
+npx shadcn@latest add wmzy/haze-ui/base
+
 # any single item — every styled export in the library is covered
 npx shadcn@latest add wmzy/haze-ui/button
 
@@ -43,16 +47,19 @@ with your own components. To pin a release, append a tag or commit SHA:
 ## Items
 
 Generated coverage: **every styled export of the main barrel** — 107 css
-families, 185 components, one item per family. Multi-export families ship
-together (e.g. `tabs` → `Tabs`/`TabList`/`Tab`/`TabPanel`, `resizable` →
-`Resizable*` plus the `Splitter*` aliases, `toast` → `Toast`,
-`ToastContainer`, `useToast`, `toast()`), and the `tokens` item wraps the
-theme classes (`lightTheme`/`darkTheme`/`spacing`/`typography`).
+families, one item per family — plus the `base` meta item and the
+hand-curated `haze-tokens` doc (109 items total). Multi-export families
+ship together (e.g. `tabs` → `Tabs`/`TabList`/`Tab`/`TabPanel`,
+`resizable` → `Resizable*` plus the `Splitter*` aliases, `toast` →
+`Toast`, `ToastContainer`, `useToast`, `toast()`), and the `tokens` item
+wraps the theme classes (`lightTheme`/`darkTheme`/`spacing`/
+`typography`).
 
 A few examples:
 
 | Item | What you get |
 | --- | --- |
+| `base` | The whole design system: theme tokens + every component wrapper (`registryDependencies` on all 107 component items) |
 | `tokens` | Theme classes: `lightTheme`/`darkTheme` + `spacing` + `typography` |
 | `haze-tokens` | Token onboarding guide installed as `docs/haze-tokens.md` |
 | `button` | `Button`, `ButtonLink` re-exports |
@@ -78,6 +85,38 @@ Skipped on purpose (no css of their own — import from `haze-ui` directly):
 hooks (`useMediaQuery`, `useClipboard`, …), `TOKEN_REGISTRY` /
 `COMPONENT_TOKENS`, `LocaleProvider` + string packs, direction utils,
 `Fullscreen`, and the `useControl` re-export.
+
+## Item metadata: `docs`, `categories` and the `base` item
+
+Every item carries the schema's two documentation/filter fields:
+
+- **`docs`** — a markdown string (one-line component description,
+  install command, token-activation notes) in the schema's standard
+  `docs` field: it ships inside every item payload — `shadcn view
+  wmzy/haze-ui/<item>` prints it — and is there for agents and registry
+  tooling that read item documentation.
+- **`categories`** — lowercase kebab-case tags from the schema's standard
+  `categories` field, consumed by registry search/filter tooling
+  (dynamic search endpoints, the MCP server): `general`, `layout`,
+  `form`, `overlay`, `data-display`, `navigation`, `feedback`, `agent`
+  (AI & chat), `utilities`, plus `theme`/`setup` for the non-component
+  items. Mirrored from the demo sidebar grouping in
+  `src/views/Layout/component-groups.ts`.
+
+The `base` item (type `registry:base`) is the one-command path:
+
+```bash
+npx shadcn@latest add wmzy/haze-ui/base
+```
+
+It installs a token-activation wrapper (`lib/haze/base.tsx` re-exporting
+`lightTheme`/`darkTheme`/`spacing`/`typography` + importing
+`haze-ui/css/tokens.css`) and, through `registryDependencies`, all 107
+component items. Note the dependency entries are full GitHub item
+addresses (`wmzy/haze-ui/<item>`), not plain names — the CLI resolves
+plain names against the official shadcn registry, which would install the
+wrong components. Addresses without a `#ref` track the repo's default
+branch.
 
 ## You still need the theme — but not the stylesheet imports
 
@@ -116,7 +155,7 @@ registry/
 ├── tsconfig.json                  # typechecks the wrappers (haze-ui self-reference)
 ├── css.d.ts                       # ambient declarations for the css side-effect imports
 ├── haze-tokens/haze-tokens.md     # token guide installed by the haze-tokens item
-├── <item>.tsx                     # wrapper source (one per css family, generated)
+├── <item>.tsx                     # wrapper source (one per css family + base, generated)
 └── <item>.json                    # flat registry-item payload with the wrapper
                                    # source embedded (direct .json address installs)
 ```

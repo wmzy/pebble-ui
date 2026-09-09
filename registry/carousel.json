@@ -5,7 +5,10 @@
   "title": "Carousel / CarouselSlide",
   "description": "Slideshow with controllable active index and autoplay.",
   "author": "wmzy <https://github.com/wmzy>",
-  "docs": "haze-ui ships JS and CSS separately — this wrapper already imports 'haze-ui/css/tokens.css' and 'haze-ui/css/carousel.css', so no extra stylesheet setup is needed. Activate the design tokens by applying the 'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from 'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry",
+  "docs": "Slideshow with controllable active index and autoplay.\n\nExports: `Carousel`, `CarouselSlide`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/carousel\n```\n\nThe wrapper lands at `components/ui/haze/carousel.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/carousel.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+  "categories": [
+    "data-display"
+  ],
   "dependencies": [
     "haze-ui"
   ],

@@ -297,7 +297,7 @@ test.describe('visual baselines — overlay components', () => {
   test('select multiple open (trigger + checked listbox)', async ({
     page,
   }) => {
-    const trigger = page.getByRole('button', { name: 'Overlay fruits' });
+    const trigger = page.getByRole('combobox', { name: 'Overlay fruits' });
     await trigger.click();
     const panelId = await trigger.getAttribute('aria-controls');
     const listbox = page.locator(`[id="${panelId}"]`);

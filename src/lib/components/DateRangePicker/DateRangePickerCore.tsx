@@ -4,12 +4,23 @@ import { css } from '@linaria/core';
 
 import { useStrings } from '../LocaleProvider';
 
+import Calendar from '../Calendar/Calendar';
+
 type DateRangePickerCoreProps = {
   startDate: string;
   endDate: string;
   onStartChange: (value: string) => void;
   onEndChange: (value: string) => void;
   separator?: ReactNode;
+  /**
+   * Number of month grids in the range panel. `2` renders an inline
+   * dual-month calendar below the inputs: the first pick sets the start
+   * date, the second completes the range (a pick before the start
+   * restarts it), and the two grids move together under one navigation.
+   * The default keeps the plain two-input layout.
+   * @default 1
+   */
+  months?: 1 | 2;
   className?: string;
 };
 
@@ -19,6 +30,29 @@ const container = css`
   flex-wrap: wrap;
   gap: var(--haze-space-2);
   font-family: var(--haze-font-sans);
+`;
+
+/* Dual-month layout: inputs stay on their own row, the calendar panel
+   stacks below and never reflows the input row's baseline. */
+const stackedContainer = css`
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const inputsRow = css`
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--haze-space-2);
+`;
+
+const panel = css`
+  margin-block-start: var(--haze-space-2);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-lg);
+  background: var(--haze-color-bg);
+  box-shadow: var(--haze-shadow-md);
+  max-width: 100%;
 `;
 
 const input = css`
@@ -54,11 +88,27 @@ export default function DateRangePickerCore({
   onStartChange,
   onEndChange,
   separator = '–',
+  months = 1,
   className,
 }: DateRangePickerCoreProps) {
   const strings = useStrings('dateRangePicker');
-  return (
-    <div x-class={[container, className]}>
+
+  // Two-click range semantics on the calendar panel: no start yet (or a
+  // complete range) starts over with a fresh start; a pick at or after
+  // the start completes the range; a pick before the start restarts it.
+  const handleCalendarSelect = (date: string) => {
+    if (!startDate || endDate) {
+      onStartChange(date);
+      onEndChange('');
+    } else if (date < startDate) {
+      onStartChange(date);
+    } else {
+      onEndChange(date);
+    }
+  };
+
+  const inputs = (
+    <>
       <input
         type="date"
         x-class={[input]}
@@ -74,6 +124,28 @@ export default function DateRangePickerCore({
         value={endDate}
         onChange={(e) => onEndChange(e.target.value)}
       />
+    </>
+  );
+
+  if (months !== 2) {
+    return (
+      <div x-class={[container, className]}>
+        {inputs}
+      </div>
+    );
+  }
+
+  return (
+    <div x-class={[container, stackedContainer, className]}>
+      <div x-class={[inputsRow]}>{inputs}</div>
+      <div x-class={[panel]}>
+        <Calendar
+          months={2}
+          rangeStart={startDate}
+          rangeEnd={endDate}
+          onSelect={handleCalendarSelect}
+        />
+      </div>
     </div>
   );
 }

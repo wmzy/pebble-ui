@@ -9,6 +9,8 @@ import { useControl } from 'react-use-control';
 
 import {
   Button,
+  ChatContainer,
+  ChatInput,
   CodeBlock,
   Empty,
   FormItem,
@@ -27,18 +29,25 @@ import {
   section,
 } from '@/views/ComponentDetail/styles';
 
+import { useHazeChat } from './ai-chat-adapter';
+import { useMockChat } from './mock-use-chat';
 import { zodValidator } from './zod-validator';
 import { arPack, frPack } from './locale-packs';
 
 // 展示的是真实适配器源码（?raw 导入），文档与实现永不漂移——同
 // ComponentDetail/DemoSource 的源码映射机制。
-const rawSources = import.meta.glob<string>('./{zod-validator,locale-packs}.ts', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-});
+const rawSources = import.meta.glob<string>(
+  './{zod-validator,locale-packs,ai-chat-adapter,mock-use-chat}.{ts,tsx}',
+  {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  }
+);
 const adapterSource = rawSources['./zod-validator.ts'] ?? '';
 const packsSource = rawSources['./locale-packs.ts'] ?? '';
+const aiAdapterSource = rawSources['./ai-chat-adapter.tsx'] ?? '';
+const aiMockSource = rawSources['./mock-use-chat.ts'] ?? '';
 
 const paragraph = css`
   font-family: var(--haze-font-sans);
@@ -75,6 +84,44 @@ const demoColumn = css`
   gap: var(--haze-space-4);
   margin-top: var(--haze-space-4);
   max-width: 360px;
+`;
+
+const aiChatFrame = css`
+  display: flex;
+  flex-direction: column;
+  height: 520px;
+  max-width: 640px;
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-lg);
+  overflow: hidden;
+  background: var(--haze-color-bg);
+  margin: var(--haze-space-4) 0 var(--haze-space-6);
+`;
+
+const aiChatScroll = css`
+  flex: 1;
+  padding-inline: var(--haze-space-4);
+`;
+
+const aiChatComposer = css`
+  display: flex;
+  align-items: center;
+  gap: var(--haze-space-2);
+  padding: var(--haze-space-2) var(--haze-space-3);
+  border-top: 1px solid var(--haze-color-border);
+  background: var(--haze-color-bg);
+`;
+
+const aiChatInput = css`
+  flex: 1;
+`;
+
+const aiChatHint = css`
+  margin: 0;
+  padding: var(--haze-space-2) var(--haze-space-3);
+  border-top: 1px solid var(--haze-color-border);
+  font-size: var(--haze-text-xs);
+  color: var(--haze-color-danger);
 `;
 
 const codeMargin = css`
@@ -296,6 +343,36 @@ function LocalePackDemo() {
   );
 }
 
+/**
+ * Live demo: a mock, network-free `useChat` (same shape, timers instead
+ * of a transport) drives the exact adapter a real `@ai-sdk/react`
+ * `useChat` would — the code below the demo is the code running it.
+ */
+function AIRuntimeDemo() {
+  const chat = useMockChat();
+  const { messages, busy, error, send, stop } = useHazeChat(chat);
+
+  return (
+    <div className={aiChatFrame}>
+      <ChatContainer className={aiChatScroll}>{messages}</ChatContainer>
+      <div className={aiChatComposer}>
+        <ChatInput
+          className={aiChatInput}
+          placeholder='Ask about haze-ui — try “css”, or “error” to fail'
+          disabled={busy}
+          onSend={send}
+        />
+        <Button variant='outline' disabled={!busy} onClick={stop}>
+          Stop
+        </Button>
+      </div>
+      {error ? (
+        <p className={aiChatHint}>status: error — send another message to retry</p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function Recipes() {
   return (
     <div className={page}>
@@ -304,8 +381,10 @@ export default function Recipes() {
         Integration recipes for pairing haze-ui with the ecosystem. Each
         recipe is a live demo plus the exact code behind it — start typing in
         the form below and watch schema errors, async checks and cancellation
-        all fire in real time, then switch languages in the locale recipe to
-        see packs, partial overrides and RTL derivation at work.
+        all fire in real time, switch languages in the locale recipe to see
+        packs, partial overrides and RTL derivation at work, or chat with the
+        AI runtime recipe: a Vercel AI SDK useChat shape driving the agent
+        components through one small adapter.
       </p>
 
       <div className={section}>
@@ -607,6 +686,156 @@ localeDirection('fr-FR'); // 'ltr'
           the pack automatically for every consumer — no{' '}
           <code className={inlineCode}>strings</code> prop needed.
         </p>
+      </div>
+
+      <div className={section}>
+        <h2>AI runtime integration — Vercel AI SDK useChat × agent components</h2>
+        <p className={paragraph}>
+          haze-ui&apos;s agent surface is deliberately presentational:{' '}
+          <code className={inlineCode}>ChatContainer</code> owns scrolling,{' '}
+          <code className={inlineCode}>ChatMessage</code> the bubbles,{' '}
+          <code className={inlineCode}>StreamingText</code> the typewriter
+          reveal, <code className={inlineCode}>ToolCallCard</code> tool
+          input/output, <code className={inlineCode}>ThinkingIndicator</code>{' '}
+          the waiting dots, <code className={inlineCode}>ChatInput</code> the
+          composer. The Vercel AI SDK&apos;s{' '}
+          <code className={inlineCode}>useChat</code> is the stateful half:
+          it owns <code className={inlineCode}>messages</code> (a{' '}
+          <code className={inlineCode}>UIMessage[]</code> of typed{' '}
+          <code className={inlineCode}>parts</code>),{' '}
+          <code className={inlineCode}>status</code> (
+          <code className={inlineCode}>submitted | streaming | ready | error</code>)
+          and the <code className={inlineCode}>sendMessage</code>/
+          <code className={inlineCode}>stop</code> pair. One small adapter
+          bridges them — pure functions over duck-typed shapes, so the{' '}
+          <code className={inlineCode}>ai</code> package never enters your
+          dependency tree through haze-ui.
+        </p>
+
+        <h3>Live demo</h3>
+        <p className={paragraph}>
+          The chat below runs the exact adapter shown further down, fed by a
+          mock <code className={inlineCode}>useChat</code> — same return
+          shape, timers instead of a transport. Ask about CSS to see
+          reasoning → tool call → streamed answer → source link; ask for an
+          error to see the failure path; hit Stop mid-run to see the
+          finalize-on-abort behavior.
+        </p>
+        <AIRuntimeDemo />
+
+        <h3>The adapter</h3>
+        <p className={paragraph}>
+          The whole integration is two exports —{' '}
+          <code className={inlineCode}>renderUIMessages</code> (a pure{' '}
+          <code className={inlineCode}>parts → ReactNode[]</code> mapping,
+          never throws on odd payloads) and{' '}
+          <code className={inlineCode}>useHazeChat</code> (the thin hook that
+          memoizes it and wires the composer). This is the real source
+          powering the demo — swap <code className={inlineCode}>@/lib</code>{' '}
+          for <code className={inlineCode}>haze-ui</code> in your app:
+        </p>
+        <CodeBlock language='tsx' className={codeMargin}>
+          {aiAdapterSource}
+        </CodeBlock>
+
+        <h3>With a real useChat</h3>
+        <p className={paragraph}>
+          Drop the adapter next to your chat route and the wiring is four
+          lines. Both SDK generations work: the hook prefers v5&apos;s{' '}
+          <code className={inlineCode}>sendMessage({'{ text }'})</code> and
+          falls back to v4&apos;s{' '}
+          <code className={inlineCode}>append({'{ role, content }'})</code>:
+        </p>
+        <CodeBlock language='tsx' className={codeMargin}>
+          {`import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import { ChatContainer, ChatInput, Button } from 'haze-ui';
+
+import { useHazeChat } from './ai-chat-adapter';
+
+function SupportChat() {
+  const chat = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+  });
+  const { messages, busy, send, stop } = useHazeChat(chat);
+
+  return (
+    <div>
+      <ChatContainer>{messages}</ChatContainer>
+      <ChatInput disabled={busy} onSend={send} />
+      {busy && <Button variant='outline' onClick={stop}>Stop</Button>}
+    </div>
+  );
+}`}
+        </CodeBlock>
+
+        <h3>Mapping rules</h3>
+        <p className={paragraph}>
+          The status → presentation contract the adapter implements:
+        </p>
+        <CodeBlock language='text' className={codeMargin}>
+          {`UIMessage                    → ChatMessage bubble (role; user msg 'sending' while submitted)
+  text part, done             → plain text block
+  text part, streaming        → StreamingText typewriter + cursor
+  reasoning part, streaming   → ThinkingIndicator dots
+  reasoning part, done        → Disclosure transcript ("Thought process")
+  tool-* part (v5 states)     → ToolCallCard: output-error→error, output-available→done,
+                               input-*→running, no states→pending
+  tool-call + tool-result (v4)→ one ToolCallCard, result folded in by toolCallId
+  source part                 → external link
+  empty assistant message     → ThinkingIndicator inside the bubble
+status submitted             → waiting dots appended after the messages
+status error                 → system ChatMessage with the transport error`}
+        </CodeBlock>
+
+        <h3>The mock (what the demo runs)</h3>
+        <p className={paragraph}>
+          The demo&apos;s streaming source — same shape a real{' '}
+          <code className={inlineCode}>useChat</code> returns, scripted with{' '}
+          <code className={inlineCode}>setTimeout</code>. Useful as a fixture
+          for your own tests, too:
+        </p>
+        <CodeBlock language='ts' className={codeMargin}>
+          {aiMockSource}
+        </CodeBlock>
+
+        <h3>Known limits</h3>
+        <ul className={paragraph}>
+          <li>
+            <strong>Streaming text cadence.</strong>{' '}
+            <code className={inlineCode}>StreamingText</code> reveals its
+            whole <code className={inlineCode}>text</code> once and restarts
+            the reveal whenever the prop <em>grows</em> — it fits parts that
+            arrive whole (batched transports, the demo&apos;s mock) but not
+            char-by-char deltas. If your transport grows text parts
+            incrementally, render the plain block while{' '}
+            <code className={inlineCode}>state === &apos;streaming&apos;</code>{' '}
+            instead (one-line change in{' '}
+            <code className={inlineCode}>renderPart</code>).
+          </li>
+          <li>
+            <strong>Attachments, files, data parts.</strong>{' '}
+            <code className={inlineCode}>file</code>/{' '}
+            <code className={inlineCode}>data-*</code> parts are skipped;
+            <code className={inlineCode}>ChatInput</code> is text-only in
+            this version. Extend <code className={inlineCode}>renderPart</code>{' '}
+            with your own branch when you need them.
+          </li>
+          <li>
+            <strong>Branching, regeneration, voice.</strong>{' '}
+            <code className={inlineCode}>branchNumber</code>,{' '}
+            <code className={inlineCode}>regenerate</code>, and speech parts
+            are out of scope here; the adapter renders whichever branch the
+            SDK exposes in <code className={inlineCode}>messages</code>.
+          </li>
+          <li>
+            <strong>v4 string content.</strong> Messages that predate the
+            parts API (<code className={inlineCode}>content: string</code>)
+            render as empty bubbles — convert to parts, or map{' '}
+            <code className={inlineCode}>content</code> to a synthetic text
+            part first.
+          </li>
+        </ul>
       </div>
     </div>
   );

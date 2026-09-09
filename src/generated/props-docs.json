@@ -321,6 +321,18 @@
       "name": "children",
       "type": "ReactNode",
       "description": "Sheet content"
+    },
+    {
+      "name": "swipeToDismiss",
+      "type": "boolean",
+      "default": "false",
+      "description": "Drag the sheet down to dismiss (pointer gesture; keyboard users keep Escape/overlay paths)"
+    },
+    {
+      "name": "virtualKeyboard",
+      "type": "boolean",
+      "default": "false",
+      "description": "Track visualViewport so the sheet lifts above the on-screen keyboard and clears the safe-area inset"
     }
   ],
   "BreadcrumbItemProps": [
@@ -674,6 +686,11 @@
       "name": "className",
       "type": "string",
       "description": "Additional CSS class"
+    },
+    {
+      "name": "virtualized",
+      "type": "boolean | { itemHeight?: number; overscan?: number }",
+      "description": "Force the option list virtualization on/off; by default it kicks in past a threshold of options"
     }
   ],
   "CommandInputProps": [
@@ -959,6 +976,12 @@
       "name": "className",
       "type": "string",
       "description": "Additional CSS class"
+    },
+    {
+      "name": "months",
+      "type": "1 | 2",
+      "default": "1",
+      "description": "Show a two-month inline panel for range picking"
     }
   ],
   "DialogProps": [
@@ -1938,6 +1961,11 @@
       "name": "children",
       "type": "ReactNode",
       "description": "<Option> elements"
+    },
+    {
+      "name": "virtualized",
+      "type": "boolean | { itemHeight?: number; overscan?: number }",
+      "description": "Multiple mode: window the option listbox with VirtualList for large option sets (single mode is a native select and ignores this)"
     }
   ],
   "SkeletonProps": [
@@ -2908,6 +2936,116 @@
       "name": "className",
       "type": "string",
       "description": "Additional CSS class"
+    }
+  ],
+  "DataTableProps": [
+    {
+      "name": "resizable",
+      "type": "boolean",
+      "default": "false",
+      "description": "Enable column resizing: drag (or focus + Arrow keys) the handle on resizable column headers; double-click resets"
+    },
+    {
+      "name": "expanded",
+      "type": "ControlOrValue<ExpandedState>",
+      "description": "Controlled expanded-row state (TanStack ExpandedState)"
+    },
+    {
+      "name": "getRowCanExpand",
+      "type": "(row: TData) => boolean",
+      "description": "Per-row switch for the expander column; defaults to expandable when only renderExpandedRow is given"
+    },
+    {
+      "name": "renderExpandedRow",
+      "type": "(row: TData) => ReactNode",
+      "description": "Renders an expansion panel row spanning all visible columns"
+    },
+    {
+      "name": "columnVisibility",
+      "type": "ControlOrValue<VisibilityState>",
+      "description": "Controlled column visibility state (TanStack VisibilityState)"
+    },
+    {
+      "name": "columnToggle",
+      "type": "boolean",
+      "default": "false",
+      "description": "Render the column settings menu (hideable columns only; meta.hideable === false pins a column)"
+    },
+    {
+      "name": "filterable",
+      "type": "boolean",
+      "default": "false",
+      "description": "Render a filter row under the header; per-column opt-in/out via meta.filterable"
+    }
+  ],
+  "CascaderProps": [
+    {
+      "name": "virtualized",
+      "type": "boolean | { itemHeight?: number; overscan?: number }",
+      "description": "Window each cascading panel list with VirtualList for large option trees"
+    }
+  ],
+  "CalendarProps": [
+    {
+      "name": "showWeekNumbers",
+      "type": "boolean",
+      "default": "false",
+      "description": "Prepend an ISO-8601 week-number column to the day grid"
+    },
+    {
+      "name": "months",
+      "type": "1 | 2",
+      "default": "1",
+      "description": "Render two adjacent month grids sharing navigation and range highlight"
+    },
+    {
+      "name": "rangeStart",
+      "type": "string",
+      "description": "Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting"
+    },
+    {
+      "name": "rangeEnd",
+      "type": "string",
+      "description": "Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting"
+    }
+  ],
+  "PromptInputProps": [
+    {
+      "name": "value",
+      "type": "ControlOrValue<string>",
+      "description": "Free-text draft (auto-growing textarea)"
+    },
+    {
+      "name": "tags",
+      "type": "ControlOrValue<string[]>",
+      "description": "Inline removable tokens rendered before the text"
+    },
+    {
+      "name": "triggers",
+      "type": "string[]",
+      "default": "['@']",
+      "description": "Characters that open the suggestion popover at the word start"
+    },
+    {
+      "name": "getSuggestions",
+      "type": "(trigger: string, query: string) => string[] | Promise<string[]>",
+      "description": "Suggestion source per trigger; async responses are guarded against stale races"
+    },
+    {
+      "name": "onSubmit",
+      "type": "() => void",
+      "description": "Fires when submitKey is pressed with non-empty input"
+    },
+    {
+      "name": "submitKey",
+      "type": "'enter' | 'mod-enter'",
+      "default": "'enter'",
+      "description": "Key combination that submits (Shift+Enter always inserts a newline)"
+    },
+    {
+      "name": "maxRows",
+      "type": "number",
+      "description": "Auto-grow cap in rows; the textarea scrolls beyond it"
     }
   ]
 }

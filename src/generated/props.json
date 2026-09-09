@@ -528,6 +528,16 @@
             "required": false
           },
           {
+            "name": "swipeToDismiss",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "virtualKeyboard",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "children",
             "type": "ReactNode",
             "required": true
@@ -670,6 +680,26 @@
             "required": false
           },
           {
+            "name": "showWeekNumbers",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "months",
+            "type": "1 | 2",
+            "required": false
+          },
+          {
+            "name": "rangeStart",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "rangeEnd",
+            "type": "string",
+            "required": false
+          },
+          {
             "name": "onSelect",
             "type": "(date: string) => void",
             "required": false
@@ -791,6 +821,11 @@
           {
             "name": "expandTrigger",
             "type": "'click' | 'hover'",
+            "required": false
+          },
+          {
+            "name": "virtualized",
+            "type": "boolean | CascaderVirtualizedConfig",
             "required": false
           },
           {
@@ -1284,6 +1319,11 @@
             "required": false
           },
           {
+            "name": "virtualized",
+            "type": "boolean | ComboboxVirtualizedConfig",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1675,6 +1715,41 @@
             "required": false
           },
           {
+            "name": "resizable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "expanded",
+            "type": "ControlOrValue<ExpandedState>",
+            "required": false
+          },
+          {
+            "name": "getRowCanExpand",
+            "type": "(row: Row<{ rowPaginationFeature: TableFeature; paginatedRowModel: (table: Table<any, any>) => () => RowModel<any, any>; rowSelectionFeature: TableFeature; ... 11 more ...; columnMeta: DataTableColumnMeta; }, TData>) => boolean",
+            "required": false
+          },
+          {
+            "name": "renderExpandedRow",
+            "type": "(row: Row<{ rowPaginationFeature: TableFeature; paginatedRowModel: (table: Table<any, any>) => () => RowModel<any, any>; rowSelectionFeature: TableFeature; ... 11 more ...; columnMeta: DataTableColumnMeta; }, TData>) => ReactNode",
+            "required": false
+          },
+          {
+            "name": "columnVisibility",
+            "type": "ControlOrValue<ColumnVisibilityState>",
+            "required": false
+          },
+          {
+            "name": "columnToggle",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "filterable",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1718,6 +1793,11 @@
             "required": false
           },
           {
+            "name": "months",
+            "type": "1 | 2",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1747,6 +1827,11 @@
           {
             "name": "separator",
             "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "months",
+            "type": "1 | 2",
             "required": false
           },
           {
@@ -3383,6 +3468,78 @@
       },
       "otherTypes": {}
     },
+    "PromptInput": {
+      "routeKey": "promptinput",
+      "cssFamily": "prompt-input",
+      "imports": [
+        "PromptInput"
+      ],
+      "propsTypes": {
+        "PromptInputProps": [
+          {
+            "name": "value",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string) => void",
+            "required": false
+          },
+          {
+            "name": "tags",
+            "type": "ControlOrValue<string[]>",
+            "required": false
+          },
+          {
+            "name": "onTagsChange",
+            "type": "(tags: string[]) => void",
+            "required": false
+          },
+          {
+            "name": "triggers",
+            "type": "string[]",
+            "required": false
+          },
+          {
+            "name": "getSuggestions",
+            "type": "(trigger: string, query: string) => string[] | Promise<string[]>",
+            "required": false
+          },
+          {
+            "name": "onSubmit",
+            "type": "() => void",
+            "required": false
+          },
+          {
+            "name": "submitKey",
+            "type": "'enter' | 'mod-enter'",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "maxRows",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Radio": {
       "routeKey": "radio",
       "cssFamily": "radio",
@@ -3717,6 +3874,11 @@
             "required": false
           },
           {
+            "name": "virtualized",
+            "type": "boolean | SelectVirtualizedConfig",
+            "required": false
+          },
+          {
             "name": "children",
             "type": "ReactNode",
             "required": true
@@ -3754,6 +3916,11 @@
             "required": false
           },
           {
+            "name": "virtualized",
+            "type": "boolean | SelectVirtualizedConfig",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -3768,6 +3935,11 @@
           {
             "name": "multiple",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "virtualized",
+            "type": "boolean | SelectVirtualizedConfig",
             "required": false
           },
           {

@@ -56,6 +56,8 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'matchMedia');
   // view-transition 用例在 document 上挂的 stub 清理回「引擎不支持」态
   Reflect.deleteProperty(document, 'startViewTransition');
+  // 键盘用例挂的 visualViewport stub 同样清回「引擎不支持」态
+  Reflect.deleteProperty(window, 'visualViewport');
 });
 
 describe('BottomSheet', () => {
@@ -427,5 +429,329 @@ describe('BottomSheet view transitions', () => {
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     );
+  });
+});
+
+// ─── swipe-to-dismiss 手势 ─────────────────────────────────────────
+// jsdom 无布局：阈值依赖的 sheet 高度用 rect mock 给出真实值（dnd-kit
+// 键盘排序测试同型），否则 getBoundingClientRect 恒 0、阈值塌缩到 1px。
+function mockSheetHeight(sheet: HTMLElement, height: number) {
+  sheet.getBoundingClientRect = () =>
+    ({ width: 320, height, top: 0, left: 0, right: 320, bottom: height, x: 0, y: 0, toJSON: () => ({}) });
+}
+
+describe('BottomSheet swipe-to-dismiss', () => {
+  it('follows the drag and closes through the shared exit past the threshold', async () => {
+    const onClose = vi.fn();
+    render(
+      <BottomSheet open swipeToDismiss onClose={onClose}>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    mockSheetHeight(sheet, 400); // 阈值 = min(88, 400/4) = 88
+
+    fireEvent.pointerDown(sheet, { pointerId: 1, clientY: 100, button: 0 });
+    fireEvent.pointerMove(sheet, { pointerId: 1, clientY: 150 });
+    // 拖拽实时跟随（位移 = clientY 差值）
+    expect(sheet.style.transform).toBe('translateY(50px)');
+    fireEvent.pointerUp(sheet, { pointerId: 1, clientY: 300 }); // 200 ≥ 88
+
+    // 与遮罩点击/Escape/handle.close 同一个 handleClose：恰好一次
+    expect(onClose).toHaveBeenCalledTimes(1);
+    // 走既有 Presence 退场：sheet 最终卸载
+    await waitFor(() =>
+      expect(screen.queryByText('Sheet content')).not.toBeInTheDocument()
+    );
+  });
+
+  it('springs back below the threshold instead of closing', () => {
+    const onClose = vi.fn();
+    render(
+      <BottomSheet open swipeToDismiss onClose={onClose}>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    mockSheetHeight(sheet, 400);
+
+    fireEvent.pointerDown(sheet, { pointerId: 1, clientY: 100, button: 0 });
+    fireEvent.pointerMove(sheet, { pointerId: 1, clientY: 140 }); // 40 < 88
+    expect(sheet.style.transform).toBe('translateY(40px)');
+    fireEvent.pointerUp(sheet, { pointerId: 1, clientY: 140 });
+
+    // 回弹：translate 归零，动画时长走 motion token（reduce 下自动归零）
+    expect(sheet.style.transform).toBe('');
+    expect(sheet.style.transition).toBe(
+      'transform var(--haze-duration-fast) var(--haze-ease)'
+    );
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('Sheet content')).toBeInTheDocument();
+  });
+
+  it('lets native scrolling win until every scroller is back at the top', () => {
+    const onClose = vi.fn();
+    render(
+      <BottomSheet open swipeToDismiss onClose={onClose}>
+        <div data-testid="scroller" style={{ overflowY: 'auto' }}>
+          <p style={{ height: 600 }}>Tall content</p>
+        </div>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    const scroller = screen.getByTestId('scroller');
+    mockSheetHeight(sheet, 400);
+
+    // 嵌套滚动容器未滚到顶：同样的下拉不接管（touch 惯例）
+    scroller.scrollTop = 60;
+    fireEvent.pointerDown(scroller, { pointerId: 1, clientY: 100, button: 0 });
+    fireEvent.pointerMove(scroller, { pointerId: 1, clientY: 300 });
+    expect(sheet.style.transform).toBe('');
+    fireEvent.pointerUp(scroller, { pointerId: 1, clientY: 300 });
+    expect(onClose).not.toHaveBeenCalled();
+
+    // sheet 自身滚动容器同理
+    fireEvent.pointerDown(sheet, { pointerId: 2, clientY: 100, button: 0 });
+    sheet.scrollTop = 40;
+    fireEvent.pointerMove(sheet, { pointerId: 2, clientY: 300 });
+    fireEvent.pointerUp(sheet, { pointerId: 2, clientY: 300 });
+    expect(sheet.style.transform).toBe('');
+    expect(onClose).not.toHaveBeenCalled();
+
+    // 滚回顶部后，同样的手势恢复接管并关闭
+    sheet.scrollTop = 0;
+    fireEvent.pointerDown(sheet, { pointerId: 3, clientY: 100, button: 0 });
+    fireEvent.pointerMove(sheet, { pointerId: 3, clientY: 300 });
+    fireEvent.pointerUp(sheet, { pointerId: 3, clientY: 300 });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores upward drags', () => {
+    render(
+      <BottomSheet open swipeToDismiss>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    mockSheetHeight(sheet, 400);
+    fireEvent.pointerDown(sheet, { pointerId: 1, clientY: 300, button: 0 });
+    fireEvent.pointerMove(sheet, { pointerId: 1, clientY: 100 }); // 向上
+    fireEvent.pointerUp(sheet, { pointerId: 1, clientY: 100 });
+    expect(sheet.style.transform).toBe('');
+    expect(screen.getByText('Sheet content')).toBeInTheDocument();
+  });
+
+  it('springs back on pointercancel without closing', () => {
+    const onClose = vi.fn();
+    render(
+      <BottomSheet open swipeToDismiss onClose={onClose}>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    mockSheetHeight(sheet, 400);
+    fireEvent.pointerDown(sheet, { pointerId: 1, clientY: 100, button: 0 });
+    fireEvent.pointerMove(sheet, { pointerId: 1, clientY: 400 }); // 已在拖拽中
+    expect(sheet.style.transform).toBe('translateY(300px)');
+    // 引擎抢走手势（原生滚动/多指）：不关闭，回弹。
+    // RTL 的 fireEvent 事件表没有 pointercancel，直接派发原生事件
+    fireEvent(
+      sheet,
+      new PointerEvent('pointercancel', { bubbles: true, pointerId: 1 })
+    );
+    expect(sheet.style.transform).toBe('');
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('Sheet content')).toBeInTheDocument();
+  });
+
+  it('stays inert without swipeToDismiss (no listeners, no behavior)', () => {
+    const onClose = vi.fn();
+    render(
+      <BottomSheet open onClose={onClose}>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    mockSheetHeight(sheet, 400);
+    // 超阈值的完整拖拽序列：无位移、无关闭——pointer 监听根本未挂
+    fireEvent.pointerDown(sheet, { pointerId: 1, clientY: 100, button: 0 });
+    fireEvent.pointerMove(sheet, { pointerId: 1, clientY: 400 });
+    fireEvent.pointerUp(sheet, { pointerId: 1, clientY: 400 });
+    expect(sheet.style.transform).toBe('');
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('Sheet content')).toBeInTheDocument();
+  });
+});
+
+// ─── 虚拟键盘避让 ──────────────────────────────────────────────────
+/**
+ * jsdom 没有 visualViewport——按组件的真实消费面 stub：可变
+ * height/offsetTop + resize/scroll 监听（dispatch 同步派发）。
+ * 键盘弹出 = 视口高度收缩；键盘上推 = offsetTop 增加。
+ */
+function installVisualViewport(initial: { height: number; offsetTop?: number }) {
+  const listeners = {
+    resize: new Set<() => void>(),
+    scroll: new Set<() => void>(),
+  };
+  const base = {
+    width: 1024,
+    height: initial.height,
+    offsetLeft: 0,
+    offsetTop: initial.offsetTop ?? 0,
+    scale: 1,
+    pageTop: 0,
+    pageLeft: 0,
+    onresize: null,
+    onscroll: null,
+    addEventListener: (type: string, listener: () => void) => {
+      if (type === 'resize' || type === 'scroll') listeners[type].add(listener);
+    },
+    removeEventListener: (type: string, listener: () => void) => {
+      if (type === 'resize' || type === 'scroll') listeners[type].delete(listener);
+    },
+  };
+  Object.defineProperty(window, 'visualViewport', {
+    value: base,
+    configurable: true,
+  });
+  return {
+    /** 模拟键盘弹出/收起：视口高度变化并派发 resize。 */
+    resize(nextHeight: number) {
+      base.height = nextHeight;
+      for (const listener of [...listeners.resize]) listener();
+    },
+    /** 模拟键盘上推视口：offsetTop 变化并派发 scroll。 */
+    pushBy(nextOffsetTop: number) {
+      base.offsetTop = nextOffsetTop;
+      for (const listener of [...listeners.scroll]) listener();
+    },
+    listenerCount: () => listeners.resize.size + listeners.scroll.size,
+  };
+}
+
+describe('BottomSheet virtual keyboard', () => {
+  it('lifts the sheet above the keyboard when an input gets focus', () => {
+    const keyboard = installVisualViewport({ height: window.innerHeight });
+    render(
+      <BottomSheet open virtualKeyboard>
+        <input aria-label="Name" />
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+
+    // 键盘未弹出：inset 0，仅 dvh 基线（无 transform 写入）。
+    // jsdom 的 cssstyle 会把 calc(100dvh - 0px) 归一化去掉 calc 壳，
+    // 断言取语义片段而非整个序列化串
+    expect(sheet.style.maxHeight).toContain('80dvh');
+    expect(sheet.style.maxHeight).toContain('100dvh - 0px');
+    expect(sheet.style.transform).toBe('');
+
+    // 聚焦 input + 键盘弹出（视口收缩 400 → inset = innerHeight - 400）
+    fireEvent.focus(screen.getByLabelText('Name'));
+    const inset = window.innerHeight - 400;
+    act(() => keyboard.resize(400));
+
+    // inset 以自定义属性暴露，同时驱动上移与最大高度钳制
+    expect(sheet.style.getPropertyValue('--haze-sheet-kb-inset')).toBe(
+      `${inset}px`
+    );
+    expect(sheet.style.maxHeight).toContain(`100dvh - ${inset}px`);
+    expect(sheet.style.transform).toBe(`translateY(-${inset}px)`);
+
+    // 键盘收起：回到基线
+    act(() => keyboard.resize(window.innerHeight));
+    expect(sheet.style.getPropertyValue('--haze-sheet-kb-inset')).toBe('0px');
+    expect(sheet.style.transform).toBe('');
+  });
+
+  it('accounts for visualViewport.offsetTop when the keyboard pushes the viewport', () => {
+    const keyboard = installVisualViewport({ height: window.innerHeight });
+    render(
+      <BottomSheet open virtualKeyboard>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    act(() => keyboard.resize(500));
+    act(() => keyboard.pushBy(100));
+    // inset = innerHeight - 500 - 100（上推的偏移同样算键盘占用）
+    expect(sheet.style.transform).toBe(
+      `translateY(-${window.innerHeight - 500 - 100}px)`
+    );
+  });
+
+  it('degrades to the dvh baseline when visualViewport is missing', () => {
+    // 无 stub：SSR/jsdom 环境静默降级，不抛错
+    render(
+      <BottomSheet open virtualKeyboard>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    expect(sheet.style.maxHeight).toContain('80dvh');
+    expect(sheet.style.maxHeight).toContain('100dvh - 0px');
+    expect(sheet.style.transform).toBe('');
+    expect(screen.getByText('Sheet content')).toBeInTheDocument();
+  });
+
+  it('stops listening once the sheet is dismissed', async () => {
+    const keyboard = installVisualViewport({ height: window.innerHeight });
+    const onClose = vi.fn();
+    render(
+      <BottomSheet open virtualKeyboard swipeToDismiss onClose={onClose}>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    expect(keyboard.listenerCount()).toBe(2); // resize + scroll
+
+    fireEvent.keyDown(sheet, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    );
+    expect(keyboard.listenerCount()).toBe(0);
+
+    // 卸载后的视口变化不再触达组件（无监听可派发）
+    expect(() => act(() => keyboard.resize(300))).not.toThrow();
+  });
+
+  it('composes the drag offset with the keyboard inset', () => {
+    const keyboard = installVisualViewport({ height: window.innerHeight });
+    const onClose = vi.fn();
+    render(
+      <BottomSheet open virtualKeyboard swipeToDismiss onClose={onClose}>
+        <p>Sheet content</p>
+      </BottomSheet>
+    );
+    const sheet = screen.getByRole('dialog');
+    const inset = window.innerHeight - 400;
+    act(() => keyboard.resize(400));
+    mockSheetHeight(sheet, 400);
+
+    fireEvent.pointerDown(sheet, { pointerId: 1, clientY: 100, button: 0 });
+    fireEvent.pointerMove(sheet, { pointerId: 1, clientY: 140 }); // 40 < 88
+    // 拖拽位移叠加在键盘上移之上：40 - inset
+    expect(sheet.style.transform).toBe(`translateY(${40 - inset}px)`);
+    fireEvent.pointerUp(sheet, { pointerId: 1, clientY: 140 });
+    // 回弹落点是键盘上方的 resting 位，而不是 0
+    expect(sheet.style.transform).toBe(`translateY(-${inset}px)`);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('has no axe violations with gestures and keyboard awareness enabled', async () => {
+    const { axe } = await import('jest-axe');
+    render(
+      <BottomSheet open swipeToDismiss virtualKeyboard aria-label="Actions">
+        <h2>Sheet title</h2>
+        <input aria-label="Name" />
+        <button type="button">Sheet action</button>
+      </BottomSheet>
+    );
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
   });
 });

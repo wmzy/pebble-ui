@@ -31,6 +31,10 @@ const zhCN: HazeStrings = {
     previousMonth: '上个月',
     nextMonth: '下个月',
     today: '今天',
+    selectMonth: '选择月份',
+    previousYear: '上一年',
+    nextYear: '下一年',
+    weekNumber: '周',
   },
   cascader: {
     expand: '展开',
@@ -132,6 +136,12 @@ const zhCN: HazeStrings = {
   progress: {
     label: '进度',
   },
+  promptInput: {
+    label: '提示词输入框',
+    removeTag: '移除 {tag}',
+    noMatch: '无匹配项',
+    loading: '加载中…',
+  },
   rating: {
     star: '{count} 颗星',
     stars: '{count} 颗星',
@@ -157,6 +167,11 @@ const zhCN: HazeStrings = {
   },
   thinkingIndicator: {
     text: '思考中',
+  },
+  toast: {
+    loading: '加载中…',
+    success: '成功',
+    error: '出错了',
   },
   tokenCounter: {
     label: 'Token 数',

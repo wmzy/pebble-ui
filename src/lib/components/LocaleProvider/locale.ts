@@ -30,6 +30,10 @@ const defaultStrings = {
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
     today: 'Today',
+    selectMonth: 'Select month',
+    previousYear: 'Previous year',
+    nextYear: 'Next year',
+    weekNumber: 'Wk',
   },
   cascader: {
     expand: 'Expand',
@@ -131,6 +135,12 @@ const defaultStrings = {
   progress: {
     label: 'Progress',
   },
+  promptInput: {
+    label: 'Prompt',
+    removeTag: 'Remove {tag}',
+    noMatch: 'No matches',
+    loading: 'Loading…',
+  },
   rating: {
     star: '{count} star',
     stars: '{count} stars',
@@ -156,6 +166,11 @@ const defaultStrings = {
   },
   thinkingIndicator: {
     text: 'Thinking',
+  },
+  toast: {
+    loading: 'Loading…',
+    success: 'Success',
+    error: 'Something went wrong',
   },
   tokenCounter: {
     label: 'Tokens',

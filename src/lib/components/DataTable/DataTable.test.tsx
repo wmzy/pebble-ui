@@ -1,10 +1,10 @@
 import type { MockInstance } from 'vitest';
 
-import type { RowSelectionState } from '@tanstack/react-table';
+import type { ExpandedState, RowSelectionState } from '@tanstack/react-table';
 
 import type { DataTableColumnDef } from './DataTable';
 
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
@@ -432,6 +432,477 @@ describe('DataTable', () => {
     // 'region' fires for any content outside a landmark — an artifact of
     // the bare test document, not the component.
     const results = await axe(container, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('DataTable column resizing', () => {
+  const resizableColumns: DataTableColumnDef<Person>[] = [
+    { accessorKey: 'name', header: 'Name', meta: { width: 120 } },
+    { accessorKey: 'age', header: 'Age' },
+  ];
+
+  const colsOf = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll('col'));
+
+  it('renders no resize handles unless resizable', () => {
+    render(<DataTable columns={columns} data={people} />);
+
+    expect(screen.queryByRole('separator')).not.toBeInTheDocument();
+    // And no colgroup appears just because resizing exists as a feature.
+    expect(document.querySelector('colgroup')).toBeNull();
+  });
+
+  it('renders a labeled separator handle per resizable leaf column', () => {
+    const { container } = render(
+      <DataTable columns={resizableColumns} data={people} resizable />
+    );
+
+    const nameHandle = screen.getByRole('separator', { name: 'Resize Name' });
+    expect(nameHandle).toHaveAttribute('aria-orientation', 'vertical');
+    expect(nameHandle).toHaveAttribute('tabindex', '0');
+    expect(
+      screen.getByRole('separator', { name: 'Resize Age' })
+    ).toBeInTheDocument();
+    // Resizing emits a colgroup so resized widths have a home; columns
+    // without a declared width stay free.
+    expect(colsOf(container).map((col) => col.style.width)).toEqual([
+      '120px',
+      '',
+    ]);
+  });
+
+  it('resizes a column through pointer drag and reflects it in the colgroup', () => {
+    const { container } = render(
+      <DataTable columns={resizableColumns} data={people} resizable />
+    );
+
+    const handle = screen.getByRole('separator', { name: 'Resize Name' });
+    // TanStack drag contract: mousedown on the handle, then document-level
+    // mousemove/mouseup. From 120px at x=100 to x=140 → 160px.
+    fireEvent.mouseDown(handle, { clientX: 100 });
+    fireEvent.mouseMove(document, { clientX: 140 });
+    fireEvent.mouseUp(document, { clientX: 140 });
+
+    expect(colsOf(container).map((col) => col.style.width)).toEqual([
+      '160px',
+      '',
+    ]);
+  });
+
+  it('nudges the width with the keyboard arrows', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <DataTable columns={resizableColumns} data={people} resizable />
+    );
+
+    const handle = screen.getByRole('separator', { name: 'Resize Name' });
+    handle.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(colsOf(container)[0]!.style.width).toBe('125px');
+
+    await user.keyboard('{ArrowLeft}{ArrowLeft}');
+    expect(colsOf(container)[0]!.style.width).toBe('115px');
+  });
+
+  it('mirrors the arrow keys under RTL, reading the DOM direction at event time', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <div dir='rtl'>
+        <DataTable columns={resizableColumns} data={people} resizable />
+      </div>
+    );
+
+    const handle = screen.getByRole('separator', { name: 'Resize Name' });
+    handle.focus();
+    // In RTL the mirrored grid grows to the left.
+    await user.keyboard('{ArrowLeft}');
+    expect(colsOf(container)[0]!.style.width).toBe('125px');
+
+    await user.keyboard('{ArrowRight}');
+    expect(colsOf(container)[0]!.style.width).toBe('120px');
+  });
+
+  it('resets to the declared width on double click', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <DataTable columns={resizableColumns} data={people} resizable />
+    );
+
+    const handle = screen.getByRole('separator', { name: 'Resize Name' });
+    handle.focus();
+    await user.keyboard('{ArrowRight}{ArrowRight}');
+    expect(colsOf(container)[0]!.style.width).toBe('130px');
+
+    await user.dblClick(handle);
+    expect(colsOf(container)[0]!.style.width).toBe('120px');
+  });
+
+  it('hides the handle for columns switched off via meta.resizable', () => {
+    const mixedColumns: DataTableColumnDef<Person>[] = [
+      { accessorKey: 'name', header: 'Name', meta: { width: 120 } },
+      {
+        accessorKey: 'age',
+        header: 'Age',
+        meta: { width: 90, resizable: false },
+      },
+    ];
+    render(<DataTable columns={mixedColumns} data={people} resizable />);
+
+    expect(
+      screen.getByRole('separator', { name: 'Resize Name' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('separator', { name: 'Resize Age' })
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('DataTable expandable rows', () => {
+  const renderExpandable = () =>
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        getRowId={rowId}
+        getRowCanExpand={(row) => row.original.age > 30}
+        renderExpandedRow={(row) => <output>Panel {row.id}</output>}
+      />
+    );
+
+  it('renders expander buttons only where getRowCanExpand allows', () => {
+    renderExpandable();
+
+    // u1 (35) and u3 (42) clear the bar; u2/u4/u5 do not.
+    expect(
+      screen.getByRole('button', { name: 'Expand row u1' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Expand row u3' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Expand row u2' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders no expanders without the expanding props', () => {
+    render(<DataTable columns={columns} data={people} getRowId={rowId} />);
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('makes every row expandable when only renderExpandedRow is given', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        getRowId={rowId}
+        renderExpandedRow={(row) => <output>Panel {row.id}</output>}
+      />
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Expand row u5' })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Expand row u5' }));
+    expect(screen.getByText('Panel u5')).toBeInTheDocument();
+  });
+
+  it('expands a row: panel content, aria wiring, spanning row', async () => {
+    const user = userEvent.setup();
+    renderExpandable();
+
+    const expander = screen.getByRole('button', { name: 'Expand row u1' });
+    expect(expander).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('Panel u1')).not.toBeInTheDocument();
+
+    await user.click(expander);
+
+    expect(expander).toHaveAttribute('aria-expanded', 'true');
+    expect(expander).toHaveAttribute('aria-label', 'Collapse row u1');
+    const panel = screen.getByText('Panel u1').closest('td');
+    expect(panel).toBeInTheDocument();
+    // The panel spans every leaf column on its own row.
+    expect(panel).toHaveAttribute('colspan', '2');
+    // aria-controls points at the rendered panel cell.
+    expect(panel?.id).toBe(expander.getAttribute('aria-controls'));
+    // The panel row sits directly after its data row.
+    const panelRow = panel?.closest('tr');
+    const dataRow = screen.getByText('Charlie').closest('tr');
+    expect(panelRow?.previousElementSibling).toBe(dataRow);
+
+    await user.click(expander);
+    expect(expander).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('Panel u1')).not.toBeInTheDocument();
+  });
+
+  it('toggles expansion through the keyboard', async () => {
+    const user = userEvent.setup();
+    renderExpandable();
+
+    const expander = screen.getByRole('button', { name: 'Expand row u3' });
+    expander.focus();
+    await user.keyboard('{Enter}');
+    expect(screen.getByText('Panel u3')).toBeInTheDocument();
+
+    await user.keyboard('{ }');
+    expect(screen.queryByText('Panel u3')).not.toBeInTheDocument();
+  });
+
+  it('supports controlled expanded through a Control', async () => {
+    const user = userEvent.setup();
+    function Harness() {
+      const [expanded, , expandedCtrl] = useControl<ExpandedState>(undefined, {
+        u3: true,
+      });
+      const keys = Object.keys(expanded as Record<string, boolean>)
+        .sort()
+        .join(' ');
+      return (
+        <>
+          <DataTable
+            columns={columns}
+            data={people}
+            getRowId={rowId}
+            expanded={expandedCtrl}
+            getRowCanExpand={() => true}
+            renderExpandedRow={(row) => <output>Panel {row.id}</output>}
+          />
+          <output data-testid='expanded'>{keys}</output>
+        </>
+      );
+    }
+
+    render(<Harness />);
+
+    expect(screen.getByText('Panel u3')).toBeInTheDocument();
+    expect(screen.getByTestId('expanded')).toHaveTextContent('u3');
+
+    await user.click(screen.getByRole('button', { name: 'Expand row u1' }));
+    expect(screen.getByText('Panel u1')).toBeInTheDocument();
+    expect(screen.getByTestId('expanded')).toHaveTextContent('u1 u3');
+
+    await user.click(screen.getByRole('button', { name: 'Collapse row u3' }));
+    expect(screen.queryByText('Panel u3')).not.toBeInTheDocument();
+    expect(screen.getByTestId('expanded')).toHaveTextContent('u1');
+  });
+});
+
+describe('DataTable column visibility', () => {
+  const visColumns: DataTableColumnDef<Person>[] = [
+    { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'age', header: 'Age', meta: { hideable: false } },
+  ];
+
+  it('renders no settings trigger unless columnToggle', () => {
+    render(<DataTable columns={visColumns} data={people} />);
+
+    expect(
+      screen.queryByRole('button', { name: 'Columns' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('toggles columns through the menu; hideable:false columns stay put', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        columns={visColumns}
+        data={people}
+        getRowId={rowId}
+        columnToggle
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Columns' }));
+
+    const nameToggle = screen.getByRole('menuitemcheckbox', {
+      name: 'Show Name',
+    });
+    expect(nameToggle).toHaveAttribute('aria-checked', 'true');
+    // The pinned column is absent from the menu entirely.
+    expect(
+      screen.queryByRole('menuitemcheckbox', { name: 'Show Age' })
+    ).not.toBeInTheDocument();
+
+    await user.click(nameToggle);
+
+    expect(nameToggle).toHaveAttribute('aria-checked', 'false');
+    // The column drops from header and body.
+    expect(
+      screen.queryByRole('columnheader', { name: 'Name' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Age' })
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Charlie')).not.toBeInTheDocument();
+    expect(screen.getByText('35')).toBeInTheDocument();
+
+    // The menu stays open — bring the column back.
+    await user.click(nameToggle);
+    expect(
+      screen.getByRole('columnheader', { name: 'Name' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Charlie')).toBeInTheDocument();
+  });
+
+  it('supports controlled columnVisibility through a Control', async () => {
+    const user = userEvent.setup();
+    function Harness() {
+      const [visibility, , visibilityCtrl] = useControl(undefined, {});
+      return (
+        <>
+          <DataTable
+            columns={visColumns}
+            data={people}
+            getRowId={rowId}
+            columnToggle
+            columnVisibility={visibilityCtrl}
+          />
+          <output data-testid='visibility'>{JSON.stringify(visibility)}</output>
+        </>
+      );
+    }
+
+    render(<Harness />);
+
+    await user.click(screen.getByRole('button', { name: 'Columns' }));
+    await user.click(
+      screen.getByRole('menuitemcheckbox', { name: 'Show Name' })
+    );
+
+    expect(screen.getByTestId('visibility')).toHaveTextContent(
+      '{"name":false}'
+    );
+    expect(
+      screen.queryByRole('columnheader', { name: 'Name' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('places the trigger in the pagination row when paginating', () => {
+    render(
+      <DataTable columns={visColumns} data={people} pageSize={5} columnToggle />
+    );
+
+    // Same footer row as the pagination controls.
+    const footer = screen.getByRole('button', { name: 'Next' }).closest('div');
+    expect(footer).toContainElement(
+      screen.getByRole('button', { name: 'Columns' })
+    );
+  });
+});
+
+describe('DataTable filtering', () => {
+  it('renders no filter row unless filterable', () => {
+    render(<DataTable columns={columns} data={people} />);
+
+    expect(
+      screen.queryByRole('textbox', { name: 'Filter Name' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('filters rows while typing and restores them when cleared', async () => {
+    const user = userEvent.setup();
+    render(<DataTable columns={columns} data={people} filterable />);
+
+    const nameFilter = screen.getByRole('textbox', { name: 'Filter Name' });
+    expect(
+      screen.getByRole('textbox', { name: 'Filter Age' })
+    ).toBeInTheDocument();
+
+    await user.type(nameFilter, 'ali');
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.queryByText('Charlie')).not.toBeInTheDocument();
+    expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+
+    await user.clear(nameFilter);
+    expect(screen.getByText('Charlie')).toBeInTheDocument();
+    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(screen.getByText('Evan')).toBeInTheDocument();
+  });
+
+  it('skips the input for columns switched off via meta.filterable', () => {
+    const mixedColumns: DataTableColumnDef<Person>[] = [
+      { accessorKey: 'name', header: 'Name' },
+      { accessorKey: 'age', header: 'Age', meta: { filterable: false } },
+    ];
+    render(<DataTable columns={mixedColumns} data={people} filterable />);
+
+    expect(
+      screen.getByRole('textbox', { name: 'Filter Name' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'Filter Age' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('lets a columnDef filterFn replace the default includesString', async () => {
+    const user = userEvent.setup();
+    const startsWithColumns: DataTableColumnDef<Person>[] = [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        // 'a' matches Alice only under startsWith — Charlie and Diana
+        // merely contain it.
+        filterFn: (row, columnId, filterValue) =>
+          String(row.getValue(columnId))
+            .toLowerCase()
+            .startsWith(String(filterValue).toLowerCase()),
+      },
+      { accessorKey: 'age', header: 'Age', meta: { filterable: false } },
+    ];
+    render(<DataTable columns={startsWithColumns} data={people} filterable />);
+
+    await user.type(screen.getByRole('textbox', { name: 'Filter Name' }), 'a');
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.queryByText('Charlie')).not.toBeInTheDocument();
+    expect(screen.queryByText('Diana')).not.toBeInTheDocument();
+  });
+});
+
+describe('DataTable enterprise features accessibility', () => {
+  it('has no axe violations with a row expanded and the filter row present', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    const { container } = render(
+      <DataTable
+        columns={columns}
+        data={people}
+        getRowId={rowId}
+        sortable
+        filterable
+        getRowCanExpand={() => true}
+        renderExpandedRow={(row) => (
+          <div>
+            Details for {row.original.name} (age {row.original.age})
+          </div>
+        )}
+      />
+    );
+    await user.click(screen.getByRole('button', { name: 'Expand row u1' }));
+
+    const results = await axe(container, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+
+  it('has no axe violations with the column settings menu open', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        getRowId={rowId}
+        columnToggle
+      />
+    );
+    await user.click(screen.getByRole('button', { name: 'Columns' }));
+
+    const results = await axe(document.body, {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);

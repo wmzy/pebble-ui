@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
+import type { VirtualListHandle } from '../VirtualList';
 
 import type { SelectOptionData } from './select-options';
 
@@ -9,6 +10,24 @@ import { useControl } from 'react-use-control';
 import { FloatingPanel, useFloating } from '../../utils/floating';
 import Chip from '../Chip/Chip';
 import { useStrings } from '../LocaleProvider';
+import { VirtualList } from '../VirtualList';
+
+
+/** Metrics override for the `virtualized` option list of SelectMultiple. */
+type SelectVirtualizedConfig = {
+  /**
+   * Row height in px of one option row. Defaults to 29 — the measured
+   * natural box of an option row: space-1 padding top+bottom (4+4) plus
+   * the taller of the text-sm line box (21px at leading-normal) and the
+   * 1.125rem visual checkbox (18px). Virtualization math needs it as a
+   * JS number; rows are stretched to fill it (`virtualRow`), so the two
+   * cannot drift apart.
+   */
+  itemHeight?: number;
+  /** Extra rows kept mounted above/below the visible window. Defaults
+   * to VirtualList's 5. */
+  overscan?: number;
+};
 
 
 type SelectMultipleProps = {
@@ -24,6 +43,15 @@ type SelectMultipleProps = {
   /** Falls back to the `select.placeholder` locale string. */
   placeholder?: string;
   size?: 'sm' | 'md' | 'lg';
+  /**
+   * Render the options list through VirtualList so thousand-option
+   * listboxes mount only the visible window (plus overscan) instead of
+   * the full DOM list. `false`/omitted (default) keeps the plain DOM
+   * path byte-for-byte; an object additionally customizes row metrics.
+   * Off in single mode — the native `<select>` handles long lists
+   * natively.
+   */
+  virtualized?: boolean | SelectVirtualizedConfig;
   className?: string;
   /**
    * Native passthrough re-hosted on the button trigger. The owning
@@ -165,6 +193,40 @@ const listbox = css`
   box-shadow: var(--haze-shadow-lg);
 `;
 
+/**
+ * Virtualized panel: same chrome, no scroll box — the VirtualList
+ * scrollport owns scrolling. Keeping the plain class untouched avoids a
+ * nested scroll container that could grow a second scrollbar (the same
+ * trade-off as Combobox's listboxVirtual).
+ */
+const listboxVirtual = css`
+  box-sizing: border-box;
+  min-width: 100%;
+  min-width: anchor-size(width);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-md);
+  background: var(--haze-color-bg);
+  box-shadow: var(--haze-shadow-lg);
+`;
+
+/** Scrollport height of the virtualized list — the plain listbox's
+ * `max-height` cap, so both modes cap out equally tall; shorter lists
+ * size to their rows through `Math.min` at the call site. */
+const LISTBOX_MAX_HEIGHT = 200;
+
+/** Fixed row height for the virtualized path: the natural option-row
+ * box — space-1 padding top+bottom (4+4) plus max(text-sm line box at
+ * leading-normal 21, checkbox 1.125rem = 18) = 29. Rows are stretched
+ * to fill it (`virtualRow`), so the two cannot drift apart. */
+const OPTION_ROW_HEIGHT = 29;
+
+/** Stretch a virtualized option over its absolutely-positioned,
+ * fixed-height row wrapper so hover/highlight cover the full row. */
+const virtualRow = css`
+  height: 100%;
+  box-sizing: border-box;
+`;
+
 const optionRow = css`
   display: flex;
   align-items: center;
@@ -264,6 +326,7 @@ export default function SelectMultiple({
   options,
   placeholder,
   size = 'md',
+  virtualized,
   className,
   ...rest
 }: SelectMultipleProps) {
@@ -277,6 +340,14 @@ export default function SelectMultiple({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const activeOptionRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<VirtualListHandle>(null);
+
+  // `virtualized` resolution: object config enables and customizes,
+  // `true` enables with defaults, anything else keeps the plain DOM.
+  const virtual = virtualized !== undefined && virtualized !== false;
+  const virtualConfig = typeof virtualized === 'object' ? virtualized : undefined;
+  const rowHeight = virtualConfig?.itemHeight ?? OPTION_ROW_HEIGHT;
+  const overscan = virtualConfig?.overscan;
 
   const floating = useFloating({
     open,
@@ -300,14 +371,21 @@ export default function SelectMultiple({
   // Keep the highlighted row visible as it moves. Gated on `shown`, not
   // `open`: scrollTop set on a still-hidden popover is clamped away and
   // lost (the same contract as Combobox's virtualized scroll effect).
-  // jsdom ships no scrollIntoView, hence the typeof guard.
+  // Virtualized mode drives the window through scrollToIndex (rows
+  // outside the window are not mounted, so scrollIntoView has no target);
+  // jsdom ships no scrollIntoView, hence the typeof guard on the plain
+  // path.
   useEffect(() => {
     if (!floating.shown || activeIndex < 0) return;
+    if (virtual) {
+      listRef.current?.scrollToIndex(activeIndex, 'auto');
+      return;
+    }
     const row = activeOptionRef.current;
     if (row && typeof row.scrollIntoView === 'function') {
       row.scrollIntoView({ block: 'nearest' });
     }
-  }, [floating.shown, activeIndex]);
+  }, [floating.shown, activeIndex, virtual]);
 
   const toggleOption = (optionValue: string) => {
     onChange(
@@ -366,6 +444,36 @@ export default function SelectMultiple({
     }
   };
 
+  // One option row, shared by the plain list and the virtualized
+  // renderItem so both paths stay in lockstep (aria ids, set semantics,
+  // active styling, toggling).
+  const renderOption = (option: SelectOptionData, i: number) => {
+    const isSelected = selected.includes(option.value);
+    return (
+      <div
+        key={option.value}
+        ref={i === activeIndex ? activeOptionRef : undefined}
+        role='option'
+        id={optionId(i)}
+        aria-selected={isSelected}
+        aria-setsize={options.length}
+        aria-posinset={i + 1}
+        x-class={[
+          optionRow,
+          i === activeIndex && optionActive,
+          virtual && virtualRow,
+        ]}
+        onClick={() => toggleOption(option.value)}
+      >
+        <span
+          aria-hidden='true'
+          x-class={[checkboxVisual, isSelected && checkboxChecked]}
+        />
+        {option.label}
+      </div>
+    );
+  };
+
   return (
     <div x-class={wrapper}>
       <button
@@ -376,6 +484,7 @@ export default function SelectMultiple({
         ref={triggerRef}
         type='button'
         style={floating.triggerStyle}
+        role='combobox'
         aria-haspopup='listbox'
         aria-expanded={open}
         aria-controls={id}
@@ -419,37 +528,29 @@ export default function SelectMultiple({
         id={id}
         role='listbox'
         aria-multiselectable='true'
-        // A button-triggered listbox needs its own accessible name (axe
-        // `aria-input-field-name`) — combobox popups are exempt through
-        // their owning input, a button's popup is not.
+        // The listbox keeps its own accessible name (axe
+        // `aria-input-field-name` covers the listbox role directly);
+        // the combobox trigger's name comes from its content
+        // (placeholder or the selected chips).
         aria-label={strings.listboxLabel}
-        visualClass={listbox}
+        visualClass={virtual ? listboxVirtual : listbox}
       >
-        {options.map((option, i) => {
-          const isSelected = selected.includes(option.value);
-          return (
-            <div
-              key={option.value}
-              ref={i === activeIndex ? activeOptionRef : undefined}
-              role='option'
-              id={optionId(i)}
-              aria-selected={isSelected}
-              aria-setsize={options.length}
-              aria-posinset={i + 1}
-              x-class={[optionRow, i === activeIndex && optionActive]}
-              onClick={() => toggleOption(option.value)}
-            >
-              <span
-                aria-hidden='true'
-                x-class={[checkboxVisual, isSelected && checkboxChecked]}
-              />
-              {option.label}
-            </div>
-          );
-        })}
+        {virtual ? (
+          <VirtualList
+            ref={listRef}
+            data-virtualized
+            items={options}
+            height={Math.min(LISTBOX_MAX_HEIGHT, options.length * rowHeight)}
+            itemHeight={rowHeight}
+            overscan={overscan}
+            renderItem={renderOption}
+          />
+        ) : (
+          options.map((option, i) => renderOption(option, i))
+        )}
       </FloatingPanel>
     </div>
   );
 }
 
-export type { SelectMultipleProps };
+export type { SelectMultipleProps, SelectVirtualizedConfig };

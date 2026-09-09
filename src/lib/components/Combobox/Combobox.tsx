@@ -11,6 +11,21 @@ import { VirtualList } from '../VirtualList';
 
 import ComboboxOption from './ComboboxOption';
 
+/** Metrics override for the `virtualized` option list of Combobox. */
+type ComboboxVirtualizedConfig = {
+  /**
+   * Row height in px of one option row. Defaults to 37 —
+   * ComboboxOption's natural box: space-2 padding top+bottom + text-sm
+   * at leading-normal = 8 + 21 + 8. Virtualization math needs it as a
+   * JS number; rows are stretched to fill it (`virtualRow`), so the two
+   * cannot drift apart.
+   */
+  itemHeight?: number;
+  /** Extra rows kept mounted above/below the visible window. Defaults
+   * to VirtualList's 5. */
+  overscan?: number;
+};
+
 type ComboboxProps = {
   value?: ControlOrValue<string>;
   open?: ControlOrValue<boolean>;
@@ -22,6 +37,15 @@ type ComboboxProps = {
    * virtualization entirely (plain DOM rendering at any length).
    */
   virtualThreshold?: number;
+  /**
+   * Explicit VirtualList override, bypassing `virtualThreshold`: `true`
+   * (or an object) always renders the list virtually — at any length,
+   * including below the threshold — while an object additionally
+   * customizes row metrics; `false` never virtualizes, even past the
+   * threshold. Omitted (default) keeps the threshold behavior
+   * untouched.
+   */
+  virtualized?: boolean | ComboboxVirtualizedConfig;
   className?: string;
 };
 
@@ -94,7 +118,9 @@ const listboxVirtual = css`
 `;
 
 /** Scrollport height of the virtualized list — the plain listbox's
- * `max-height` cap, so both modes are equally tall at the limit. */
+ * `max-height` cap, so both modes are equally tall at the limit;
+ * shorter lists size to their rows (min at the call site), matching the
+ * non-virtualized content-driven height. */
 const VIRTUAL_LIST_HEIGHT = 200;
 
 /** Fixed row height for the virtualized path: ComboboxOption's natural
@@ -116,6 +142,7 @@ export default function Combobox({
   options,
   placeholder,
   virtualThreshold = 100,
+  virtualized: virtualizedProp,
   className,
 }: ComboboxProps) {
   const [value, setValue] = useControl(valueControl, '');
@@ -140,8 +167,18 @@ export default function Combobox({
     o.label.toLowerCase().includes(query.toLowerCase())
   );
 
+  // Explicit `virtualized` override: object config enables at any
+  // length and customizes metrics, `true` enables with defaults,
+  // `false` disables outright. Omitted keeps the threshold behavior
+  // (byte-identical to the historical rendering path).
+  const virtualConfig =
+    typeof virtualizedProp === 'object' ? virtualizedProp : undefined;
+  const forced =
+    virtualizedProp === undefined ? undefined : !!virtualizedProp;
   const virtualized =
-    virtualThreshold > 0 && filtered.length > virtualThreshold;
+    forced ?? (virtualThreshold > 0 && filtered.length > virtualThreshold);
+  const rowHeight = virtualConfig?.itemHeight ?? OPTION_ROW_HEIGHT;
+  const overscan = virtualConfig?.overscan;
 
   // Stable, SSR-safe DOM id per option row: listbox id + index, both
   // deterministic across renders and re-opens (no random values). The
@@ -247,8 +284,9 @@ export default function Combobox({
             ref={listRef}
             data-virtualized
             items={filtered}
-            height={VIRTUAL_LIST_HEIGHT}
-            itemHeight={OPTION_ROW_HEIGHT}
+            height={Math.min(VIRTUAL_LIST_HEIGHT, filtered.length * rowHeight)}
+            itemHeight={rowHeight}
+            overscan={overscan}
             renderItem={(o, i) => (
               <ComboboxOption
                 value={o.value}
@@ -285,4 +323,4 @@ export default function Combobox({
   );
 }
 
-export type { ComboboxProps };
+export type { ComboboxProps, ComboboxVirtualizedConfig };

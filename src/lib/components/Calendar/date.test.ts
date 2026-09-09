@@ -1,6 +1,6 @@
 import type { CalendarCell } from './date';
 
-import { addMonths, buildMonthCells, formatDate, getDaysInMonth, getLeadingDays, parseCivilDate } from './date';
+import { addMonths, buildMonthCells, formatDate, getDaysInMonth, getISOWeekNumber, getLeadingDays, parseCivilDate } from './date';
 
 /* Time-zone control: Node on POSIX/glibc re-reads process.env.TZ before the
    next Date operation (verified experimentally on Node 24 / Fedora: setting
@@ -467,6 +467,79 @@ describe('Calendar date math', () => {
           }
         }
       }
+    });
+  });
+
+  describe('ISO week numbers', () => {
+    // Boundary fixtures verified against the ISO 8601 rule (week 1 = the
+    // week containing the year's first Thursday; weeks run Mon–Sun):
+    // - 2026-01-01 is a Thursday → week 1 of 2026.
+    // - 2025-12-31 is a Wednesday → week 1 of 2026 (borrows forward).
+    // - 2021-01-01/02/03 are Fri/Sat/Sun → week 53 of 2020 (borrows back).
+    // - 2027-01-01 is a Friday → week 53 of 2026 (2026 is a 53-week year).
+    // - 2024-12-29 is a Sunday → week 52 of 2024.
+    const EXPECTED: [number, number, number, number][] = [
+      [2026, 0, 1, 1],
+      [2026, 0, 4, 1],
+      [2025, 11, 31, 1],
+      [2021, 0, 1, 53],
+      [2021, 0, 2, 53],
+      [2021, 0, 3, 53],
+      [2021, 0, 4, 1],
+      [2027, 0, 1, 53],
+      [2026, 11, 28, 53],
+      [2026, 11, 31, 53],
+      [2024, 11, 29, 52],
+      [2025, 5, 15, 24],
+      [2024, 6, 4, 27],
+    ];
+
+    describe('in UTC (baseline)', () => {
+      beforeAll(() => setTZ('UTC'));
+      afterAll(restoreTZ);
+
+      it('matches the ISO 8601 boundary fixtures', () => {
+        for (const [year, month, day, week] of EXPECTED) {
+          expect(getISOWeekNumber(year, month, day)).toBe(week);
+        }
+      });
+
+      it('counts 52/53 whole weeks across a full ISO year', () => {
+        // 2026 starts on a Thursday → long (53-week) ISO year; 2025 starts
+        // on a Wednesday → 52 weeks.
+        expect(getISOWeekNumber(2026, 11, 31)).toBe(53);
+        expect(getISOWeekNumber(2025, 11, 28)).toBe(52);
+      });
+    });
+
+    describe('in America/New_York', () => {
+      beforeAll(() => setTZ('America/New_York'));
+      afterAll(restoreTZ);
+
+      it('is actually running in the switched zone (2026-03-08 transition)', () => {
+        expect(new Date(2026, 2, 8).getTimezoneOffset()).toBe(300);
+      });
+
+      it('keeps the boundary fixtures stable west of UTC', () => {
+        for (const [year, month, day, week] of EXPECTED) {
+          expect(getISOWeekNumber(year, month, day)).toBe(week);
+        }
+      });
+    });
+
+    describe('in Asia/Shanghai', () => {
+      beforeAll(() => setTZ('Asia/Shanghai'));
+      afterAll(restoreTZ);
+
+      it('is actually running in the switched zone (UTC+8, no DST)', () => {
+        expect(new Date(2026, 0, 1).getTimezoneOffset()).toBe(-480);
+      });
+
+      it('keeps the boundary fixtures stable east of UTC', () => {
+        for (const [year, month, day, week] of EXPECTED) {
+          expect(getISOWeekNumber(year, month, day)).toBe(week);
+        }
+      });
     });
   });
 });

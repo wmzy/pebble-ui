@@ -166,6 +166,8 @@ export { TagInput, TagInputCore } from './components/TagInput';
 export type { TagInputProps, TagInputCoreProps } from './components/TagInput';
 export { Mentions, MentionsCore } from './components/Mentions';
 export type { MentionsProps, MentionsCoreProps, MentionsOption } from './components/Mentions';
+export { PromptInput } from './components/PromptInput';
+export type { PromptInputProps } from './components/PromptInput';
 export { InlineEdit } from './components/InlineEdit';
 export type { InlineEditProps } from './components/InlineEdit';
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './components/DropdownMenu';
@@ -297,6 +299,8 @@ export {
 } from './hooks';
 export type { UseClipboardResult } from './hooks';
 export type { FullscreenTarget, UseFullscreenHandle } from './hooks';
+export { useHotkeys, hotkey, useInView, useLocalStorage, useSessionStorage } from './hooks';
+export type { HotkeyHandler, UseHotkeysOptions, UseInViewOptions } from './hooks';
 
 // form integration (react-f0rm peer)
 export { FormItem } from './form';

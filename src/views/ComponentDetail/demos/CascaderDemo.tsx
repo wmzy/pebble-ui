@@ -44,6 +44,19 @@ const REGIONS: CascaderOption[] = [
   { label: '北京', value: 'bj' },
 ];
 
+// A wide tree (25 provinces × 120 cities) for the virtualized example.
+const MANY_REGIONS: CascaderOption[] = Array.from(
+  { length: 25 },
+  (_, province) => ({
+    label: `Province ${province + 1}`,
+    value: `prov-${province}`,
+    children: Array.from({ length: 120 }, (_, city) => ({
+      label: `City ${province + 1}-${city + 1}`,
+      value: `city-${province}-${city}`,
+    })),
+  })
+);
+
 export default function CascaderDemo() {
   const [path, , pathCtrl] = useControl(undefined, [] as string[]);
 
@@ -86,6 +99,32 @@ export default function CascaderDemo() {
             options={REGIONS}
             expandTrigger='hover'
             placeholder='Select region'
+          />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Virtualized — wide trees</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>virtualized</code> renders every column through{' '}
+          <code>VirtualList</code>: only the visible window per column
+          stays mounted. Keyboard focus steps scroll the target row into
+          the window before focusing it, and{' '}
+          <code>aria-posinset</code>/<code>aria-setsize</code> keep the
+          unmounted remainder of each column addressable. Pass an object
+          to tune <code>{'{ itemHeight, overscan }'}</code>.
+        </p>
+        <div className={fieldRow}>
+          <Cascader
+            options={MANY_REGIONS}
+            virtualized
+            placeholder='Select province / city'
           />
         </div>
       </div>

@@ -2,6 +2,8 @@ import { expect } from 'vitest';
 import { render, screen, renderHook, act, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import LocaleProvider from '../LocaleProvider';
+
 import Toast from './Toast';
 import ToastContainer, { toastPlacements } from './ToastContainer';
 import { useToastContext } from './ToastContext';
@@ -361,6 +363,127 @@ describe('ToastContainer + useToast', () => {
     expect(containerEl).not.toHaveClass(toastPlacements['top-right']);
   });
 
+  it('updates content and variant in place without replaying animations', () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+
+    const ids: number[] = [];
+    act(() => {
+      ids.push(result.current('Before update', { duration: 0 }));
+    });
+    const el = screen.getByRole('status');
+    expect(el).toHaveAttribute('data-state', 'open');
+
+    act(() => {
+      result.current.update(ids[0]!, {
+        content: 'After update',
+        variant: 'danger',
+      });
+    });
+
+    // Same DOM node survives the patch (same id → same React key): no
+    // unmount/remount, so no exit→enter sequence and the toast never
+    // re-enters — it only flipped variant (status → alert).
+    const after = screen.getByRole('alert');
+    expect(after).toBe(el);
+    expect(after).toHaveAttribute('data-state', 'open');
+    expect(after).toHaveTextContent('After update');
+    expect(screen.queryByText('Before update')).not.toBeInTheDocument();
+  });
+
+  it('leaves the countdown running when the patch omits duration', () => {
+    vi.useFakeTimers();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+
+    const ids: number[] = [];
+    act(() => {
+      ids.push(result.current('Uninterrupted', { duration: 3000 }));
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      result.current.update(ids[0]!, { content: 'Still counting' });
+    });
+
+    // 1000ms of the ORIGINAL budget remain: closing here proves the patch
+    // did not re-arm (a re-armed 3000ms countdown would still be open).
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'open');
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'closed');
+    vi.useRealTimers();
+  });
+
+  it('re-arms the countdown from the full budget when duration changes', () => {
+    vi.useFakeTimers();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+
+    const ids: number[] = [];
+    act(() => {
+      ids.push(result.current('Re-armed', { duration: 3000 }));
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      result.current.update(ids[0]!, { duration: 5000 });
+    });
+
+    // The new budget runs in full from the update: still open at +4999
+    // (the old countdown would have closed at +1000).
+    act(() => {
+      vi.advanceTimersByTime(4999);
+    });
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'open');
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'closed');
+    vi.useRealTimers();
+  });
+
+  it('promise: swaps loading for success copy through the context path', async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+
+    let resolveFetch!: (data: string) => void;
+    const fetchNames = new Promise<string>((resolve) => {
+      resolveFetch = resolve;
+    });
+    let returned: Promise<string> | undefined;
+    act(() => {
+      returned = result.current.promise(fetchNames, {
+        loading: 'Fetching…',
+        success: (data) => `Loaded ${data}`,
+        duration: 0,
+      });
+    });
+    expect(screen.getByText('Fetching…')).toBeInTheDocument();
+
+    await act(async () => {
+      await Promise.resolve();
+      resolveFetch('records');
+    });
+    expect(screen.getByText('Loaded records')).toBeInTheDocument();
+    expect(screen.queryByText('Fetching…')).not.toBeInTheDocument();
+    await expect(returned).resolves.toBe('records');
+  });
+
   it('has no axe violations while a toast is shown', async () => {
     const { axe } = await import('jest-axe');
     const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -527,5 +650,201 @@ describe('imperative toast()', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+describe('toast.update()', () => {
+  // toast() holds module-level state (pending queue + subscribers) that
+  // would otherwise leak across tests.
+  afterEach(() => {
+    act(() => {
+      toast.dismiss();
+    });
+  });
+
+  it('patches a toast that is still queued before any container mounts', () => {
+    const id = toast('Queued original', { duration: 0 });
+    act(() => {
+      toast.update(id, { content: 'Queued updated', variant: 'success' });
+    });
+    render(<ToastContainer>{null}</ToastContainer>);
+    // The replay shows the patched item — the update landed pre-mount.
+    expect(screen.queryByText('Queued original')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Queued updated');
+    // One patched toast, not a second one appended.
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+  });
+
+  it('patches a displayed imperative toast in place', () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    const ids: number[] = [];
+    act(() => {
+      ids.push(toast('Module before', { duration: 0 }));
+    });
+    const el = screen.getByRole('status');
+    act(() => {
+      toast.update(ids[0]!, { content: 'Module after', variant: 'warning' });
+    });
+    expect(screen.getByRole('status')).toBe(el);
+    expect(el).toHaveTextContent('Module after');
+  });
+
+  it('never resurrects an already-dismissed toast', async () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    const ids: number[] = [];
+    act(() => {
+      ids.push(toast('Short-lived', { duration: 0 }));
+    });
+    act(() => {
+      toast.dismiss(ids[0]);
+    });
+    await waitFor(() =>
+      expect(screen.queryByText('Short-lived')).not.toBeInTheDocument()
+    );
+    act(() => {
+      toast.update(ids[0]!, { content: 'Back from the dead' });
+    });
+    expect(screen.queryByText('Back from the dead')).not.toBeInTheDocument();
+  });
+});
+
+describe('toast.promise', () => {
+  afterEach(() => {
+    act(() => {
+      toast.dismiss();
+    });
+  });
+
+  it('settles a successful promise: loading copy swaps in place, the promise passes through', async () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    let resolveSave!: (value: string) => void;
+    const save = new Promise<string>((resolve) => {
+      resolveSave = resolve;
+    });
+    let returned: Promise<string> | undefined;
+    act(() => {
+      returned = toast.promise(save, {
+        loading: 'Saving…',
+        success: (data) => `Saved ${data}`,
+        duration: 0,
+      });
+    });
+    // 原样透传: the caller's promise identity is preserved.
+    expect(returned).toBe(save);
+    const loadingEl = screen.getByRole('status');
+    expect(loadingEl).toHaveTextContent('Saving…');
+
+    await act(async () => {
+      await Promise.resolve();
+      resolveSave('invoice.pdf');
+    });
+    // Same toast element — the settle patched it, never remounted it.
+    expect(screen.getByRole('status')).toBe(loadingEl);
+    expect(loadingEl).toHaveTextContent('Saved invoice.pdf');
+    expect(screen.queryByText('Saving…')).not.toBeInTheDocument();
+    await expect(save).resolves.toBe('invoice.pdf');
+  });
+
+  it('falls back to the locale pack copy for omitted phases', async () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    let resolveJob!: () => void;
+    const job = new Promise<void>((resolve) => {
+      resolveJob = resolve;
+    });
+    act(() => {
+      void toast.promise(job, { duration: 0 });
+    });
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+    await act(async () => {
+      await Promise.resolve();
+      resolveJob();
+    });
+    expect(screen.getByText('Success')).toBeInTheDocument();
+
+    let rejectImport!: (reason?: unknown) => void;
+    const importJob = new Promise<void>((_resolve, reject) => {
+      rejectImport = reject;
+    });
+    act(() => {
+      void toast.promise(importJob, { duration: 0 });
+    });
+    await act(async () => {
+      await Promise.resolve();
+      rejectImport(new Error('nope'));
+    });
+    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+    await expect(importJob).rejects.toThrow('nope');
+  });
+
+  it('resolves deferred copy against the active LocaleProvider pack', async () => {
+    render(
+      <LocaleProvider locale='zh-CN'>
+        <ToastContainer>{null}</ToastContainer>
+      </LocaleProvider>
+    );
+    let resolveJob!: () => void;
+    const job = new Promise<void>((resolve) => {
+      resolveJob = resolve;
+    });
+    act(() => {
+      void toast.promise(job, { duration: 0 });
+    });
+    expect(screen.getByText('加载中…')).toBeInTheDocument();
+    await act(async () => {
+      await Promise.resolve();
+      resolveJob();
+    });
+    expect(screen.getByText('成功')).toBeInTheDocument();
+  });
+
+  it('settles a rejected promise: danger copy and the original rejection still catchable', async () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    const failure = new Error('network down');
+    let rejectSync!: (reason?: unknown) => void;
+    const sync = new Promise<string>((_resolve, reject) => {
+      rejectSync = reject;
+    });
+    let returned: Promise<string> | undefined;
+    act(() => {
+      returned = toast.promise(sync, {
+        loading: 'Syncing…',
+        error: (err) =>
+          `Sync failed: ${err instanceof Error ? err.message : String(err)}`,
+        duration: 0,
+      });
+    });
+    await act(async () => {
+      await Promise.resolve();
+      rejectSync(failure);
+    });
+    // danger variant → assertive role, error copy applied.
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Sync failed: network down'
+    );
+    expect(screen.queryByText('Syncing…')).not.toBeInTheDocument();
+    // The caller's catch still sees the original rejection value.
+    await expect(returned).rejects.toBe(failure);
+  });
+
+  it('does not resurrect a loading toast dismissed before the promise settles', async () => {
+    const user = userEvent.setup();
+    render(<ToastContainer>{null}</ToastContainer>);
+    let resolveUpload!: () => void;
+    const upload = new Promise<void>((resolve) => {
+      resolveUpload = resolve;
+    });
+    act(() => {
+      void toast.promise(upload, { loading: 'Uploading…', duration: 0 });
+    });
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await waitFor(() =>
+      expect(screen.queryByText('Uploading…')).not.toBeInTheDocument()
+    );
+    await act(async () => {
+      await Promise.resolve();
+      resolveUpload();
+    });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByText('Success')).not.toBeInTheDocument();
   });
 });

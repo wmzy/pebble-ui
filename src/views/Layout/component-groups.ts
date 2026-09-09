@@ -150,6 +150,7 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
       { name: 'LogViewer', route: 'logviewer' },
       { name: 'MarkdownRenderer', route: 'markdownrenderer' },
       { name: 'ModelPicker', route: 'modelpicker' },
+      { name: 'PromptInput', route: 'promptinput' },
       { name: 'StepTimeline', route: 'steptimeline' },
       { name: 'StreamingText', route: 'streamingtext' },
       { name: 'ThinkingIndicator', route: 'thinkingindicator' },

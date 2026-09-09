@@ -1,17 +1,30 @@
 import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 import type {
+  Column,
   ColumnDef,
+  ColumnVisibilityState,
+  ExpandedState,
+  Header,
+  Row,
   RowData,
   RowSelectionState,
   SortingState,
 } from '@tanstack/react-table';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
+  columnFilteringFeature,
+  columnResizingFeature,
+  columnSizingFeature,
+  columnVisibilityFeature,
+  createExpandedRowModel,
+  createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
+  filterFn_includesString,
   metaHelper,
+  rowExpandingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
@@ -23,8 +36,16 @@ import {
 import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
 
+import { getDirection, useDirection } from '../../utils/direction';
+
 import { CheckboxCore } from '../Checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '../DropdownMenu';
 import { Empty } from '../Empty';
+import { Input } from '../Input';
 import { Pagination } from '../Pagination';
 import { Skeleton } from '../Skeleton';
 import { TableBody, TableCell, TableHead } from '../Table';
@@ -53,6 +74,25 @@ type DataTableColumnMeta = {
    * nothing to the offset math. Honored on leaf columns.
    */
   fixed?: 'left' | 'right';
+  /**
+   * Column-level resizing switch — overrides the table-level `resizable`
+   * default (`false` hides this column's handle when the table is
+   * resizable; `true` is the per-column default). The native TanStack
+   * `enableResizing` field wins over this.
+   */
+  resizable?: boolean;
+  /**
+   * `false` pins the column in the visibility menu — it renders without a
+   * toggle and can never be hidden. The native TanStack `enableHiding`
+   * field wins over this.
+   */
+  hideable?: boolean;
+  /**
+   * Column-level filtering switch — overrides the table-level `filterable`
+   * default, deciding whether the filter row renders an input for this
+   * column. The native TanStack `enableColumnFilter` field wins over this.
+   */
+  filterable?: boolean;
 };
 
 /** Windowing configuration for the table body, reusing `VirtualList`. */
@@ -70,7 +110,14 @@ type DataTableVirtualized =
 /** The feature set stitched into every DataTable instance — TanStack v9's
  * tree-shaking contract: only the row models and registries the component
  * actually drives are registered. `columnMeta` is a type-only slot that
- * types `meta` on column definitions. */
+ * types `meta` on column definitions.
+ *
+ * The resizing, expanding, visibility and filtering features are registered
+ * unconditionally but stay inert until their table-level props opt in —
+ * with empty state and no `subRows` their row-model steps are identities,
+ * so the default render path is unchanged. The column-sizing feature's
+ * `size: 150` column-def default is neutralized through `defaultColumn`
+ * (see there). */
 const dataTableFeatures = tableFeatures({
   rowPaginationFeature,
   paginatedRowModel: createPaginatedRowModel(),
@@ -78,15 +125,22 @@ const dataTableFeatures = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
   sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
+  rowExpandingFeature,
+  expandedRowModel: createExpandedRowModel(),
+  columnVisibilityFeature,
+  columnFilteringFeature,
+  filteredRowModel: createFilteredRowModel(),
+  filterFns: { includesString: filterFn_includesString },
+  columnSizingFeature,
+  columnResizingFeature,
   columnMeta: metaHelper<DataTableColumnMeta>(),
 });
 
 /** Column definition accepted by DataTable — a TanStack Table column def
  * bound to DataTable's feature set and column meta. The native `size`
- * field is typed in TanStack by the column-sizing feature, which stays
- * unregistered here (no sizing state or resize APIs are driven); it is
- * re-declared so a static px width hint can be given without `meta.width`,
- * and is read as the colgroup width fallback. */
+ * field doubles as a static px width hint (read as the colgroup width
+ * fallback after `meta.width`) and seeds the resize math when `resizable`
+ * is on. */
 type DataTableColumnDef<TData extends RowData> = ColumnDef<
   typeof dataTableFeatures,
   TData
@@ -163,34 +217,118 @@ type DataTableProps<TData extends RowData> = {
   onRowClick?: (row: TData, event: MouseEvent<HTMLTableRowElement>) => void;
   /** Custom empty-state node; defaults to the `Empty` component. */
   empty?: ReactNode;
+  /**
+   * Enable column resizing: every leaf header cell (except those switched
+   * off per column) grows a drag handle on its inline-end edge. Dragging
+   * commits widths live (TanStack `columnResizeMode: 'onChange'`); the
+   * handle is a focusable `separator` widget — ArrowLeft/ArrowRight nudge
+   * the width by 5px (mirrored under RTL, read from the DOM at event
+   * time), double-click resets the column to its declared width.
+   * Per-column `meta.resizable` (or native `enableResizing`) overrides per
+   * column. Defaults to `false` — no handles, no colgroup change.
+   */
+  resizable?: boolean;
+  /**
+   * Expanded-row state (TanStack `ExpandedState`: `true` for all, or a map
+   * keyed by row id). Pair with `getRowCanExpand` and
+   * `renderExpandedRow`.
+   */
+  expanded?: ControlOrValue<ExpandedState>;
+  /**
+   * Decides which rows offer an expander button in the first content
+   * column. Without it, providing `renderExpandedRow` alone makes every
+   * row expandable (DataTable does not read `subRows` — tree data belongs
+   * to the `Tree` component).
+   */
+  getRowCanExpand?: (row: Row<typeof dataTableFeatures, TData>) => boolean;
+  /**
+   * Renders the expansion panel: a full-width row (`colSpan` across every
+   * visible column) directly below each expanded row. Called with the
+   * TanStack row (`.original` carries the data).
+   */
+  renderExpandedRow?: (row: Row<typeof dataTableFeatures, TData>) => ReactNode;
+  /**
+   * Column visibility state (TanStack `ColumnVisibilityState`): a map keyed by
+   * column id, `true` (or absent) meaning visible. Hidden columns drop
+   * from header, body and colgroup.
+   */
+  columnVisibility?: ControlOrValue<ColumnVisibilityState>;
+  /**
+   * Render the column-settings trigger opening a `DropdownMenu` of
+   * checkboxes — one per hideable column (`meta.hideable: false` pins a
+   * column out of the menu). With `pageSize` the trigger sits in the
+   * pagination row (pagination keeps the end edge); without it a toolbar
+   * row appears above the table's inline-end corner. Defaults to `false`.
+   */
+  columnToggle?: boolean;
+  /**
+   * Render a filter row directly below the header: one `Input` per
+   * filterable column, typing filters rows through TanStack's
+   * case-insensitive `includesString` (empty input clears the filter).
+   * Per-column `meta.filterable` (or native `enableColumnFilter`)
+   * overrides per column; a columnDef `filterFn` replaces the default
+   * filter function. Defaults to `false`.
+   */
+  filterable?: boolean;
   className?: string;
 } & Omit<ComponentPropsWithoutRef<'table'>, 'children'>;
 
-/** Resolves the effective sorting switch for one column: an explicit column
- * `enableSorting` wins, then `meta.sortable`, then the table-level default.
- * Recurses into grouped columns. */
-function withSortable<TData extends RowData>(
+/** Per-column feature switches resolved from the table-level props. */
+type ColumnFlags = {
+  sortable: boolean;
+  resizable: boolean;
+  filterable: boolean;
+};
+
+/** Resolves the effective per-column feature switches: an explicit native
+ * TanStack field wins, then the column `meta` override, then the table-level
+ * default. Also defaults the filter function to the registered
+ * `includesString` (inert while no filter value is set) and, when resizing
+ * is on, feeds a declared numeric `meta.width` into the native `size` so
+ * drag deltas and keyboard nudges start from the rendered width. Recurses
+ * into grouped columns. */
+function resolveColumn<TData extends RowData>(
   column: DataTableColumnDef<TData>,
-  sortable: boolean
+  flags: ColumnFlags
 ): DataTableColumnDef<TData> {
   const resolved: DataTableColumnDef<TData> = {
     ...column,
-    enableSorting: column.enableSorting ?? column.meta?.sortable ?? sortable,
+    enableSorting:
+      column.enableSorting ?? column.meta?.sortable ?? flags.sortable,
+    enableResizing: column.enableResizing ?? column.meta?.resizable ?? true,
+    enableHiding: column.enableHiding ?? column.meta?.hideable !== false,
+    enableColumnFilter:
+      column.enableColumnFilter ?? column.meta?.filterable ?? flags.filterable,
+    filterFn: column.filterFn ?? 'includesString',
+    size:
+      flags.resizable && typeof column.meta?.width === 'number'
+        ? column.meta.width
+        : column.size,
   };
   if ('columns' in resolved && resolved.columns) {
     return {
       ...resolved,
-      columns: resolved.columns.map((child) => withSortable(child, sortable)),
+      columns: resolved.columns.map((child) => resolveColumn(child, flags)),
     };
   }
   return resolved;
 }
 
+/** Human label for a column in generated UI (resize handles, filter inputs,
+ * the visibility menu): the header string when one was given, else the
+ * column id. */
+function columnLabel<TData extends RowData>(
+  column: Column<typeof dataTableFeatures, TData>
+): string {
+  const header = column.columnDef.header;
+  return typeof header === 'string' ? header : column.id;
+}
+
 /** Resolves a column def's effective width: `meta.width` wins, then the
  * native TanStack `size` as a px fallback. Returns a CSS length string, or
- * undefined when neither is declared. Read off the raw definition — the
- * column-sizing feature is not registered, so no default size is merged in
- * and "unspecified" stays distinguishable. */
+ * undefined when neither is declared. Read off the resolved column def —
+ * the sizing feature's `size: 150` default is neutralized through the
+ * `defaultColumn` option, so "unspecified" stays distinguishable. */
 function columnWidthCss(def: {
   meta?: DataTableColumnMeta;
   size?: number;
@@ -421,6 +559,139 @@ const footer = css`
   margin-top: var(--haze-space-3);
 `;
 
+/* Column-settings toolbar (no pagination): a right-aligned strip above the
+ * table. */
+const toolbar = css`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--haze-space-3);
+`;
+
+/* The menu wrapper inside the pagination row: consumes the free space so
+ * the trigger pins to the start edge and Pagination keeps the end edge. */
+const footerMenu = css`
+  margin-inline-end: auto;
+`;
+
+const columnsTrigger = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-1);
+  padding: var(--haze-space-1) var(--haze-space-2);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-md);
+  background: var(--haze-color-bg);
+  color: var(--haze-color-text);
+  font-size: var(--haze-text-sm);
+  font-family: var(--haze-font-sans);
+
+  &:hover {
+    border-color: var(--haze-color-border-hover);
+    background: var(--haze-color-bg-subtle);
+  }
+`;
+
+/* One visibility toggle row inside the menu. The label element is generic
+ * to ARIA ownership, so the checkbox input below carries the
+ * `menuitemcheckbox` role the menu requires. */
+const toggleRow = css`
+  display: flex;
+  align-items: center;
+  padding: var(--haze-space-1) var(--haze-space-2);
+  border-radius: var(--haze-radius-sm);
+  cursor: pointer;
+  font-size: var(--haze-text-sm);
+
+  &:hover {
+    background: var(--haze-color-bg-subtle);
+  }
+`;
+
+/* Resizable header cells anchor the absolutely positioned drag handle.
+ * `position: relative` only wins where the header is not sticky — under
+ * `stickyHeader` the `.stickyHead th` rule (class + type specificity)
+ * keeps `position: sticky`, which anchors the handle just as well. */
+const resizableHead = css`
+  position: relative;
+`;
+
+/* Drag handle straddling the header cell's inline-end edge: a focusable
+ * `separator` widget (ARIA authoring pattern). */
+const resizeHandle = css`
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-end: -3px;
+  width: 6px;
+  z-index: 1;
+  cursor: col-resize;
+  touch-action: none;
+  border-radius: var(--haze-radius-sm);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 25%;
+    bottom: 25%;
+    inset-inline-end: 2.5px;
+    width: 1px;
+    background: var(--haze-color-border);
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    top: 0;
+    bottom: 0;
+    background: var(--haze-color-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
+  }
+`;
+
+const expander = css`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--haze-space-5);
+  height: var(--haze-space-5);
+  margin-inline-end: var(--haze-space-1);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-xs);
+  vertical-align: middle;
+  cursor: pointer;
+  border-radius: var(--haze-radius-sm);
+
+  &:hover {
+    color: var(--haze-color-text);
+    background: var(--haze-color-bg-subtle);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
+  }
+`;
+
+const expanderIcon = css`
+  transition: transform var(--haze-duration-fast) var(--haze-ease);
+
+  [aria-expanded='true'] & {
+    transform: rotate(90deg);
+  }
+`;
+
+/* Expansion panel cell: spans every rendered column on its own row. */
+const panelCell = css`
+  padding: var(--haze-space-3);
+  background: var(--haze-color-bg-subtle);
+`;
+
 export default function DataTable<TData extends RowData>({
   columns,
   data,
@@ -436,6 +707,13 @@ export default function DataTable<TData extends RowData>({
   getRowId,
   onRowClick,
   empty,
+  resizable = false,
+  expanded: expandedControl,
+  getRowCanExpand,
+  renderExpandedRow,
+  columnVisibility: columnVisibilityControl,
+  columnToggle = false,
+  filterable = false,
   className,
   ...rest
 }: DataTableProps<TData>) {
@@ -445,6 +723,18 @@ export default function DataTable<TData extends RowData>({
     {}
   );
   const [page, setPage, pageCtrl] = useControl<number>(pageControl, 1);
+  const [expanded, setExpanded] = useControl<ExpandedState>(
+    expandedControl,
+    {}
+  );
+  const [columnVisibility, setColumnVisibility] =
+    useControl<ColumnVisibilityState>(columnVisibilityControl, {});
+
+  // Declared intent (LocaleProvider chain → document) for the drag math,
+  // which TanStack resolves as a render-time option; keyboard nudges read
+  // the DOM direction at event time instead.
+  const dir = useDirection();
+  const instanceId = useId();
 
   const virtual = virtualized === true || typeof virtualized === 'object';
   const rowHeight =
@@ -458,9 +748,18 @@ export default function DataTable<TData extends RowData>({
   // paginated row model never slices anything.
   const size = pageSize ?? Math.max(data.length, 1);
 
+  // Expansion is possible only when the consumer opts in; it also switches
+  // the virtualized window to measured (dynamic) row heights, since panels
+  // are taller than the fixed row height.
+  const expandable =
+    getRowCanExpand !== undefined || renderExpandedRow !== undefined;
+
   const tableColumns = useMemo(
-    () => columns.map((column) => withSortable(column, sortable)),
-    [columns, sortable]
+    () =>
+      columns.map((column) =>
+        resolveColumn(column, { sortable, resizable, filterable })
+      ),
+    [columns, sortable, resizable, filterable]
   );
 
   const table = useTable({
@@ -472,9 +771,29 @@ export default function DataTable<TData extends RowData>({
       sorting,
       rowSelection,
       pagination: { pageIndex: page - 1, pageSize: size },
+      expanded,
+      columnVisibility,
     },
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
+    onExpandedChange: setExpanded,
+    onColumnVisibilityChange: setColumnVisibility,
+    // `renderExpandedRow` alone means "every row expands"; `getRowCanExpand`
+    // refines which ones.
+    getRowCanExpand:
+      getRowCanExpand ??
+      (renderExpandedRow !== undefined ? () => true : undefined),
+    enableColumnFilters: filterable,
+    enableColumnResizing: resizable,
+    columnResizeMode: 'onChange',
+    columnResizeDirection: dir,
+    // The registered column-sizing feature defaults every column def to
+    // `size: 150`; re-overriding it with `undefined` keeps "no width
+    // declared" distinguishable to `columnWidthCss` (an explicit object key
+    // with an undefined value survives the option merge). TanStack's own
+    // size math falls back to 150 through its `??` chain, so resizing
+    // behavior is unaffected.
+    defaultColumn: { size: undefined },
     onPaginationChange: (updater) => {
       const next =
         typeof updater === 'function'
@@ -521,16 +840,34 @@ export default function DataTable<TData extends RowData>({
   const leafHeaders = table.getLeafHeaders();
   const columnCount = leafHeaders.length + (selectable ? 1 : 0);
   const rows = table.getRowModel().rows;
+  const columnSizing = table.state.columnSizing;
 
-  // Per-column widths: `meta.width` wins over the native `size`. In normal
-  // mode a colgroup is only emitted once some column declares a width —
-  // without one the rendering stays exactly as before; virtualized mode
-  // always emits it, since the mirrored col sequence is how the header
+  // Per-column widths: a committed resize wins, then `meta.width`, then the
+  // native `size`. In normal mode a colgroup is only emitted once some
+  // column declares a width (or resizing is on, so a resized `<col>` has a
+  // home) — without one the rendering stays exactly as before; virtualized
+  // mode always emits it, since the mirrored col sequence is how the header
   // table and the per-row sibling tables stay aligned.
-  const leafWidths = leafHeaders.map((header) =>
-    columnWidthCss(header.column.columnDef)
-  );
+  const leafWidths = leafHeaders.map((header) => {
+    const resized = columnSizing[header.column.id];
+    if (resized !== undefined) return `${resized}px`;
+    return columnWidthCss(header.column.columnDef);
+  });
   const hasColumnWidths = leafWidths.some((width) => width !== undefined);
+
+  // Keyboard nudge for one resize handle: ±5px off the committed size (or
+  // the resolved current one), clamped to the column's min/max size.
+  const nudgeColumnSize = (
+    header: Header<typeof dataTableFeatures, TData>,
+    delta: number
+  ) => {
+    const def = header.column.columnDef;
+    const min = def.minSize ?? 20;
+    const max = def.maxSize ?? Number.MAX_SAFE_INTEGER;
+    const current = columnSizing[header.column.id] ?? header.column.getSize();
+    const next = Math.min(Math.max(Math.round(current + delta), min), max);
+    table.setColumnSizing((old) => ({ ...old, [header.column.id]: next }));
+  };
 
   // Fixed columns are a normal-mode feature; virtualized rows are separate
   // sibling tables with no shared horizontal scrollport to stick against.
@@ -575,7 +912,7 @@ export default function DataTable<TData extends RowData>({
   }
 
   const colgroup =
-    virtual || hasColumnWidths ? (
+    virtual || hasColumnWidths || resizable ? (
       <colgroup>
         {selectable && <col style={{ width: SELECTION_COL_WIDTH }} />}
         {leafHeaders.map((header, index) => (
@@ -592,7 +929,7 @@ export default function DataTable<TData extends RowData>({
   // The selection cell keeps only `nowrap` wherever a colgroup owns its
   // width; otherwise the 1% shrink-to-fit trick sizes it under auto layout.
   const checkCellStyle =
-    virtual || hasColumnWidths ? checkCellCol : checkCell;
+    virtual || hasColumnWidths || resizable ? checkCellCol : checkCell;
 
   const handleRowClick = onRowClick
     ? (row: TData, event: MouseEvent<HTMLTableRowElement>) => {
@@ -652,6 +989,10 @@ export default function DataTable<TData extends RowData>({
               header.subHeaders.length === 0
                 ? fixedById.get(header.column.id)
                 : undefined;
+            const canResize =
+              resizable &&
+              header.subHeaders.length === 0 &&
+              header.column.getCanResize();
             return (
               <TableCell
                 as='th'
@@ -661,6 +1002,7 @@ export default function DataTable<TData extends RowData>({
                 x-class={[
                   fixedSpec && fixedCell,
                   fixedSpec && fixedHeadCell,
+                  canResize && resizableHead,
                 ]}
                 style={fixedOffsetStyle(fixedSpec)}
                 aria-sort={
@@ -679,15 +1021,40 @@ export default function DataTable<TData extends RowData>({
                   >
                     <table.FlexRender header={header} />
                     <span x-class={[sortIcon]} aria-hidden='true'>
-                      {sorted === 'asc'
-                        ? '↑'
-                        : sorted === 'desc'
-                          ? '↓'
-                          : '↕'}
+                      {sorted === 'asc' ? '↑' : sorted === 'desc' ? '↓' : '↕'}
                     </span>
                   </button>
                 ) : (
                   <table.FlexRender header={header} />
+                )}
+                {canResize && (
+                  <div
+                    role='separator'
+                    aria-orientation='vertical'
+                    aria-label={`Resize ${columnLabel(header.column)}`}
+                    tabIndex={0}
+                    x-class={[resizeHandle]}
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      header.getResizeHandler()(event);
+                    }}
+                    onDoubleClick={() => header.column.resetSize()}
+                    onKeyDown={(event) => {
+                      if (
+                        event.key !== 'ArrowLeft' &&
+                        event.key !== 'ArrowRight'
+                      ) {
+                        return;
+                      }
+                      event.preventDefault();
+                      // Arrows mirror under RTL, read from the DOM at
+                      // event time so the keys follow the painted
+                      // direction (same contract as Calendar).
+                      const rtl = getDirection(event.currentTarget) === 'rtl';
+                      const grow = (event.key === 'ArrowRight') !== rtl;
+                      nudgeColumnSize(header, grow ? 5 : -5);
+                    }}
+                  />
                 )}
               </TableCell>
             );
@@ -697,55 +1064,95 @@ export default function DataTable<TData extends RowData>({
     </TableHead>
   );
 
+  // Expansion panel row id, referenced by the expander's `aria-controls`.
+  // Row ids are consumer-defined, so stray whitespace is neutralized.
+  const panelId = (rowId: string) =>
+    `${instanceId}-${rowId.replace(/\s+/g, '-')}-panel`;
+
   const renderRow = (row: (typeof rows)[number]) => (
-    <tr
-      key={row.id}
-      x-class={[
-        rowHover,
-        row.getIsSelected() && rowSelected,
-        onRowClick && clickableRow,
-      ]}
-      onClick={
-        handleRowClick
-          ? (event) => handleRowClick(row.original, event)
-          : undefined
-      }
-    >
-      {selectable && (
-        <TableCell
-          x-class={[
-            checkCellStyle,
-            selectionFixedSpec && fixedCell,
-            selectionFixedSpec?.edge && fixedLeftEdge,
-            row.getIsSelected() && fixedCellSelected,
-          ]}
-          style={fixedOffsetStyle(selectionFixedSpec)}
-        >
-          <CheckboxCore
-            checked={row.getIsSelected()}
-            onChange={(checked) => row.toggleSelected(checked)}
-            aria-label={`Select row ${row.id}`}
-          />
-        </TableCell>
-      )}
-      {row.getAllCells().map((cell) => {
-        const fixedSpec = fixedById.get(cell.column.id);
-        return (
+    // Keyed fragment (not a bare fragment) — row identity across reorders
+    // (sorting, filtering) must reconcile by row id, not by position.
+    <Fragment key={row.id}>
+      <tr
+        key={row.id}
+        x-class={[
+          rowHover,
+          row.getIsSelected() && rowSelected,
+          onRowClick && clickableRow,
+        ]}
+        onClick={
+          handleRowClick
+            ? (event) => handleRowClick(row.original, event)
+            : undefined
+        }
+      >
+        {selectable && (
           <TableCell
-            key={cell.id}
             x-class={[
-              fixedSpec && fixedCell,
-              fixedSpec?.edge &&
-                (fixedSpec.side === 'left' ? fixedLeftEdge : fixedRightEdge),
+              checkCellStyle,
+              selectionFixedSpec && fixedCell,
+              selectionFixedSpec?.edge && fixedLeftEdge,
               row.getIsSelected() && fixedCellSelected,
             ]}
-            style={fixedOffsetStyle(fixedSpec)}
+            style={fixedOffsetStyle(selectionFixedSpec)}
           >
-            <table.FlexRender cell={cell} />
+            <CheckboxCore
+              checked={row.getIsSelected()}
+              onChange={(checked) => row.toggleSelected(checked)}
+              aria-label={`Select row ${row.id}`}
+            />
           </TableCell>
-        );
-      })}
-    </tr>
+        )}
+        {row.getVisibleCells().map((cell, cellIndex) => {
+          const fixedSpec = fixedById.get(cell.column.id);
+          return (
+            <TableCell
+              key={cell.id}
+              x-class={[
+                fixedSpec && fixedCell,
+                fixedSpec?.edge &&
+                  (fixedSpec.side === 'left' ? fixedLeftEdge : fixedRightEdge),
+                row.getIsSelected() && fixedCellSelected,
+              ]}
+              style={fixedOffsetStyle(fixedSpec)}
+            >
+              {cellIndex === 0 && row.getCanExpand() && (
+                <button
+                  type='button'
+                  x-class={[expander]}
+                  aria-expanded={row.getIsExpanded()}
+                  aria-controls={panelId(row.id)}
+                  aria-label={
+                    row.getIsExpanded()
+                      ? `Collapse row ${row.id}`
+                      : `Expand row ${row.id}`
+                  }
+                  onClick={row.getToggleExpandedHandler()}
+                >
+                  <span x-class={[expanderIcon]} aria-hidden='true'>
+                    ▸
+                  </span>
+                </button>
+              )}
+              <table.FlexRender cell={cell} />
+            </TableCell>
+          );
+        })}
+      </tr>
+      {renderExpandedRow !== undefined &&
+        row.getCanExpand() &&
+        row.getIsExpanded() && (
+          <tr key={`${row.id}-panel`}>
+            <TableCell
+              colSpan={columnCount}
+              x-class={[panelCell]}
+              id={panelId(row.id)}
+            >
+              {renderExpandedRow(row)}
+            </TableCell>
+          </tr>
+        )}
+    </Fragment>
   );
 
   const renderSkeletonRow = (rowIndex: number) => (
@@ -794,13 +1201,75 @@ export default function DataTable<TData extends RowData>({
     </tr>
   );
 
+  // Filter row: rendered as the first body section directly below the
+  // header, one input per filterable leaf column (an empty cell keeps the
+  // columns aligned elsewhere). A dedicated tbody keeps the inputs out of
+  // the header's `columnheader` semantics; under `stickyHeader` it scrolls
+  // away with the body, and in virtualized mode it stays pinned with the
+  // header table above the scrolling rows.
+  const filterBody = filterable ? (
+    <TableBody>
+      <tr>
+        {selectable && <TableCell>{null}</TableCell>}
+        {leafHeaders.map((header) => (
+          <TableCell key={`filter-${header.id}`}>
+            {header.column.getCanFilter() ? (
+              <Input
+                size='sm'
+                aria-label={`Filter ${columnLabel(header.column)}`}
+                placeholder='Filter'
+                value={(header.column.getFilterValue() as string | undefined) ?? ''}
+                onChange={(event) =>
+                  header.column.setFilterValue(event.target.value)
+                }
+              />
+            ) : null}
+          </TableCell>
+        ))}
+      </tr>
+    </TableBody>
+  ) : undefined;
+
+  // Column-settings menu: every hideable leaf column, hidden ones included
+  // (so they can come back). The checkbox inputs carry `menuitemcheckbox` —
+  // the role a `menu` must own — while the wrapping labels stay generic, so
+  // the structure is both axe-valid and operable (Space toggles, Tab walks).
+  const columnMenu = columnToggle ? (
+    <DropdownMenu className={pageSize !== undefined ? footerMenu : undefined}>
+      <DropdownMenuTrigger x-class={[columnsTrigger]}>
+        Columns
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align='end'>
+        {table
+          .getAllLeafColumns()
+          .filter((column) => column.getCanHide())
+          .map((column) => (
+            <label key={column.id} x-class={[toggleRow]}>
+              <CheckboxCore
+                role='menuitemcheckbox'
+                aria-checked={column.getIsVisible()}
+                checked={column.getIsVisible()}
+                onChange={() => column.toggleVisibility()}
+                aria-label={`Show ${columnLabel(column)}`}
+              />
+              <span>{columnLabel(column)}</span>
+            </label>
+          ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : undefined;
+
   return (
     <div x-class={[root, className]}>
+      {columnMenu && pageSize === undefined && (
+        <div x-class={[toolbar]}>{columnMenu}</div>
+      )}
       {virtual ? (
         <div ref={virtualAreaRef} x-class={[virtualArea]}>
           <table x-class={[tableBase, fixedLayout]} {...rest}>
             {colgroup}
             {header}
+            {filterBody}
           </table>
           {loading ? (
             <table x-class={[tableBase, fixedLayout]}>
@@ -812,6 +1281,10 @@ export default function DataTable<TData extends RowData>({
               items={rows}
               height={viewportHeight}
               itemHeight={rowHeight}
+              // Expansion panels are taller than the fixed row height, so
+              // switch the window to measured heights once expanding is
+              // possible; plain rows measure back to `rowHeight`.
+              estimatedItemHeight={expandable ? rowHeight : undefined}
               overscan={overscan}
               renderItem={(row) => (
                 <table x-class={[tableBase, fixedLayout, virtualRowTable]}>
@@ -832,6 +1305,7 @@ export default function DataTable<TData extends RowData>({
           <table x-class={[tableBase]} {...rest}>
             {colgroup}
             {header}
+            {filterBody}
             <TableBody>
               {loading ? (
                 skeletonRows
@@ -847,6 +1321,7 @@ export default function DataTable<TData extends RowData>({
       )}
       {pageSize !== undefined && (
         <div x-class={[footer]}>
+          {columnMenu}
           <Pagination
             page={pageCtrl}
             total={data.length}

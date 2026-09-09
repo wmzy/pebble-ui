@@ -375,5 +375,91 @@ describe('Combobox', () => {
       });
       expect(results.violations).toEqual([]);
     });
+
+    describe('explicit virtualized prop', () => {
+      it('forces the VirtualList path below the threshold', async () => {
+        const user = userEvent.setup();
+        render(<Combobox options={OPTIONS} virtualized />);
+        await user.click(screen.getByRole('combobox'));
+        expect(document.querySelector('[data-virtualized]')).not.toBeNull();
+        // The window covers the whole short list.
+        expect(screen.getAllByRole('option')).toHaveLength(3);
+      });
+
+      it('sizes the scrollport to short lists instead of the full cap', async () => {
+        const user = userEvent.setup();
+        render(<Combobox options={OPTIONS} virtualized />);
+        await user.click(screen.getByRole('combobox'));
+        const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+        // 3 rows × 37px — the panel no longer claims the 200px cap.
+        expect(port.style.height).toBe('111px');
+      });
+
+      it('never virtualizes above the threshold with false', async () => {
+        const user = userEvent.setup();
+        render(<Combobox options={makeOptions(150)} virtualized={false} />);
+        await user.click(screen.getByRole('combobox'));
+        expect(document.querySelector('[data-virtualized]')).toBeNull();
+        expect(screen.getAllByRole('option')).toHaveLength(150);
+      });
+
+      it('applies custom itemHeight and overscan from the config object', async () => {
+        const user = userEvent.setup();
+        render(
+          <Combobox
+            options={makeOptions(30)}
+            virtualized={{ itemHeight: 50, overscan: 0 }}
+          />
+        );
+        await user.click(screen.getByRole('combobox'));
+        const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+        expect(port.style.height).toBe('200px');
+        // Exactly the rows intersecting the 200px viewport at 50px each.
+        expect(screen.getAllByRole('option')).toHaveLength(4);
+      });
+
+      it('keeps keyboard navigation, filtering and selection working', async () => {
+        const user = userEvent.setup();
+        render(<Combobox options={makeOptions(150)} virtualized />);
+        const input = screen.getByRole('combobox');
+        await user.click(input);
+        const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+        giveScrollRange(port, 150);
+
+        await user.keyboard('{ArrowDown}'.repeat(12));
+        expect(port.scrollTop).toBe(370);
+        expect(input).toHaveAttribute(
+          'aria-activedescendant',
+          screen.getByRole('option', { name: 'Option 11' }).id
+        );
+
+        // Typeahead keeps filtering the virtualized list: the query
+        // 'Option 14' matches 11 labels; the retained scroll offset
+        // windows a slice of them, but set semantics stay complete.
+        await user.clear(input);
+        await user.type(input, 'Option 14');
+        expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(11);
+        expect(screen.getAllByRole('option')[0]).toHaveAttribute(
+          'aria-setsize',
+          '11'
+        );
+        await user.keyboard('{ArrowDown}{Enter}');
+        expect(input).toHaveValue('Option 14');
+      });
+
+      it('has no axe violations with the explicit prop', async () => {
+        const { axe } = await import('jest-axe');
+        const user = userEvent.setup();
+        render(
+          <Combobox options={makeOptions(1000)} virtualized placeholder="Search" />
+        );
+        await user.click(screen.getByRole('combobox'));
+        await user.keyboard('{ArrowDown}{ArrowDown}');
+        const results = await axe(document.body, {
+          rules: { region: { enabled: false } },
+        });
+        expect(results.violations).toEqual([]);
+      });
+    });
   });
 });

@@ -1,14 +1,15 @@
 import type { ReactNode } from 'react';
 
-import type { ToastItem } from './ToastContext';
+import type { ToastItem, ToastUpdateOptions } from './ToastContext';
 
 import {css} from '@linaria/core';
 import {useState, useCallback, useRef, useEffect} from 'react';
 
 import {Presence} from '../../utils/presence';
+import {useStrings} from '../LocaleProvider';
 
 import Toast from './Toast';
-import {ToastProvider} from './ToastContext';
+import {ToastProvider,applyToastPatch, deferredCopyKey} from './ToastContext';
 import {nextToastId, subscribeToastChannel} from './toast';
 
 type ToastPlacement =
@@ -91,13 +92,27 @@ export default function ToastContainer({
   );
 
   const addToast = useCallback(
-    (toast: Omit<ToastItem, 'id'>) => {
+    (toast: Omit<ToastItem, 'id'>): number => {
       // Ids come from the module-level sequence so imperative and context
       // toasts can never collide.
-      appendToast({...toast, id: nextToastId()});
+      const id = nextToastId();
+      appendToast({...toast, id});
+      return id;
     },
     [appendToast]
   );
+
+  // In-place patch of a live toast (see `toast.update`): the item keeps
+  // its id — hence its React key — so Presence never unmounts it and the
+  // enter/exit animations never replay. Fields absent from the patch keep
+  // their current value; in particular an untouched `duration` leaves the
+  // running countdown alone. Patching an id that already left the list is
+  // a no-op — a dismissed toast never resurrects.
+  const updateToast = useCallback((id: number, patch: ToastUpdateOptions) => {
+    setToasts((prev) =>
+      prev.map((t) => (t.id === id ? applyToastPatch(t, patch) : t))
+    );
+  }, []);
 
   // Phase 1 of removal: flip the item's Presence to data-state="closed" so
   // the exit animation plays. The list still holds the toast until phase 2.
@@ -132,29 +147,40 @@ export default function ToastContainer({
       subscribeToastChannel({
         onToast: appendToast,
         onDismiss: dismissFromChannel,
+        onUpdate: updateToast,
       }),
-    [appendToast, dismissFromChannel]
+    [appendToast, dismissFromChannel, updateToast]
   );
 
+  // Locale pack for promise-phase copy (see the sentinel resolution in
+  // the render below).
+  const strings = useStrings('toast');
+
   return (
-    <ToastProvider value={{ toasts, addToast, removeToast }}>
+    <ToastProvider value={{ toasts, addToast, removeToast, updateToast }}>
       {children}
       <div x-class={[containerBase, toastPlacements[placement]]}>
-        {toasts.map((t) => (
-          <Presence
-            key={t.id}
-            present={!exitingIds.includes(t.id)}
-            onExited={() => unmountToast(t.id)}
-          >
-            <Toast
-              variant={t.variant}
-              duration={t.duration}
-              onClose={() => removeToast(t.id)}
+        {toasts.map((t) => {
+          // Promise-phase sentinels resolve against the locale pack at
+          // render time — `toast.promise` may have fired outside any
+          // React tree, so the copy could not be read up front.
+          const deferredKey = deferredCopyKey(t.content);
+          return (
+            <Presence
+              key={t.id}
+              present={!exitingIds.includes(t.id)}
+              onExited={() => unmountToast(t.id)}
             >
-              {t.content}
-            </Toast>
-          </Presence>
-        ))}
+              <Toast
+                variant={t.variant}
+                duration={t.duration}
+                onClose={() => removeToast(t.id)}
+              >
+                {deferredKey ? strings[deferredKey] : t.content}
+              </Toast>
+            </Presence>
+          );
+        })}
       </div>
     </ToastProvider>
   );

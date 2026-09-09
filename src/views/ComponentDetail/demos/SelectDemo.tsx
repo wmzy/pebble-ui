@@ -18,11 +18,22 @@ const FRAMEWORKS = [
   { value: 'angular', label: 'Angular' },
 ];
 
+// A thousand-option list for the virtualized multiple example.
+const MANY_OPTIONS = Array.from({ length: 1000 }, (_, i) => (
+  <Option key={i} value={`opt-${i}`}>
+    Option {i + 1}
+  </Option>
+));
+
 // ─── Select ────────────────────────────────────────────────────
 export default function SelectDemo() {
   // Control triple: the component takes the control, buttons use the
   // setter (a bare value would be a non-controlled initial value).
   const [picked, setPicked, pickedCtrl] = useControl<string[]>(
+    undefined,
+    []
+  );
+  const [pickedMany, setPickedMany, pickedManyCtrl] = useControl<string[]>(
     undefined,
     []
   );
@@ -120,6 +131,53 @@ export default function SelectDemo() {
       </div>
 
       <div className={section}>
+        <h2>Virtualized multiple</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>virtualized</code> renders the listbox options through{' '}
+          <code>VirtualList</code>: only the visible window (plus a small
+          overscan) stays mounted, keeping thousand-option lists fast.
+          Keyboard navigation scrolls the highlighted row into view, and{' '}
+          <code>aria-posinset</code>/<code>aria-setsize</code> keep the
+          unmounted remainder semantically addressable. Pass an object to
+          tune <code>{'{ itemHeight, overscan }'}</code>.
+        </p>
+        <div className={fieldRow}>
+          <Select
+            multiple
+            virtualized
+            value={pickedManyCtrl}
+            placeholder='Pick numbers…'
+          >
+            {MANY_OPTIONS}
+          </Select>
+        </div>
+        <div className={row}>
+          <span
+            style={{
+              fontSize: 'var(--haze-text-sm)',
+              color: 'var(--haze-color-text-secondary)',
+            }}
+          >
+            Selected: {pickedMany.length}
+          </span>
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={() => setPickedMany([])}
+            disabled={pickedMany.length === 0}
+          >
+            Clear
+          </Button>
+        </div>
+      </div>
+
+      <div className={section}>
         <h2>Props</h2>
         <PropsTable of='SelectProps' />
       </div>
@@ -143,6 +201,12 @@ export default function SelectDemo() {
             <li>
               Multiple mode renders a <strong>listbox</strong> popover with{' '}
               <strong>aria-multiselectable</strong>
+            </li>
+            <li>
+              The multiple trigger is an APG select-only combobox:{' '}
+              <strong>role=&quot;combobox&quot;</strong> with aria-expanded,{' '}
+              aria-controls and aria-activedescendant for the keyboard
+              highlight
             </li>
           </ul>
         </A11yNote>

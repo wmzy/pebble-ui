@@ -135,9 +135,9 @@ const FRUITS = [
 ];
 
 describe('Select multiple', () => {
-  it('renders a button trigger with listbox semantics and the placeholder', () => {
+  it('renders a combobox trigger with listbox semantics and the placeholder', () => {
     render(<Select multiple aria-label="fruit">{FRUITS}</Select>);
-    const trigger = screen.getByRole('button', { name: 'fruit' });
+    const trigger = screen.getByRole('combobox', { name: 'fruit' });
     expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger.getAttribute('aria-controls')).toBeTruthy();
@@ -150,7 +150,7 @@ describe('Select multiple', () => {
         {FRUITS}
       </Select>
     );
-    expect(screen.getByRole('button')).toHaveClass('custom');
+    expect(screen.getByRole('combobox')).toHaveClass('custom');
   });
 
   it('accepts a placeholder override', () => {
@@ -165,7 +165,7 @@ describe('Select multiple', () => {
   it('opens a multi-select listbox on click and toggles it closed on a second click', async () => {
     const user = userEvent.setup();
     render(<Select multiple aria-label="fruit">{FRUITS}</Select>);
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     await user.click(trigger);
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
     const listbox = screen.getByRole('listbox');
@@ -178,7 +178,7 @@ describe('Select multiple', () => {
   it('exposes set size and position on each option', async () => {
     const user = userEvent.setup();
     render(<Select multiple aria-label="fruit">{FRUITS}</Select>);
-    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('combobox'));
     screen.getAllByRole('option').forEach((option, i) => {
       expect(option).toHaveAttribute('aria-setsize', '3');
       expect(option).toHaveAttribute('aria-posinset', String(i + 1));
@@ -191,7 +191,7 @@ describe('Select multiple', () => {
         {FRUITS}
       </Select>
     );
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     expect(within(trigger).getByText('Apple')).toBeInTheDocument();
     expect(within(trigger).getByText('Cherry')).toBeInTheDocument();
   });
@@ -199,8 +199,8 @@ describe('Select multiple', () => {
   it('toggles options on click, updating chips and aria-selected, keeping the panel open', async () => {
     const user = userEvent.setup();
     render(<Select multiple aria-label="fruit">{FRUITS}</Select>);
-    await user.click(screen.getByRole('button'));
-    const trigger = screen.getByRole('button');
+    await user.click(screen.getByRole('combobox'));
+    const trigger = screen.getByRole('combobox');
     const apple = screen.getByRole('option', { name: 'Apple' });
     await user.click(apple);
     expect(apple).toHaveAttribute('aria-selected', 'true');
@@ -225,7 +225,7 @@ describe('Select multiple', () => {
         {FRUITS}
       </Select>
     );
-    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('combobox'));
     await user.click(screen.getByRole('option', { name: 'Banana' }));
     expect(onValuesChange).toHaveBeenCalledWith(['apple', 'banana']);
   });
@@ -244,12 +244,12 @@ describe('Select multiple', () => {
       );
     }
     render(<Harness />);
-    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('combobox'));
     await user.click(screen.getByRole('option', { name: 'Banana' }));
     expect(screen.getByTestId('value')).toHaveTextContent('apple,banana');
 
     // Chip removal goes through the same control channel.
-    await user.click(within(screen.getByRole('button')).getAllByText('×')[0]!);
+    await user.click(within(screen.getByRole('combobox')).getAllByText('×')[0]!);
     expect(screen.getByTestId('value')).toHaveTextContent('banana');
   });
 
@@ -260,7 +260,7 @@ describe('Select multiple', () => {
         {FRUITS}
       </Select>
     );
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     await user.click(within(trigger).getAllByText('×')[0]!);
     expect(within(trigger).queryByText('Apple')).not.toBeInTheDocument();
     expect(within(trigger).getByText('Banana')).toBeInTheDocument();
@@ -273,7 +273,7 @@ describe('Select multiple', () => {
         {FRUITS}
       </Select>
     );
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     trigger.focus();
     await user.keyboard('{Backspace}');
     expect(within(trigger).queryByText('Banana')).not.toBeInTheDocument();
@@ -283,7 +283,7 @@ describe('Select multiple', () => {
   it('supports the full keyboard path: arrows, Enter/Space, Home/End, Escape', async () => {
     const user = userEvent.setup();
     render(<Select multiple aria-label="fruit">{FRUITS}</Select>);
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     trigger.focus();
 
     // Arrows are the keyboard open path; the first ArrowDown highlights
@@ -334,7 +334,7 @@ describe('Select multiple', () => {
   it('opens with ArrowUp from the closed state without underflowing', async () => {
     const user = userEvent.setup();
     render(<Select multiple aria-label="fruit">{FRUITS}</Select>);
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     trigger.focus();
     await user.keyboard('{ArrowUp}');
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
@@ -354,7 +354,7 @@ describe('Select multiple', () => {
         <button>outside</button>
       </div>
     );
-    const trigger = screen.getByRole('button', { name: 'fruit' });
+    const trigger = screen.getByRole('combobox', { name: 'fruit' });
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
     fireEvent.pointerDown(screen.getByText('outside'));
@@ -367,7 +367,7 @@ describe('Select multiple', () => {
         {FRUITS}
       </Select>
     );
-    expect(screen.getByRole('button')).toBeDisabled();
+    expect(screen.getByRole('combobox')).toBeDisabled();
   });
 
   it('has no axe violations', async () => {
@@ -383,7 +383,7 @@ describe('Select multiple', () => {
     expect(results.violations).toEqual([]);
   });
 
-  it('has no axe violations when the listbox is open', async () => {
+  it('has no axe violations when the listbox is open with a keyboard highlight', async () => {
     const { axe } = await import('jest-axe');
     const user = userEvent.setup();
     render(
@@ -391,7 +391,14 @@ describe('Select multiple', () => {
         {FRUITS}
       </Select>
     );
-    await user.click(screen.getByRole('button'));
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    // Highlight an option before scanning — the activedescendant state
+    // on the combobox trigger must itself be axe-clean (the old plain
+    // button role tripped aria-allowed-attr here).
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(trigger).toHaveAttribute('aria-activedescendant');
     const results = await axe(document.body, {
       rules: { region: { enabled: false } },
     });
@@ -409,10 +416,176 @@ describe('SelectCore multiple', () => {
         <option value="banana">Banana</option>
       </SelectCore>
     );
-    const trigger = screen.getByRole('button', { name: 'core' });
+    const trigger = screen.getByRole('combobox', { name: 'core' });
     expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
     await user.click(trigger);
     await user.click(screen.getByRole('option', { name: 'Banana' }));
     expect(onChange).toHaveBeenCalledWith(['banana']);
+  });
+});
+
+describe('Select multiple virtualization', () => {
+  // Row height of the virtualized path — OPTION_ROW_HEIGHT in
+  // SelectMultiple.tsx (space-1 padding top+bottom + the taller of the
+  // text-sm line box at leading-normal and the 1.125rem checkbox).
+  const ROW_HEIGHT = 29;
+
+  function makeOptions(count: number) {
+    return Array.from({ length: count }, (_, i) => (
+      <Option key={i} value={`opt-${i}`}>
+        Option {i}
+      </Option>
+    ));
+  }
+
+  // jsdom has no layout: scrollHeight reads 0, which clamps every
+  // programmatic scrollTop to 0. Give the scrollport a real range.
+  function giveScrollRange(port: HTMLElement, rows: number) {
+    Object.defineProperty(port, 'scrollHeight', {
+      value: rows * ROW_HEIGHT,
+      configurable: true,
+    });
+  }
+
+  it('mounts only the visible window for 1000 options', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple virtualized aria-label="fruit">
+        {makeOptions(1000)}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    const mounted = screen.getAllByRole('option');
+    expect(mounted.length).toBeGreaterThan(0);
+    expect(mounted.length).toBeLessThan(60);
+    // Windowed rows keep complete set semantics for the whole list.
+    expect(mounted[0]).toHaveAttribute('aria-setsize', '1000');
+    expect(mounted[0]).toHaveAttribute('aria-posinset', '1');
+  });
+
+  it('keeps the full plain DOM list when virtualized is off', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple aria-label="fruit">
+        {makeOptions(1000)}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    expect(document.querySelector('[data-virtualized]')).toBeNull();
+    expect(screen.getAllByRole('option')).toHaveLength(1000);
+  });
+
+  it('navigates across the window edge with the highlight scrolled into view', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple virtualized aria-label="fruit">
+        {makeOptions(1000)}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+    giveScrollRange(port, 1000);
+
+    await user.keyboard('{ArrowDown}'.repeat(15));
+    // Highlight lands on row 14 (the first press reaches row 0). Rows
+    // leave the 200px viewport once top+29 > scrollTop+200: scrolling
+    // trips at row 6 (→174) and row 12 (→348); row 14 stays visible.
+    expect(port.scrollTop).toBe(348);
+    const highlighted = screen.getByRole('option', { name: 'Option 14' });
+    expect(trigger).toHaveAttribute('aria-activedescendant', highlighted.id);
+  });
+
+  it('jumps to the list ends with Home/End across the full range', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple virtualized aria-label="fruit">
+        {makeOptions(1000)}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+    giveScrollRange(port, 1000);
+
+    await user.keyboard('{End}');
+    // Row 999 aligns to the top, clamped to max scroll 29000 − 200.
+    expect(port.scrollTop).toBe(28800);
+    expect(trigger).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: 'Option 999' }).id
+    );
+
+    await user.keyboard('{Home}');
+    // Row 0 enters from above → 'end' alignment clamps to 0.
+    expect(port.scrollTop).toBe(0);
+    expect(trigger).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: 'Option 0' }).id
+    );
+  });
+
+  it('selects windowed options through the keyboard path', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple virtualized aria-label="fruit">
+        {makeOptions(1000)}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    const port = document.querySelector<HTMLElement>('[data-virtualized]')!;
+    giveScrollRange(port, 1000);
+
+    await user.keyboard('{ArrowDown}'.repeat(4) + '{Enter}');
+    const selected = screen.getByRole('option', { name: 'Option 3' });
+    expect(selected).toHaveAttribute('aria-selected', 'true');
+    expect(within(trigger).getByText('Option 3')).toBeInTheDocument();
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    await user.keyboard('{ArrowDown}{Space}');
+    expect(screen.getByRole('option', { name: 'Option 4' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+
+    await user.keyboard('{Escape}');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('honors a custom overscan of zero', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple virtualized={{ overscan: 0 }} aria-label="fruit">
+        {makeOptions(1000)}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    // Exactly the rows intersecting the 200px viewport: rows 0–6 (row 7
+    // starts at 203, past the bottom edge).
+    expect(screen.getAllByRole('option')).toHaveLength(7);
+  });
+
+  it('has no axe violations when the listbox is virtualized', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(
+      <Select multiple virtualized value={['opt-2']} aria-label="fruit">
+        {makeOptions(1000)}
+      </Select>
+    );
+    // Open + keyboard-highlight before scanning: the trigger carries
+    // role="combobox" (APG select-only combobox), so
+    // aria-activedescendant/aria-expanded/aria-controls are all legal
+    // there — the highlight state must stay axe-clean too.
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(trigger).toHaveAttribute('aria-activedescendant');
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
   });
 });

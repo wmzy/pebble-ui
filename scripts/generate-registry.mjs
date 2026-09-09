@@ -51,7 +51,10 @@
  * spacing/typography across three modules) merge into the `tokens`
  * item. On top of the generated set, the hand-curated `haze-tokens`
  * item (a design-token onboarding guide installed as a markdown doc)
- * is carried over from the first manual iteration of this registry.
+ * is carried over from the first manual iteration of this registry,
+ * and a `base` meta item (type `registry:base`) references every
+ * component item through `registryDependencies` — one command,
+ * `shadcn add wmzy/haze-ui/base`, installs the whole design system.
  * Pure-logic exports (hooks, TOKEN_REGISTRY/COMPONENT_TOKENS,
  * LocaleProvider string packs, direction utils, the useControl
  * re-export, …) ship no css of their own and are skipped — the run log
@@ -59,6 +62,13 @@
  * sources (recharts, @tanstack/react-table, the dnd-kit trio,
  * react-f0rm) are detected from source and added to that item's
  * `dependencies`, so `shadcn add` installs them automatically.
+ *
+ * Every item also carries two metadata fields the shadcn CLI surfaces:
+ * `docs` — a markdown usage string (one-line component description,
+ * install command, token-activation notes) shown by `shadcn docs` —
+ * and `categories` (kebab-case, mirrored from the demo sidebar groups
+ * in src/views/Layout/component-groups.ts) for `shadcn search`
+ * filtering.
  *
  * Static content under registry/ that the generator does not own and
  * never touches: README.md, tsconfig.json (typechecks the wrappers via
@@ -366,9 +376,11 @@ const descriptions = {
   'navigation-bar': 'Top nav bar with `brand` and `end` slots plus `NavLink` items.',
   'number-input': 'Numeric input with `min`/`max`/`step`.',
   'otp-input': 'One-time-password input of `length` segmented character boxes.',
-  pagination: 'Page navigation with controllable `page` and ellipsis windows.',
+  'pagination': 'Page navigation with controllable `page` and ellipsis windows.',
   'password-input': 'Text input with a visibility reveal toggle.',
-  popover: 'Floating popover anchored to a trigger element.',
+  'popover': 'Floating popover anchored to a trigger element.',
+  'prompt-input':
+    'AI prompt composer: auto-growing textarea with inline context tags, `@`-trigger suggestions and a configurable submit key.',
   progress: 'Progress bar or circle driven by a percentage `value`.',
   radio:
     'Radio option and group with controllable selection (`Radio`, `RadioGroup`, headless `RadioGroupCore`).',
@@ -421,17 +433,143 @@ const descriptions = {
     'Tiled canvas watermark layer over children (or `fullscreen`), theme-aware color.',
 };
 
-const componentDocs = (family) =>
-  family === TOKENS_FAMILY
-    ? `Theme setup item: the wrapper re-exports the 'lightTheme' (or 'darkTheme'), 'spacing' ` +
-      `and 'typography' classes from 'haze-ui' and imports 'haze-ui/css/tokens.css'. Apply the ` +
-      `classes to a root element to activate the --haze-* design tokens. Details: ` +
-      'https://github.com/wmzy/haze-ui/tree/main/registry'
-    : `haze-ui ships JS and CSS separately — this wrapper already imports ` +
-      `'haze-ui/css/tokens.css' and 'haze-ui/css/${family}.css', so no extra ` +
-      `stylesheet setup is needed. Activate the design tokens by applying the ` +
-      `'lightTheme' (or 'darkTheme') + 'spacing' + 'typography' classes from ` +
-      `'haze-ui' to a root element. Details: https://github.com/wmzy/haze-ui/tree/main/registry`;
+// Component categories for the shadcn `categories` field (search
+// filtering), mirrored read-only from the demo sidebar grouping in
+// src/views/Layout/component-groups.ts — 'AI & Chat' becomes `agent`;
+// the non-component items (tokens, haze-tokens, base) use `theme`.
+// Every css family must appear exactly once; the run fails on a
+// missing entry (same contract as the descriptions table).
+const CATEGORY_GROUPS = {
+  general: [
+    'avatar', 'avatar-group', 'badge', 'button', 'divider', 'icon',
+    'tag', 'tag-group', 'typography',
+  ],
+  layout: [
+    'aspect-ratio', 'app-shell', 'container', 'flex', 'grid', 'resizable',
+    'scroll-area', 'sidebar',
+  ],
+  form: [
+    'cascader', 'checkbox', 'color-picker', 'combobox', 'datepicker',
+    'date-range-picker', 'file-input', 'form', 'inline-edit', 'input',
+    'mentions', 'number-input', 'otp-input', 'password-input', 'radio',
+    'rating', 'segmented', 'select', 'slider', 'switch', 'tag-input',
+    'textarea', 'time-picker', 'toggle', 'transfer', 'upload',
+  ],
+  overlay: [
+    'bottom-sheet', 'confirm-dialog', 'context-menu', 'dialog', 'drawer',
+    'dropdown-menu', 'hover-card', 'menu', 'popover', 'tooltip',
+  ],
+  'data-display': [
+    'accordion', 'calendar', 'card', 'carousel', 'chart', 'chip',
+    'code-block', 'data-table', 'image', 'kbd', 'list', 'progress', 'stat',
+    'table', 'timeline', 'tree', 'virtual-list', 'watermark',
+  ],
+  navigation: [
+    'affix', 'anchor', 'back-to-top', 'breadcrumb', 'command',
+    'navigation-bar', 'pagination', 'stepper', 'tabs', 'toolbar', 'tour',
+  ],
+  feedback: [
+    'alert', 'async-section', 'banner', 'empty', 'skeleton', 'spinner',
+    'toast',
+  ],
+  agent: [
+    'approval-card', 'chat-container', 'chat-input', 'chat-message',
+    'conversation-list', 'diff-viewer', 'log-viewer', 'markdown-renderer',
+    'model-picker', 'prompt-input', 'step-timeline', 'streaming-text',
+    'thinking-indicator', 'token-counter', 'tool-call-card',
+  ],
+  utilities: ['collapsible', 'disclosure', 'swipe-action'],
+};
+
+const categoryByFamily = new Map();
+for (const [category, familyList] of Object.entries(CATEGORY_GROUPS)) {
+  for (const family of familyList) {
+    if (categoryByFamily.has(family)) {
+      fail(`family "${family}" is listed in more than one CATEGORY_GROUPS entry`);
+    }
+    categoryByFamily.set(family, category);
+  }
+}
+for (const family of categoryByFamily.keys()) {
+  if (!families.has(family)) {
+    fail(`CATEGORY_GROUPS lists "${family}" but no such css family exists — remove or fix the entry`);
+  }
+}
+
+const categoryOf = (family) => {
+  if (family === TOKENS_FAMILY) return 'theme';
+  const category = categoryByFamily.get(family);
+  if (category === undefined) {
+    fail(`no category written for "${family}" — add it to CATEGORY_GROUPS (mirror src/views/Layout/component-groups.ts)`);
+  }
+  return category;
+};
+
+// ---- item docs (markdown `docs` field, shown by `shadcn docs`) --------
+
+const REGISTRY_URL = 'https://github.com/wmzy/haze-ui/tree/main/registry';
+const fence = (lang, lines) => ['```' + lang, ...lines, '```'].join('\n');
+const THEME_SNIPPET = [
+  "import { lightTheme, spacing, typography } from 'haze-ui';",
+  '',
+  '// on <body> or any root container — darkTheme is a drop-in swap',
+  '<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>',
+];
+
+const installSection = (name) => ['## Install', '', fence('bash', [`npx shadcn@latest add wmzy/haze-ui/${name}`])];
+
+const themeSection = (family) => [
+  '## Theming',
+  '',
+  ...(family === TOKENS_FAMILY
+    ? [
+        "This wrapper re-exports the 'lightTheme' (or 'darkTheme'), 'spacing' and",
+        "'typography' classes from 'haze-ui' and imports 'haze-ui/css/tokens.css'.",
+      ]
+    : [
+        'haze-ui ships JS and CSS separately — the installed wrapper already imports',
+        `\`haze-ui/css/tokens.css\` and \`haze-ui/css/${family}.css\`, so no extra stylesheet setup is needed.`,
+      ]),
+  '',
+  'Activate the design tokens by applying the classes to a root element:',
+  '',
+  fence('jsx', THEME_SNIPPET),
+];
+
+const componentDocs = (family, exports) =>
+  [
+    descriptions[family],
+    '',
+    `Exports: ${exports.map((name) => '`' + name + '`').join(', ')}.`,
+    '',
+    ...installSection(family),
+    '',
+    family === TOKENS_FAMILY
+      ? 'The wrapper lands at `lib/haze/tokens.tsx` (via the `@lib/` target placeholder from `components.json`); the `haze-ui` npm package is installed automatically as a dependency.'
+      : `The wrapper lands at \`components/ui/haze/${family}.tsx\` (via the \`@ui/\` target placeholder from \`components.json\`) and re-exports the component(s) from the \`haze-ui\` npm package, which is installed automatically.`,
+    '',
+    ...themeSection(family),
+    '',
+    `Details: ${REGISTRY_URL}`,
+  ].join('\n');
+
+const baseDocs = (itemCount) =>
+  [
+    'One command installs the entire haze-ui design system: the theme tokens',
+    '(this item ships the token-activation wrapper) plus a thin re-export',
+    `wrapper for every styled component — ${itemCount} registry items pulled`,
+    'in through `registryDependencies`, resolved recursively by the CLI.',
+    '',
+    ...installSection('base'),
+    '',
+    'Each component wrapper lands at `components/ui/haze/<component>.tsx` and',
+    're-exports its component from the `haze-ui` npm package (installed',
+    'automatically), importing its stylesheet — no other setup is needed.',
+    '',
+    ...themeSection(TOKENS_FAMILY),
+    '',
+    `Details: ${REGISTRY_URL}`,
+  ].join('\n');
 
 // ---- assemble items ----------------------------------------------------
 
@@ -451,7 +589,8 @@ for (const [family, entry] of [...families].sort(([a], [b]) => a.localeCompare(b
       : entry.exports.join(' / '),
     description,
     author: AUTHOR,
-    docs: componentDocs(family),
+    docs: componentDocs(family, entry.exports),
+    categories: [categoryOf(family)],
     dependencies: ['haze-ui', ...extraDependencies(entry)],
     files: [
       {
@@ -483,6 +622,7 @@ items.push({
     "Activate tokens with the `lightTheme`/`darkTheme` + `spacing` + `typography` classes from 'haze-ui'. " +
     'Details: https://github.com/wmzy/haze-ui/tree/main/registry',
   dependencies: ['haze-ui'],
+  categories: ['theme'],
   files: [
     {
       path: 'registry/haze-tokens/haze-tokens.md',
@@ -491,6 +631,61 @@ items.push({
     },
   ],
   content: undefined, // doc item: the file lives in the repo, no wrapper to embed
+});
+
+// Meta item: one command installs the whole design system — the theme
+// activation wrapper below plus every component item via
+// registryDependencies (the CLI resolves those recursively, each bringing
+// its own wrapper, stylesheet import and optional peers). Dependency
+// entries are full GitHub item addresses (`<owner>/<repo>/<item>`), NOT
+// plain names: the shadcn CLI resolves plain names against the official
+// shadcn registry (styles/<style>/<name>.json), so `button` would install
+// shadcn's own button instead of the haze-ui one — only owner/repo/item
+// addresses resolve back into this repository's registry.json.
+const tokensEntry = families.get(TOKENS_FAMILY);
+if (!tokensEntry) fail('the tokens css family is missing — cannot build the base item');
+const themeClasses = [...tokensEntry.exports].sort();
+const componentItemNames = [...families.keys()].sort();
+const registrySource = new URL(HOMEPAGE).pathname.replace(/^\//, '');
+const ghItem = (name) => `${registrySource}/${name}`;
+const baseWrapper = `// haze-ui registry base — generated by scripts/generate-registry.mjs.
+//
+// Meta item: 'npx shadcn add wmzy/haze-ui/base' installs the entire
+// design system — this theme-activation wrapper plus, through
+// registryDependencies, a thin wrapper for every styled component under
+// components/ui/haze/. The implementation keeps coming from the haze-ui
+// npm package; edit the wrappers to customize.
+//
+// Theming (once per app): apply the token classes to a root element, e.g.
+//   import { lightTheme, spacing, typography } from 'haze-ui';
+//   <div className={\`\${lightTheme} \${spacing} \${typography}\`}>…</div>
+// (darkTheme is a drop-in swap).
+
+import { ${themeClasses.join(', ')} } from 'haze-ui';
+
+import 'haze-ui/css/tokens.css';
+
+export { ${themeClasses.join(', ')} };
+`;
+items.push({
+  name: 'base',
+  type: 'registry:base',
+  title: 'Haze UI base (tokens + every component wrapper)',
+  description:
+    'One-command setup of the whole haze-ui design system: theme tokens plus a thin wrapper for every styled component, pulled in through registryDependencies.',
+  author: AUTHOR,
+  docs: baseDocs(componentItemNames.length),
+  categories: ['theme', 'setup'],
+  dependencies: ['haze-ui'],
+  registryDependencies: componentItemNames.map(ghItem),
+  files: [
+    {
+      path: 'registry/base.tsx',
+      type: 'registry:lib',
+      target: '@lib/haze/base.tsx',
+    },
+  ],
+  content: baseWrapper,
 });
 items.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -555,14 +750,16 @@ for (const entry of readdirSync(registryDir)) {
 
 const distItems = items
   .filter((item) => typeof item.content === 'string')
-  .map(({ name, type, title, description, author, docs, dependencies, content }) => ({
+  .map(({ name, type, title, description, author, docs, categories, dependencies, registryDependencies, content }) => ({
     name,
     type,
     title,
     description,
     author,
     docs,
+    categories,
     dependencies,
+    registryDependencies, // undefined on non-base items — dropped by JSON.stringify
     files: [{ path: `components/haze/${name}.tsx`, content, type }],
   }));
 writeFileSync(
@@ -590,6 +787,36 @@ const checkItems = (label, list, { requireContent }) => {
     for (const field of ['type', 'title', 'description']) {
       if (typeof item[field] !== 'string' || item[field].trim() === '') {
         problems.push(`${label}: item "${item.name}" field "${field}" missing or empty`);
+      }
+    }
+    if (typeof item.docs !== 'string' || item.docs.trim() === '') {
+      problems.push(`${label}: item "${item.name}" field "docs" missing or empty`);
+    }
+    if (!Array.isArray(item.categories) || item.categories.length === 0) {
+      problems.push(`${label}: item "${item.name}" field "categories" missing or empty`);
+    } else {
+      for (const category of item.categories) {
+        if (typeof category !== 'string' || !KEBAB.test(category)) {
+          problems.push(`${label}: item "${item.name}" category "${category}" is not lowercase kebab-case`);
+        }
+      }
+    }
+    if (item.registryDependencies !== undefined) {
+      if (!Array.isArray(item.registryDependencies)) {
+        problems.push(`${label}: item "${item.name}" field "registryDependencies" is not an array`);
+      } else {
+        for (const dep of item.registryDependencies) {
+          // Plain names resolve against the OFFICIAL shadcn registry in the
+          // CLI, so cross-item references must be owner/repo/item addresses.
+          if (
+            typeof dep !== 'string' ||
+            !/^[^/\s]+\/[^/\s]+\/[a-z0-9]+(-[a-z0-9]+)*$/.test(dep)
+          ) {
+            problems.push(
+              `${label}: item "${item.name}" registryDependency "${dep}" is not an <owner>/<repo>/<kebab-item> address`
+            );
+          }
+        }
       }
     }
     if (!Array.isArray(item.files) || item.files.length === 0) {
@@ -669,6 +896,30 @@ for (const family of manifestFamilies) {
   if (!githubNames.has(family)) problems.push(`css family "${family}" from css-manifest has no registry item`);
 }
 
+// The base meta item must reference exactly the component item set:
+// every registryDependencies entry resolves to a real item in this
+// registry (strip the owner/repo/ address prefix), and every css family
+// (tokens included) is covered — `shadcn add …/base` really installs the
+// whole system.
+const baseItems = githubIndex.items.filter((item) => item.name === 'base');
+if (baseItems.length !== 1) {
+  problems.push(`registry.json: expected exactly one "base" meta item, found ${baseItems.length}`);
+} else {
+  const depName = (dep) => dep.split('/').pop();
+  const baseDeps = new Set((baseItems[0].registryDependencies ?? []).map(depName));
+  for (const dep of baseItems[0].registryDependencies ?? []) {
+    if (!githubNames.has(depName(dep))) {
+      problems.push(`registry.json: base registryDependency "${dep}" matches no item`);
+    }
+    if (depName(dep) === 'base') problems.push('registry.json: base registryDependency includes itself');
+  }
+  for (const family of manifestFamilies) {
+    if (!baseDeps.has(family)) {
+      problems.push(`registry.json: base does not cover css family "${family}" — add it to the base item`);
+    }
+  }
+}
+
 if (problems.length > 0) {
   for (const problem of problems) console.error(`generate-registry: self-check failed — ${problem}`);
   process.exit(1);
@@ -681,6 +932,11 @@ console.log(
   `generate-registry: ${items.length} items / ` +
     `${items.reduce((n, item) => n + item.title.split(' / ').length, 0)} components — ` +
     `root registry.json + registry/ (${expectedFiles.size} generated files) + dist/registry.json`
+);
+const baseReportItem = items.find((item) => item.name === 'base');
+console.log(
+  `  base item: registryDependencies on ${baseReportItem.registryDependencies.length} component items ` +
+    `(tokens + every css family) — npx shadcn@latest add wmzy/haze-ui/base installs the whole system`
 );
 if (peerItems.length > 0) {
   console.log(

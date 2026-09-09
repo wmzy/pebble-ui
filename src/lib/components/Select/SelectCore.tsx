@@ -1,5 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
+import type { SelectVirtualizedConfig } from './SelectMultiple';
+
 import { css } from '@linaria/core';
 
 import SelectMultiple from './SelectMultiple';
@@ -29,6 +31,13 @@ type SelectCoreProps = {
    */
   multiple?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  /**
+   * Render the multiple-mode listbox through VirtualList so long option
+   * lists mount only the visible window (plus overscan). Default
+   * (omitted/`false`) keeps the plain DOM path; single mode ignores it —
+   * the native `<select>` handles long lists natively.
+   */
+  virtualized?: boolean | SelectVirtualizedConfig;
   children: ReactNode;
   className?: string;
 } & Omit<
@@ -99,6 +108,7 @@ export default function SelectCore({
   onNativeChange,
   multiple = false,
   size = 'md',
+  virtualized,
   className,
   placeholder,
   children,
@@ -111,6 +121,7 @@ export default function SelectCore({
         onChange={onChange}
         options={extractSelectOptions(children)}
         size={size}
+        virtualized={virtualized}
         className={className}
         placeholder={placeholder}
         // Select-typed passthrough re-hosted on the multiple trigger's

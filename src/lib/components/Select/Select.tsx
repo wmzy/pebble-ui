@@ -1,6 +1,8 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
+import type { SelectVirtualizedConfig } from './SelectMultiple';
+
 import { useControl } from 'react-use-control';
 
 import SelectCore from './SelectCore';
@@ -13,6 +15,13 @@ type SelectProps = {
    * uncontrolled empty value is `[]` in this mode, `''` otherwise.
    */
   multiple?: boolean;
+  /**
+   * Render the multiple-mode listbox through VirtualList so long option
+   * lists mount only the visible window (plus overscan). Default
+   * (omitted/`false`) keeps the plain DOM path; single mode ignores it —
+   * the native `<select>` handles long lists natively.
+   */
+  virtualized?: boolean | SelectVirtualizedConfig;
   /**
    * Value callback for both modes: `string` in single mode, `string[]`
    * when `multiple` is set — fired after the value updates. The native
@@ -33,6 +42,7 @@ type SelectProps = {
 export default function Select({
   value: valueControl,
   multiple = false,
+  virtualized,
   size,
   className,
   children,
@@ -54,6 +64,7 @@ export default function Select({
       onChange={handleValueChange}
       onNativeChange={multiple ? undefined : onChange}
       multiple={multiple}
+      virtualized={virtualized}
       size={size}
       className={className}
       placeholder={placeholder}

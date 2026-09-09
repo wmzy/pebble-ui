@@ -221,4 +221,313 @@ describe('Calendar', () => {
     });
     expect(results.violations).toEqual([]);
   });
+
+  it('renders the month title as the quick-select trigger button', () => {
+    render(<Calendar value='2025-01-15' />);
+    const title = screen.getByRole('button', {
+      name: getMonthLabel(2025, 0),
+    });
+    expect(title).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  describe('month quick select', () => {
+    function shortMonth(month: number) {
+      return new Date(2025, month, 15).toLocaleString('default', {
+        month: 'short',
+      });
+    }
+
+    it('opens the selector from the title button with keyboard activation', async () => {
+      const user = userEvent.setup();
+      render(<Calendar value='2025-01-15' />);
+      const title = screen.getByRole('button', {
+        name: getMonthLabel(2025, 0),
+      });
+      title.focus();
+      await user.keyboard('{Enter}');
+      const selector = screen.getByRole('grid', { name: 'Select month' });
+      expect(selector).toBeInTheDocument();
+      expect(title).toHaveAttribute('aria-expanded', 'true');
+      // Opening focuses the currently viewed month.
+      expect(
+        selector.querySelector('[data-haze-month="0"]')
+      ).toHaveFocus();
+      // Year toolbar + 12 months in a 3-column grid.
+      expect(screen.getByText('2025')).toBeInTheDocument();
+      expect(
+        selector.querySelectorAll('[role="gridcell"]')
+      ).toHaveLength(12);
+    });
+
+    it('picking a month returns to the day grid focused on day 1', async () => {
+      const user = userEvent.setup();
+      const { container } = render(<Calendar value='2025-01-15' />);
+      await user.click(
+        screen.getByRole('button', { name: getMonthLabel(2025, 0) })
+      );
+      await user.click(screen.getByRole('button', { name: shortMonth(3) }));
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2025, 3) })
+      ).toBeInTheDocument();
+      expect(
+        container.querySelector<HTMLButtonElement>(
+          '[data-haze-day="2025-04-01"]'
+        )
+      ).toHaveFocus();
+    });
+
+    it('picking the viewed month still focuses day 1', async () => {
+      const user = userEvent.setup();
+      const { container } = render(<Calendar value='2025-01-15' />);
+      await user.click(
+        screen.getByRole('button', { name: getMonthLabel(2025, 0) })
+      );
+      await user.click(screen.getByRole('button', { name: shortMonth(0) }));
+      expect(
+        container.querySelector<HTMLButtonElement>(
+          '[data-haze-day="2025-01-01"]'
+        )
+      ).toHaveFocus();
+    });
+
+    it('Escape cancels and returns focus to the title button', async () => {
+      const user = userEvent.setup();
+      render(<Calendar value='2025-01-15' />);
+      const title = screen.getByRole('button', {
+        name: getMonthLabel(2025, 0),
+      });
+      await user.click(title);
+      await user.keyboard('{Escape}');
+      expect(
+        screen.queryByRole('grid', { name: 'Select month' })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2025, 0) })
+      ).toBeInTheDocument();
+      expect(title).toHaveFocus();
+      expect(title).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('Escape works from the year toolbar too', async () => {
+      const user = userEvent.setup();
+      render(<Calendar value='2025-01-15' />);
+      const title = screen.getByRole('button', {
+        name: getMonthLabel(2025, 0),
+      });
+      await user.click(title);
+      await user.click(screen.getByRole('button', { name: 'Next year' }));
+      expect(screen.getByText('2026')).toBeInTheDocument();
+      await user.keyboard('{Escape}');
+      expect(title).toHaveFocus();
+    });
+
+    it('steps the year with the toolbar buttons and picks across years', async () => {
+      const user = userEvent.setup();
+      render(<Calendar value='2025-01-15' />);
+      await user.click(
+        screen.getByRole('button', { name: getMonthLabel(2025, 0) })
+      );
+      await user.click(screen.getByRole('button', { name: 'Next year' }));
+      await user.click(screen.getByRole('button', { name: 'Previous year' }));
+      await user.click(screen.getByRole('button', { name: 'Next year' }));
+      await user.click(screen.getByRole('button', { name: shortMonth(11) }));
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 11) })
+      ).toBeInTheDocument();
+    });
+
+    it('roves focus on the 3-column month grid and hops years with PageUp/Down', async () => {
+      const user = userEvent.setup();
+      render(<Calendar value='2025-01-15' />);
+      await user.click(
+        screen.getByRole('button', { name: getMonthLabel(2025, 0) })
+      );
+      const month = (m: number) =>
+        document.querySelector(`[data-haze-month="${m}"]`)!;
+      // January (viewed month) is focused on open.
+      await user.keyboard('{ArrowRight}');
+      expect(month(1)).toHaveFocus();
+      await user.keyboard('{ArrowDown}');
+      expect(month(4)).toHaveFocus();
+      await user.keyboard('{ArrowUp}');
+      expect(month(1)).toHaveFocus();
+      await user.keyboard('{End}');
+      expect(month(2)).toHaveFocus();
+      await user.keyboard('{Home}');
+      expect(month(0)).toHaveFocus();
+      // Year hop keeps the focused month.
+      await user.keyboard('{PageDown}');
+      expect(screen.getByText('2026')).toBeInTheDocument();
+      expect(month(0)).toHaveFocus();
+      // Enter picks January 2026.
+      await user.keyboard('{Enter}');
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 0) })
+      ).toBeInTheDocument();
+    });
+
+    it('has no axe violations while the selector is open', async () => {
+      const { axe } = await import('jest-axe');
+      const user = userEvent.setup();
+      render(<Calendar value='2025-01-15' />);
+      await user.click(
+        screen.getByRole('button', { name: getMonthLabel(2025, 0) })
+      );
+      const results = await axe(document.body, {
+        rules: { region: { enabled: false } },
+      });
+      expect(results.violations).toEqual([]);
+    });
+  });
+
+  describe('week numbers', () => {
+    it('renders a leading ISO week-number column with the Wk header', () => {
+      render(<Calendar value='2026-01-15' showWeekNumbers />);
+      expect(getWeekdayHeaders()).toEqual([
+        'Wk',
+        'Su',
+        'Mo',
+        'Tu',
+        'We',
+        'Th',
+        'Fr',
+        'Sa',
+      ]);
+      const grid = screen.getByRole('grid');
+      const rows = grid.querySelectorAll('[role="row"]');
+      // January 2026 Sunday-first: rows start Dec 28 (ISO week 52 of
+      // 2025), then weeks 1–4.
+      const weekLabels = Array.from(rows)
+        .slice(1)
+        .map(
+          (row) =>
+            row.querySelector('[role="gridcell"]')!.textContent
+        );
+      expect(weekLabels).toEqual(['52', '1', '2', '3', '4']);
+      // 8-column grid track.
+      expect(grid).toHaveStyle({ gridTemplateColumns: 'repeat(8, 1fr)' });
+    });
+
+    it('labels Monday-first rows with the ISO weeks they contain', () => {
+      render(<Calendar value='2026-01-15' showWeekNumbers weekStartsOn={1} />);
+      const rows = screen
+        .getByRole('grid')
+        .querySelectorAll('[role="row"]');
+      // Monday-first January 2026: rows are exactly ISO weeks 1–5.
+      const weekLabels = Array.from(rows)
+        .slice(1)
+        .map((row) => row.querySelector('[role="gridcell"]')!.textContent);
+      expect(weekLabels).toEqual(['1', '2', '3', '4', '5']);
+    });
+
+    it('is off by default', () => {
+      render(<Calendar value='2026-01-15' />);
+      const rows = screen
+        .getByRole('grid')
+        .querySelectorAll('[role="row"]');
+      expect(rows.length).toBeGreaterThan(0);
+      expect(screen.queryByText('Wk')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('dual month panel', () => {
+    it('renders two adjacent month grids sharing one navigation', async () => {
+      const user = userEvent.setup();
+      render(<Calendar value='2026-01-15' months={2} />);
+      const january = screen.getByRole('grid', {
+        name: getMonthLabel(2026, 0),
+      });
+      const february = screen.getByRole('grid', {
+        name: getMonthLabel(2026, 1),
+      });
+      expect(january).toBeInTheDocument();
+      expect(february).toBeInTheDocument();
+      // prev/next move both grids together.
+      await user.click(screen.getByRole('button', { name: 'Next month' }));
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 1) })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 2) })
+      ).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Previous month' }));
+      expect(screen.getByRole('grid', { name: getMonthLabel(2026, 0) }));
+      expect(screen.getByRole('grid', { name: getMonthLabel(2026, 1) }));
+    });
+
+    it('carries December → January across the year boundary in both panes', async () => {
+      const user = userEvent.setup();
+      render(<Calendar value='2025-12-15' months={2} />);
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2025, 11) })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 0) })
+      ).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Next month' }));
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 0) })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 1) })
+      ).toBeInTheDocument();
+    });
+
+    it('highlights a range across the two panes', () => {
+      const { container } = render(
+        <Calendar
+          months={2}
+          rangeStart='2026-01-20'
+          rangeEnd='2026-02-10'
+        />
+      );
+      const cell = (date: string) =>
+        container
+          .querySelector(`[data-haze-day="${date}"]`)!
+          .closest('[role="gridcell"]')!;
+      expect(cell('2026-01-20')).toHaveAttribute('aria-selected', 'true');
+      expect(cell('2026-01-25')).toHaveAttribute('aria-selected', 'true');
+      expect(cell('2026-02-01')).toHaveAttribute('aria-selected', 'true');
+      expect(cell('2026-02-10')).toHaveAttribute('aria-selected', 'true');
+      expect(cell('2026-01-15')).toHaveAttribute('aria-selected', 'false');
+      expect(cell('2026-02-20')).toHaveAttribute('aria-selected', 'false');
+    });
+
+    it('PageUp/Down in the second pane shifts both panes and re-focuses the day', async () => {
+      const user = userEvent.setup();
+      const { container } = render(<Calendar value='2026-01-15' months={2} />);
+      const day = (date: string) =>
+        container.querySelector<HTMLButtonElement>(
+          `[data-haze-day="${date}"]`
+        );
+      day('2026-02-15')!.focus();
+      await user.keyboard('{PageDown}');
+      // Panes shift to March + April; the focused day becomes pane 1's
+      // March 15.
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 2) })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('grid', { name: getMonthLabel(2026, 3) })
+      ).toBeInTheDocument();
+      expect(day('2026-03-15')).toHaveFocus();
+    });
+
+    it('has no axe violations with week numbers, dual panes and a range', async () => {
+      const { axe } = await import('jest-axe');
+      render(
+        <Calendar
+          value='2026-01-15'
+          months={2}
+          showWeekNumbers
+          rangeStart='2026-01-20'
+          rangeEnd='2026-01-25'
+        />
+      );
+      const results = await axe(document.body, {
+        rules: { region: { enabled: false } },
+      });
+      expect(results.violations).toEqual([]);
+    });
+  });
 });

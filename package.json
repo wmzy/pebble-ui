@@ -183,7 +183,7 @@
       "name": "Dashboard profile: Button + Input + Select + Dialog + Toast + Pagination",
       "path": "dist/index.js",
       "import": "{Button, Input, Select, Dialog, Toast, Pagination}",
-      "limit": "10 KB"
+      "limit": "13 KB"
     },
     {
       "path": "dist/haze-ui.css",
@@ -191,7 +191,7 @@
     },
     {
       "path": "dist/haze-ui.css",
-      "limit": "19 KB",
+      "limit": "20 KB",
       "gzip": true
     }
   ]

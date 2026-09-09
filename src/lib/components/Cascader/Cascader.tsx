@@ -4,6 +4,7 @@ import type {
   ReactNode,
 } from 'react';
 import type { ControlOrValue } from 'react-use-control';
+import type { VirtualListHandle } from '../VirtualList';
 
 import { css } from '@linaria/core';
 import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -13,11 +14,27 @@ import { FloatingPanel, useFloating } from '../../utils/floating';
 import { getDirection } from '../../utils/direction';
 import { useFocusScope } from '../../utils/focus-scope';
 import { useStrings } from '../LocaleProvider';
+import { VirtualList } from '../VirtualList';
 
 export type CascaderOption = {
   label: ReactNode;
   value: string;
   children?: CascaderOption[];
+};
+
+/** Metrics override for the `virtualized` columns of Cascader. */
+type CascaderVirtualizedConfig = {
+  /**
+   * Row height in px of one column item. Defaults to 37 — the natural
+   * box of a column item: space-2 padding top+bottom + text-sm at
+   * leading-normal = 8 + 21 + 8. Virtualization math needs it as a JS
+   * number; items are stretched to fill it (`virtualRow`), so the two
+   * cannot drift apart.
+   */
+  itemHeight?: number;
+  /** Extra rows kept mounted above/below the visible window. Defaults
+   * to VirtualList's 5. */
+  overscan?: number;
 };
 
 type CascaderProps = {
@@ -35,6 +52,13 @@ type CascaderProps = {
   changeOnSelect?: boolean;
   /** Whether hovering a parent option expands its column; defaults to click. */
   expandTrigger?: 'click' | 'hover';
+  /**
+   * Render every column through VirtualList so wide trees mount only
+   * the visible window (plus overscan) per column instead of the full
+   * DOM list. `false`/omitted (default) keeps the plain DOM path
+   * byte-for-byte; an object additionally customizes row metrics.
+   */
+  virtualized?: boolean | CascaderVirtualizedConfig;
   className?: string;
 } & Omit<ComponentPropsWithoutRef<'div'>, 'onChange' | 'className'>;
 
@@ -122,6 +146,41 @@ const column = css`
     margin-inline-start: var(--haze-space-1);
     padding-inline-start: var(--haze-space-1);
   }
+`;
+
+/**
+ * Virtualized column: same chrome (width floor, separators, padding),
+ * but no scroll box of its own — the inner VirtualList scrollport owns
+ * scrolling, avoiding a nested scroll container that could grow a
+ * second scrollbar (the same trade-off as Combobox's listboxVirtual).
+ */
+const columnVirtual = css`
+  max-height: none;
+  overflow-y: visible;
+
+  & + & {
+    border-inline-start: 1px solid var(--haze-color-border);
+    margin-inline-start: var(--haze-space-1);
+    padding-inline-start: var(--haze-space-1);
+  }
+`;
+
+/** Scrollport height of a virtualized column — the plain column's
+ * `max-height` cap, so both modes cap out equally tall; shorter columns
+ * size to their rows (min at the call site). */
+const COLUMN_MAX_HEIGHT = 220;
+
+/** Fixed row height for the virtualized path: the natural column-item
+ * box — space-2 padding top+bottom (8+8) + text-sm at leading-normal
+ * (21) = 37. Items are stretched to fill it (`virtualRow`), so the two
+ * cannot drift apart. */
+const ITEM_ROW_HEIGHT = 37;
+
+/** Stretch a virtualized item over its absolutely-positioned,
+ * fixed-height row wrapper so hover/focus cover the full row. */
+const virtualRow = css`
+  height: 100%;
+  box-sizing: border-box;
 `;
 
 const item = css`
@@ -235,6 +294,7 @@ export default function Cascader({
   placeholder,
   changeOnSelect = false,
   expandTrigger = 'click',
+  virtualized,
   className,
   ...rest
 }: CascaderProps) {
@@ -251,11 +311,24 @@ export default function Cascader({
   // Transient drill-down position (which parent option each open column
   // descends from) — internal UI state, resynced from `value` on open.
   const [activePath, setActivePath] = useState<string[]>([]);
+  // Focus target requested by a keyboard step, applied after the
+  // matching columns (or their virtualized windows) have rendered.
+  const [pendingFocus, setPendingFocus] = useState<PendingFocus | null>(null);
+
+  // `virtualized` resolution: object config enables and customizes,
+  // `true` enables with defaults, anything else keeps the plain DOM.
+  const virtual = virtualized !== undefined && virtualized !== false;
+  const virtualConfig = typeof virtualized === 'object' ? virtualized : undefined;
+  const itemRowHeight = virtualConfig?.itemHeight ?? ITEM_ROW_HEIGHT;
+  const overscan = virtualConfig?.overscan;
 
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const pendingFocusRef = useRef<PendingFocus | null>(null);
+  // VirtualList handles per column level (virtualized mode only) —
+  // keyboard focus steps scroll the target row into the window before
+  // focusing it.
+  const listRefs = useRef(new Map<number, VirtualListHandle>());
   const focusedOpenRef = useRef(false);
 
   const floating = useFloating({
@@ -292,17 +365,19 @@ export default function Cascader({
   // effect: on the just-opened commit the deeper columns are not rendered
   // yet, so the deepest-selected target is absent and the effect must
   // retry on the next commit instead of falling back to the first option.
+  // Depends on `pendingFocus` so virtualized keyboard steps re-run after
+  // their scrollToIndex commits the new window.
   useEffect(() => {
     if (!open) {
       focusedOpenRef.current = false;
-      pendingFocusRef.current = null;
+      setPendingFocus(null);
       return;
     }
     if (!floating.shown) return;
 
-    const pending = pendingFocusRef.current;
+    const pending = pendingFocus;
     if (pending) {
-      pendingFocusRef.current = null;
+      setPendingFocus(null);
       const items = itemsOf(columnsOf(panelRef.current)[pending.level]);
       const index =
         pending.value !== undefined
@@ -320,6 +395,26 @@ export default function Cascader({
     const last = value[level];
     let target: HTMLElement | undefined;
     if (last !== undefined) {
+      // Virtualized columns only mount the visible window: scroll the
+      // deepest selected row into it first, then let the pending focus
+      // land on the re-rendered window (the scroll state update and the
+      // pending focus commit together). Only once the target column has
+      // rendered — earlier runs fall through to the DOM miss below and
+      // retry on the next commit, before focusedOpenRef latches.
+      if (virtual && listRefs.current.has(level)) {
+        let levelOptions = options;
+        for (let i = 0; i < level; i++) {
+          levelOptions =
+            levelOptions.find((o) => o.value === value[i])?.children ?? [];
+        }
+        const index = levelOptions.findIndex((o) => o.value === last);
+        if (index >= 0) {
+          listRefs.current.get(level)?.scrollToIndex(index, 'auto');
+          focusedOpenRef.current = true;
+          setPendingFocus({ level, index, value: last });
+          return;
+        }
+      }
       // Wait for the committed path's columns to render before focusing;
       // the fallback only applies when there is no value at all.
       target = items.find(
@@ -332,7 +427,7 @@ export default function Cascader({
     if (!target) return;
     focusedOpenRef.current = true;
     target.focus();
-  }, [open, floating.shown, activePath, value]);
+  }, [open, floating.shown, activePath, value, pendingFocus, virtual, options]);
 
   const setPanelRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -341,6 +436,14 @@ export default function Cascader({
     },
     [panelRef, setScope]
   );
+
+  // Per-level VirtualList handle registration (virtualized mode).
+  const setListRef = useCallback((level: number) => {
+    return (handle: VirtualListHandle | null) => {
+      if (handle) listRefs.current.set(level, handle);
+      else listRefs.current.delete(level);
+    };
+  }, []);
 
   // Visible columns: the root options plus the children of every active
   // path segment, one column per level.
@@ -352,6 +455,24 @@ export default function Cascader({
     if (!children?.length) break;
     columns.push(children);
   }
+
+  // Move column focus to `index` (a data index, valid across the whole
+  // column). Plain columns focus the mounted item directly; virtualized
+  // columns scroll the row into the window first and route through
+  // pendingFocus, which the focus effect applies once the re-rendered
+  // window has mounted the target (scrollToIndex's internal state update
+  // batches with setPendingFocus, so one commit carries both).
+  const focusColumnItem = (level: number, index: number) => {
+    const option = columns[level]?.[index];
+    if (!option) return;
+    if (virtual) {
+      listRefs.current.get(level)?.scrollToIndex(index, 'auto');
+      setPendingFocus({ level, index, value: option.value });
+      return;
+    }
+    const items = itemsOf(columnsOf(panelRef.current)[level]);
+    items[index]?.focus();
+  };
 
   // Options along the committed value path, for the trigger label.
   const selectedPath: CascaderOption[] = [];
@@ -393,7 +514,6 @@ export default function Cascader({
     const active =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const itemEl = active?.closest<HTMLElement>(ITEM_SELECTOR) ?? undefined;
-    const columnEl = itemEl?.closest<HTMLElement>('[data-haze-cascader-column]');
     const level = itemEl ? Number(itemEl.dataset.level) : 0;
 
     // Drill/back arrows mirror under RTL (← drills into the submenu that
@@ -407,17 +527,22 @@ export default function Cascader({
       case 'ArrowDown':
       case 'ArrowUp': {
         e.preventDefault();
-        const items = itemsOf(columnEl ?? columnsOf(panel)[0]);
-        if (items.length === 0) return;
-        const current = itemEl ? items.indexOf(itemEl) : -1;
+        // Resolve against the column data, not the mounted DOM: under
+        // virtualization only a window of the column is mounted, so DOM
+        // indexes would misalign past the window edge.
+        const levelOptions = columns[level] ?? [];
+        if (levelOptions.length === 0) return;
+        const current = itemEl
+          ? levelOptions.findIndex((o) => o.value === itemEl.dataset.value)
+          : -1;
         const next =
           current < 0
             ? e.key === 'ArrowDown'
               ? 0
-              : items.length - 1
-            : (current + (e.key === 'ArrowDown' ? 1 : -1) + items.length) %
-              items.length;
-        items[next]?.focus();
+              : levelOptions.length - 1
+            : (current + (e.key === 'ArrowDown' ? 1 : -1) + levelOptions.length) %
+              levelOptions.length;
+        focusColumnItem(level, next);
         return;
       }
       case drillKey: {
@@ -426,7 +551,7 @@ export default function Cascader({
         if (itemEl?.getAttribute('aria-haspopup') !== 'true') return;
         e.preventDefault();
         setActivePath([...activePath.slice(0, level), itemEl.dataset.value!]);
-        pendingFocusRef.current = { level: level + 1, index: 0 };
+        setPendingFocus({ level: level + 1, index: 0 });
         return;
       }
       case backKey: {
@@ -434,19 +559,22 @@ export default function Cascader({
         e.preventDefault();
         const removed = activePath[activePath.length - 1]!;
         setActivePath(activePath.slice(0, -1));
-        pendingFocusRef.current = {
+        setPendingFocus({
           level: activePath.length - 1,
           index: 0,
           value: removed,
-        };
+        });
         return;
       }
       case 'Home':
       case 'End': {
         e.preventDefault();
-        const items = itemsOf(columnEl ?? columnsOf(panel)[0]);
-        if (items.length === 0) return;
-        (e.key === 'Home' ? items[0] : items[items.length - 1])?.focus();
+        const levelOptions = columns[level] ?? [];
+        if (levelOptions.length === 0) return;
+        focusColumnItem(
+          level,
+          e.key === 'Home' ? 0 : levelOptions.length - 1
+        );
         return;
       }
       case 'Enter': {
@@ -462,7 +590,7 @@ export default function Cascader({
         if (!option) return;
         if (option.children?.length) {
           setActivePath([...activePath.slice(0, level), option.value]);
-          pendingFocusRef.current = { level: level + 1, index: 0 };
+          setPendingFocus({ level: level + 1, index: 0 });
         } else {
           activate(option, level);
         }
@@ -477,6 +605,40 @@ export default function Cascader({
         return;
       }
     }
+  };
+
+  // One column item, shared by the plain list and the virtualized
+  // renderItem so both paths stay in lockstep (data hooks for keyboard
+  // resolution, expand semantics, activation). In virtualized mode the
+  // windowed rows additionally carry aria-setsize/aria-posinset — the
+  // unmounted remainder of the column stays semantically addressable.
+  const renderColumnItem = (option: CascaderOption, level: number, index: number) => {
+    const hasChildren = !!option.children?.length;
+    const inPath = activePath[level] === option.value;
+    return (
+      <button
+        key={option.value}
+        type='button'
+        role='menuitem'
+        tabIndex={-1}
+        data-level={level}
+        data-value={option.value}
+        aria-haspopup={hasChildren ? 'true' : undefined}
+        aria-expanded={hasChildren ? inPath : undefined}
+        aria-setsize={virtual ? columns[level]?.length : undefined}
+        aria-posinset={virtual ? index + 1 : undefined}
+        x-class={[item, inPath && itemInPath, virtual && virtualRow]}
+        onClick={() => activate(option, level)}
+        onMouseEnter={() => handleItemEnter(option, level)}
+      >
+        <span x-class={itemLabel}>{option.label}</span>
+        {hasChildren && (
+          <span x-class={chevron} role='img' aria-label={strings.expand}>
+            <ChevronRight />
+          </span>
+        )}
+      </button>
+    );
   };
 
   return (
@@ -525,34 +687,28 @@ export default function Cascader({
             key={level}
             role='menu'
             data-haze-cascader-column={level}
-            x-class={column}
+            x-class={[column, virtual && columnVirtual]}
           >
-            {columnOptions.map((option) => {
-              const hasChildren = !!option.children?.length;
-              const inPath = activePath[level] === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type='button'
-                  role='menuitem'
-                  tabIndex={-1}
-                  data-level={level}
-                  data-value={option.value}
-                  aria-haspopup={hasChildren ? 'true' : undefined}
-                  aria-expanded={hasChildren ? inPath : undefined}
-                  x-class={[item, inPath && itemInPath]}
-                  onClick={() => activate(option, level)}
-                  onMouseEnter={() => handleItemEnter(option, level)}
-                >
-                  <span x-class={itemLabel}>{option.label}</span>
-                  {hasChildren && (
-                    <span x-class={chevron} role='img' aria-label={strings.expand}>
-                      <ChevronRight />
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+            {virtual ? (
+              <VirtualList
+                ref={setListRef(level)}
+                data-virtualized
+                items={columnOptions}
+                height={Math.min(
+                  COLUMN_MAX_HEIGHT,
+                  columnOptions.length * itemRowHeight
+                )}
+                itemHeight={itemRowHeight}
+                overscan={overscan}
+                renderItem={(option, i) =>
+                  renderColumnItem(option, level, i)
+                }
+              />
+            ) : (
+              columnOptions.map((option, i) =>
+                renderColumnItem(option, level, i)
+              )
+            )}
           </div>
         ))}
       </FloatingPanel>
@@ -560,4 +716,4 @@ export default function Cascader({
   );
 }
 
-export type { CascaderProps };
+export type { CascaderProps, CascaderVirtualizedConfig };

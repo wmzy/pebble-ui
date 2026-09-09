@@ -1,4 +1,4 @@
-import type { RowSelectionState } from '@tanstack/react-table';
+import type { ExpandedState, RowSelectionState } from '@tanstack/react-table';
 
 import type { DataTableColumnDef } from '@/lib';
 
@@ -84,12 +84,36 @@ const wideColumns: DataTableColumnDef<EmployeeRow>[] = [
   { accessorKey: 'joined', header: 'Joined', meta: { width: 120, fixed: 'right' } },
 ];
 
+// Enterprise combination — per-column switches on top of the table-level
+// ones: Status is pinned in the visibility menu (meta.hideable), Score
+// opts out of the filter row (meta.filterable).
+const enterpriseColumns: DataTableColumnDef<EmployeeRow>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Name',
+    cell: (info) => <strong>{info.getValue() as string}</strong>,
+    meta: { width: 150 },
+  },
+  { accessorKey: 'role', header: 'Role' },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: (info) => statusBadge(info.getValue() as EmployeeStatus),
+    meta: { hideable: false },
+  },
+  { accessorKey: 'score', header: 'Score', meta: { filterable: false } },
+  { accessorKey: 'joined', header: 'Joined', meta: { width: 120 } },
+];
+
 export default function DataTableDemo() {
   const [loading, setLoading] = useState(false);
   const [, setSelection, selectionCtrl] = useControl(
     undefined,
     {} as RowSelectionState
   );
+  // Controlled expansion (ctrl form): the buttons below drive the same
+  // Control the table binds to.
+  const [, setExpanded, expandedCtrl] = useControl<ExpandedState>(undefined, {});
 
   return (
     <>
@@ -97,8 +121,9 @@ export default function DataTableDemo() {
       <p className={intro}>
         Feature-complete table on top of TanStack Table v9 with the haze skin:
         opt-in sorting, row selection, pagination, loading skeleton, empty
-        state and sticky header. The plain <code>Table</code> primitives
-        remain available for bespoke layouts.
+        state, sticky header, column resizing, per-column filtering, column
+        visibility and expandable rows. The plain <code>Table</code>{' '}
+        primitives remain available for bespoke layouts.
       </p>
 
       <div className={section}>
@@ -155,6 +180,45 @@ export default function DataTableDemo() {
       </div>
 
       <div className={section}>
+        <h2>Enterprise: resize, filter, column menu &amp; expansion</h2>
+        <p className={dataTableNote}>
+          Four independent opt-ins that compose: <code>resizable</code> adds
+          header drag handles (double-click resets to the declared width;
+          ArrowLeft/ArrowRight nudge ±5px, mirrored under RTL),{' '}
+          <code>filterable</code> adds a filter row under the header
+          (case-insensitive contains; <em>Score</em> opts out via{' '}
+          <code>meta.filterable</code>), <code>columnToggle</code> adds the
+          column visibility menu (<em>Status</em> is pinned through{' '}
+          <code>meta.hideable</code>), and <code>getRowCanExpand</code> +{' '}
+          <code>renderExpandedRow</code> add expandable detail rows — here
+          only for high scorers, driven through a controlled{' '}
+          <code>expanded</code> Control.
+        </p>
+        <div className={row}>
+          <button onClick={() => setExpanded(true)}>Expand all</button>
+          <button onClick={() => setExpanded({})}>Collapse all</button>
+        </div>
+        <DataTable
+          columns={enterpriseColumns}
+          data={PEOPLE}
+          sortable
+          resizable
+          filterable
+          columnToggle
+          expanded={expandedCtrl}
+          getRowCanExpand={(row) => row.original.score >= 85}
+          renderExpandedRow={(row) => (
+            <p>
+              <strong>{row.original.name}</strong> — {row.original.role},
+              joined {row.original.joined}. Current score{' '}
+              {row.original.score}.
+            </p>
+          )}
+          getRowId={(employee) => String(employee.id)}
+        />
+      </div>
+
+      <div className={section}>
         <h2>Props</h2>
         <PropsTable of='DataTableProps' />
       </div>
@@ -171,6 +235,20 @@ export default function DataTableDemo() {
               indeterminate select-all
             </li>
             <li>Pagination reuses the Pagination component&apos;s semantics</li>
+            <li>
+              Resize handles are focusable <code>separator</code> widgets:
+              ArrowLeft/ArrowRight nudge the width (mirrored under RTL),
+              double-click resets it
+            </li>
+            <li>
+              Expander buttons expose <code>aria-expanded</code> and{' '}
+              <code>aria-controls</code>; the panel is a row spanning every
+              column
+            </li>
+            <li>
+              Filter inputs are labeled textboxes; the column menu&apos;s
+              checkboxes carry <code>menuitemcheckbox</code> semantics
+            </li>
           </ul>
         </A11yNote>
       </div>

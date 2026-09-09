@@ -9,6 +9,9 @@
   "dependencies": [
     "haze-ui"
   ],
+  "categories": [
+    "theme"
+  ],
   "files": [
     {
       "path": "registry/haze-tokens/haze-tokens.md",
