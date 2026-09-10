@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -9,6 +10,9 @@ type OTPInputProps = {
   value?: ControlOrValue<string>;
   onChange?: (value: string) => void;
   className?: string;
+  /** Forwarded to the first cell's `<input>` — the element form bridges
+   * and `ref.current.focus()` reach. */
+  ref?: Ref<HTMLInputElement>;
 };
 
 export default function OTPInput({
@@ -16,11 +20,13 @@ export default function OTPInput({
   value: valueControl,
   onChange,
   className,
+  ref,
 }: OTPInputProps) {
   const [value, setValue] = useControl(valueControl, '');
 
   return (
     <OTPInputCore
+      ref={ref}
       length={length}
       value={value}
       onChange={(next) => {

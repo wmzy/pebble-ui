@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import Datepicker from './Datepicker';
@@ -299,5 +300,129 @@ describe('DatepickerCore', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Datepicker ref forwarding', () => {
+  it('forwards ref to the trigger input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Datepicker ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
+  });
+});
+
+describe('Datepicker picker modes', () => {
+  const shortMonth = (month: number) =>
+    new Date(2026, month, 15).toLocaleString('default', { month: 'short' });
+
+  it('opens a month grid and serializes the pick as "YYYY-MM"', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker picker='month' value='2026-03' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(
+      screen.getByRole('grid', { name: 'Select month' })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: shortMonth(5) }));
+    expect(screen.getByPlaceholderText('Select date')).toHaveValue('2026-06');
+  });
+
+  it('opens a quarter grid and serializes the pick as "YYYY-Qn"', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker picker='quarter' value='2026-Q2' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    await user.click(screen.getByRole('button', { name: 'Q3' }));
+    expect(screen.getByPlaceholderText('Select date')).toHaveValue('2026-Q3');
+  });
+
+  it('opens a year grid and serializes the pick as "YYYY"', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker picker='year' value='2026' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(screen.getByText('2020 – 2031')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '2028' }));
+    expect(screen.getByPlaceholderText('Select date')).toHaveValue('2028');
+  });
+
+  it('renders the day grid by default (picker stays "date")', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value='2026-01-15' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(
+      screen.queryByRole('grid', { name: 'Select month' })
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByRole('columnheader').length).toBeGreaterThan(0);
+  });
+});
+
+describe('Datepicker disabledDate', () => {
+  it('disables predicate days on the panel calendar', () => {
+    render(
+      <DatepickerCore
+        value="2026-01-15"
+        onChange={() => undefined}
+        open
+        onOpenChange={() => undefined}
+        disabledDate={(date) => date.getDay() === 0}
+      />
+    );
+    const day = (date: string) =>
+      document.querySelector<HTMLButtonElement>(`[data-haze-day="${date}"]`);
+    expect(day('2026-01-11')).toBeDisabled();
+    expect(day('2026-01-15')).toBeEnabled();
+  });
+});
+
+describe('Datepicker presets', () => {
+  const presets = [
+    { label: 'Start of May', value: '2026-05-01' },
+    { label: 'Mid May', value: '2026-05-15' },
+  ];
+
+  it('renders shortcut rows above the calendar and applies one on click', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <DatepickerCore
+        value=""
+        onChange={onChange}
+        open
+        onOpenChange={onOpenChange}
+        presets={presets}
+      />
+    );
+    // Presets sit in the same panel as the calendar grid.
+    expect(screen.getByRole('grid')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Mid May' }));
+    expect(onChange).toHaveBeenCalledWith('2026-05-15');
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('sets the value and closes the panel in uncontrolled mode', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker presets={presets} />);
+    const input = screen.getByPlaceholderText('Select date');
+    await user.click(input);
+    await user.click(screen.getByRole('button', { name: 'Start of May' }));
+    expect(input).toHaveValue('2026-05-01');
+    // Panel closed: the panel's data-state flips back to closed.
+    const panel = document.getElementById(input.getAttribute('aria-controls')!)!;
+    expect(panel).toHaveAttribute('data-state', 'closed');
+  });
+
+  it('renders no preset block when presets is empty', () => {
+    render(
+      <DatepickerCore
+        value=""
+        onChange={() => undefined}
+        open
+        onOpenChange={() => undefined}
+        presets={[]}
+      />
+    );
+    expect(screen.getByRole('grid')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Start of May' })).not.toBeInTheDocument();
   });
 });

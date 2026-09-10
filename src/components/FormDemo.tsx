@@ -3,6 +3,7 @@ import type {FormInstance} from '@/lib';
 import {useState} from 'react';
 import {css} from '@linaria/core';
 import {Form, getValues, reset, setValue, useForm, useValue} from 'react-f0rm';
+import {z} from 'zod';
 
 import {
   Alert,
@@ -15,6 +16,11 @@ import {
   SelectCore,
   SwitchCore,
 } from '@/lib';
+import {
+  FormList,
+  standardSchemaFormValidator,
+  zodResolver,
+} from '@/lib/form';
 import A11yNote from '@/views/ComponentDetail/A11yNote';
 import PropsTable from '@/views/ComponentDetail/PropsTable';
 import {
@@ -31,6 +37,7 @@ type ProfileValues = {
   role: string;
   newsletter: boolean;
   seats: number;
+  tags: {label: string}[];
 };
 
 const INITIAL_VALUES: ProfileValues = {
@@ -39,6 +46,7 @@ const INITIAL_VALUES: ProfileValues = {
   role: 'viewer',
   newsletter: true,
   seats: 5,
+  tags: [{label: 'design'}, {label: 'frontend'}],
 };
 
 const RANDOM_NAMES = [
@@ -80,6 +88,25 @@ const hint = css`
   margin: 0;
 `;
 
+const tagRow = css`
+  display: flex;
+  align-items: flex-end;
+  gap: var(--haze-space-2);
+`;
+
+/** Schema-driven signup demo: one zod schema backs the whole form —
+ * `standardSchemaFormValidator` for the form level, `zodResolver` for a
+ * single field (both re-exported from `@/lib/form`). */
+type SignupValues = {title: string; email: string; code: string};
+
+const signupSchema = z.object({
+  title: z.string().min(2, 'Title must be at least 2 characters'),
+  email: z.email('Enter a valid email address'),
+  code: z.string().min(3, 'Code must be at least 3 characters'),
+});
+
+const signupValidator = standardSchemaFormValidator<SignupValues>(signupSchema);
+
 /**
  * Field-level subscription demo: reads the live `name`/`seats` values
  * through react-f0rm's own useValue hook — haze no longer ships a form
@@ -95,6 +122,118 @@ function LiveValues({form}: {form: FormInstance<ProfileValues>}) {
         seats
       )}
     </span>
+  );
+}
+
+/**
+ * Schema-driven form demo: one zod schema drives everything — the form
+ * level through `standardSchemaFormValidator` (issues land per field),
+ * one field additionally through `zodResolver`. `validateDeps` lists the
+ * schema's fields so a user change re-runs the schema and clears the
+ * stale errors of the previous round (react-f0rm's cross-field list).
+ * Field-level validators short-circuit a submit before the form-level
+ * round, so the schema form keeps every field schema-driven.
+ */
+function SchemaForm() {
+  const form = useForm<SignupValues>({
+    initialValues: {title: '', email: '', code: ''},
+    validate: signupValidator,
+    validateDeps: ['title', 'email', 'code'],
+  });
+  const [submitted, setSubmitted] = useState<SignupValues | null>(null);
+
+  return (
+    <>
+      <Form
+        form={form}
+        onValidSubmit={(values) => setSubmitted(values)}
+        onInvalidSubmit={() => setSubmitted(null)}
+      >
+        <div className={fieldRow}>
+          {/* 表单级 schema：错误由 standardSchemaFormValidator 按路径落位，
+              FormItem 无需自己的 validate */}
+          <FormItem
+            form={form}
+            name='title'
+            label='Title'
+            input={InputCore}
+            placeholder='Schema-validated title'
+          />
+        </div>
+        <div className={fieldRow}>
+          <FormItem
+            form={form}
+            name='email'
+            label='Email'
+            input={InputCore}
+            placeholder='schema@example.com'
+          />
+        </div>
+        <div className={fieldRow}>
+          <FormItem
+            form={form}
+            name='code'
+            label='Code'
+            input={InputCore}
+            placeholder='abc'
+          />
+        </div>
+        <div className={row}>
+          <Button
+            onClick={(e) => {
+              e.currentTarget.form?.requestSubmit();
+            }}
+          >
+            Submit
+          </Button>
+        </div>
+      </Form>
+      {submitted ? (
+        <>
+          <Alert variant='success'>
+            Schema passed — parsed values (zod transforms applied) below.
+          </Alert>
+          <CodeBlock language='json'>
+            {JSON.stringify(submitted, null, 2)}
+          </CodeBlock>
+        </>
+      ) : (
+        <p className={hint}>
+          Submit with empty fields to see the schema errors land per FormItem.
+        </p>
+      )}
+    </>
+  );
+}
+
+type CodeValues = {code: string};
+
+/** Field-level resolver demo: `zodResolver` slots straight into
+ * `FormItem`'s `validate` — no form-level validator involved. */
+function ResolverFieldForm() {
+  const form = useForm<CodeValues>({initialValues: {code: ''}});
+  return (
+    <Form form={form} onValidSubmit={() => undefined}>
+      <div className={fieldRow}>
+        <FormItem
+          form={form}
+          name='code'
+          label='Invite code (zodResolver)'
+          validate={zodResolver(z.string().min(3, 'Code must be at least 3 characters'))}
+          input={InputCore}
+          placeholder='abc'
+        />
+      </div>
+      <div className={row}>
+        <Button
+          onClick={(e) => {
+            e.currentTarget.form?.requestSubmit();
+          }}
+        >
+          Submit
+        </Button>
+      </div>
+    </Form>
   );
 }
 
@@ -211,6 +350,37 @@ export default function FormDemo() {
               )}
             </FormItem>
           </div>
+          <div className={fieldRow}>
+            {/* 数组字段：FormList 包 react-f0rm 的 useFieldArray，行内
+                FormItem 以 ['tags', i, 'label'] 段数组路径绑定；行 key 用
+                field.id（稳定），数组操作前 FormList 会物化行内编辑 */}
+            <FormList form={form} name='tags'>
+              {({fields, append, remove}) => (
+                <>
+                  {fields.map((field) => (
+                    <div key={field.id} className={tagRow}>
+                      <FormItem
+                        form={form}
+                        name={['tags', field.index, 'label']}
+                        label={`Tag ${field.index + 1}`}
+                        input={InputCore}
+                        placeholder='tag'
+                      />
+                      <Button
+                        variant='ghost'
+                        onClick={() => remove(field.index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button variant='outline' onClick={() => append({label: ''})}>
+                    Add tag
+                  </Button>
+                </>
+              )}
+            </FormList>
+          </div>
           <div className={row}>
             {/* haze-ui Button renders type="button", so trigger the form
                 element's submit flow explicitly. */}
@@ -241,6 +411,28 @@ export default function FormDemo() {
             the current form values.
           </p>
         )}
+      </div>
+
+      <div className={section}>
+        <h2>Schema validation — zod × react-f0rm resolvers</h2>
+        <p className={intro}>
+          haze-ui re-exports react-f0rm&apos;s Standard Schema adapters from{' '}
+          <code>@/lib/form</code>: <code>standardSchemaFormValidator</code>{' '}
+          validates the whole values object (zod v3.24+/v4, valibot, arktype —
+          anything implementing <code>~standard</code>), landing each issue on
+          its field&apos;s FormItem; <code>zodResolver</code> adapts a single
+          schema to FormItem&apos;s <code>validate</code>. Pair the form-level
+          validator with <code>validateDeps</code> so edits re-run the schema
+          and clear the previous round&apos;s errors.
+        </p>
+        <SchemaForm />
+        <h3>Field-level — zodResolver</h3>
+        <p className={intro}>
+          A single schema, no form-level validator: submit shows the issue,
+          typing a valid value clears it (reValidateMode{' '}
+          <code>onChange</code> after a failed submit).
+        </p>
+        <ResolverFieldForm />
       </div>
 
       <div className={section}>
@@ -291,6 +483,68 @@ export default function FormDemo() {
               type: '(binding: {id, errorId, invalid, errors, value, onChange}) => ReactNode',
               description:
                 'Render any haze-ui core; spread id/aria attributes and pass value/onChange to the core',
+            },
+          ]}
+        />
+        <h3>FormList props</h3>
+        <PropsTable
+          props={[
+            {
+              name: 'form',
+              type: 'Form<TValues> (optional)',
+              description:
+                'Form instance; omitted, falls back to the nearest <FormProvider value={form}>',
+            },
+            {
+              name: 'name',
+              type: "FieldPath<TValues> | (string | number)[]",
+              description: 'Array field path, e.g. tags',
+            },
+            {
+              name: 'keyName',
+              type: "string (default 'id')",
+              description:
+                'Property the stable row key is exposed under on each fields entry',
+            },
+            {
+              name: 'rules',
+              type: '{required, minLength, maxLength}',
+              description:
+                'Rules validated against the whole array (required fails on empty)',
+            },
+            {
+              name: 'shouldUnregister',
+              type: 'boolean',
+              description:
+                'Drop the array branch on unmount; defaults to the form-level flag',
+            },
+            {
+              name: 'children',
+              type: '(binding: {fields, append, prepend, insert, remove, swap, move, replace, update}) => ReactNode',
+              description:
+                'Render-prop rows — key each row by field.id; array ops materialize in-row edits first',
+            },
+          ]}
+        />
+        <h3>Resolvers (re-exported from react-f0rm/resolvers)</h3>
+        <PropsTable
+          props={[
+            {
+              name: 'standardSchemaFormValidator',
+              type: '(schema) => FormValidateFn',
+              description:
+                'Form-level Standard Schema adapter for useForm({validate}); pair with validateDeps',
+            },
+            {
+              name: 'standardSchemaResolver / zodResolver',
+              type: '(schema) => Validator',
+              description:
+                "Field-level adapters — slot straight into FormItem's validate",
+            },
+            {
+              name: 'hasStandardProps',
+              type: '(schema) => boolean',
+              description: 'Runtime probe for the ~standard props',
             },
           ]}
         />

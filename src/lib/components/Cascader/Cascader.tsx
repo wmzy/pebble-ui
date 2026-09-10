@@ -2,6 +2,7 @@ import type {
   ComponentPropsWithoutRef,
   KeyboardEvent as ReactKeyboardEvent,
   ReactNode,
+  Ref,
 } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 import type { VirtualListHandle } from '../VirtualList';
@@ -13,6 +14,7 @@ import { isControl, useControl, useThru, watch } from 'react-use-control';
 import { FloatingPanel, useFloating } from '../../utils/floating';
 import { getDirection } from '../../utils/direction';
 import { useFocusScope } from '../../utils/focus-scope';
+import { mergeRefs } from '../../utils/refs';
 import { useStrings } from '../LocaleProvider';
 import { VirtualList } from '../VirtualList';
 
@@ -60,6 +62,11 @@ type CascaderProps = {
    */
   virtualized?: boolean | CascaderVirtualizedConfig;
   className?: string;
+  /**
+   * Forwarded to the trigger `<button>` (not the root div) — the element
+   * form bridges and `ref.current.focus()` reach.
+   */
+  ref?: Ref<HTMLButtonElement>;
 } & Omit<ComponentPropsWithoutRef<'div'>, 'onChange' | 'className'>;
 
 const wrapper = css`
@@ -296,6 +303,7 @@ export default function Cascader({
   expandTrigger = 'click',
   virtualized,
   className,
+  ref,
   ...rest
 }: CascaderProps) {
   const strings = useStrings('cascader');
@@ -324,6 +332,12 @@ export default function Cascader({
 
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
+  // The consumer's ref rides the same trigger button the floating
+  // behavior anchors on.
+  const setTriggerRef = useCallback(
+    (node: HTMLButtonElement | null) => mergeRefs(triggerRef, ref)(node),
+    [triggerRef, ref]
+  );
   const panelRef = useRef<HTMLDivElement>(null);
   // VirtualList handles per column level (virtualized mode only) —
   // keyboard focus steps scroll the target row into the window before
@@ -644,7 +658,7 @@ export default function Cascader({
   return (
     <div x-class={[wrapper, className]} {...rest}>
       <button
-        ref={triggerRef}
+        ref={setTriggerRef}
         type='button'
         style={floating.triggerStyle}
         aria-haspopup='menu'

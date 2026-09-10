@@ -1,16 +1,27 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react';
+import type {
+  UploadEntry,
+  UploadFileStatus,
+  UploadHandle,
+  UploadListItemRender,
+  UploadRequest,
+} from './types';
 
 import { css } from '@linaria/core';
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, useImperativeHandle } from 'react';
 
 import { useStrings } from '../LocaleProvider';
+
+import UploadList from './UploadList';
+import { createXhrRequest } from './xhr-upload';
 
 type UploadCoreProps = {
   /** The selected files — the field value, emitted verbatim (as the
    * complete next list) by `onChange`. */
   value: File[];
   /** Emits the next file list: a single pick replaces `value`, a
-   * `multiple` pick appends to it. */
+   * `multiple` pick appends to it. Removals from the built-in list
+   * (and `clear()`) also flow through here. */
   onChange: (files: File[]) => void;
   /** Comma-separated accept tokens (`.txt`, `image/*`, `text/plain`) —
    * the same grammar the native picker uses. Dropped files that do not
@@ -25,7 +36,8 @@ type UploadCoreProps = {
    * before it enters the value: return `false` (or a promise resolving
    * to `false`) to drop the file. Verdicts for one pick are awaited
    * together (`Promise.all`) and committed as a single `onChange` once
-   * every verdict resolved; the UI is not blocked while waiting. */
+   * every verdict resolved; the UI is not blocked while waiting.
+   * A refused file never enters the list, so it never uploads. */
   beforeUpload?: (file: File) => boolean | Promise<boolean>;
   /** Cap for the committed list. Applied last: existing entries win,
    * then the freshly picked survivors; anything beyond the first
@@ -33,8 +45,55 @@ type UploadCoreProps = {
   maxCount?: number;
   /** A `multiple` pick appends to `value`, a single pick replaces it. */
   multiple?: boolean;
+  /**
+   * Custom upload executor. When given, every file entering the list
+   * (see `manual`) runs through it: call `options.onProgress` with a
+   * 0–100 percent, honor `options.signal` for cancellation, resolve on
+   * success and reject on failure. Takes precedence over `action`.
+   * Neither `request` nor `action` → pure collection mode, exactly the
+   * pre-executor behavior.
+   */
+  request?: UploadRequest;
+  /**
+   * Upload endpoint for the built-in XHR executor: the file is sent as
+   * multipart FormData (field `name`, extra fields `data`) with `method`
+   * and `headers`; progress is wired to `xhr.upload.onprogress` and
+   * cancellation to `xhr.abort()`. Ignored when `request` is given.
+   */
+  action?: string;
+  /** HTTP method for `action` uploads — defaults to `POST`. */
+  method?: string;
+  /** Extra request headers for `action` uploads. */
+  headers?: Record<string, string>;
+  /** Form field name carrying the file in `action` mode — defaults
+   * to `file`. */
+  name?: string;
+  /** Extra form fields appended alongside the file in `action` mode. */
+  data?: Record<string, string | Blob>;
+  /**
+   * `true` keeps picked files at `idle` — the upload only starts via
+   * the `UploadHandle` ref (`upload()`/`uploadAll()`). Only meaningful
+   * with `request` or `action`.
+   */
+  manual?: boolean;
+  /**
+   * Renders the built-in file list below the zone (default `false`):
+   * file name, live progress (reusing `Progress`), status icon and
+   * per-state actions — cancel while uploading, retry + remove on
+   * error, remove otherwise. Pass an `itemRender` to replace whole
+   * rows. Without `request`/`action` the list still tracks picks as
+   * `idle` rows with remove actions.
+   */
+  showUploadList?: boolean | { itemRender?: UploadListItemRender };
+  /**
+   * Fires whenever the tracked entries change (added, removed, status
+   * or percent) with the complete snapshot in value order. Only tracks
+   * while `request`/`action` or `showUploadList` is in play.
+   */
+  onStatusChange?: (files: UploadFileStatus[]) => void;
   className?: string;
   children?: ReactNode;
+  ref?: Ref<UploadHandle>;
 } & Omit<
   ComponentPropsWithoutRef<'div'>,
   | 'value'
@@ -122,6 +181,23 @@ function matchesAccept(file: File, accept: string): boolean {
     );
 }
 
+function clampPercent(percent: number): number {
+  return Math.max(0, Math.min(100, Math.round(percent)));
+}
+
+// File objects carry no serializable identity, so list keys come from
+// this WeakMap — stable per File instance across renders/picks.
+const fileUids = new WeakMap<File, string>();
+const uidCounter = { n: 0 };
+function uidFor(file: File): string {
+  const existing = fileUids.get(file);
+  if (existing) return existing;
+  uidCounter.n += 1;
+  const uid = `haze-upload-file-${uidCounter.n}`;
+  fileUids.set(file, uid);
+  return uid;
+}
+
 export default function UploadCore({
   value,
   onChange,
@@ -130,15 +206,42 @@ export default function UploadCore({
   beforeUpload,
   maxCount,
   multiple = false,
+  request,
+  action,
+  method,
+  headers,
+  name,
+  data,
+  manual = false,
+  showUploadList,
+  onStatusChange,
   className,
   children,
+  ref,
   ...rest
 }: UploadCoreProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   // Transient drag-over highlight — hover-like UI state, never a
   // user-facing prop, so local state (not useControl) is correct here.
   const [dragOver, setDragOver] = useState(false);
+  // Internal status machine: one entry per tracked file (value order).
+  // Never a user-facing prop — the value channel stays `File[]`; the
+  // machine is observed through `onStatusChange` / the built-in list.
+  const [entries, setEntries] = useState<UploadEntry[]>([]);
   const strings = useStrings('upload');
+
+  // The executor is armed only when the consumer opted in; without it
+  // the component stays a pure collector (zero behavioral change).
+  const executor: UploadRequest | undefined =
+    request ??
+    (action != null
+      ? createXhrRequest({ action, method, headers, name, data })
+      : undefined);
+  const armed = executor != null;
+  const listEnabled = showUploadList != null && showUploadList !== false;
+  // Status is tracked while uploads can run, or while the list (with
+  // its remove actions) is rendered.
+  const tracking = armed || listEnabled;
 
   // Mirror the latest applied value so async beforeUpload verdicts
   // merge onto the freshest list instead of the one captured at pick
@@ -147,6 +250,206 @@ export default function UploadCore({
   useEffect(() => {
     latestValue.current = value;
   });
+
+  // Mirrors for the imperative handle and the async upload chain —
+  // they run outside the render that produced the latest props.
+  const entriesRef = useRef(entries);
+  useEffect(() => {
+    entriesRef.current = entries;
+  });
+  const latestExecutor = useRef(executor);
+  useEffect(() => {
+    latestExecutor.current = executor;
+  });
+  const latestOnChange = useRef(onChange);
+  useEffect(() => {
+    latestOnChange.current = onChange;
+  });
+  const latestOnStatusChange = useRef(onStatusChange);
+  useEffect(() => {
+    latestOnStatusChange.current = onStatusChange;
+  });
+
+  // One AbortController per in-flight upload — also the synchronous
+  // "already running" guard (state updates may not have flushed when
+  // two triggers race in the same tick).
+  const controllers = useRef(new Map<string, AbortController>());
+  // Uids that already went through runUpload. Autostart only fires for
+  // fresh entries — an aborted upload returns to idle WITHOUT being
+  // restarted by the auto mode (restart would loop: abort → idle →
+  // autostart → …). Retries go through the retry action or the handle.
+  const attemptedUids = useRef(new Set<string>());
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    const inFlight = controllers.current;
+    return () => {
+      mountedRef.current = false;
+      inFlight.forEach((controller) => controller.abort());
+      inFlight.clear();
+    };
+  }, []);
+
+  const runUpload = useCallback((file: File) => {
+    const exec = latestExecutor.current;
+    if (!exec || !mountedRef.current) return;
+    const entry = entriesRef.current.find((e) => e.file === file);
+    if (!entry || controllers.current.has(entry.uid)) return;
+    const { uid } = entry;
+    const controller = new AbortController();
+    controllers.current.set(uid, controller);
+    attemptedUids.current.add(uid);
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.uid === uid ? { ...e, status: 'uploading', percent: 0 } : e
+      )
+    );
+    exec(file, {
+      signal: controller.signal,
+      onProgress: (percent) => {
+        setEntries((prev) =>
+          prev.map((e) =>
+            e.uid === uid && e.status === 'uploading'
+              ? { ...e, percent: clampPercent(percent) }
+              : e
+          )
+        );
+      },
+    })
+      .then(() => {
+        setEntries((prev) =>
+          prev.map((e) =>
+            e.uid === uid && e.status === 'uploading'
+              ? { ...e, status: 'success', percent: 100 }
+              : e
+          )
+        );
+      })
+      .catch((error: unknown) => {
+        setEntries((prev) =>
+          prev.map((e) => {
+            if (e.uid !== uid || e.status !== 'uploading') return e;
+            const aborted =
+              controller.signal.aborted ||
+              (error instanceof DOMException && error.name === 'AbortError');
+            // A cancelled upload is not a failure: the file drops back
+            // to idle (it leaves the list entirely when the cancel was
+            // a remove — the sync effect below already dropped it).
+            return aborted
+              ? { ...e, status: 'idle', percent: 0 }
+              : { ...e, status: 'error' };
+          })
+        );
+      })
+      .finally(() => {
+        controllers.current.delete(uid);
+      });
+  }, []);
+
+  // Keep the tracked entries in lockstep with the value: files that
+  // entered (picked, dropped) get fresh idle entries carrying their
+  // status forward; files that left are dropped. Dormant in pure
+  // collection mode.
+  useEffect(() => {
+    if (!tracking) {
+      setEntries((prev) => (prev.length > 0 ? [] : prev));
+      return;
+    }
+    // A file that left the value forgets its attempt mark — if it is
+    // ever re-added (same File object), autostart picks it up again.
+    const liveUids = new Set(value.map((file) => uidFor(file)));
+    attemptedUids.current.forEach((uid) => {
+      if (!liveUids.has(uid)) attemptedUids.current.delete(uid);
+    });
+    setEntries((prev) => {
+      if (prev.length === 0 && value.length === 0) return prev;
+      const byFile = new Map(prev.map((e) => [e.file, e] as const));
+      let changed = value.length !== prev.length;
+      const next = value.map((file) => {
+        const existing = byFile.get(file);
+        if (existing) {
+          byFile.delete(file);
+          return existing;
+        }
+        changed = true;
+        return { uid: uidFor(file), file, status: 'idle' as const, percent: 0 };
+      });
+      return changed || byFile.size > 0 ? next : prev;
+    });
+  }, [value, tracking]);
+
+  // Auto mode: every entry that lands in the list starts uploading
+  // right away (initial value included) — exactly once per stay in the
+  // list; cancelled/failed files wait for an explicit retry. Manual
+  // mode leaves them idle for the handle to trigger.
+  useEffect(() => {
+    if (!armed || manual) return;
+    entries
+      .filter((e) => e.status === 'idle' && !attemptedUids.current.has(e.uid))
+      .forEach((e) => runUpload(e.file));
+  }, [entries, armed, manual, runUpload]);
+
+  useEffect(() => {
+    const emit = latestOnStatusChange.current;
+    if (!emit || !tracking) return;
+    emit(entries.map(({ file, status, percent }) => ({ file, status, percent })));
+  }, [entries, tracking]);
+
+  // Imperative surface: `ref.current?.upload()/uploadAll()/abort()/clear()`.
+  // The methods only drive state, controllers and the value channel, so
+  // every exit path stays single-sourced with the UI actions.
+  useImperativeHandle(
+    ref,
+    () => ({
+      upload: (file?: File) => {
+        if (file !== undefined) {
+          runUpload(file);
+          return;
+        }
+        entriesRef.current
+          .filter((e) => e.status === 'idle' || e.status === 'error')
+          .forEach((e) => runUpload(e.file));
+      },
+      uploadAll: () => {
+        entriesRef.current
+          .filter((e) => e.status !== 'uploading')
+          .forEach((e) => runUpload(e.file));
+      },
+      abort: () => {
+        controllers.current.forEach((controller) => controller.abort());
+      },
+      clear: () => {
+        controllers.current.forEach((controller) => controller.abort());
+        controllers.current.clear();
+        if (mountedRef.current) latestOnChange.current([]);
+      },
+    }),
+    [runUpload]
+  );
+
+  const abortEntry = useCallback((file: File) => {
+    const entry = entriesRef.current.find((e) => e.file === file);
+    if (entry) controllers.current.get(entry.uid)?.abort();
+  }, []);
+
+  // Remove/cancel both abort an in-flight upload and drop the file
+  // from the value; the sync effect then forgets its entry.
+  const removeFile = useCallback(
+    (file: File) => {
+      abortEntry(file);
+      if (!mountedRef.current) return;
+      onChange(latestValue.current.filter((f) => f !== file));
+    },
+    [abortEntry, onChange]
+  );
+
+  const retryFile = useCallback(
+    (file: File) => {
+      if (entriesRef.current.find((e) => e.file === file)?.status !== 'error') return;
+      runUpload(file);
+    },
+    [runUpload]
+  );
 
   const commit = useCallback(
     (picked: File[]) => {
@@ -229,44 +532,57 @@ export default function UploadCore({
   }, []);
 
   return (
-    <div
-      /* before {...rest}: an explicit aria-label prop wins over the
-         locale fallback so consumers can name the zone themselves */
-      aria-label={strings.label}
-      {...rest}
-      x-class={[zoneBase, droppable ? dropArea : clickArea, className]}
-      data-dragover={droppable && dragOver ? 'true' : undefined}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      onDrop={droppable ? handleDrop : undefined}
-      onDragOver={droppable ? handleDragOver : undefined}
-      onDragEnter={droppable ? handleDragEnter : undefined}
-      onDragLeave={droppable ? handleDragLeave : undefined}
-      role="button"
-      tabIndex={0}
-    >
-      <input
-        ref={inputRef}
-        x-class={[hiddenInput]}
-        type="file"
-        accept={accept}
-        multiple={multiple}
-        onChange={handleChange}
-        // implementation detail of the dropzone (role="button"): hide it
-        // from a11y tree and tab order; input.click() still opens the dialog
-        hidden
-      />
-      {children || (
-        <>
-          <svg x-class={[iconStyle]} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
-          <div>{droppable ? strings.hint : strings.clickHint}</div>
-        </>
+    <>
+      <div
+        /* before {...rest}: an explicit aria-label prop wins over the
+           locale fallback so consumers can name the zone themselves */
+        aria-label={strings.label}
+        {...rest}
+        x-class={[zoneBase, droppable ? dropArea : clickArea, className]}
+        data-dragover={droppable && dragOver ? 'true' : undefined}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        onDrop={droppable ? handleDrop : undefined}
+        onDragOver={droppable ? handleDragOver : undefined}
+        onDragEnter={droppable ? handleDragEnter : undefined}
+        onDragLeave={droppable ? handleDragLeave : undefined}
+        role="button"
+        tabIndex={0}
+      >
+        <input
+          ref={inputRef}
+          x-class={[hiddenInput]}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={handleChange}
+          // implementation detail of the dropzone (role="button"): hide it
+          // from a11y tree and tab order; input.click() still opens the dialog
+          hidden
+        />
+        {children || (
+          <>
+            <svg x-class={[iconStyle]} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <div>{droppable ? strings.hint : strings.clickHint}</div>
+          </>
+        )}
+      </div>
+      {listEnabled && entries.length > 0 && (
+        <UploadList
+          entries={entries}
+          itemRender={
+            typeof showUploadList === 'object' ? showUploadList.itemRender : undefined
+          }
+          onRemove={removeFile}
+          onRetry={retryFile}
+          onCancel={removeFile}
+        />
       )}
-    </div>
+    </>
   );
 }
 

@@ -1,4 +1,8 @@
-import type { ComponentPropsWithoutRef, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type {
+  ComponentPropsWithoutRef,
+  KeyboardEvent as ReactKeyboardEvent,
+  Ref,
+} from 'react';
 
 import { css } from '@linaria/core';
 
@@ -35,6 +39,11 @@ type SliderCoreProps = {
    * step, disabled, …) apply to both inputs.
    */
   'aria-label'?: string | [string, string];
+  /**
+   * Forwarded to the `<input type='range'>` — the only input in single
+   * mode, the low thumb (first tab stop) in range mode.
+   */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<
   ComponentPropsWithoutRef<'input'>,
   'type' | 'value' | 'onChange' | 'aria-label'
@@ -210,6 +219,7 @@ export default function SliderCore({
   className,
   onKeyDown,
   'aria-label': ariaLabel,
+  ref,
   ...rest
 }: SliderCoreProps) {
   if (!range) {
@@ -221,6 +231,7 @@ export default function SliderCore({
     const singleLabel = ariaLabel as string | undefined;
     return (
       <input
+        ref={ref}
         type='range'
         x-class={[base, className]}
         value={single}
@@ -279,6 +290,7 @@ export default function SliderCore({
         style={{ insetInlineStart: `${fillStart}%`, width: `${fillWidth}%` }}
       />
       <input
+        ref={ref}
         type='range'
         x-class={[base, rangeInput]}
         value={low}

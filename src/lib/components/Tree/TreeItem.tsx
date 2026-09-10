@@ -25,6 +25,11 @@ type TreeItemProps = {
   titleRender?: (node: TreeNodeData) => ReactNode;
   iconRender?: (node: TreeNodeData) => ReactNode;
   isLast: boolean[];
+  /**
+   * Roving-tabindex stop (WAI-ARIA tree pattern): `0` on the row that
+   * owns the tree's single tab stop, `-1` on every other row.
+   */
+  tabIndex: 0 | -1;
   onToggle: () => void;
   onSelect: () => void;
   onCheck: () => void;
@@ -267,6 +272,7 @@ export default function TreeItem({
   titleRender,
   iconRender,
   isLast,
+  tabIndex,
   onToggle,
   onSelect,
   onCheck,
@@ -289,6 +295,8 @@ export default function TreeItem({
     <div>
       <div
         role='treeitem'
+        tabIndex={tabIndex}
+        data-tree-key={node.key}
         aria-selected={selected}
         aria-expanded={isLeaf ? undefined : expanded}
         aria-level={level + 1}

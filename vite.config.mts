@@ -109,8 +109,14 @@ const buildConfig = (() => {
           'react-use-control',
           '@native-router/react',
           '@for-fun/event-emitter',
-          // peer dependency — consumers bring their own copy
+          // regular dependency (haze-ui's form engine, same-author library)
+          // — external so its CJS interop never leaks a `require()` call
+          // into the pure-ESM dist; the resolver subpaths are re-exported
+          // from haze-ui/form and follow the same rule
           'react-f0rm',
+          'react-f0rm/resolvers/standard-schema',
+          'react-f0rm/resolvers/zod',
+          'react-f0rm/resolvers/yup',
           // optional peer dependency (DataTable's engine) — kept external so
           // its CJS interop never leaks a `require()` call into the
           // pure-ESM dist (the Node ESM contract test imports dist/index.js

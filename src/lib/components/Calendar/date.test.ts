@@ -1,6 +1,20 @@
 import type { CalendarCell } from './date';
 
-import { addMonths, buildMonthCells, formatDate, getDaysInMonth, getISOWeekNumber, getLeadingDays, parseCivilDate } from './date';
+import {
+  addMonths,
+  buildMonthCells,
+  formatDate,
+  formatMonthValue,
+  formatQuarterValue,
+  formatYearValue,
+  getDaysInMonth,
+  getISOWeekNumber,
+  getLeadingDays,
+  parseCivilDate,
+  parseMonthValue,
+  parseQuarterValue,
+  parseYearValue,
+} from './date';
 
 /* Time-zone control: Node on POSIX/glibc re-reads process.env.TZ before the
    next Date operation (verified experimentally on Node 24 / Fedora: setting
@@ -541,5 +555,73 @@ describe('Calendar date math', () => {
         }
       });
     });
+  });
+});
+
+describe('picker-mode value serialization', () => {
+  describe('month values', () => {
+    it('round-trips every month of a year, zero-padded', () => {
+      for (const month of range(0, 11)) {
+        const value = formatMonthValue(2026, month);
+        expect(value).toBe(`2026-${String(month + 1).padStart(2, '0')}`);
+        expect(parseMonthValue(value)).toEqual({ year: 2026, month });
+      }
+      // Negative years and year carry stay pure string math.
+      expect(formatMonthValue(-5, 11)).toBe('-5-12');
+      expect(parseMonthValue('-5-12')).toBeNull();
+    });
+
+    it('rejects anything that is not a real YYYY-MM month', () => {
+      expect(parseMonthValue('2026-13')).toBeNull();
+      expect(parseMonthValue('2026-00')).toBeNull();
+      expect(parseMonthValue('2026-3')).toBeNull();
+      expect(parseMonthValue('2026-03-15')).toBeNull();
+      expect(parseMonthValue('202603')).toBeNull();
+      expect(parseMonthValue('')).toBeNull();
+    });
+  });
+
+  describe('quarter values', () => {
+    it('round-trips every quarter, 1-based', () => {
+      for (const quarter of range(1, 4)) {
+        const value = formatQuarterValue(2026, quarter);
+        expect(value).toBe(`2026-Q${quarter}`);
+        expect(parseQuarterValue(value)).toEqual({ year: 2026, quarter });
+      }
+    });
+
+    it('rejects out-of-range and differently shaped quarters', () => {
+      expect(parseQuarterValue('2026-Q0')).toBeNull();
+      expect(parseQuarterValue('2026-Q5')).toBeNull();
+      expect(parseQuarterValue('2026-q2')).toBeNull();
+      expect(parseQuarterValue('2026-Q')).toBeNull();
+      expect(parseQuarterValue('2026-2')).toBeNull();
+    });
+  });
+
+  describe('year values', () => {
+    it('round-trips a four-digit year', () => {
+      expect(formatYearValue(2026)).toBe('2026');
+      expect(parseYearValue('2026')).toEqual({ year: 2026 });
+    });
+
+    it('rejects non-four-digit years', () => {
+      expect(parseYearValue('20266')).toBeNull();
+      expect(parseYearValue('226')).toBeNull();
+      expect(parseYearValue('2026-01')).toBeNull();
+    });
+  });
+
+  it('keeps each mode strict about the other modes serializations', () => {
+    // A date value is not a month value is not a quarter value — the
+    // formats never cross-accept, so a Calendar in one mode ignores a
+    // value authored for another.
+    expect(parseMonthValue('2026-03-15')).toBeNull();
+    expect(parseMonthValue('2026-Q1')).toBeNull();
+    expect(parseQuarterValue('2026-03')).toBeNull();
+    expect(parseYearValue('2026-03')).toBeNull();
+    expect(parseCivilDate('2026-03')).toBeNull();
+    expect(parseCivilDate('2026-Q1')).toBeNull();
+    expect(parseCivilDate('2026')).toBeNull();
   });
 });

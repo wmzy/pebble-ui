@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/collapsible.css';
 
 export { Collapsible, CollapsibleTrigger, CollapsibleContent };
-export type { CollapsibleProps, CollapsibleTriggerProps, CollapsibleContentProps } from 'haze-ui';
+export type { CollapsibleProps, CollapsibleTriggerProps, CollapsibleContentProps, CollapsibleClassNames } from 'haze-ui';

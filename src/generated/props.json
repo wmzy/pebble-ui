@@ -434,7 +434,9 @@
       "routeKey": "badge",
       "cssFamily": "badge",
       "imports": [
-        "Badge"
+        "Badge",
+        "badgeVariants",
+        "badgeSizes"
       ],
       "propsTypes": {
         "BadgeProps": [
@@ -606,7 +608,9 @@
       "cssFamily": "button",
       "imports": [
         "Button",
-        "ButtonLink"
+        "ButtonLink",
+        "buttonVariants",
+        "buttonSizes"
       ],
       "propsTypes": {
         "ButtonLinkProps": [
@@ -655,6 +659,11 @@
       "propsTypes": {
         "CalendarProps": [
           {
+            "name": "picker",
+            "type": "CalendarPickerMode",
+            "required": false
+          },
+          {
             "name": "value",
             "type": "ControlOrValue<string>",
             "required": false
@@ -667,6 +676,11 @@
           {
             "name": "max",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "disabledDate",
+            "type": "(date: Date) => boolean",
             "required": false
           },
           {
@@ -832,6 +846,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
+            "required": false
           }
         ]
       },
@@ -908,6 +927,11 @@
             "required": false
           },
           {
+            "name": "unreadLabel",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -932,6 +956,16 @@
           {
             "name": "onSend",
             "type": "(message: string) => void",
+            "required": false
+          },
+          {
+            "name": "generating",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onStop",
+            "type": "() => void",
             "required": false
           },
           {
@@ -992,6 +1026,16 @@
             "required": false
           },
           {
+            "name": "copyable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "actions",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
             "name": "children",
             "type": "ReactNode",
             "required": true
@@ -1038,6 +1082,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "CheckboxProps": [
@@ -1049,6 +1098,11 @@
           {
             "name": "label",
             "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
             "required": false
           }
         ]
@@ -1157,6 +1211,11 @@
             "required": false
           },
           {
+            "name": "classNames",
+            "type": "CollapsibleClassNames",
+            "required": false
+          },
+          {
             "name": "children",
             "type": "ReactNode",
             "required": true
@@ -1210,6 +1269,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "ColorPickerProps": [
@@ -1232,6 +1296,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ]
       },
@@ -1242,9 +1311,27 @@
       "cssFamily": "combobox",
       "imports": [
         "Combobox",
-        "ComboboxOption"
+        "ComboboxOption",
+        "ComboboxGroup"
       ],
       "propsTypes": {
+        "ComboboxGroupProps": [
+          {
+            "name": "label",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
         "ComboboxOptionProps": [
           {
             "name": "value",
@@ -1264,6 +1351,11 @@
           {
             "name": "id",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLDivElement>",
             "required": false
           },
           {
@@ -1295,7 +1387,7 @@
         "ComboboxProps": [
           {
             "name": "value",
-            "type": "ControlOrValue<string>",
+            "type": "ControlOrValue<string | string[]>",
             "required": false
           },
           {
@@ -1305,8 +1397,48 @@
           },
           {
             "name": "options",
-            "type": "{ value: string; label: string; }[]",
+            "type": "ComboboxOptionData[]",
             "required": true
+          },
+          {
+            "name": "multiple",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onValuesChange",
+            "type": "(value: string | string[]) => void",
+            "required": false
+          },
+          {
+            "name": "creatable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onCreate",
+            "type": "(query: string) => void",
+            "required": false
+          },
+          {
+            "name": "loading",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "highlightMatches",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "empty",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "maxHeight",
+            "type": "number",
+            "required": false
           },
           {
             "name": "placeholder",
@@ -1327,6 +1459,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ]
       },
@@ -1339,9 +1476,65 @@
         "Command",
         "CommandInput",
         "CommandList",
-        "CommandItem"
+        "CommandItem",
+        "CommandGroup",
+        "CommandDialog"
       ],
       "propsTypes": {
+        "CommandDialogProps": [
+          {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "onOpenChange",
+            "type": "(open: boolean) => void",
+            "required": false
+          },
+          {
+            "name": "hotkey",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "title",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "CommandGroupProps": [
+          {
+            "name": "heading",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": false
+          }
+        ],
         "CommandInputProps": [
           {
             "name": "placeholder",
@@ -1352,6 +1545,28 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
+          }
+        ],
+        "CommandItemLikeProps": [
+          {
+            "name": "value",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "keywords",
+            "type": "readonly string[]",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": false
           }
         ],
         "CommandItemProps": [
@@ -1359,6 +1574,21 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          },
+          {
+            "name": "value",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "keywords",
+            "type": "readonly string[]",
+            "required": false
+          },
+          {
+            "name": "shortcut",
+            "type": "string",
+            "required": false
           },
           {
             "name": "className",
@@ -1378,6 +1608,11 @@
             "required": true
           },
           {
+            "name": "empty",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1387,6 +1622,16 @@
           {
             "name": "query",
             "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "shouldFilter",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onItemSelect",
+            "type": "() => void",
             "required": false
           },
           {
@@ -1640,9 +1885,66 @@
       "routeKey": "datatable",
       "cssFamily": "data-table",
       "imports": [
-        "DataTable"
+        "DataTable",
+        "dataTableSum",
+        "dataTableAvg",
+        "dataTableCount"
       ],
       "propsTypes": {
+        "CellEditorProps": [
+          {
+            "name": "kind",
+            "type": "'number' | 'text'",
+            "required": true
+          },
+          {
+            "name": "value",
+            "type": "unknown",
+            "required": true
+          },
+          {
+            "name": "ariaLabel",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "onSave",
+            "type": "(next: string | number | null) => void",
+            "required": true
+          },
+          {
+            "name": "onCancel",
+            "type": "() => void",
+            "required": true
+          }
+        ],
+        "DataTableCellEditorProps": [
+          {
+            "name": "value",
+            "type": "unknown",
+            "required": true
+          },
+          {
+            "name": "row",
+            "type": "{ id: string; index: number; depth: number; original: unknown; getValue: (columnId: string) => unknown; }",
+            "required": true
+          },
+          {
+            "name": "column",
+            "type": "{ id: string; }",
+            "required": true
+          },
+          {
+            "name": "onSave",
+            "type": "(value: unknown) => void",
+            "required": true
+          },
+          {
+            "name": "onCancel",
+            "type": "() => void",
+            "required": true
+          }
+        ],
         "DataTableProps": [
           {
             "name": "columns",
@@ -1735,6 +2037,11 @@
             "required": false
           },
           {
+            "name": "subRowsKey",
+            "type": "string",
+            "required": false
+          },
+          {
             "name": "columnVisibility",
             "type": "ControlOrValue<ColumnVisibilityState>",
             "required": false
@@ -1747,6 +2054,26 @@
           {
             "name": "filterable",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "summary",
+            "type": "(rows: Row<{ rowPaginationFeature: TableFeature; paginatedRowModel: (table: Table<any, any>) => () => RowModel<any, any>; rowSelectionFeature: TableFeature; ... 11 more ...; columnMeta: DataTableColumnMeta; }, TData>[]) => DataTableSummary<...>[]",
+            "required": false
+          },
+          {
+            "name": "stickyFooter",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "editable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onCellEdit",
+            "type": "(rowId: string, columnId: string, nextValue: unknown, prevValue: unknown) => void",
             "required": false
           },
           {
@@ -1798,6 +2125,16 @@
             "required": false
           },
           {
+            "name": "disabledDate",
+            "type": "(date: Date) => boolean",
+            "required": false
+          },
+          {
+            "name": "presets",
+            "type": "DateRangePickerPreset[]",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1832,6 +2169,16 @@
           {
             "name": "months",
             "type": "1 | 2",
+            "required": false
+          },
+          {
+            "name": "disabledDate",
+            "type": "(date: Date) => boolean",
+            "required": false
+          },
+          {
+            "name": "presets",
+            "type": "DateRangePickerPreset[]",
             "required": false
           },
           {
@@ -1873,6 +2220,11 @@
             "required": true
           },
           {
+            "name": "picker",
+            "type": "CalendarPickerMode",
+            "required": false
+          },
+          {
             "name": "min",
             "type": "string",
             "required": false
@@ -1880,6 +2232,16 @@
           {
             "name": "max",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "disabledDate",
+            "type": "(date: Date) => boolean",
+            "required": false
+          },
+          {
+            "name": "presets",
+            "type": "DatepickerPreset[]",
             "required": false
           },
           {
@@ -1900,6 +2262,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
             "required": false
           }
         ],
@@ -1915,6 +2282,11 @@
             "required": false
           },
           {
+            "name": "picker",
+            "type": "CalendarPickerMode",
+            "required": false
+          },
+          {
             "name": "min",
             "type": "string",
             "required": false
@@ -1922,6 +2294,16 @@
           {
             "name": "max",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "disabledDate",
+            "type": "(date: Date) => boolean",
+            "required": false
+          },
+          {
+            "name": "presets",
+            "type": "DatepickerPreset[]",
             "required": false
           },
           {
@@ -1942,6 +2324,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
             "required": false
           }
         ]
@@ -1974,6 +2361,11 @@
           {
             "name": "viewTransition",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "classNames",
+            "type": "DialogClassNames",
             "required": false
           },
           {
@@ -2692,6 +3084,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "InputProps": [
@@ -2703,6 +3100,11 @@
           {
             "name": "size",
             "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
             "required": false
           }
         ]
@@ -2908,6 +3310,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLTextAreaElement>",
+            "required": false
           }
         ],
         "MentionsProps": [
@@ -2939,6 +3346,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLTextAreaElement>",
             "required": false
           }
         ]
@@ -3200,6 +3612,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "NumberInputProps": [
@@ -3226,6 +3643,11 @@
           {
             "name": "size",
             "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
             "required": false
           }
         ]
@@ -3260,6 +3682,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "OTPInputProps": [
@@ -3281,6 +3708,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
             "required": false
           }
         ]
@@ -3357,6 +3789,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "PasswordInputProps": [
@@ -3384,6 +3821,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ]
       },
@@ -3410,6 +3852,11 @@
           {
             "name": "collisionPadding",
             "type": "CollisionPadding",
+            "required": false
+          },
+          {
+            "name": "classNames",
+            "type": "PopoverClassNames",
             "required": false
           },
           {
@@ -3574,6 +4021,11 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "RadioGroupProps": [
@@ -3596,6 +4048,11 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "RadioProps": [
@@ -3603,6 +4060,11 @@
             "name": "value",
             "type": "string",
             "required": true
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ]
       },
@@ -3641,6 +4103,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLSpanElement>",
+            "required": false
           }
         ],
         "RatingProps": [
@@ -3667,6 +4134,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLSpanElement>",
             "required": false
           }
         ]
@@ -3789,6 +4261,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
+            "required": false
           }
         ],
         "SegmentedProps": [
@@ -3816,6 +4293,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
+            "required": false
           }
         ]
       },
@@ -3827,9 +4309,22 @@
       "imports": [
         "Select",
         "SelectCore",
-        "Option"
+        "Option",
+        "OptionGroup"
       ],
       "propsTypes": {
+        "OptionGroupProps": [
+          {
+            "name": "label",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
         "OptionProps": [
           {
             "name": "value",
@@ -3869,6 +4364,26 @@
             "required": false
           },
           {
+            "name": "searchable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "clearable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "loading",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "maxTagCount",
+            "type": "number",
+            "required": false
+          },
+          {
             "name": "size",
             "type": "'sm' | 'md' | 'lg'",
             "required": false
@@ -3887,9 +4402,14 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement | HTMLSelectElement>",
+            "required": false
           }
         ],
-        "SelectMultipleProps": [
+        "SelectFloatingProps": [
           {
             "name": "value",
             "type": "string | string[]",
@@ -3897,12 +4417,17 @@
           },
           {
             "name": "onChange",
-            "type": "(value: string[]) => void",
+            "type": "(value: string | string[]) => void",
             "required": true
           },
           {
-            "name": "options",
-            "type": "SelectOptionData[]",
+            "name": "entries",
+            "type": "SelectEntryData[]",
+            "required": true
+          },
+          {
+            "name": "multiple",
+            "type": "boolean",
             "required": true
           },
           {
@@ -3916,6 +4441,26 @@
             "required": false
           },
           {
+            "name": "searchable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "clearable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "loading",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "maxTagCount",
+            "type": "number",
+            "required": false
+          },
+          {
             "name": "virtualized",
             "type": "boolean | SelectVirtualizedConfig",
             "required": false
@@ -3923,6 +4468,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
             "required": false
           }
         ],
@@ -3935,6 +4485,26 @@
           {
             "name": "multiple",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "searchable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "clearable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "loading",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "maxTagCount",
+            "type": "number",
             "required": false
           },
           {
@@ -3955,6 +4525,11 @@
           {
             "name": "size",
             "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement | HTMLSelectElement>",
             "required": false
           },
           {
@@ -4140,6 +4715,11 @@
             "name": "aria-label",
             "type": "string | [string, string]",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "SliderProps": [
@@ -4161,6 +4741,11 @@
           {
             "name": "aria-label",
             "type": "string | [string, string]",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
             "required": false
           }
         ]
@@ -4466,6 +5051,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
+            "required": false
           }
         ],
         "SwitchProps": [
@@ -4477,6 +5067,11 @@
           {
             "name": "size",
             "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
             "required": false
           }
         ]
@@ -4632,6 +5227,11 @@
           {
             "name": "value",
             "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "classNames",
+            "type": "TabsClassNames",
             "required": false
           },
           {
@@ -4798,6 +5398,11 @@
             "name": "aria-describedby",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "TagInputProps": [
@@ -4850,6 +5455,11 @@
             "name": "aria-describedby",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ]
       },
@@ -4888,6 +5498,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLTextAreaElement>",
+            "required": false
           }
         ],
         "TextareaProps": [
@@ -4899,6 +5514,11 @@
           {
             "name": "size",
             "type": "'sm' | 'md' | 'lg'",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLTextAreaElement>",
             "required": false
           }
         ]
@@ -4955,6 +5575,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
           }
         ],
         "TimePickerProps": [
@@ -4976,6 +5601,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
             "required": false
           }
         ]
@@ -5057,6 +5687,11 @@
             "name": "placement",
             "type": "ToastPlacement",
             "required": false
+          },
+          {
+            "name": "classNames",
+            "type": "ToastClassNames",
+            "required": false
           }
         ],
         "ToastProps": [
@@ -5079,6 +5714,11 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          },
+          {
+            "name": "classNames",
+            "type": "ToastClassNames",
+            "required": false
           }
         ]
       },
@@ -5122,6 +5762,11 @@
             "name": "className",
             "type": "string",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
+            "required": false
           }
         ],
         "ToggleProps": [
@@ -5138,6 +5783,11 @@
           {
             "name": "square",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
             "required": false
           }
         ]
@@ -5530,6 +6180,11 @@
             "required": false
           },
           {
+            "name": "virtualized",
+            "type": "boolean | TreeVirtualizedConfig",
+            "required": false
+          },
+          {
             "name": "expandedKeys",
             "type": "ControlOrValue<string[]>",
             "required": false
@@ -5751,6 +6406,51 @@
             "required": false
           },
           {
+            "name": "request",
+            "type": "UploadRequest",
+            "required": false
+          },
+          {
+            "name": "action",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "method",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "headers",
+            "type": "Record<string, string>",
+            "required": false
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "data",
+            "type": "Record<string, string | Blob>",
+            "required": false
+          },
+          {
+            "name": "manual",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showUploadList",
+            "type": "boolean | { itemRender?: UploadListItemRender | undefined; }",
+            "required": false
+          },
+          {
+            "name": "onStatusChange",
+            "type": "(files: UploadFileStatus[]) => void",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -5759,6 +6459,38 @@
             "name": "children",
             "type": "ReactNode",
             "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<UploadHandle>",
+            "required": false
+          }
+        ],
+        "UploadListProps": [
+          {
+            "name": "entries",
+            "type": "UploadEntry[]",
+            "required": true
+          },
+          {
+            "name": "itemRender",
+            "type": "UploadListItemRender",
+            "required": false
+          },
+          {
+            "name": "onRemove",
+            "type": "(file: File) => void",
+            "required": true
+          },
+          {
+            "name": "onRetry",
+            "type": "(file: File) => void",
+            "required": true
+          },
+          {
+            "name": "onCancel",
+            "type": "(file: File) => void",
+            "required": true
           }
         ],
         "UploadProps": [
@@ -5793,6 +6525,51 @@
             "required": false
           },
           {
+            "name": "request",
+            "type": "UploadRequest",
+            "required": false
+          },
+          {
+            "name": "action",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "method",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "headers",
+            "type": "Record<string, string>",
+            "required": false
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "data",
+            "type": "Record<string, string | Blob>",
+            "required": false
+          },
+          {
+            "name": "manual",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showUploadList",
+            "type": "boolean | { itemRender?: UploadListItemRender | undefined; }",
+            "required": false
+          },
+          {
+            "name": "onStatusChange",
+            "type": "(files: UploadFileStatus[]) => void",
+            "required": false
+          },
+          {
             "name": "onChange",
             "type": "(files: File[]) => void",
             "required": false
@@ -5805,6 +6582,11 @@
           {
             "name": "children",
             "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<UploadHandle>",
             "required": false
           }
         ]
@@ -5852,6 +6634,11 @@
           {
             "name": "overscan",
             "type": "number",
+            "required": false
+          },
+          {
+            "name": "reverse",
+            "type": "boolean",
             "required": false
           },
           {

@@ -47,6 +47,7 @@ export const RSC_SAFE_MODULES = new Set([
   'components/AspectRatio/index.ts',
   'components/Badge/Badge.tsx',
   'components/Badge/index.ts',
+  'components/Badge/badge-styles.ts',
   'components/Card/Card.tsx',
   'components/Card/index.ts',
   'components/CodeBlock/CodeBlock.tsx',

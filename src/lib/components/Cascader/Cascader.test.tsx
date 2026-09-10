@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
@@ -451,5 +452,15 @@ describe('Cascader', () => {
       });
       expect(results.violations).toEqual([]);
     });
+  });
+});
+
+describe('Cascader ref forwarding', () => {
+  it('forwards ref to the trigger button', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(<Cascader ref={ref} options={[]} />);
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

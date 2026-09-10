@@ -502,12 +502,233 @@ describe('VirtualList', () => {
     });
   });
 
+  describe('reverse', () => {
+    // The stick-to-bottom glue reads scrollHeight during the mount
+    // effect, before the element is reachable — so the metric is mocked
+    // on the prototype (configurable per test via mockReturnValue).
+    let scrollHeightSpy: MockInstance;
+
+    beforeEach(() => {
+      // jsdom owns scrollHeight's getter on Element.prototype.
+      scrollHeightSpy = vi
+        .spyOn(Element.prototype, 'scrollHeight', 'get')
+        .mockReturnValue(4000);
+    });
+
+    afterEach(() => {
+      scrollHeightSpy.mockRestore();
+    });
+
+    it('parks at the bottom on mount and anchors index 0 there', () => {
+      const { container } = render(
+        <VirtualList
+          reverse
+          items={items}
+          height={200}
+          itemHeight={40}
+          overscan={0}
+          renderItem={renderItem}
+        />,
+      );
+      const port = getScrollport(container);
+      // maxScroll = 4000 − 200; the newest rows (0–4) fill the window.
+      expect(port.scrollTop).toBe(3800);
+      expect(rowIndexes(container)).toEqual([0, 1, 2, 3, 4]);
+
+      const row0 = getViewport(container).querySelector<HTMLElement>(
+        '[data-index="0"]',
+      );
+      expect(row0!.style.bottom).toBe('0px');
+      expect(row0!.style.top).toBe('');
+      expect(getViewport(container).style.height).toBe('4000px');
+    });
+
+    it('measures the visible window from the bottom edge', () => {
+      const { container } = render(
+        <VirtualList
+          reverse
+          items={items}
+          height={200}
+          itemHeight={40}
+          overscan={0}
+          renderItem={renderItem}
+        />,
+      );
+      const port = getScrollport(container);
+      // Bottom-distance 400 ⇔ top-origin scrollTop 3800 − 400 = 3400.
+      scrollToList(port, 3400);
+      expect(rowIndexes(container)).toEqual([10, 11, 12, 13, 14]);
+
+      const row10 = getViewport(container).querySelector<HTMLElement>(
+        '[data-index="10"]',
+      );
+      expect(row10!.style.bottom).toBe('400px');
+    });
+
+    it('mirrors scrollToIndex alignments (index 0 at the bottom)', () => {
+      const ref = createRef<VirtualListHandle>();
+      const { container } = render(
+        <VirtualList
+          ref={ref}
+          reverse
+          items={items}
+          height={200}
+          itemHeight={40}
+          renderItem={renderItem}
+        />,
+      );
+      const port = getScrollport(container);
+
+      // R = 2000 → S = 3800 − 2000.
+      act(() => ref.current!.scrollToIndex(50, 'start'));
+      expect(port.scrollTop).toBe(1800);
+
+      act(() => ref.current!.scrollToIndex(50, 'center'));
+      expect(port.scrollTop).toBe(1880);
+
+      act(() => ref.current!.scrollToIndex(50, 'end'));
+      expect(port.scrollTop).toBe(1960);
+
+      // Index 0 pins to the viewport bottom: glued to the newest row.
+      act(() => ref.current!.scrollToIndex(0, 'start'));
+      expect(port.scrollTop).toBe(3800);
+
+      // Row 99's bottom-space (3960) exceeds maxScroll — clamped, which
+      // in mirror space is the top edge of the list.
+      act(() => ref.current!.scrollToIndex(99, 'start'));
+      expect(port.scrollTop).toBe(0);
+    });
+
+    it('auto alignment no-ops for rows already visible', () => {
+      const ref = createRef<VirtualListHandle>();
+      const { container } = render(
+        <VirtualList
+          ref={ref}
+          reverse
+          items={items}
+          height={200}
+          itemHeight={40}
+          overscan={0}
+          renderItem={renderItem}
+        />,
+      );
+      const port = getScrollport(container);
+      // Rows 10–14 fill the window at bottom-distance 400.
+      scrollToList(port, 3400);
+      act(() => ref.current!.scrollToIndex(12));
+      expect(port.scrollTop).toBe(3400);
+    });
+
+    it('follows prepends while parked at the bottom', () => {
+      scrollHeightSpy.mockReturnValue(4000);
+      const { container, rerender } = render(
+        <VirtualList
+          reverse
+          items={items}
+          height={200}
+          itemHeight={40}
+          overscan={0}
+          renderItem={renderItem}
+        />,
+      );
+      const port = getScrollport(container);
+      expect(port.scrollTop).toBe(3800);
+
+      // A new newest message grows the content upward from the bottom.
+      scrollHeightSpy.mockReturnValue(4040);
+      rerender(
+        <VirtualList
+          reverse
+          items={['Item new', ...items]}
+          height={200}
+          itemHeight={40}
+          overscan={0}
+          renderItem={renderItem}
+        />,
+      );
+      expect(port.scrollTop).toBe(3840);
+      // The prepended item occupies the bottom slot.
+      expect(rowIndexes(container)).toEqual([0, 1, 2, 3, 4]);
+      expect(screen.getByText('Item new')).toBeInTheDocument();
+    });
+
+    it('keeps the reading position when content grows while scrolled up', () => {
+      scrollHeightSpy.mockReturnValue(4000);
+      const { container, rerender } = render(
+        <VirtualList
+          reverse
+          items={items}
+          height={200}
+          itemHeight={40}
+          overscan={0}
+          renderItem={renderItem}
+        />,
+      );
+      const port = getScrollport(container);
+      // Scroll up: bottom-distance 1400 parks the follow.
+      scrollToList(port, 2400);
+
+      scrollHeightSpy.mockReturnValue(4040);
+      rerender(
+        <VirtualList
+          reverse
+          items={['Item new', ...items]}
+          height={200}
+          itemHeight={40}
+          overscan={0}
+          renderItem={renderItem}
+        />,
+      );
+      expect(port.scrollTop).toBe(2400);
+    });
+
+    it('pins group headers to the viewport bottom edge', () => {
+      const groups = [
+        { startIndex: 0, key: 'a', render: () => 'Group A' },
+        { startIndex: 10, key: 'b', render: () => 'Group B' },
+      ];
+      const { container } = render(
+        <VirtualList
+          reverse
+          items={items}
+          height={200}
+          itemHeight={40}
+          groups={groups}
+          renderItem={renderItem}
+        />,
+      );
+      const port = getScrollport(container);
+
+      // Glued at the bottom: group A's header at its natural offset 0.
+      const headerA = container.querySelector<HTMLElement>(
+        '[data-group-key="a"]',
+      );
+      expect(headerA!.style.bottom).toBe('0px');
+
+      // Bottom-distance 460: group B (400–2000 bottom-space) pins to the
+      // viewport bottom edge at 460; A is fully scrolled past (above it).
+      scrollToList(port, 3800 - 460);
+      expect(container.querySelector('[data-group-key="a"]')).toBeNull();
+      const headerB = container.querySelector<HTMLElement>(
+        '[data-group-key="b"]',
+      );
+      expect(headerB!.style.bottom).toBe('460px');
+    });
+  });
+
   it('has no axe violations', async () => {
     const { axe } = await import('jest-axe');
     render(
       <>
         <VirtualList
           items={items}
+          height={200}
+          itemHeight={40}
+          renderItem={renderItem}
+        />
+        <VirtualList
+          reverse
+          items={items.slice(0, 10)}
           height={200}
           itemHeight={40}
           renderItem={renderItem}

@@ -16,10 +16,10 @@
 // 'use client' directive, so imports resolve cleanly from RSC; the
 // wrapper inherits client semantics either way.
 
-import { Command, CommandInput, CommandList, CommandItem } from 'haze-ui';
+import { Command, CommandInput, CommandList, CommandItem, CommandGroup, CommandDialog } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/command.css';
 
-export { Command, CommandInput, CommandList, CommandItem };
-export type { CommandProps, CommandInputProps, CommandListProps, CommandItemProps } from 'haze-ui';
+export { Command, CommandInput, CommandList, CommandItem, CommandGroup, CommandDialog };
+export type { CommandProps, CommandInputProps, CommandListProps, CommandItemProps, CommandGroupProps, CommandDialogProps } from 'haze-ui';

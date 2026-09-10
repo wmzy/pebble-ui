@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useControl } from 'react-use-control';
 
@@ -271,6 +271,66 @@ function ChatAttachmentBridgeDemo() {
   );
 }
 
+function ChatStopDemo() {
+  const [messages, setMessages] = useState<string[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+    },
+    []
+  );
+
+  const send = (message: string) => {
+    setMessages((prev) => [...prev, `You: ${message}`]);
+    setGenerating(true);
+    // Deterministic canned reply — same input, same transcript.
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      setMessages((prev) => [
+        ...prev,
+        'Assistant: here is the (scripted) rest of that answer.',
+      ]);
+      setGenerating(false);
+    }, 2000);
+  };
+
+  const stop = () => {
+    if (timerRef.current !== null) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    setMessages((prev) => [...prev, 'Assistant: — generation stopped.']);
+    setGenerating(false);
+  };
+
+  return (
+    <div style={{ maxWidth: 480 }}>
+      <ChatInput
+        generating={generating}
+        onSend={send}
+        onStop={stop}
+        placeholder={
+          generating ? 'Generating — Enter or ⏹ stops…' : 'Type a message...'
+        }
+      />
+      {messages.length > 0 && (
+        <div
+          style={{
+            marginTop: 'var(--haze-space-3)',
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+          }}
+        >
+          {messages.map((m, i) => (
+            <div key={i}>{m}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── ChatInput ────────────────────────────────────────────────
 export default function ChatInputDemo() {
   const [messages, setMessages] = useState<string[]>([]);
@@ -301,6 +361,21 @@ export default function ChatInputDemo() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className={section}>
+        <h2>Stop generation</h2>
+        <ChatStopDemo />
+        <p className={dataTableNote}>
+          <code>generating</code> swaps the send control for a stop control:
+          the glyph and <code>aria-label</code> flip to the{' '}
+          <code>chat.stopGeneration</code> string, the button stays enabled
+          regardless of the draft, and both clicking it and pressing{' '}
+          <strong>Enter</strong> call <code>onStop</code> instead of{' '}
+          <code>onSend</code> (stopping never clears the composer — the draft
+          survives). Here a 2s scripted reply plays the role of the model;
+          stopping cancels it.
+        </p>
       </div>
 
       <div className={section}>
@@ -343,11 +418,13 @@ export default function ChatInputDemo() {
         <A11yNote>
           <ul>
             <li>
-              Send button has <strong>aria-label=&quot;Send&quot;</strong>
+              Send button has <strong>aria-label=&quot;Send&quot;</strong>;
+              while <code>generating</code> it becomes a stop control labeled
+              by the <strong>chat.stopGeneration</strong> string
             </li>
             <li>
-              <strong>Enter</strong> sends, <strong>Shift+Enter</strong> inserts
-              newline
+              <strong>Enter</strong> sends (or stops mid-generation),
+              <strong>Shift+Enter</strong> inserts newline
             </li>
             <li>
               Focus ring appears on <strong>:focus-within</strong>

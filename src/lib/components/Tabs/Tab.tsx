@@ -41,7 +41,7 @@ const active = css`
 `;
 
 export default function Tab({ value, className, children }: TabProps) {
-  const { value: current, setValue } = useTabsContext();
+  const { value: current, setValue, classNames } = useTabsContext();
   const isActive = current === value;
 
   return (
@@ -55,7 +55,7 @@ export default function Tab({ value, className, children }: TabProps) {
       // page tab order.
       tabIndex={isActive ? 0 : -1}
       data-haze-tab-value={value}
-      x-class={[base, isActive && active, className]}
+      x-class={[base, isActive && active, className, classNames?.tab]}
       onClick={() => setValue(value)}
     >
       {children}

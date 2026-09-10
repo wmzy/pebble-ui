@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -6,6 +6,9 @@ import { useRadioContext } from './RadioContext';
 
 type RadioProps = {
   value: string;
+  /** Forwarded to the radio `<input>` (not the label wrapper) — form
+   * bridges and `ref.current.focus()` reach. */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<
   ComponentPropsWithoutRef<'input'>,
   'type' | 'value' | 'name' | 'checked' | 'onChange'
@@ -71,6 +74,7 @@ export default function Radio({
   value,
   className,
   children,
+  ref,
   ...rest
 }: RadioProps & { children?: React.ReactNode }) {
   const ctx = useRadioContext();
@@ -78,6 +82,7 @@ export default function Radio({
   return (
     <label x-class={[labelStyle, className]}>
       <input
+        ref={ref}
         type='radio'
         className={radioInput}
         name={ctx?.name}

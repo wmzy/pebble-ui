@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -11,6 +11,9 @@ type ToggleProps = {
   size?: 'sm' | 'md' | 'lg';
   /** Equal padding on all sides — for icon-only square toggles. */
   square?: boolean;
+  /** Forwarded to the underlying `<button>` — form bridges and
+   * `ref.current.focus()` reach. */
+  ref?: Ref<HTMLButtonElement>;
 } & Omit<ComponentPropsWithoutRef<'button'>, 'type' | 'aria-pressed'>;
 
 /**
@@ -24,12 +27,14 @@ export default function Toggle({
   square,
   className,
   onClick,
+  ref,
   ...rest
 }: ToggleProps) {
   const [pressed, setPressed] = useControl(pressedControl, false);
 
   return (
     <ToggleCore
+      ref={ref}
       pressed={pressed}
       onPressedChange={setPressed}
       onNativeClick={onClick}

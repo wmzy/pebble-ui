@@ -14,7 +14,16 @@ import type {
 import {act, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import {Form, createForm, getError, getValue, reset, setValue} from 'react-f0rm';
+import {
+  Form,
+  createForm,
+  getError,
+  getFieldErrors,
+  getValue,
+  reset,
+  setFocus,
+  setValue
+} from 'react-f0rm';
 
 import {CheckboxCore} from '../components/Checkbox';
 import {InputCore} from '../components/Input';
@@ -280,12 +289,22 @@ describe('FormItem', () => {
     expect(input).toHaveValue('seeded');
     expect(getValue(form, 'name')).toBe('seeded');
 
-    // reset() without values is react-f0rm's "clear to nothing"
-    // (form.initialValues becomes undefined → field value undefined);
-    // the binding forwards that as-is.
+    // reset() without values is react-f0rm 1.3's "undo everything"
+    // shape: the form keeps its current initialValues — the baseline the
+    // previous reset(form, newValues) installed — so every field returns
+    // to it. Typing over the seed then undoing proves the round-trip
+    // without remounting.
+    await user.type(input, 'more');
+    expect(input).toHaveValue('seededmore');
     act(() => reset(form));
-    expect(probe).toHaveTextContent('undefined:undefined');
-    expect(getValue(form, 'name')).toBeUndefined();
+    expect(probe).toHaveTextContent('string:seeded');
+    expect(getValue(form, 'name')).toBe('seeded');
+
+    // reset(form, undefined) is the same undo against the current
+    // baseline; a fresh baseline only comes from passing new values.
+    act(() => reset(form, {name: '', email: ''}));
+    expect(probe).toHaveTextContent('string:');
+    expect(getValue(form, 'name')).toBe('');
   });
 
   it('mode="onBlur" validates on blur; without mode validation waits for submit', async () => {
@@ -435,14 +454,25 @@ describe('FormItem', () => {
       rules: {required: 'email is required', minLength: 4}
     });
 
-    // empty value: required fails and lands first in the merged errors —
-    // rules errors precede the field validator's own error
+    // empty value: required fails and lands first — and short-circuits
+    // the rest of the kick, skipping the field validator entirely
+    // (react-f0rm 1.3: a failing `required` reports only itself, the
+    // async check never sees an empty value)
     act(() => setValue(form, 'email', '', {shouldValidate: true}));
     const first = getError(form, 'email')!;
     expect(first.type).toBe('required');
     expect(first.message).toBe('email is required');
     expect(screen.getByRole('alert')).toHaveTextContent('email is required');
-    // the field validator still ran — react-f0rm merges both sources
+    expect(validate).not.toHaveBeenCalled();
+
+    // at 3 chars required passes but minLength fails — non-required
+    // rules compose with the validator: both sources' errors merge,
+    // rules ahead
+    act(() => setValue(form, 'email', 'abc', {shouldValidate: true}));
+    const errors = getFieldErrors(form, 'email');
+    // 'custom' is react-f0rm's error kind for a plain string return from
+    // the field validator (vs rule-typed errors like 'minLength')
+    expect(errors.map((e) => e.type)).toEqual(['minLength', 'custom']);
     expect(validate).toHaveBeenCalledTimes(1);
 
     // at 4 chars the rules pass; only the validator's error remains
@@ -1279,4 +1309,68 @@ describe('FormItem', () => {
     });
     expect(results.violations).toEqual([]);
   });
+
+  describe('focus channel (react-f0rm focusRef)', () => {
+    it('setFocus focuses the as-channel control', () => {
+      const form = createForm({initialValues: {name: ''}});
+      render(
+        <FormItem form={form} name='name' label='Name' as={InputCore} />
+      );
+
+      act(() => setFocus(form, 'name'));
+      expect(document.activeElement).toBe(screen.getByLabelText('Name'));
+    });
+
+    it('setFocus focuses the render-prop control wired through binding.focusRef', () => {
+      const form = createForm({initialValues: {name: ''}});
+      render(
+        <FormItem form={form} name='name' label='Name'>
+          {({id, value, onChange, focusRef}) => (
+            <InputCore
+              id={id}
+              data-testid='name-input'
+              value={value}
+              onChange={onChange}
+              ref={focusRef}
+            />
+          )}
+        </FormItem>
+      );
+
+      act(() => setFocus(form, 'name'));
+      expect(document.activeElement).toBe(screen.getByTestId('name-input'));
+    });
+
+    it('auto-focuses the first errored field on a failed submit', async () => {
+      const user = userEvent.setup();
+      const form = createForm({initialValues: {name: '', email: ''}});
+      render(
+        <Form form={form} onSubmit={() => undefined}>
+          <FormItem
+            form={form}
+            name='name'
+            label='Name'
+            as={InputCore}
+            validate={(v) => (v ? undefined : 'required')}
+          />
+          <FormItem
+            form={form}
+            name='email'
+            label='Email'
+            as={InputCore}
+            validate={(v) => (v ? undefined : 'required')}
+          />
+          <button type='submit'>Submit</button>
+        </Form>
+      );
+
+      await user.click(screen.getByRole('button', {name: 'Submit'}));
+      expect(screen.getByLabelText('Name')).toHaveAttribute(
+        'aria-invalid',
+        'true'
+      );
+      expect(document.activeElement).toBe(screen.getByLabelText('Name'));
+    });
+  });
 });
+

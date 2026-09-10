@@ -1,9 +1,10 @@
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, Ref } from 'react';
 
 import { css } from '@linaria/core';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { getDirection } from '../../utils/direction';
+import { mergeRefs } from '../../utils/refs';
 import { useStrings } from '../LocaleProvider';
 import { formatString } from '../LocaleProvider/locale';
 
@@ -13,6 +14,11 @@ type RatingCoreProps = {
   count?: number;
   allowHalf?: boolean;
   className?: string;
+  /**
+   * Forwarded to the group's focus target — the star that is the roving
+   * tab stop (the current rating, or the first star).
+   */
+  ref?: Ref<HTMLSpanElement>;
 };
 
 const container = css`
@@ -52,10 +58,17 @@ export default function RatingCore({
   count = 5,
   allowHalf = false,
   className,
+  ref,
 }: RatingCoreProps) {
   const [hoverValue, setHoverValue] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const strings = useStrings('rating');
+  // The consumer's ref rides the current roving tab-stop star; as the
+  // rating moves, the ref detaches and re-attaches to the new stop.
+  const attachStop = useCallback(
+    (node: HTMLSpanElement | null) => mergeRefs(ref)(node),
+    [ref]
+  );
 
   const handleClick = (index: number) => {
     onChange(index + 1);
@@ -133,6 +146,7 @@ export default function RatingCore({
         return (
           <span
             key={i}
+            ref={isStop ? attachStop : undefined}
             x-class={[star, (filled || halfFilled) && starActive]}
             role="radio"
             aria-checked={value >= i + 1 ? 'true' : 'false'}

@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/calendar.css';
 
 export { Calendar };
-export type { CalendarProps } from 'haze-ui';
+export type { CalendarProps, CalendarPickerMode } from 'haze-ui';

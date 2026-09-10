@@ -204,7 +204,10 @@ test.describe('visual baselines — overlay components', () => {
   });
 
   test('combobox open (focused input + listbox)', async ({ page }) => {
-    const input = page.getByRole('combobox');
+    // Two comboboxes live on this page: the Combobox input and the
+    // multiple Select's SelectFloating trigger (aria-label "Overlay
+    // fruits") — target the input by its accessible name.
+    const input = page.getByRole('combobox', { name: 'Pick a fruit' });
     // Open via a real pointer click — the first-click race (focus-driven
     // open light-dismissed by the same gesture) is fixed: Combobox opens
     // through the suppression-aware onTriggerClick, like Datepicker.

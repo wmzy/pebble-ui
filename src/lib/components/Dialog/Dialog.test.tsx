@@ -498,3 +498,31 @@ describe('Dialog view transitions', () => {
     await waitFor(() => expect(dialog).not.toHaveAttribute('open'));
   });
 });
+
+describe('Dialog classNames slots', () => {
+  it('applies root to the dialog element and header to the title', () => {
+    render(
+      <Dialog
+        title="Slot title"
+        classNames={{ root: 'custom-root', header: 'custom-header' }}
+      >
+        Body
+      </Dialog>
+    );
+    const dialog = screen.getByRole('dialog', { hidden: true });
+    expect(dialog).toHaveClass('custom-root');
+    expect(dialog.querySelector('h2')).toHaveClass('custom-header');
+  });
+
+  it('keeps the class lists untouched when classNames is omitted', () => {
+    render(<Dialog title="Slot title">Body</Dialog>);
+    const dialog = screen.getByRole('dialog', { hidden: true });
+    const header = dialog.querySelector('h2')!;
+    // classnames() drops the absent slots before joining: no stray
+    // whitespace segments may appear on either part.
+    for (const el of [dialog, header]) {
+      expect(el.className).toBe(el.className.trim());
+      expect(el.className).not.toContain('  ');
+    }
+  });
+});

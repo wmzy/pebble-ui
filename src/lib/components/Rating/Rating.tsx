@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -10,6 +11,12 @@ type RatingProps = {
   allowHalf?: boolean;
   onChange?: (value: number) => void;
   className?: string;
+  /**
+   * Forwarded to the group's focus target — the star that is the roving
+   * tab stop (the current rating, or the first star) — so form bridges
+   * and `ref.current.focus()` reach the group.
+   */
+  ref?: Ref<HTMLSpanElement>;
 };
 
 export default function Rating({
@@ -18,11 +25,13 @@ export default function Rating({
   allowHalf,
   onChange,
   className,
+  ref,
 }: RatingProps) {
   const [value, setValue] = useControl(valueControl, 0);
 
   return (
     <RatingCore
+      ref={ref}
       value={value}
       onChange={(next) => {
         setValue(next);

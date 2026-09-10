@@ -1,4 +1,7 @@
+import { css } from '@linaria/core';
+
 import { Badge } from '@/lib';
+import { badgeVariants, badgeSizes } from '@/lib/components/Badge';
 
 import PropsTable from '../PropsTable';
 
@@ -7,6 +10,11 @@ import A11yNote from '../A11yNote';
 import { intro, section, row } from '../styles';
 
 import { CssVarsSection } from './shared';
+
+// Composition demo: wear the exported skin pieces on a custom element.
+const brandedCompose = css`
+  border: 1px solid var(--haze-color-primary);
+`;
 
 // ─── Badge ─────────────────────────────────────────────────────
 export default function BadgeDemo() {
@@ -33,6 +41,32 @@ export default function BadgeDemo() {
         <div className={row}>
           <Badge size='sm'>Small</Badge>
           <Badge size='md'>Medium</Badge>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Composing with badgeVariants / badgeSizes</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          The exported <code>badgeVariants</code> /{' '}
+          <code>badgeSizes</code> maps carry the exact skin classes{' '}
+          <code>Badge</code> wears — spread them onto any custom element
+          (same shape and rationale as Button&apos;s{' '}
+          <code>buttonVariants</code>). This span composes the{' '}
+          <code>info</code> variant with the <code>sm</code> size and one
+          custom class on top.
+        </p>
+        <div className={row}>
+          <span
+            className={`${badgeVariants.info} ${badgeSizes.sm} ${brandedCompose}`}
+          >
+            Composed span
+          </span>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import NumberInput from './NumberInput';
@@ -122,5 +123,15 @@ describe('NumberInputCore', () => {
     expect(screen.getByRole('spinbutton')).toHaveValue(0);
     rerender(<NumberInputCore value={1} onChange={onChange} aria-label="core" />);
     expect(screen.getByRole('spinbutton')).toHaveValue(1);
+  });
+});
+
+describe('NumberInput ref forwarding', () => {
+  it('forwards ref to the inner number input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<NumberInput ref={ref} aria-label='Quantity' />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

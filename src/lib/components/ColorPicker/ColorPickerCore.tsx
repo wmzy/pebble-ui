@@ -1,3 +1,5 @@
+import type { Ref } from 'react';
+
 import { css } from '@linaria/core';
 
 import { useStrings } from '../LocaleProvider';
@@ -7,6 +9,11 @@ type ColorPickerCoreProps = {
   onChange: (value: string) => void;
   presets?: string[];
   className?: string;
+  /**
+   * Forwarded to the color swatch `<input type='color'>` (not the root
+   * div).
+   */
+  ref?: Ref<HTMLInputElement>;
 };
 
 const container = css`
@@ -88,12 +95,14 @@ export default function ColorPickerCore({
   onChange,
   presets,
   className,
+  ref,
 }: ColorPickerCoreProps) {
   const strings = useStrings('colorPicker');
   return (
     <div x-class={[container, className]}>
       <div x-class={[previewRow]}>
         <input
+          ref={ref}
           type="color"
           x-class={[colorInput]}
           value={value}

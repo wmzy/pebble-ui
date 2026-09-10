@@ -1,4 +1,4 @@
-import type {ComponentPropsWithoutRef} from 'react';
+import type {ComponentPropsWithoutRef, Ref} from 'react';
 
 import {css} from '@linaria/core';
 
@@ -11,6 +11,8 @@ type InputCoreProps = {
   onNativeChange?: ComponentPropsWithoutRef<'input'>['onChange'];
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Forwarded to the `<input>` element. */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<ComponentPropsWithoutRef<'input'>, 'value' | 'onChange' | 'size'>;
 
 const base = css`
@@ -67,10 +69,12 @@ export default function InputCore({
   onNativeChange,
   size = 'md',
   className,
+  ref,
   ...rest
 }: InputCoreProps) {
   return (
     <input
+      ref={ref}
       x-class={[base, sizes[size], className]}
       value={value}
       onChange={(e) => {

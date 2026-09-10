@@ -23,14 +23,14 @@ export default function TabPanel({
   className,
   children,
 }: TabPanelProps) {
-  const { value: current } = useTabsContext();
+  const { value: current, classNames } = useTabsContext();
   const isActive = current === value;
 
   return (
     <div
       role='tabpanel'
       id={`tabpanel-${value}`}
-      x-class={[base, !isActive && hidden, className]}
+      x-class={[base, !isActive && hidden, className, classNames?.panel]}
     >
       {children}
     </div>

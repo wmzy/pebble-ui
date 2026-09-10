@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -11,6 +11,11 @@ type ComboboxOptionProps = {
    * aria-activedescendant while the row holds the keyboard highlight.
    */
   id?: string;
+  /**
+   * Ref to the row element (React 19 ref-as-prop). Combobox points it
+   * at the keyboard-highlighted row to keep it scrolled into view.
+   */
+  ref?: Ref<HTMLDivElement>;
   /**
    * Size of the whole option set, per aria-setsize. Must count every
    * option, not just the rows a windowed (virtualized) list mounted.
@@ -56,6 +61,7 @@ export default function ComboboxOption({
   highlighted = false,
   selected = false,
   id,
+  ref,
   setSize,
   posInSet,
   onSelect,
@@ -64,6 +70,7 @@ export default function ComboboxOption({
 }: ComboboxOptionProps) {
   return (
     <div
+      ref={ref}
       role='option'
       id={id}
       // ARIA 1.2 combobox: both the keyboard-highlighted (visual focus)

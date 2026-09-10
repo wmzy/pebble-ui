@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import type { SegmentedOption } from './SegmentedCore';
@@ -12,6 +13,12 @@ type SegmentedProps = {
   onChange?: (value: string) => void;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /**
+   * Forwarded to the group's focus target — the selected option's
+   * `<button>` (falling back to the first) — so form bridges and
+   * `ref.current.focus()` reach the group.
+   */
+  ref?: Ref<HTMLButtonElement>;
 };
 
 export default function Segmented({
@@ -20,11 +27,13 @@ export default function Segmented({
   onChange,
   size,
   className,
+  ref,
 }: SegmentedProps) {
   const [value, setValue] = useControl(valueControl, '');
 
   return (
     <SegmentedCore
+      ref={ref}
       options={options}
       value={value}
       onChange={(next) => {

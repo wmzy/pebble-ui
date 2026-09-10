@@ -137,3 +137,43 @@ describe('Collapsible', () => {
     expect(results.violations).toEqual([]);
   });
 });
+
+describe('Collapsible classNames slots', () => {
+  it('applies root, trigger and content to their structural parts', () => {
+    const { container } = render(
+      <Collapsible
+        defaultOpen
+        classNames={{ root: 'c-root', trigger: 'c-trigger', content: 'c-content' }}
+      >
+        <CollapsibleTrigger>Toggle</CollapsibleTrigger>
+        <CollapsibleContent>
+          <p data-testid="body">Visible content</p>
+        </CollapsibleContent>
+      </Collapsible>
+    );
+    expect(container.firstChild).toHaveClass('c-root');
+    expect(screen.getByRole('button', { name: 'Toggle' })).toHaveClass('c-trigger');
+    // The content slot lands on the animated outer row — the element
+    // Presence injects data-state on (the p sits two wrappers deeper).
+    const content = container.querySelector('[data-state="open"]');
+    expect(content).toHaveClass('c-content');
+  });
+
+  it('keeps the class lists untouched when classNames is omitted', () => {
+    const { container } = render(
+      <Collapsible defaultOpen>
+        <CollapsibleTrigger>Toggle</CollapsibleTrigger>
+        <CollapsibleContent>Visible content</CollapsibleContent>
+      </Collapsible>
+    );
+    const parts = [
+      container.firstChild as HTMLElement,
+      screen.getByRole('button', { name: 'Toggle' }),
+      container.querySelector('[data-state="open"]')!,
+    ];
+    for (const el of parts) {
+      expect(el.className).toBe(el.className.trim());
+      expect(el.className).not.toContain('  ');
+    }
+  });
+});

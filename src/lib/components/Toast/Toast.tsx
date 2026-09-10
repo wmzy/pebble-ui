@@ -3,11 +3,41 @@ import type { ComponentPropsWithRef, ReactNode } from 'react';
 import { css } from '@linaria/core';
 import { useCallback, useEffect, useRef } from 'react';
 
+/**
+ * Semantic slot classes (AntD v6 `classNames` shape) for the toast
+ * family. Toasts are usually fired imperatively (`useToast()` /
+ * `toast()`), so the record is accepted by `ToastContainer` and flows
+ * to every toast it renders; a directly rendered `<Toast>` accepts the
+ * same record and reads the item slots. Consumer classes are appended
+ * at the end of each part's class list (able to override component
+ * defaults).
+ */
+type ToastClassNames = {
+  /**
+   * The fixed-position toast stack. Only `ToastContainer` renders this
+   * part — a directly rendered `<Toast>` ignores the key.
+   */
+  viewport?: string;
+  /** One toast: the `role="status"`/`"alert"` card. */
+  item?: string;
+  /** The body wrapper around the toast content. */
+  content?: string;
+  /** The dismiss × button. */
+  close?: string;
+};
+
 type ToastProps = {
   variant?: 'info' | 'success' | 'warning' | 'danger';
   onClose: () => void;
   duration: number;
   children: ReactNode;
+  /**
+   * Semantic slot classes (AntD v6 `classNames` shape) — see
+   * {@link ToastClassNames}. Only `item`/`content`/`close` apply to a
+   * directly rendered toast; `viewport` is a `ToastContainer` part.
+   * Omitting it changes nothing.
+   */
+  classNames?: ToastClassNames;
 } & Omit<ComponentPropsWithRef<'div'>, 'children' | 'onClose'>;
 
 const base = css`
@@ -130,6 +160,7 @@ export default function Toast({
   onClose,
   duration,
   children,
+  classNames,
   className,
   ...rest
 }: ToastProps) {
@@ -188,7 +219,7 @@ export default function Toast({
   return (
     <div
       role={liveRoles[variant]}
-      x-class={[base, variants[variant], className]}
+      x-class={[base, variants[variant], className, classNames?.item]}
       onPointerEnter={() => {
         hoveredRef.current = true;
         syncPaused();
@@ -207,10 +238,10 @@ export default function Toast({
       }}
       {...rest}
     >
-      <div className={contentStyle}>{children}</div>
+      <div x-class={[contentStyle, classNames?.content]}>{children}</div>
       <button
         type='button'
-        className={closeBtn}
+        x-class={[closeBtn, classNames?.close]}
         aria-label='Close'
         onClick={onClose}
       >
@@ -220,4 +251,4 @@ export default function Toast({
   );
 }
 
-export type { ToastProps };
+export type { ToastProps, ToastClassNames };

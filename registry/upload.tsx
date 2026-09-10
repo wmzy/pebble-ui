@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/upload.css';
 
 export { Upload, UploadCore };
-export type { UploadProps, UploadCoreProps } from 'haze-ui';
+export type { UploadProps, UploadCoreProps, UploadHandle, UploadStatus, UploadFileStatus, UploadRequest, UploadRequestOptions, UploadListItemActions, UploadListItemRender } from 'haze-ui';

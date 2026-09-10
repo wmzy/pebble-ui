@@ -30,7 +30,7 @@ const TAB_SELECTOR = '[role="tab"]:not([disabled])';
  * DOM at event time so the keys follow the mirrored strip.
  */
 export default function TabList({ className, children }: TabListProps) {
-  const { setValue } = useTabsContext();
+  const { setValue, classNames } = useTabsContext();
   const listRef = useRef<HTMLDivElement>(null);
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -78,7 +78,7 @@ export default function TabList({ className, children }: TabListProps) {
       ref={listRef}
       role='tablist'
       onKeyDown={handleKeyDown}
-      x-class={[base, className]}
+      x-class={[base, className, classNames?.list]}
     >
       {children}
     </div>

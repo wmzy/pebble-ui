@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -9,6 +10,11 @@ type ColorPickerProps = {
   presets?: string[];
   onChange?: (color: string) => void;
   className?: string;
+  /**
+   * Forwarded to the color swatch `<input type='color'>` (not the root
+   * div) — the element form bridges and `ref.current.focus()` reach.
+   */
+  ref?: Ref<HTMLInputElement>;
 };
 
 export default function ColorPicker({
@@ -16,6 +22,7 @@ export default function ColorPicker({
   presets,
   onChange,
   className,
+  ref,
 }: ColorPickerProps) {
   const [value, setValue] = useControl(
     valueControl,
@@ -24,6 +31,7 @@ export default function ColorPicker({
 
   return (
     <ColorPickerCore
+      ref={ref}
       value={value}
       onChange={(next) => {
         setValue(next);

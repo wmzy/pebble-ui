@@ -1,3 +1,7 @@
+import type { UploadFileStatus, UploadHandle, UploadRequest } from '.';
+
+import { createRef } from 'react';
+
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -11,6 +15,94 @@ async function flushGates() {
     await Promise.resolve();
     await Promise.resolve();
   });
+}
+
+/** Deeper flush for the upload chain: request settle → status commit →
+ * list re-render (plus the value→entries→autostart effect rounds). */
+async function flushUploads() {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+}
+
+type DeferredCall = {
+  file: File;
+  onProgress: (percent: number) => void;
+  signal: AbortSignal;
+  resolve: () => void;
+  reject: (reason?: unknown) => void;
+};
+
+/** A controllable `request` mock: each call parks until the test
+ * resolves/rejects it, and honors `signal` like a real transport
+ * (abort → AbortError rejection). */
+function makeDeferredRequest() {
+  const calls: DeferredCall[] = [];
+  const request: UploadRequest = (file, options) =>
+    new Promise<void>((resolve, reject) => {
+      const call: DeferredCall = {
+        file,
+        onProgress: options.onProgress,
+        signal: options.signal,
+        resolve,
+        reject,
+      };
+      calls.push(call);
+      options.signal.addEventListener('abort', () => {
+        reject(new DOMException('Aborted', 'AbortError'));
+      });
+    });
+  return { calls, request };
+}
+
+function getFileInput() {
+  return document.querySelector<HTMLInputElement>('input[type="file"]')!;
+}
+
+/** Controllable XHR stand-in for `action` mode — jsdom has no real
+ * upload transport. */
+class FakeXHR {
+  static instances: FakeXHR[] = [];
+  status = 0;
+  headers: Record<string, string> = {};
+  openedWith: { method: string; url: string } | null = null;
+  sentBody: FormData | null = null;
+  upload: {
+    onprogress:
+      | ((event: { lengthComputable: boolean; loaded: number; total: number }) => void)
+      | null;
+  } = { onprogress: null };
+  onload: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  onabort: (() => void) | null = null;
+
+  open = vi.fn((method: string, url: string) => {
+    this.openedWith = { method, url };
+  });
+  setRequestHeader = vi.fn((key: string, value: string) => {
+    this.headers[key] = value;
+  });
+  send = vi.fn((body: FormData) => {
+    this.sentBody = body;
+  });
+  abort = vi.fn(() => {
+    this.status = 0;
+    this.onabort?.();
+  });
+
+  constructor() {
+    FakeXHR.instances.push(this);
+  }
+
+  emitProgress(loaded: number, total: number) {
+    this.upload.onprogress?.({ lengthComputable: true, loaded, total });
+  }
+  respond(status: number) {
+    this.status = status;
+    this.onload?.();
+  }
 }
 
 describe('Upload', () => {
@@ -388,5 +480,421 @@ describe('UploadCore', () => {
     });
     // existing entries win: the list is re-emitted unchanged
     expect(onChange).toHaveBeenCalledWith([fileA, fileB]);
+  });
+});
+
+describe('Upload — auto upload (request mode)', () => {
+  it('keeps the status machine dormant without request/action', async () => {
+    const onStatusChange = vi.fn<(files: UploadFileStatus[]) => void>();
+    render(<Upload onStatusChange={onStatusChange} />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['1'], 'a.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+    // pure collection mode: no status callbacks, no list, no requests
+    expect(onStatusChange).not.toHaveBeenCalled();
+    expect(document.querySelector('ul')).toBeNull();
+  });
+
+  it('walks idle → uploading → success with percent forced to 100', async () => {
+    const onStatusChange = vi.fn<(files: UploadFileStatus[]) => void>();
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload request={request} multiple showUploadList onStatusChange={onStatusChange} />
+    );
+    const a = new File(['1'], 'a.txt', { type: 'text/plain' });
+    const b = new File(['2'], 'b.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), [a, b]);
+    await flushUploads();
+
+    // both files started immediately with the runtime handed over
+    expect(calls.map((c) => c.file)).toEqual([a, b]);
+    expect(calls.every((c) => c.signal instanceof AbortSignal)).toBe(true);
+    const uploading = onStatusChange.mock.calls.at(-1)![0];
+    expect(uploading.map((s) => s.status)).toEqual(['uploading', 'uploading']);
+
+    calls.forEach((c) => c.resolve());
+    await flushUploads();
+    const done = onStatusChange.mock.calls.at(-1)![0];
+    expect(done).toEqual([
+      { file: a, status: 'success', percent: 100 },
+      { file: b, status: 'success', percent: 100 },
+    ]);
+    expect(document.querySelectorAll('li[data-status="success"]')).toHaveLength(2);
+  });
+
+  it('surfaces request progress as clamped percent in the list', async () => {
+    const { calls, request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['1'], 'a.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+
+    calls[0]!.onProgress(50);
+    await flushUploads();
+    expect(screen.getByText('Uploading 50%')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+
+    calls[0]!.onProgress(250);
+    await flushUploads();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
+  });
+
+  it('marks the file error on rejection and retries through the list', async () => {
+    const onStatusChange = vi.fn();
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload request={request} showUploadList onStatusChange={onStatusChange} />
+    );
+    const file = new File(['1'], 'a.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), file);
+    await flushUploads();
+
+    calls[0]!.reject(new Error('boom'));
+    await flushUploads();
+    expect(document.querySelector('li')!).toHaveAttribute('data-status', 'error');
+    expect(onStatusChange.mock.calls.at(-1)![0]).toEqual([
+      { file, status: 'error', percent: 0 },
+    ]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retry upload' }));
+    await flushUploads();
+    expect(calls).toHaveLength(2);
+    calls[1]!.resolve();
+    await flushUploads();
+    expect(document.querySelector('li')!).toHaveAttribute('data-status', 'success');
+  });
+
+  it('never uploads files beforeUpload refuses', async () => {
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload request={request} multiple showUploadList beforeUpload={(f) => f.name !== 'bad.txt'} />
+    );
+    const good = new File(['1'], 'good.txt', { type: 'text/plain' });
+    const bad = new File(['2'], 'bad.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), [good, bad]);
+    await flushUploads();
+    expect(calls.map((c) => c.file)).toEqual([good]);
+  });
+
+  it('caps started uploads at maxCount', async () => {
+    const { calls, request } = makeDeferredRequest();
+    render(<Upload request={request} multiple maxCount={2} />);
+    const files = [
+      new File(['1'], 'a.txt', { type: 'text/plain' }),
+      new File(['2'], 'b.txt', { type: 'text/plain' }),
+      new File(['3'], 'c.txt', { type: 'text/plain' }),
+    ];
+    await userEvent.upload(getFileInput(), files);
+    await flushUploads();
+    expect(calls).toHaveLength(2);
+  });
+});
+
+describe('Upload — manual mode & handle', () => {
+  it('picks stay idle until uploadAll() runs', async () => {
+    const ref = createRef<UploadHandle>();
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload ref={ref} request={request} manual multiple showUploadList />
+    );
+    const a = new File(['1'], 'a.txt', { type: 'text/plain' });
+    const b = new File(['2'], 'b.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), [a, b]);
+    await flushUploads();
+    expect(calls).toHaveLength(0);
+    expect(
+      Array.from(document.querySelectorAll('li[data-status="idle"]'))
+    ).toHaveLength(2);
+
+    act(() => ref.current!.uploadAll());
+    await flushUploads();
+    expect(calls.map((c) => c.file)).toEqual([a, b]);
+    expect(
+      Array.from(document.querySelectorAll('li[data-status="uploading"]'))
+    ).toHaveLength(2);
+  });
+
+  it('upload(file) starts exactly one file', async () => {
+    const ref = createRef<UploadHandle>();
+    const { calls, request } = makeDeferredRequest();
+    render(<Upload ref={ref} request={request} manual multiple showUploadList />);
+    const a = new File(['1'], 'a.txt', { type: 'text/plain' });
+    const b = new File(['2'], 'b.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), [a, b]);
+    await flushUploads();
+
+    act(() => ref.current!.upload(b));
+    await flushUploads();
+    expect(calls.map((c) => c.file)).toEqual([b]);
+    expect(
+      Array.from(document.querySelectorAll('li[data-status="idle"]'))
+    ).toHaveLength(1);
+  });
+
+  it('abort() cancels in-flight uploads back to idle', async () => {
+    const ref = createRef<UploadHandle>();
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload ref={ref} request={request} manual multiple showUploadList />
+    );
+    await userEvent.upload(getFileInput(), [
+      new File(['1'], 'a.txt', { type: 'text/plain' }),
+      new File(['2'], 'b.txt', { type: 'text/plain' }),
+    ]);
+    await flushUploads();
+    act(() => ref.current!.uploadAll());
+    await flushUploads();
+
+    act(() => ref.current!.abort());
+    await flushUploads();
+    expect(calls.every((c) => c.signal.aborted)).toBe(true);
+    expect(
+      Array.from(document.querySelectorAll('li[data-status="idle"]'))
+    ).toHaveLength(2);
+    // files stay in the list — abort is a stop, not a remove
+    expect(screen.getByText('a.txt')).toBeInTheDocument();
+    expect(screen.getByText('b.txt')).toBeInTheDocument();
+  });
+
+  it('clear() aborts everything and empties the list', async () => {
+    const ref = createRef<UploadHandle>();
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload ref={ref} request={request} manual multiple showUploadList />
+    );
+    await userEvent.upload(getFileInput(), [
+      new File(['1'], 'a.txt', { type: 'text/plain' }),
+      new File(['2'], 'b.txt', { type: 'text/plain' }),
+    ]);
+    await flushUploads();
+    act(() => ref.current!.uploadAll());
+    await flushUploads();
+
+    act(() => ref.current!.clear());
+    await flushUploads();
+    expect(calls.every((c) => c.signal.aborted)).toBe(true);
+    expect(document.querySelector('ul')).toBeNull();
+  });
+
+  it('does not crash when handle methods run after unmount', () => {
+    const ref = createRef<UploadHandle>();
+    const { request } = makeDeferredRequest();
+    const { unmount } = render(
+      <Upload ref={ref} request={request} manual showUploadList />
+    );
+    // React nulls ref.current on unmount — the guard under test is a
+    // consumer holding the handle object itself.
+    const handle = ref.current!;
+    unmount();
+    expect(() => {
+      handle.uploadAll();
+      handle.abort();
+      handle.clear();
+    }).not.toThrow();
+  });
+});
+
+describe('Upload — built-in list', () => {
+  it('cancel aborts the in-flight upload and removes the file', async () => {
+    const onChange = vi.fn();
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload request={request} showUploadList onChange={onChange} />
+    );
+    const file = new File(['1'], 'a.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), file);
+    await flushUploads();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel upload' }));
+    await flushUploads();
+    expect(calls[0]!.signal.aborted).toBe(true);
+    expect(screen.queryByText('a.txt')).not.toBeInTheDocument();
+    expect(document.querySelector('ul')).toBeNull();
+    // removal is not a pick: the sugar's onChange stays silent
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('remove drops a success file from the value channel', async () => {
+    const onChange = vi.fn();
+    const { calls, request } = makeDeferredRequest();
+    const file = new File(['1'], 'a.txt', { type: 'text/plain' });
+    // fully controlled Core: removal flows through onChange verbatim
+    const { rerender } = render(
+      <UploadCore
+        value={[file]}
+        onChange={onChange}
+        request={request}
+        showUploadList
+      />
+    );
+    await flushUploads();
+    expect(calls).toHaveLength(1);
+    calls[0]!.resolve();
+    await flushUploads();
+    expect(document.querySelector('li')!).toHaveAttribute('data-status', 'success');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove file' }));
+    expect(onChange).toHaveBeenLastCalledWith([]);
+    rerender(<UploadCore value={[]} onChange={onChange} request={request} showUploadList />);
+    await flushUploads();
+    expect(document.querySelector('ul')).toBeNull();
+  });
+
+  it('itemRender replaces the default row and receives live state', async () => {
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload
+        request={request}
+        showUploadList={{
+          itemRender: (file, status, percent, actions) => (
+            <div>
+              <span>{`custom:${file.name}:${status}:${percent}`}</span>
+              <button type="button" onClick={actions.remove}>
+                drop
+              </button>
+            </div>
+          ),
+        }}
+      />
+    );
+    await userEvent.upload(
+      getFileInput(),
+      new File(['1'], 'a.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+    expect(screen.getByText('custom:a.txt:uploading:0')).toBeInTheDocument();
+
+    calls[0]!.resolve();
+    await flushUploads();
+    expect(screen.getByText('custom:a.txt:success:100')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'drop' }));
+    await flushUploads();
+    expect(screen.queryByText(/custom:a\.txt/)).not.toBeInTheDocument();
+  });
+
+  it('has no axe violations across mixed list states', async () => {
+    const { axe } = await import('jest-axe');
+    const { calls, request } = makeDeferredRequest();
+    render(<Upload request={request} multiple showUploadList />);
+    await userEvent.upload(getFileInput(), [
+      new File(['1'], 'a.txt', { type: 'text/plain' }),
+      new File(['2'], 'b.txt', { type: 'text/plain' }),
+    ]);
+    await flushUploads();
+    calls[0]!.resolve();
+    calls[1]!.reject(new Error('boom'));
+    await flushUploads();
+    // one success row (icon + remove), one error row (icon + retry +
+    // remove + danger progress), zone included
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Upload — action mode (XHR)', () => {
+  beforeEach(() => {
+    FakeXHR.instances = [];
+    vi.stubGlobal('XMLHttpRequest', FakeXHR);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('sends the file as multipart FormData with method, headers and field name', async () => {
+    render(
+      <Upload
+        action="https://up.test/files"
+        method="PUT"
+        name="attachment"
+        headers={{ Authorization: 'Bearer t' }}
+        data={{ scope: 'avatars' }}
+        showUploadList
+      />
+    );
+    const file = new File(['1'], 'a.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), file);
+    await flushUploads();
+
+    const xhr = FakeXHR.instances[0]!;
+    expect(xhr.openedWith).toEqual({ method: 'PUT', url: 'https://up.test/files' });
+    expect(xhr.headers).toEqual({ Authorization: 'Bearer t' });
+    expect(xhr.sentBody!.get('attachment')).toBe(file);
+    expect(xhr.sentBody!.get('scope')).toBe('avatars');
+  });
+
+  it('defaults to a POST under the file field name', async () => {
+    render(<Upload action="/up" />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['1'], 'a.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+    const xhr = FakeXHR.instances[0]!;
+    expect(xhr.openedWith).toEqual({ method: 'POST', url: '/up' });
+    expect(xhr.sentBody!.get('file')).toBeInstanceOf(File);
+  });
+
+  it('maps upload progress and a 2xx response to success', async () => {
+    render(<Upload action="/up" showUploadList />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['1'], 'a.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+    const xhr = FakeXHR.instances[0]!;
+
+    xhr.emitProgress(25, 100);
+    await flushUploads();
+    expect(screen.getByText('Uploading 25%')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25');
+
+    xhr.respond(204);
+    await flushUploads();
+    expect(document.querySelector('li')!).toHaveAttribute('data-status', 'success');
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+
+  it('maps a non-2xx response to error, retryable via the list', async () => {
+    render(<Upload action="/up" showUploadList />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['1'], 'a.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+
+    FakeXHR.instances[0]!.respond(500);
+    await flushUploads();
+    expect(document.querySelector('li')!).toHaveAttribute('data-status', 'error');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retry upload' }));
+    await flushUploads();
+    expect(FakeXHR.instances).toHaveLength(2);
+    FakeXHR.instances[1]!.respond(200);
+    await flushUploads();
+    expect(document.querySelector('li')!).toHaveAttribute('data-status', 'success');
+  });
+
+  it('aborts the XHR when the handle aborts, returning the file to idle', async () => {
+    const ref = createRef<UploadHandle>();
+    render(<Upload ref={ref} action="/up" showUploadList />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['1'], 'a.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+    const xhr = FakeXHR.instances[0]!;
+
+    act(() => ref.current!.abort());
+    await flushUploads();
+    expect(xhr.abort).toHaveBeenCalled();
+    expect(document.querySelector('li')!).toHaveAttribute('data-status', 'idle');
+    expect(screen.queryByText(/%/)).not.toBeInTheDocument();
   });
 });

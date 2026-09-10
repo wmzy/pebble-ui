@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import ColorPicker from './ColorPicker';
@@ -76,5 +77,16 @@ describe('ColorPickerCore', () => {
     );
     await user.click(screen.getByLabelText('#00ff00'));
     expect(onChange).toHaveBeenCalledWith('#00ff00');
+  });
+});
+
+describe('ColorPicker ref forwarding', () => {
+  it('forwards ref to the color swatch input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<ColorPicker ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    expect(ref.current).toHaveAttribute('type', 'color');
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

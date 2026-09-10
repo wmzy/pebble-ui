@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
@@ -274,5 +275,15 @@ describe('Mentions', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Mentions ref forwarding', () => {
+  it('forwards ref to the textarea element', () => {
+    const ref = createRef<HTMLTextAreaElement>();
+    render(<Mentions ref={ref} options={[]} aria-label='Comment' />);
+    expect(ref.current).toBeInstanceOf(HTMLTextAreaElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

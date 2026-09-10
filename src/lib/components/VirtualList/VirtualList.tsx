@@ -75,6 +75,21 @@ type VirtualListProps<T> = {
   renderItem: (item: T, index: number) => ReactNode;
   /** Extra rows kept mounted above/below the visible window. */
   overscan?: number;
+  /**
+   * Chat orientation (opt-in): rows anchor to the scrollport bottom with
+   * index 0 at the bottom edge and later indices stacking upward — the
+   * natural geometry for a newest-at-bottom log where new items are
+   * prepended. The viewport parks at the bottom on mount and stays glued
+   * there across appends while the user is parked at the bottom; a
+   * reader who scrolled up keeps their position (rows keep their
+   * top-origin coordinates as content grows upward, so nothing jumps).
+   *
+   * `scrollToIndex` keeps its signature; alignments mirror vertically —
+   * `'start'` pins the row's bottom edge to the viewport bottom,
+   * `'end'` its top edge to the viewport top. The `VirtualListHandle`
+   * API is unchanged.
+   */
+  reverse?: boolean;
   className?: string;
   ref?: Ref<VirtualListHandle>;
 } & Omit<ComponentPropsWithoutRef<'div'>, 'children'>;
@@ -155,6 +170,7 @@ export default function VirtualList<T>({
   groups,
   renderItem,
   overscan = 5,
+  reverse = false,
   className,
   style,
   ref,
@@ -168,16 +184,22 @@ export default function VirtualList<T>({
   const [scrollTop, setScrollTop] = useState(0);
   const [measureVersion, setMeasureVersion] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  /** Reverse mode: whether the scrollport is parked at the bottom edge. */
+  const atBottomRef = useRef(true);
   const rowHeightsRef = useRef(new Map<number, number>());
   const headerHeightsRef = useRef(new Map<string, number>());
   const observerRef = useRef<ResizeObserver | null>(null);
   const prefixCacheRef = useRef<PrefixCache | null>(null);
 
   const handleScroll = useCallback(() => {
-    if (containerRef.current) {
-      setScrollTop(containerRef.current.scrollTop);
+    const el = containerRef.current;
+    if (!el) return;
+    setScrollTop(el.scrollTop);
+    if (reverse) {
+      const viewport = el.clientHeight || height;
+      atBottomRef.current = el.scrollHeight - el.scrollTop - viewport <= 1;
     }
-  }, []);
+  }, [reverse, height]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -185,6 +207,22 @@ export default function VirtualList<T>({
     el.addEventListener('scroll', handleScroll, { passive: true });
     return () => el.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
+
+  // Reverse mode stick-to-bottom: park at the bottom on mount and follow
+  // appends while the user is parked there. A scrolled-up reader keeps
+  // their offset — rows keep their top-origin coordinates as content grows
+  // upward from the bottom anchor, so no compensation is needed. Runs on
+  // measurement changes too: content growing while parked re-glues.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !reverse) return;
+    if (!atBottomRef.current) return;
+    const viewport = el.clientHeight || height;
+    el.scrollTop = Math.max(0, el.scrollHeight - viewport);
+    // Programmatic scrollTop does not fire a synchronous scroll event —
+    // sync the internal offset directly.
+    setScrollTop(el.scrollTop);
+  }, [reverse, items, measureVersion, height]);
 
   // Prefix sums: sums[i] is the top offset of row i, sums[length] the total
   // list height. Recomputed only when items, heights config, or a cached
@@ -218,13 +256,20 @@ export default function VirtualList<T>({
   })();
 
   const totalHeight = prefix[items.length] ?? 0;
+  // Window anchor in the same coordinate system as `prefix`: distance from
+  // the content top in normal mode, distance from the content bottom in
+  // reverse mode (rows stack up from the bottom edge, index 0 lowest).
+  // `Math.max` absorbs overshooting glues from subpixel scroll heights.
+  const windowOffset = reverse
+    ? Math.max(0, totalHeight - height - scrollTop)
+    : scrollTop;
   const startIndex = Math.max(
     0,
-    findStartIndex(prefix, items.length, scrollTop) - overscan,
+    findStartIndex(prefix, items.length, windowOffset) - overscan,
   );
   const endIndex = Math.min(
     items.length,
-    findEndIndex(prefix, items.length, scrollTop + height) + overscan,
+    findEndIndex(prefix, items.length, windowOffset + height) + overscan,
   );
 
   // Drop cached row heights past the end when the list shrinks; indices keep
@@ -299,7 +344,7 @@ export default function VirtualList<T>({
   // group's end. All in the same prefix-sum system as the rows.
   const headerViews = (() => {
     if (!groups) return null;
-    const scrollBottom = scrollTop + height;
+    const viewFar = windowOffset + height;
     const views: ReactNode[] = [];
     for (let i = 0; i < groups.length; i++) {
       const group = groups[i];
@@ -309,16 +354,16 @@ export default function VirtualList<T>({
       const groupBottom = next
         ? offsetAt(prefix, items.length, next.startIndex)
         : totalHeight;
-      if (groupBottom <= scrollTop || groupTop >= scrollBottom) continue;
+      if (groupBottom <= windowOffset || groupTop >= viewFar) continue;
       const headerHeight =
         headerHeightsRef.current.get(group.key) ?? estimate;
-      const top = Math.max(groupTop, Math.min(scrollTop, groupBottom - headerHeight));
+      const anchor = Math.max(groupTop, Math.min(windowOffset, groupBottom - headerHeight));
       views.push(
         <div
           key={group.key}
           data-group-key={group.key}
           x-class={[groupHeader]}
-          style={{ top }}
+          style={reverse ? { bottom: anchor } : { top: anchor }}
         >
           {group.render()}
         </div>,
@@ -342,6 +387,28 @@ export default function VirtualList<T>({
         if (a === 'end') return top + rowHeight - viewportHeight;
         return top + rowHeight / 2 - viewportHeight / 2;
       };
+      if (reverse) {
+        // Mirror space: `top` is the row's distance from the content
+        // bottom and the free variable is the viewport's distance from
+        // the bottom (0 = glued). Convert back to top-origin scrollTop
+        // with S = maxScroll − R.
+        const maxScroll = Math.max(0, el.scrollHeight - viewportHeight);
+        const current = Math.max(0, maxScroll - el.scrollTop);
+        if (align === 'auto') {
+          if (top >= current && top + rowHeight <= current + viewportHeight) {
+            return; // already fully visible
+          }
+          const next = scrollFor(top < current ? 'end' : 'start');
+          el.scrollTop = maxScroll - Math.max(0, Math.min(next, maxScroll));
+        } else {
+          const next = scrollFor(align);
+          el.scrollTop = maxScroll - Math.max(0, Math.min(next, maxScroll));
+        }
+        // Programmatic scrollTop does not fire a synchronous scroll
+        // event — sync the internal offset directly.
+        setScrollTop(el.scrollTop);
+        return;
+      }
       let next: number;
       if (align === 'auto') {
         const current = el.scrollTop;
@@ -357,7 +424,7 @@ export default function VirtualList<T>({
       // sync the internal offset directly.
       setScrollTop(el.scrollTop);
     },
-    [prefix, items.length, isDynamic, estimate, itemHeight, height],
+    [prefix, items.length, isDynamic, estimate, itemHeight, height, reverse],
   );
 
   // Imperative surface: `ref.current?.scrollToIndex(index, align)`.
@@ -375,9 +442,12 @@ export default function VirtualList<T>({
           const index = startIndex + i;
           const rowStyle: CSSProperties = {
             position: 'absolute',
-            top: prefix[index],
             width: '100%',
           };
+          // `prefix` is the row's anchor offset from the content's
+          // leading edge: top in normal mode, bottom in reverse.
+          if (reverse) rowStyle.bottom = prefix[index];
+          else rowStyle.top = prefix[index];
           if (isDynamic) {
             const measured = rowHeightsRef.current.get(index);
             if (measured !== undefined) rowStyle.height = measured;

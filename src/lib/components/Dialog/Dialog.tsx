@@ -29,6 +29,22 @@ type DialogHandle = {
 };
 
 /**
+ * Semantic slot classes (AntD v6 `classNames` 形态)：键名对应 Dialog 的
+ * 结构部位，消费者类名追加在部位节点 x-class 数组末尾（可覆盖组件
+ * 默认样式）。Dialog 的面板就是 `<dialog>` 元素本身、遮罩是它的
+ * `::backdrop` 伪元素（无法挂类），因此只有这两个真实部位：
+ *
+ * - `root` — `<dialog>` 面板元素
+ * - `header` — `title` prop 渲染出的 `<h2>` 标题（不传 title 时不存在）
+ */
+type DialogClassNames = {
+  /** `<dialog>` 面板元素（含内边距/圆角/阴影的盒子）。 */
+  root?: string;
+  /** 标题 `<h2>`；仅在传 `title` prop 时渲染。 */
+  header?: string;
+};
+
+/**
  * Component-level tokens: Dialog can be rethemed per-component by setting
  * `--haze-dialog-*` custom properties on `:root` or any ancestor. The
  * library never defines them — the stylesheet only carries fallback
@@ -60,6 +76,14 @@ type DialogProps = {
    * 样式定义，组件自身的进退场动画照常运行在新快照内。
    */
   viewTransition?: boolean;
+  /**
+   * 语义槽位类名（AntD v6 `classNames` 形态）：按键把消费者类落到
+   * Dialog 的结构部位（见 {@link DialogClassNames}）。槽位类追加在
+   * 部位节点类列表末尾，可与根节点 `className` 并用（`className`
+   * 同样落在 `<dialog>` 上，`classNames.root` 在其后）。不传时渲染
+   * 输出零变化。
+   */
+  classNames?: DialogClassNames;
   className?: string;
   children: ReactNode;
   ref?: Ref<DialogHandle>;
@@ -143,6 +167,7 @@ export default function Dialog({
   onClose,
   title,
   viewTransition = false,
+  classNames,
   className,
   children,
   ref,
@@ -224,7 +249,7 @@ export default function Dialog({
       ref={setDialogRef}
       data-state={open ? 'open' : 'closed'}
       aria-labelledby={title !== undefined ? titleId : undefined}
-      x-class={[overlay, className]}
+      x-class={[overlay, className, classNames?.root]}
       onClose={() => {
         // 原生 close 事件到达时 DOM 已关闭（el.close() 已生效），这里
         // 的 setOpen(false) 只是把 React 状态同步回事实——发起关闭的
@@ -249,7 +274,7 @@ export default function Dialog({
       }}
     >
       {title !== undefined && (
-        <h2 id={titleId} x-class={[titleText]}>
+        <h2 id={titleId} x-class={[titleText, classNames?.header]}>
           {title}
         </h2>
       )}
@@ -258,4 +283,4 @@ export default function Dialog({
   );
 }
 
-export type { DialogProps, DialogHandle };
+export type { DialogProps, DialogHandle, DialogClassNames };

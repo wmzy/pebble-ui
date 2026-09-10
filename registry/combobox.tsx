@@ -16,10 +16,10 @@
 // 'use client' directive, so imports resolve cleanly from RSC; the
 // wrapper inherits client semantics either way.
 
-import { Combobox } from 'haze-ui';
+import { Combobox, ComboboxOption, ComboboxGroup } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/combobox.css';
 
-export { Combobox };
-export type { ComboboxProps } from 'haze-ui';
+export { Combobox, ComboboxOption, ComboboxGroup };
+export type { ComboboxProps, ComboboxOptionProps, ComboboxGroupProps, ComboboxOptionData, ComboboxVirtualizedConfig } from 'haze-ui';

@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+
+import type { CSSProperties } from 'react';
+import type { VirtualListHandle } from '@/lib';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -28,9 +32,6 @@ const FEED_ROW_HEIGHT = 44;
 const FEED_LIST_HEIGHT = 400;
 
 const FEED_OVERSCAN = 8;
-
-/** Distance from the bottom (px) that still counts as "parked at bottom". */
-const FEED_BOTTOM_EPSILON = 32;
 
 /** Visible window + both overscan shoulders + the straddling row. */
 const FEED_MOUNTED_ROWS =
@@ -98,37 +99,9 @@ const feedFrame = css`
 `;
 
 /** Marker class: identifies VirtualList's internal scrollport for the
- * bottom-tracking listener (VirtualList does not expose it via ref yet). */
+ * tabIndex fixup (VirtualList does not expose it via ref yet). */
 const feedScroller = css`
   overscroll-behavior: contain;
-`;
-
-const feedJump = css`
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: var(--haze-space-4);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--haze-space-1);
-  padding: var(--haze-space-1) var(--haze-space-3);
-  border: 1px solid var(--haze-color-border);
-  border-radius: var(--haze-radius-full);
-  background: var(--haze-color-bg);
-  box-shadow: var(--haze-shadow-md);
-  color: var(--haze-color-primary);
-  font-family: var(--haze-font-sans);
-  font-size: var(--haze-text-sm);
-  cursor: pointer;
-
-  &:hover {
-    border-color: var(--haze-color-primary);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
-  }
 `;
 
 const feedRow = css`
@@ -206,57 +179,39 @@ const feedTextMono = css`
 
 /**
  * ChatContainer frames the conversation (padding, column rhythm) while
- * VirtualList owns the scrollport over 10k deterministic messages.
- * ChatContainer's autoScroll is OFF: its MutationObserver would fire on
- * every scroll-driven row swap, and always-follow is wrong once the
- * reader scrolls up. Stick-to-bottom is this recipe's job instead —
- * follow appends only while parked at the bottom, otherwise surface an
- * "N new messages below" pill.
+ * VirtualList `reverse` owns the scrollport over 10k deterministic
+ * messages: rows anchor to the bottom edge with the newest first, the
+ * viewport parks there on mount and follows appends while the reader is
+ * parked; scrolled up, the reading position survives new messages.
+ * ChatContainer's autoScroll stays OFF — its MutationObserver would fire
+ * on every scroll-driven row swap, and the frame never scrolls anyway.
  */
 function ChatVirtualFeedDemo() {
   const [messages, setMessages] = useState<FeedMessage[]>(() =>
     Array.from({ length: FEED_SIZE }, (_, i) => makeFeedMessage(i))
   );
-  const [newBelow, setNewBelow] = useState(0);
   const frameRef = useRef<HTMLDivElement>(null);
-  /** VirtualList's internal scrollport — located by marker class. */
-  const scrollerRef = useRef<HTMLElement | null>(null);
-  const atBottomRef = useRef(true);
+  const listRef = useRef<VirtualListHandle>(null);
+  /** Newest-first projection: reverse mode anchors index 0 at the bottom. */
+  const items = useMemo(() => [...messages].reverse(), [messages]);
 
+  // Keyboard-scrollable scrollport (arrows/Page keys) — library gap; the
+  // VirtualList handle only exposes scrollToIndex, so the element is
+  // located by marker class.
   useEffect(() => {
     const el = frameRef.current?.querySelector<HTMLElement>(
       `.${feedScroller}`
     );
-    if (!el) return;
-    scrollerRef.current = el;
-    el.tabIndex = 0; // keyboard-scrollable (arrows/Page keys) — library gap
-    const onScroll = () => {
-      atBottomRef.current =
-        el.scrollHeight - el.scrollTop - el.clientHeight <
-        FEED_BOTTOM_EPSILON;
-      if (atBottomRef.current) setNewBelow(0);
-    };
-    el.addEventListener('scroll', onScroll, { passive: true });
-    el.scrollTop = el.scrollHeight; // land on the newest message
-    return () => el.removeEventListener('scroll', onScroll);
+    if (el) el.tabIndex = 0;
   }, []);
-
-  // Stick-to-bottom: follow appends only while parked at the bottom.
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (el && atBottomRef.current) el.scrollTop = el.scrollHeight;
-  }, [messages.length]);
 
   const appendNext = () => {
     setMessages((prev) => [...prev, makeFeedMessage(prev.length)]);
-    if (!atBottomRef.current) setNewBelow((n) => n + 1);
   };
 
   const jumpToLatest = () => {
-    const el = scrollerRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-    atBottomRef.current = true;
-    setNewBelow(0);
+    // In reverse space index 0 is the newest message at the bottom edge.
+    listRef.current?.scrollToIndex(0, 'start');
   };
 
   const renderRow = (m: FeedMessage) =>
@@ -299,19 +254,91 @@ function ChatVirtualFeedDemo() {
       >
         <ChatContainer autoScroll={false}>
           <VirtualList
+            ref={listRef}
             className={feedScroller}
-            items={messages}
+            reverse
+            items={items}
             height={FEED_LIST_HEIGHT}
             itemHeight={FEED_ROW_HEIGHT}
             overscan={FEED_OVERSCAN}
             renderItem={renderRow}
           />
         </ChatContainer>
-        {newBelow > 0 && (
-          <button type='button' className={feedJump} onClick={jumpToLatest}>
-            {newBelow} new message{newBelow > 1 ? 's' : ''} below ↓
-          </button>
-        )}
+      </div>
+    </>
+  );
+}
+
+/** Deterministic replies for the follow demo, cycled by arrival count. */
+const FOLLOW_SCRIPT = [
+  'Following along — new messages glue the view to the bottom.',
+  'Scroll up and I will keep arriving without moving your reading position.',
+  'While you are up here, the jump pill below is the way back.',
+  'Back at the bottom, the follow resumes on its own.',
+  'Every arrival is deterministic — the same clicks, the same transcript.',
+];
+
+const FOLLOW_INITIAL = 3;
+
+/** The scrollport needs a bounded height — fill the fixed-height frame. */
+const followScroller = css`
+  height: 100%;
+`;
+
+const followFrameStyle: CSSProperties = {
+  height: 260,
+  border: '1px solid var(--haze-color-border)',
+  borderRadius: 'var(--haze-radius-md)',
+};
+
+/**
+ * The built-in follow: autoScroll (default on) keeps the view glued to
+ * the newest message while the reader is parked within ~40px of the
+ * bottom; scrolling up pauses the follow and later arrivals surface the
+ * jump pill instead of yanking the view.
+ */
+function ChatFollowDemo() {
+  const [count, setCount] = useState(FOLLOW_INITIAL);
+  const [autoScroll, setAutoScroll] = useState(true);
+
+  return (
+    <>
+      <div className={feedToolbar}>
+        <Button
+          size='sm'
+          variant='outline'
+          onClick={() => setCount((n) => n + 1)}
+        >
+          Append reply
+        </Button>
+        <Button
+          size='sm'
+          variant='ghost'
+          aria-pressed={autoScroll}
+          onClick={() => setAutoScroll((on) => !on)}
+        >
+          autoScroll: {autoScroll ? 'on' : 'off'}
+        </Button>
+        <span className={feedMeta}>{count} messages</span>
+      </div>
+      <div style={followFrameStyle}>
+        <ChatContainer
+          className={followScroller}
+          autoScroll={autoScroll}
+          unreadLabel='New messages ↓'
+        >
+          {Array.from({ length: count }, (_, i) => (
+            <ChatMessage
+              key={i}
+              role={i % 2 === 0 ? 'assistant' : 'user'}
+              name={i % 2 === 0 ? 'Assistant' : 'You'}
+            >
+              {i < FOLLOW_INITIAL
+                ? `Message ${i + 1} — scroll up, then keep appending.`
+                : FOLLOW_SCRIPT[(i - FOLLOW_INITIAL) % FOLLOW_SCRIPT.length]!}
+            </ChatMessage>
+          ))}
+        </ChatContainer>
       </div>
     </>
   );
@@ -350,6 +377,22 @@ export default function ChatContainerDemo() {
       </div>
 
       <div className={section}>
+        <h2>Stick-to-bottom follow</h2>
+        <ChatFollowDemo />
+        <p className={dataTableNote}>
+          <strong>Follow, pause, return.</strong> While the reader is parked
+          within ~40px of the bottom, every content change keeps the view
+          glued to the newest message. Scroll up and the follow pauses — new
+          arrivals no longer move the reading position; instead a{' '}
+          <em>New messages</em> pill appears (label via{' '}
+          <code>unreadLabel</code> or the <code>chat.newMessages</code>{' '}
+          string). Clicking it — or scrolling back on your own — dismisses
+          the pill and re-arms the follow. Replies cycle a fixed script, so
+          the transcript only depends on how many times you append.
+        </p>
+      </div>
+
+      <div className={section}>
         <h2>10,000 messages — ChatContainer × VirtualList (recipe)</h2>
         <ChatVirtualFeedDemo />
         <p className={dataTableNote}>
@@ -366,14 +409,18 @@ export default function ChatContainerDemo() {
           scrollport, <code>overscan</code> (8) hides the render window
           behind fast scrolls, and the whole feed is a single{' '}
           {FEED_ROW_HEIGHT * FEED_SIZE} px spacer with only ~
-          {FEED_MOUNTED_ROWS} rows mounted. ChatContainer keeps the frame
-          with <code>autoScroll={'{false}'}</code> — its MutationObserver
-          would fire on every scroll-driven row swap, and always-follow is
-          wrong once the reader scrolls up — so stick-to-bottom is the
-          recipe&apos;s job: a passive scroll listener parks{' '}
-          <code>atBottom</code> within {FEED_BOTTOM_EPSILON} px of the end,
-          appends scroll only while parked, and otherwise surface the{' '}
-          “N new messages below” pill.
+          {FEED_MOUNTED_ROWS} rows mounted. <strong>Reverse mode.</strong> The
+          feed renders through <code>VirtualList</code> with{' '}
+          <code>reverse</code>: the items are projected newest-first, index 0
+          anchors to the scrollport bottom, and the component itself parks
+          the viewport there on mount, follows appends while the reader is
+          parked, and keeps a scrolled-up reading position as content grows
+          upward. <em>Jump to latest</em> is the handle&apos;s{' '}
+          <code>scrollToIndex(0, &apos;start&apos;)</code> — in mirror space
+          that is the bottom edge. ChatContainer keeps the frame with{' '}
+          <code>autoScroll={'{false}'}</code>: its MutationObserver would
+          fire on every scroll-driven row swap, and the frame never scrolls
+          anyway.
         </p>
       </div>
 
@@ -390,8 +437,17 @@ export default function ChatContainerDemo() {
               Uses <strong>overflow-y: auto</strong> for scrollable content
             </li>
             <li>
-              Auto-scroll uses <strong>MutationObserver</strong> for reliable
-              detection
+              Auto-scroll uses a <strong>MutationObserver</strong> plus a
+              passive scroll listener: follow only fires while parked at the
+              bottom, so a screen-reader or keyboard user reading history is
+              never yanked around
+            </li>
+            <li>
+              The jump pill is a real <strong>&lt;button&gt;</strong> with a
+              text label (<code>chat.newMessages</code> string /{' '}
+              <code>unreadLabel</code> prop) — keyboard-reachable and
+              announced, and it only exists while there is something to jump
+              to
             </li>
             <li>
               The virtualized feed is a <strong>role=&quot;log&quot;</strong>{' '}

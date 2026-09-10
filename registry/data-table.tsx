@@ -16,10 +16,10 @@
 // 'use client' directive, so imports resolve cleanly from RSC; the
 // wrapper inherits client semantics either way.
 
-import { DataTable } from 'haze-ui';
+import { DataTable, dataTableSum, dataTableAvg, dataTableCount } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/data-table.css';
 
-export { DataTable };
-export type { DataTableProps, DataTableColumnDef, DataTableColumnMeta, DataTableVirtualized } from 'haze-ui';
+export { DataTable, dataTableSum, dataTableAvg, dataTableCount };
+export type { DataTableProps, DataTableColumnDef, DataTableColumnMeta, DataTableVirtualized, DataTableSummary, DataTableSummaryCell, DataTableCellEditorProps } from 'haze-ui';

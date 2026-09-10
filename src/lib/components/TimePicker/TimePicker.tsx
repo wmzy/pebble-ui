@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -10,6 +10,9 @@ type TimePickerProps = {
   onChange?: (value: string) => void;
   placeholder?: string;
   className?: string;
+  /** Forwarded to the underlying `<input>` — the element form bridges
+   * and `ref.current.focus()` reach. */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<
   ComponentPropsWithoutRef<'input'>,
   'value' | 'onChange' | 'type' | 'placeholder'
@@ -20,12 +23,14 @@ export default function TimePicker({
   onChange,
   placeholder,
   className,
+  ref,
   ...rest
 }: TimePickerProps) {
   const [value, setValue] = useControl(valueControl, '');
 
   return (
     <TimePickerCore
+      ref={ref}
       value={value}
       onChange={(next) => {
         setValue(next);

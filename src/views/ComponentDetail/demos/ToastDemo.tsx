@@ -1,3 +1,5 @@
+import { css } from '@linaria/core';
+
 import { Button, ToastContainer, useToast } from '@/lib';
 
 import PropsTable from '../PropsTable';
@@ -8,6 +10,20 @@ import { intro, section, row } from '../styles';
 
 import { CssVarsSection } from './shared';
 
+// classNames 槽位演示：viewport 落在容器渲染的固定堆叠上，
+// item/content/close 流进它渲染的每一条 toast（键名见 ToastClassNames）。
+const spacedViewport = css`
+  gap: var(--haze-space-4);
+`;
+
+const brandedItem = css`
+  border-color: var(--haze-color-primary);
+`;
+
+const brandedClose = css`
+  color: var(--haze-color-primary);
+`;
+
 // ─── Toast ─────────────────────────────────────────────────────
 /** Fake network op: settles after 1.5s, rejecting when `fail`. */
 function fakeRequest(fail: boolean) {
@@ -17,6 +33,28 @@ function fakeRequest(fail: boolean) {
       else resolve('record #42');
     }, 1500);
   });
+}
+
+/** Fires toasts into the slotted ToastContainer below (its own provider
+ * is the nearest one for this useToast, so only that stack renders them). */
+function SlottedToastActions() {
+  const toast = useToast();
+  return (
+    <div className={row}>
+      <Button
+        variant='outline'
+        onClick={() => toast('Slotted toast', { duration: 0 })}
+      >
+        Fire slotted toast (persistent)
+      </Button>
+      <Button
+        variant='outline'
+        onClick={() => toast('Another one', { duration: 5000 })}
+      >
+        Fire another
+      </Button>
+    </div>
+  );
 }
 
 function ToastDemoInner() {
@@ -107,6 +145,33 @@ function ToastDemoInner() {
             promise (failure)
           </Button>
         </div>
+      </div>
+
+      <div className={section}>
+        <h2>classNames slots</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          Toasts are fired imperatively, so the <code>classNames</code>{' '}
+          record lives on <code>&lt;ToastContainer&gt;</code> (AntD v6
+          shape): <code>viewport</code> lands on the fixed stack, while{' '}
+          <code>item</code>/<code>content</code>/<code>close</code> flow
+          to every toast it renders. This nested container gives its
+          stack a wider gap and its toasts a primary border.
+        </p>
+        <ToastContainer
+          classNames={{
+            viewport: spacedViewport,
+            item: brandedItem,
+            close: brandedClose,
+          }}
+        >
+          <SlottedToastActions />
+        </ToastContainer>
       </div>
 
       <div className={section}>

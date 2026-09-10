@@ -31,12 +31,23 @@ const defaultStrings = {
     nextMonth: 'Next month',
     today: 'Today',
     selectMonth: 'Select month',
+    selectQuarter: 'Select quarter',
+    selectYear: 'Select year',
     previousYear: 'Previous year',
     nextYear: 'Next year',
+    previousDecade: 'Previous decade',
+    nextDecade: 'Next decade',
     weekNumber: 'Wk',
   },
   cascader: {
     expand: 'Expand',
+  },
+  combobox: {
+    create: 'Create "{query}"',
+    noResults: 'No results',
+  },
+  command: {
+    noResults: 'No results',
   },
   sidebar: {
     toggle: 'Toggle sidebar',
@@ -64,6 +75,11 @@ const defaultStrings = {
     previousSlide: 'Previous slide',
     nextSlide: 'Next slide',
     goToSlide: 'Go to slide {index}',
+  },
+  chat: {
+    newMessages: 'New messages',
+    stopGeneration: 'Stop generating',
+    copy: 'Copy',
   },
   chatInput: {
     placeholder: 'Type a message...',
@@ -148,6 +164,12 @@ const defaultStrings = {
   select: {
     placeholder: 'Select…',
     listboxLabel: 'Options',
+    clear: 'Clear',
+    searchLabel: 'Search options',
+    searchPlaceholder: 'Search…',
+    noMatch: 'No matches',
+    loading: 'Loading options…',
+    moreTags: '+{count}',
   },
   spinner: {
     loading: 'Loading',
@@ -197,6 +219,12 @@ const defaultStrings = {
     hint: 'Drag & drop files here, or click to upload',
     clickHint: 'Click to browse files',
     label: 'Upload files',
+    retry: 'Retry upload',
+    cancel: 'Cancel upload',
+    remove: 'Remove file',
+    uploading: 'Uploading',
+    success: 'Uploaded',
+    error: 'Upload failed',
   },
 };
 

@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/toast.css';
 
 export { Toast, ToastContainer, useToast, toast };
-export type { ToastProps, ToastContainerProps, ToastOptions, ToastVariant } from 'haze-ui';
+export type { ToastProps, ToastContainerProps, ToastOptions, ToastVariant, ToastClassNames } from 'haze-ui';

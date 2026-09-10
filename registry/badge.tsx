@@ -16,10 +16,10 @@
 // 'use client' directive, so imports resolve cleanly from RSC; the
 // wrapper inherits client semantics either way.
 
-import { Badge } from 'haze-ui';
+import { Badge, badgeVariants, badgeSizes } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/badge.css';
 
-export { Badge };
+export { Badge, badgeVariants, badgeSizes };
 export type { BadgeProps } from 'haze-ui';

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -10,6 +10,8 @@ type SwitchCoreProps = {
   onNativeClick?: ComponentPropsWithoutRef<'button'>['onClick'];
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Forwarded to the switch `<button>` element. */
+  ref?: Ref<HTMLButtonElement>;
 } & Omit<ComponentPropsWithoutRef<'button'>, 'type' | 'checked' | 'onChange'>;
 
 const track = css`
@@ -112,10 +114,12 @@ export default function SwitchCore({
   onNativeClick,
   size = 'md',
   className,
+  ref,
   ...rest
 }: SwitchCoreProps) {
   return (
     <button
+      ref={ref}
       type='button'
       role='switch'
       aria-checked={checked}

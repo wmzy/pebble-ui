@@ -1,6 +1,9 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 
 import { css } from '@linaria/core';
+import { useCallback } from 'react';
+
+import { mergeRefs } from '../../utils/refs';
 
 type SegmentedOption =
   | string
@@ -12,6 +15,11 @@ type SegmentedCoreProps = {
   onChange: (value: string) => void;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /**
+   * Forwarded to the group's focus target — the selected option's
+   * `<button>` (falling back to the first).
+   */
+  ref?: Ref<HTMLButtonElement>;
 };
 
 const container = css`
@@ -74,14 +82,27 @@ export default function SegmentedCore({
   onChange,
   size = 'md',
   className,
+  ref,
 }: SegmentedCoreProps) {
+  // The consumer's ref rides the selected option's button — the natural
+  // focus target — falling back to the first when nothing is selected;
+  // as the selection moves, the ref re-attaches to the new stop.
+  const attachStop = useCallback(
+    (node: HTMLButtonElement | null) => mergeRefs(ref)(node),
+    [ref]
+  );
+  const stopIndex = Math.max(
+    0,
+    options.findIndex((opt) => normalize(opt).value === value)
+  );
   return (
     <div x-class={[container, sizes[size], className]} role="group">
-      {options.map((opt) => {
+      {options.map((opt, index) => {
         const { value: val, label, disabled } = normalize(opt);
         return (
           <button
             key={val}
+            ref={index === stopIndex ? attachStop : undefined}
             type="button"
             x-class={[btn, value === val && activeBtn]}
             disabled={disabled}

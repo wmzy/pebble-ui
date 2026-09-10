@@ -127,14 +127,15 @@ checklist:
   so those render as React Server Components (see
   [Server Components](#server-components-nextjs-app-router)).
 
-### Optional peer dependencies
+### Dependencies
 
-haze-ui's only required runtime dependency is `react-use-control` — the
-engine behind `ControlOrValue<T>`. Six integrations are optional peers,
-installed only when you use the components that need them:
+haze-ui ships two runtime dependencies — `react-use-control`, the engine
+behind `ControlOrValue<T>`, and `react-f0rm` (^1.3), the form engine
+behind `FormItem`/`FormList` (the same author's headless form store).
+Five integrations remain optional peers, installed only when you use the
+components that need them:
 
 ```sh
-npm i react-f0rm                          # FormItem (peer range ^1.1.1)
 npm i @tanstack/react-table               # DataTable (peer range ^9.2.4)
 npm i recharts                            # Chart (peer range ^3.10.1)
 npm i @dnd-kit/core @dnd-kit/sortable \
@@ -143,13 +144,13 @@ npm i @dnd-kit/core @dnd-kit/sortable \
 ```
 
 Everything else — `Button`, `Input`, `Dialog`, `Select`, … — runs with
-nothing beyond `react` and `react-use-control`. The dist is ESM with
-`preserveModules` and side-effect-free JS, so bundlers (Next.js, Vite,
-webpack, Turbopack, Rollup) tree-shake the unused re-export chains and
-never resolve peers you haven't installed: `import { Button } from
-'haze-ui'` works without `react-f0rm`. Only bundler-less consumers
-(bare Node ESM importing the barrel, which links the module graph
-eagerly) must install the optional peers; the `haze-ui/form`,
+nothing beyond `react` and the two runtime dependencies. The dist is ESM
+with `preserveModules` and side-effect-free JS, so bundlers (Next.js,
+Vite, webpack, Turbopack, Rollup) tree-shake the unused re-export chains
+and never resolve peers you haven't installed: `import { Button } from
+'haze-ui'` works without `@tanstack/react-table`. Only bundler-less
+consumers (bare Node ESM importing the barrel, which links the module
+graph eagerly) must install the optional peers; the
 `haze-ui/components/DataTable` and `haze-ui/components/Chart` subpaths
 bypass the barrel entirely.
 
@@ -627,6 +628,25 @@ views: controlled cores (`InputCore`, `SelectCore`, `SwitchCore`, `TextareaCore`
 pair with zero adapters, and `FormItem` wraps the hook's state in label,
 error and aria wiring. The sugar components (`Input`, `Select`, ...)
 keep their `ControlOrValue<T>` (`Control<T> | T`) API for standalone use outside forms.
+
+Beyond `FormItem`, the `haze-ui` barrel re-exports the whole form layer
+so consumers never import react-f0rm directly: `FormList` (array fields
+over `useFieldArray` — append/prepend/insert/remove/swap/move with
+stable row keys), `FormProvider`/`useFormContext` (`FormItem`/`FormList`
+fall back to context when the `form` prop is omitted), the imperative
+APIs (`setValue`, `getValue`, `reset`, `trigger`, `setFocus`,
+`setServerErrors`, `useWatch`, ...), and schema resolvers:
+
+```jsx
+import { FormItem, FormList, zodResolver, standardSchemaResolver } from 'haze-ui';
+```
+
+`zodResolver` adapts any zod schema (v4) as a field validator;
+`standardSchemaResolver` adapts any Standard Schema v1 implementation
+(zod, valibot, arktype, ...) the same way. Field controls forward refs
+to their focusable element and `FormItem` wires f0rm's `focusRef`
+channel, so `setFocus(form, 'name')` and a failed submit's
+first-error auto-focus land on the real input.
 
 ### useField: field → {value, onChange}
 

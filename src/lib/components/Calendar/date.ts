@@ -148,6 +148,69 @@ export function formatDate(
 }
 
 /**
+ * Format a month as the `"YYYY-MM"` string Calendar's `picker="month"`
+ * mode uses as its value. Pure string math; no Date construction.
+ */
+export function formatMonthValue(year: number, month: number): string {
+  return `${year}-${String(month + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Parse a `"YYYY-MM"` month-picker value (`{@link formatMonthValue}`'s
+ * inverse). Returns `null` unless the month is `01`…`12`; anything with
+ * another shape (`"2026-3"`, `"2026-03-15"`, malformed input) is rejected.
+ */
+export function parseMonthValue(
+  value: string
+): { year: number; month: number } | null {
+  const match = /^(\d{4})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  if (month < 0 || month > 11) return null;
+  return { year, month };
+}
+
+/**
+ * Format a quarter as the `"YYYY-Qn"` string Calendar's
+ * `picker="quarter"` mode uses as its value, with `quarter` 1-based
+ * (`2026` Q1 → `"2026-Q1"`).
+ */
+export function formatQuarterValue(year: number, quarter: number): string {
+  return `${year}-Q${quarter}`;
+}
+
+/**
+ * Parse a `"YYYY-Qn"` quarter-picker value (`{@link formatQuarterValue}`'s
+ * inverse). Returns `null` unless `n` is 1…4.
+ */
+export function parseQuarterValue(
+  value: string
+): { year: number; quarter: number } | null {
+  const match = /^(\d{4})-Q([1-4])$/.exec(value);
+  if (!match) return null;
+  return { year: Number(match[1]), quarter: Number(match[2]) };
+}
+
+/**
+ * Format a year as the `"YYYY"` string Calendar's `picker="year"` mode
+ * uses as its value.
+ */
+export function formatYearValue(year: number): string {
+  return String(year);
+}
+
+/**
+ * Parse a `"YYYY"` year-picker value (`{@link formatYearValue}`'s
+ * inverse). Returns `null` for anything that is not exactly four digits.
+ */
+export function parseYearValue(value: string): { year: number } | null {
+  const match = /^(\d{4})$/.exec(value);
+  if (!match) return null;
+  return { year: Number(match[1]) };
+}
+
+/**
  * Parse a `"YYYY-MM-DD"` value string into a local-midnight Date — the
  * inverse of {@link formatDate} and the only safe way to turn a value into
  * a Date (`new Date('YYYY-MM-DD')` parses as UTC midnight and shifts a

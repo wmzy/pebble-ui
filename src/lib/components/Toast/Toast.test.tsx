@@ -848,3 +848,58 @@ describe('toast.promise', () => {
     expect(screen.queryByText('Success')).not.toBeInTheDocument();
   });
 });
+
+describe('Toast classNames slots', () => {
+  it('applies item, content and close to a directly rendered toast', () => {
+    render(
+      <Toast
+        onClose={vi.fn()}
+        duration={0}
+        classNames={{ item: 't-item', content: 't-content', close: 't-close' }}
+      >
+        Message
+      </Toast>
+    );
+    const item = screen.getByRole('status');
+    expect(item).toHaveClass('t-item');
+    expect(item.firstElementChild).toHaveClass('t-content');
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('t-close');
+  });
+
+  it('distributes viewport and item slots from ToastContainer to fired toasts', async () => {
+    const user = userEvent.setup();
+    function FireToast() {
+      const showToast = useToast();
+      return (
+        <button onClick={() => showToast('Slotted', { duration: 0 })}>fire</button>
+      );
+    }
+    const { container } = render(
+      <ToastContainer
+        classNames={{ viewport: 't-viewport', item: 't-item', close: 't-close' }}
+      >
+        <FireToast />
+      </ToastContainer>
+    );
+    // The fixed stack this container renders (after the children).
+    const viewport = container.lastElementChild;
+    expect(viewport).toHaveClass('t-viewport');
+    await user.click(screen.getByRole('button', { name: 'fire' }));
+    expect(screen.getByRole('status')).toHaveClass('t-item');
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('t-close');
+  });
+
+  it('keeps the class lists untouched when classNames is omitted', () => {
+    const { container } = render(<Toast onClose={vi.fn()} duration={0}>Message</Toast>);
+    const item = screen.getByRole('status');
+    for (const el of [
+      item,
+      item.firstElementChild as HTMLElement,
+      screen.getByRole('button', { name: 'Close' }),
+      container.firstElementChild as HTMLElement,
+    ]) {
+      expect(el.className).toBe(el.className.trim());
+      expect(el.className).not.toContain('  ');
+    }
+  });
+});

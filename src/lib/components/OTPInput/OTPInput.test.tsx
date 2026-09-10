@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import OTPInput from './OTPInput';
@@ -68,5 +69,15 @@ describe('OTPInputCore', () => {
     const { container } = render(<OTPInputCore value="" onChange={onChange} />);
     await user.type(container.querySelector('input')!, '5');
     expect(onChange).toHaveBeenCalledWith('5');
+  });
+});
+
+describe('OTPInput ref forwarding', () => {
+  it('forwards ref to the first cell input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<OTPInput ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

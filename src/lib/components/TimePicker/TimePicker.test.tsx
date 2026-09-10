@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import TimePicker from './TimePicker';
@@ -56,5 +57,15 @@ describe('TimePickerCore', () => {
     const input = document.querySelector('input[type="time"]')!;
     fireEvent.change(input, {target: {value: '10:00'}});
     expect(onChange).toHaveBeenCalledWith('10:00');
+  });
+});
+
+describe('TimePicker ref forwarding', () => {
+  it('forwards ref to the input element', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<TimePicker ref={ref} aria-label='Start time' />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

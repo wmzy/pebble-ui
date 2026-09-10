@@ -1,6 +1,7 @@
 import { useControl } from 'react-use-control';
 
-import { Select, Option, Button } from '@/lib';
+import { Select, Option, OptionGroup } from '@/lib/components/Select';
+import { Button } from '@/lib';
 
 import PropsTable from '../PropsTable';
 
@@ -25,6 +26,30 @@ const MANY_OPTIONS = Array.from({ length: 1000 }, (_, i) => (
   </Option>
 ));
 
+const GROUPED_FRAMEWORKS = [
+  <OptionGroup key='frontend' label='Frontend'>
+    <Option value='react'>React</Option>
+    <Option value='vue'>Vue</Option>
+    <Option value='svelte'>Svelte</Option>
+  </OptionGroup>,
+  <OptionGroup key='backend' label='Backend'>
+    <Option value='node'>Node.js</Option>
+    <Option value='deno'>Deno</Option>
+    <Option value='bun'>Bun</Option>
+  </OptionGroup>,
+];
+
+const noteStyle = {
+  fontSize: 'var(--haze-text-sm)',
+  color: 'var(--haze-color-text-secondary)',
+  margin: '0 0 var(--haze-space-3)',
+} as const;
+
+const valueStyle = {
+  fontSize: 'var(--haze-text-sm)',
+  color: 'var(--haze-color-text-secondary)',
+} as const;
+
 // ─── Select ────────────────────────────────────────────────────
 export default function SelectDemo() {
   // Control triple: the component takes the control, buttons use the
@@ -37,12 +62,28 @@ export default function SelectDemo() {
     undefined,
     []
   );
+  const [searched, , searchedCtrl] = useControl<string>(undefined, '');
+  const [grouped, , groupedCtrl] = useControl<string>(undefined, '');
+  const [groupedMany, setGroupedMany, groupedManyCtrl] = useControl<
+    string[]
+  >(undefined, []);
+  const [tagged, , taggedCtrl] = useControl<string[]>(undefined, [
+    'react',
+    'vue',
+    'svelte',
+  ]);
+  const [loading, setLoading] = useControl<boolean>(
+    undefined,
+    false
+  );
 
   return (
     <>
       <h1>Select</h1>
       <p className={intro}>
-        Dropdown selection with native &lt;select&gt; semantics.
+        Dropdown selection with native &lt;select&gt; semantics, plus
+        searchable / grouped / clearable / loading / maxTagCount modes on
+        the floating listbox engine.
       </p>
 
       <div className={section}>
@@ -80,14 +121,77 @@ export default function SelectDemo() {
       </div>
 
       <div className={section}>
+        <h2>Searchable &amp; clearable</h2>
+        <p style={noteStyle}>
+          <code>searchable</code> swaps the native control for the floating
+          listbox with a search input at the top of the panel: typing
+          filters options, ↑/↓ move the highlight, Enter picks and
+          closes, Escape closes. <code>clearable</code> reveals a × on
+          hover/focus-within that empties the value without touching the
+          panel (Backspace is the keyboard path).
+        </p>
+        <div className={fieldRow}>
+          <Select
+            searchable
+            clearable
+            value={searchedCtrl}
+            placeholder='Pick a framework…'
+          >
+            {FRAMEWORKS.map((framework) => (
+              <Option key={framework.value} value={framework.value}>
+                {framework.label}
+              </Option>
+            ))}
+          </Select>
+        </div>
+        <div className={row}>
+          <span style={valueStyle}>
+            Value: {searched === '' ? '(none)' : searched}
+          </span>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Grouped options</h2>
+        <p style={noteStyle}>
+          <code>OptionGroup</code> labels option clusters. The native path
+          renders a real <code>&lt;optgroup&gt;</code>; the floating paths
+          render <code>role=&apos;group&apos;</code> sections whose keyboard order
+          runs continuously across groups.
+        </p>
+        <div className={fieldRow}>
+          <Select value={groupedCtrl} placeholder='Native grouped…'>
+            {GROUPED_FRAMEWORKS}
+          </Select>
+        </div>
+        <div className={fieldRow}>
+          <Select
+            multiple
+            value={groupedManyCtrl}
+            placeholder='Floating grouped…'
+          >
+            {GROUPED_FRAMEWORKS}
+          </Select>
+        </div>
+        <div className={row}>
+          <span style={valueStyle}>
+            Native: {grouped === '' ? '(none)' : grouped} · Floating:{' '}
+            {groupedMany.length > 0 ? groupedMany.join(', ') : '[]'}
+          </span>
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={() => setGroupedMany([])}
+            disabled={groupedMany.length === 0}
+          >
+            Clear floating
+          </Button>
+        </div>
+      </div>
+
+      <div className={section}>
         <h2>Multiple selection</h2>
-        <p
-          style={{
-            fontSize: 'var(--haze-text-sm)',
-            color: 'var(--haze-color-text-secondary)',
-            margin: '0 0 var(--haze-space-3)',
-          }}
-        >
+        <p style={noteStyle}>
           <code>multiple</code> swaps the native control for a Chip trigger
           plus a listbox popover: selections render as removable chips,{' '}
           <code>placeholder</code> labels the empty trigger, and{' '}
@@ -111,12 +215,7 @@ export default function SelectDemo() {
           </Select>
         </div>
         <div className={row}>
-          <span
-            style={{
-              fontSize: 'var(--haze-text-sm)',
-              color: 'var(--haze-color-text-secondary)',
-            }}
-          >
+          <span style={valueStyle}>
             Value: {picked.length > 0 ? picked.join(', ') : '[]'}
           </span>
           <Button
@@ -131,14 +230,71 @@ export default function SelectDemo() {
       </div>
 
       <div className={section}>
+        <h2>maxTagCount &amp; clearable (multiple)</h2>
+        <p style={noteStyle}>
+          <code>maxTagCount</code> caps the rendered chips — the overflow
+          collapses into a <code>+N</code> badge whose tooltip lists the
+          hidden labels. <code>clearable</code> empties the whole
+          selection in one click.
+        </p>
+        <div className={fieldRow}>
+          <Select
+            multiple
+            clearable
+            maxTagCount={1}
+            value={taggedCtrl}
+            placeholder='Pick frameworks…'
+          >
+            {FRAMEWORKS.map((framework) => (
+              <Option key={framework.value} value={framework.value}>
+                {framework.label}
+              </Option>
+            ))}
+          </Select>
+        </div>
+        <div className={row}>
+          <span style={valueStyle}>
+            Selected: {tagged.length} (
+            {tagged.length > 0 ? tagged.join(', ') : '[]'})
+          </span>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Loading</h2>
+        <p style={noteStyle}>
+          <code>loading</code> marks the floating panel busy: the options
+          area shows a spinner with <code>aria-busy=&apos;true&apos;</code>, and
+          search filtering stays suspended until the options arrive.
+        </p>
+        <div className={fieldRow}>
+          <Select
+            multiple
+            searchable
+            loading={loading}
+            placeholder='Pick frameworks…'
+          >
+            {FRAMEWORKS.map((framework) => (
+              <Option key={framework.value} value={framework.value}>
+                {framework.label}
+              </Option>
+            ))}
+          </Select>
+        </div>
+        <div className={row}>
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={() => setLoading((v) => !v)}
+          >
+            {loading ? 'Finish loading' : 'Start loading'}
+          </Button>
+        </div>
+      </div>
+
+      <div className={section}>
         <h2>Virtualized multiple</h2>
-        <p
-          style={{
-            fontSize: 'var(--haze-text-sm)',
-            color: 'var(--haze-color-text-secondary)',
-            margin: '0 0 var(--haze-space-3)',
-          }}
-        >
+        <p style={noteStyle}>
           <code>virtualized</code> renders the listbox options through{' '}
           <code>VirtualList</code>: only the visible window (plus a small
           overscan) stays mounted, keeping thousand-option lists fast.
@@ -158,14 +314,7 @@ export default function SelectDemo() {
           </Select>
         </div>
         <div className={row}>
-          <span
-            style={{
-              fontSize: 'var(--haze-text-sm)',
-              color: 'var(--haze-color-text-secondary)',
-            }}
-          >
-            Selected: {pickedMany.length}
-          </span>
+          <span style={valueStyle}>Selected: {pickedMany.length}</span>
           <Button
             size='sm'
             variant='outline'
@@ -203,10 +352,27 @@ export default function SelectDemo() {
               <strong>aria-multiselectable</strong>
             </li>
             <li>
-              The multiple trigger is an APG select-only combobox:{' '}
-              <strong>role=&quot;combobox&quot;</strong> with aria-expanded,{' '}
+              The floating triggers are APG select-only comboboxes:{' '}
+              <strong>role=&quot;combobox&quot;</strong> with aria-expanded,
               aria-controls and aria-activedescendant for the keyboard
               highlight
+            </li>
+            <li>
+              Searchable panels put the search input inside the popup —
+              focus moves there on open, and the input mirrors{' '}
+              <strong>aria-activedescendant</strong> so screen readers
+              announce highlight moves while typing
+            </li>
+            <li>
+              Option groups are native <strong>optgroup</strong> elements
+              on the select path and <strong>role=&apos;group&apos;</strong> sections
+              on the floating paths
+            </li>
+            <li>
+              The clear × and chip removes are pointer-only by design
+              (nested interactive controls inside a button are invalid
+              HTML); keyboard users clear with <strong>Backspace</strong>{' '}
+              and remove chips with Backspace or the listbox
             </li>
           </ul>
         </A11yNote>

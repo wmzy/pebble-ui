@@ -16,10 +16,10 @@
 // 'use client' directive, so imports resolve cleanly from RSC; the
 // wrapper inherits client semantics either way.
 
-import { Button, ButtonLink } from 'haze-ui';
+import { Button, ButtonLink, buttonVariants, buttonSizes } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/button.css';
 
-export { Button, ButtonLink };
+export { Button, ButtonLink, buttonVariants, buttonSizes };
 export type { ButtonProps, ButtonLinkProps } from 'haze-ui';

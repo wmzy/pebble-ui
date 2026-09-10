@@ -12,27 +12,10 @@ import type {
   SortingState,
 } from '@tanstack/react-table';
 
+import type { DataTableCellEditorProps, DataTableColumnMeta } from './features';
+
 import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
-import {
-  columnFilteringFeature,
-  columnResizingFeature,
-  columnSizingFeature,
-  columnVisibilityFeature,
-  createExpandedRowModel,
-  createFilteredRowModel,
-  createPaginatedRowModel,
-  createSortedRowModel,
-  filterFn_includesString,
-  metaHelper,
-  rowExpandingFeature,
-  rowPaginationFeature,
-  rowSelectionFeature,
-  rowSortingFeature,
-  sortFn_alphanumeric,
-  sortFn_text,
-  tableFeatures,
-  useTable,
-} from '@tanstack/react-table';
+import { useTable } from '@tanstack/react-table';
 import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
 
@@ -51,49 +34,8 @@ import { Skeleton } from '../Skeleton';
 import { TableBody, TableCell, TableHead } from '../Table';
 import { VirtualList } from '../VirtualList';
 
-/** Per-column metadata understood by DataTable. */
-type DataTableColumnMeta = {
-  /** Column-level sorting switch — overrides the table-level `sortable` default. */
-  sortable?: boolean;
-  /**
-   * Column width, applied through a `<colgroup>` shared by every table in
-   * the layout: a number is px, strings pass through as CSS lengths
-   * (`'25%'`, `'12rem'`). Wins over the native TanStack `size` field, which
-   * is read as a px fallback. Columns without any width keep their previous
-   * sizing — content-driven in normal mode, an equal share of the remainder
-   * when `virtualized`.
-   */
-  width?: number | string;
-  /**
-   * Pin the column to the scroll area's left/right edge so it stays visible
-   * while the table scrolls horizontally. Normal mode only — ignored when
-   * `virtualized`, where each row is its own table with no shared
-   * scrollport. The sticky offset sums the widths of the preceding fixed
-   * columns on the same side, starting from the selection column, so fixed
-   * columns should declare numeric px widths; non-numeric widths contribute
-   * nothing to the offset math. Honored on leaf columns.
-   */
-  fixed?: 'left' | 'right';
-  /**
-   * Column-level resizing switch — overrides the table-level `resizable`
-   * default (`false` hides this column's handle when the table is
-   * resizable; `true` is the per-column default). The native TanStack
-   * `enableResizing` field wins over this.
-   */
-  resizable?: boolean;
-  /**
-   * `false` pins the column in the visibility menu — it renders without a
-   * toggle and can never be hidden. The native TanStack `enableHiding`
-   * field wins over this.
-   */
-  hideable?: boolean;
-  /**
-   * Column-level filtering switch — overrides the table-level `filterable`
-   * default, deciding whether the filter row renders an input for this
-   * column. The native TanStack `enableColumnFilter` field wins over this.
-   */
-  filterable?: boolean;
-};
+import CellEditor from './CellEditor';
+import { dataTableFeatures } from './features';
 
 /** Windowing configuration for the table body, reusing `VirtualList`. */
 type DataTableVirtualized =
@@ -107,35 +49,6 @@ type DataTableVirtualized =
       overscan?: number;
     };
 
-/** The feature set stitched into every DataTable instance — TanStack v9's
- * tree-shaking contract: only the row models and registries the component
- * actually drives are registered. `columnMeta` is a type-only slot that
- * types `meta` on column definitions.
- *
- * The resizing, expanding, visibility and filtering features are registered
- * unconditionally but stay inert until their table-level props opt in —
- * with empty state and no `subRows` their row-model steps are identities,
- * so the default render path is unchanged. The column-sizing feature's
- * `size: 150` column-def default is neutralized through `defaultColumn`
- * (see there). */
-const dataTableFeatures = tableFeatures({
-  rowPaginationFeature,
-  paginatedRowModel: createPaginatedRowModel(),
-  rowSelectionFeature,
-  rowSortingFeature,
-  sortedRowModel: createSortedRowModel(),
-  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
-  rowExpandingFeature,
-  expandedRowModel: createExpandedRowModel(),
-  columnVisibilityFeature,
-  columnFilteringFeature,
-  filteredRowModel: createFilteredRowModel(),
-  filterFns: { includesString: filterFn_includesString },
-  columnSizingFeature,
-  columnResizingFeature,
-  columnMeta: metaHelper<DataTableColumnMeta>(),
-});
-
 /** Column definition accepted by DataTable — a TanStack Table column def
  * bound to DataTable's feature set and column meta. The native `size`
  * field doubles as a static px width hint (read as the colgroup width
@@ -145,6 +58,24 @@ type DataTableColumnDef<TData extends RowData> = ColumnDef<
   typeof dataTableFeatures,
   TData
 > & { size?: number };
+
+/** One cell of a summary row: a static string or number (`undefined`
+ * renders an empty cell — `dataTableAvg` of no numeric values), or a
+ * function of the summarized rows (the place `dataTableSum` & co. plug
+ * in). */
+type DataTableSummaryCell<TData extends RowData = RowData> =
+  | string
+  | number
+  | undefined
+  | ((rows: Row<typeof dataTableFeatures, TData>[]) => ReactNode);
+
+/** One `<tfoot>` row produced by the `summary` callback: an optional
+ * accessible label for the whole row (rendered as its `aria-label`) and
+ * one cell per leaf column, in column order. */
+type DataTableSummary<TData extends RowData = RowData> = {
+  label?: string;
+  cells: DataTableSummaryCell<TData>[];
+};
 
 type DataTableProps<TData extends RowData> = {
   /** Column definitions: accessors, headers and cell templates. */
@@ -230,23 +161,41 @@ type DataTableProps<TData extends RowData> = {
   resizable?: boolean;
   /**
    * Expanded-row state (TanStack `ExpandedState`: `true` for all, or a map
-   * keyed by row id). Pair with `getRowCanExpand` and
-   * `renderExpandedRow`.
+   * keyed by row id). Drives both expansion flavors: custom panels
+   * (`getRowCanExpand` + `renderExpandedRow`) and tree data (`subRows`).
    */
   expanded?: ControlOrValue<ExpandedState>;
   /**
    * Decides which rows offer an expander button in the first content
    * column. Without it, providing `renderExpandedRow` alone makes every
-   * row expandable (DataTable does not read `subRows` — tree data belongs
-   * to the `Tree` component).
+   * row expandable. Explicit expansion props win over tree data: when
+   * either this or `renderExpandedRow` is given, `subRows` fields are
+   * ignored and rows never nest.
    */
   getRowCanExpand?: (row: Row<typeof dataTableFeatures, TData>) => boolean;
   /**
    * Renders the expansion panel: a full-width row (`colSpan` across every
    * visible column) directly below each expanded row. Called with the
-   * TanStack row (`.original` carries the data).
+   * TanStack row (`.original` carries the data). Providing it (or
+   * `getRowCanExpand`) switches the table to custom-panel expansion and
+   * disables tree mode.
    */
   renderExpandedRow?: (row: Row<typeof dataTableFeatures, TData>) => ReactNode;
+  /**
+   * The field DataTable reads tree children from, when rows carry nested
+   * data — `'subRows'` by default. Tree mode turns on by itself when some
+   * top-level row holds a non-empty array there: parent rows grow expander
+   * buttons in the first content column, expanded children render as
+   * indented rows (one `--haze-space-4` per depth level) in document
+   * order, and the `expanded` state keeps its TanStack semantics (keyed by
+   * row id — sub-row ids default to `parentId.index`, so pass `getRowId`
+   * for stable ids). Works with sorting, filtering, selection, pagination
+   * and `virtualized` (the expanded row model already yields the flat
+   * display order the window slices). Explicit `getRowCanExpand` /
+   * `renderExpandedRow` take priority — with either present, `subRows`
+   * data is not read at all.
+   */
+  subRowsKey?: string;
   /**
    * Column visibility state (TanStack `ColumnVisibilityState`): a map keyed by
    * column id, `true` (or absent) meaning visible. Hidden columns drop
@@ -270,8 +219,54 @@ type DataTableProps<TData extends RowData> = {
    * filter function. Defaults to `false`.
    */
   filterable?: boolean;
+  /**
+   * Renders summary rows in a `<tfoot>` below the body: one row per entry,
+   * one cell per leaf column (`cells[i]` aligns with column `i`; the
+   * selection column, when present, renders an empty cell first). Cell
+   * functions receive the rows being summarized — every row of the
+   * filtered data (all pages, tree sub-rows included), so totals stay
+   * stable across pagination; `label` names the row accessibly. Skipped
+   * while `loading` or when no rows render. When `virtualized`, the
+   * summary renders in its own table below the scrolling window — pinned
+   * by construction, `stickyFooter` is unnecessary there.
+   */
+  summary?: (
+    rows: Row<typeof dataTableFeatures, TData>[]
+  ) => DataTableSummary<TData>[];
+  /**
+   * Keep the summary footer visible while the body scrolls vertically —
+   * the tfoot cells stick to the bottom of the scroll area (needs a
+   * height-bounded table: `stickyHeader`'s scroll area or a consumer
+   * `max-height`). No effect when `virtualized` (already pinned) or
+   * without `summary`. Defaults to `false`.
+   */
+  stickyFooter?: boolean;
+  /**
+   * Enable inline cell editing: cells become focusable and enter edit mode
+   * on double-click or Enter; the built-in editors (an `InputCore`) save
+   * on Enter or blur and cancel on Escape. The editor kind is chosen per
+   * column through `meta.editor` (`'text'` by default, `'number'` parses
+   * the draft — reporting `null` when cleared — a function renders a
+   * custom editor, `false` opts the column out). DataTable never mutates
+   * `data`: committed values are reported through `onCellEdit`, and the
+   * cell keeps rendering the current value until the consumer updates the
+   * data. Note `onRowClick` still fires for the clicks of a double-click.
+   */
+  editable?: boolean;
+  /**
+   * Reports a committed cell edit: the row id, the column id, the next
+   * value and the previous one. Called after Enter/blur/custom-editor
+   * saves, only when the value actually changed (`Object.is`). The
+   * consumer owns the data — update it to make the edit visible.
+   */
+  onCellEdit?: (
+    rowId: string,
+    columnId: string,
+    nextValue: unknown,
+    prevValue: unknown
+  ) => void;
   className?: string;
-} & Omit<ComponentPropsWithoutRef<'table'>, 'children'>;
+} & Omit<ComponentPropsWithoutRef<'table'>, 'children' | 'summary'>;
 
 /** Per-column feature switches resolved from the table-level props. */
 type ColumnFlags = {
@@ -692,6 +687,49 @@ const panelCell = css`
   background: var(--haze-color-bg-subtle);
 `;
 
+/* Tree indentation: an inline-block spacer in the first content cell,
+ * one `--haze-space-4` per depth level (inline style carries the depth
+ * multiple). aria-hidden — purely presentational shifting. */
+const treeIndent = css`
+  display: inline-block;
+  vertical-align: middle;
+`;
+
+/* Summary footer: mirrors the body cell metrics with a heavier top rule
+ * and the header's text weight. */
+const summaryFoot = css`
+  & td {
+    padding: var(--haze-space-2) var(--haze-space-3);
+    border-top: 2px solid var(--haze-color-border);
+    color: var(--haze-color-text);
+    font-weight: var(--haze-weight-semibold);
+    white-space: nowrap;
+  }
+`;
+
+/* Sticky summary footer: cells stick to the bottom of the scroll area,
+ * mirroring the sticky header's elevation and stacking. */
+const stickyFoot = css`
+  & td {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: var(--haze-color-bg);
+    box-shadow: var(--haze-shadow-sm);
+  }
+`;
+
+/* Editable cell, at rest: hints at the affordance and carries the focus
+ * ring for the Enter-to-edit path (the td is the tab stop). */
+const editableCell = css`
+  cursor: text;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--haze-color-primary);
+  }
+`;
+
 export default function DataTable<TData extends RowData>({
   columns,
   data,
@@ -711,9 +749,14 @@ export default function DataTable<TData extends RowData>({
   expanded: expandedControl,
   getRowCanExpand,
   renderExpandedRow,
+  subRowsKey = 'subRows',
   columnVisibility: columnVisibilityControl,
   columnToggle = false,
   filterable = false,
+  summary,
+  stickyFooter = false,
+  editable = false,
+  onCellEdit,
   className,
   ...rest
 }: DataTableProps<TData>) {
@@ -729,6 +772,12 @@ export default function DataTable<TData extends RowData>({
   );
   const [columnVisibility, setColumnVisibility] =
     useControl<ColumnVisibilityState>(columnVisibilityControl, {});
+  // Which cell is being edited, if any — purely internal UI state, keyed by
+  // row/column id so it survives reorders and the virtualized window.
+  const [editingCell, setEditingCell] = useState<{
+    rowId: string;
+    columnId: string;
+  } | null>(null);
 
   // Declared intent (LocaleProvider chain → document) for the drag math,
   // which TanStack resolves as a render-time option; keyboard nudges read
@@ -744,15 +793,31 @@ export default function DataTable<TData extends RowData>({
   const overscan =
     typeof virtualized === 'object' ? virtualized.overscan : undefined;
 
-  // Without `pageSize` the table renders one page holding every row, so the
-  // paginated row model never slices anything.
-  const size = pageSize ?? Math.max(data.length, 1);
+  // Without `pageSize` the table renders one page holding every row, so
+  // the paginated row model never slices anything — Infinity (not
+  // `data.length`) because expanded tree children can outnumber the roots.
+  const size = pageSize ?? Number.POSITIVE_INFINITY;
 
-  // Expansion is possible only when the consumer opts in; it also switches
-  // the virtualized window to measured (dynamic) row heights, since panels
-  // are taller than the fixed row height.
+  // Custom-panel expansion is possible only when the consumer opts in; it
+  // also switches the virtualized window to measured (dynamic) row
+  // heights, since panels are taller than the fixed row height. Tree
+  // expansion keeps the fixed window — children are ordinary rows.
   const expandable =
     getRowCanExpand !== undefined || renderExpandedRow !== undefined;
+
+  // Tree data: when no explicit expansion prop is given and some top-level
+  // row carries children under `subRowsKey`, TanStack's `getSubRows` is
+  // wired and the default `getRowCanExpand` (rows with sub-rows) takes
+  // over — expanders, indented children and the `expanded` state all flow
+  // from there. Explicit props keep the custom-panel flavor and leave
+  // nested data unread (zero-change default for existing consumers).
+  const treeMode =
+    getRowCanExpand === undefined &&
+    renderExpandedRow === undefined &&
+    data.some((row) => {
+      const children = (row as Record<string, unknown>)[subRowsKey];
+      return Array.isArray(children) && children.length > 0;
+    });
 
   const tableColumns = useMemo(
     () =>
@@ -767,6 +832,12 @@ export default function DataTable<TData extends RowData>({
     columns: tableColumns,
     data,
     getRowId,
+    getSubRows: treeMode
+      ? (originalRow) =>
+          (originalRow as Record<string, unknown>)[subRowsKey] as
+            | readonly TData[]
+            | undefined
+      : undefined,
     state: {
       sorting,
       rowSelection,
@@ -779,7 +850,8 @@ export default function DataTable<TData extends RowData>({
     onExpandedChange: setExpanded,
     onColumnVisibilityChange: setColumnVisibility,
     // `renderExpandedRow` alone means "every row expands"; `getRowCanExpand`
-    // refines which ones.
+    // refines which ones. Neither given falls through to TanStack's default
+    // — "rows with subRows" — which is what drives tree mode.
     getRowCanExpand:
       getRowCanExpand ??
       (renderExpandedRow !== undefined ? () => true : undefined),
@@ -1105,6 +1177,24 @@ export default function DataTable<TData extends RowData>({
         )}
         {row.getVisibleCells().map((cell, cellIndex) => {
           const fixedSpec = fixedById.get(cell.column.id);
+          // Editing is resolved per leaf column: the table-level switch
+          // gates it, `meta.editor` picks the kind (`'text'` default,
+          // `false` opts out).
+          const editor: DataTableColumnMeta['editor'] = editable
+            ? (cell.column.columnDef.meta?.editor ?? 'text')
+            : false;
+          const canEdit = editor !== false;
+          const isEditing =
+            editingCell !== null &&
+            editingCell.rowId === row.id &&
+            editingCell.columnId === cell.column.id;
+          const commitEdit = (next: unknown) => {
+            setEditingCell(null);
+            const prev = cell.getValue();
+            if (!Object.is(next, prev)) {
+              onCellEdit?.(row.id, cell.column.id, next, prev);
+            }
+          };
           return (
             <TableCell
               key={cell.id}
@@ -1113,28 +1203,84 @@ export default function DataTable<TData extends RowData>({
                 fixedSpec?.edge &&
                   (fixedSpec.side === 'left' ? fixedLeftEdge : fixedRightEdge),
                 row.getIsSelected() && fixedCellSelected,
+                canEdit && editableCell,
               ]}
               style={fixedOffsetStyle(fixedSpec)}
+              tabIndex={canEdit ? 0 : undefined}
+              onDoubleClick={
+                canEdit && !isEditing
+                  ? () =>
+                      setEditingCell({
+                        rowId: row.id,
+                        columnId: cell.column.id,
+                      })
+                  : undefined
+              }
+              onKeyDown={
+                canEdit && !isEditing
+                  ? (event) => {
+                      if (event.key !== 'Enter') return;
+                      event.preventDefault();
+                      setEditingCell({
+                        rowId: row.id,
+                        columnId: cell.column.id,
+                      });
+                    }
+                  : undefined
+              }
             >
-              {cellIndex === 0 && row.getCanExpand() && (
-                <button
-                  type='button'
-                  x-class={[expander]}
-                  aria-expanded={row.getIsExpanded()}
-                  aria-controls={panelId(row.id)}
-                  aria-label={
-                    row.getIsExpanded()
-                      ? `Collapse row ${row.id}`
-                      : `Expand row ${row.id}`
-                  }
-                  onClick={row.getToggleExpandedHandler()}
-                >
-                  <span x-class={[expanderIcon]} aria-hidden='true'>
-                    ▸
-                  </span>
-                </button>
+              {isEditing && canEdit ? (
+                typeof editor === 'function' ? (
+                  editor({
+                    value: cell.getValue(),
+                    row,
+                    column: cell.column,
+                    onSave: commitEdit,
+                    onCancel: () => setEditingCell(null),
+                  })
+                ) : (
+                  <CellEditor
+                    kind={editor === 'number' ? 'number' : 'text'}
+                    value={cell.getValue()}
+                    ariaLabel={`Edit ${columnLabel(cell.column)} in row ${row.id}`}
+                    onSave={commitEdit}
+                    onCancel={() => setEditingCell(null)}
+                  />
+                )
+              ) : (
+                <>
+                  {cellIndex === 0 && row.depth > 0 && (
+                    <span
+                      aria-hidden='true'
+                      x-class={[treeIndent]}
+                      style={{ width: `calc(var(--haze-space-4) * ${row.depth})` }}
+                    />
+                  )}
+                  {cellIndex === 0 && row.getCanExpand() && (
+                    <button
+                      type='button'
+                      x-class={[expander]}
+                      aria-expanded={row.getIsExpanded()}
+                      aria-controls={
+                        renderExpandedRow !== undefined
+                          ? panelId(row.id)
+                          : undefined
+                      }
+                      aria-label={
+                        row.getIsExpanded()
+                          ? `Collapse row ${row.id}`
+                          : `Expand row ${row.id}`
+                      }
+                      onClick={row.getToggleExpandedHandler()}
+                    >
+                      <span x-class={[expanderIcon]} aria-hidden='true'>
+                        ▸
+                      </span>
+                    </button>
+                  )}
+                  <table.FlexRender cell={cell} />
+                </>
               )}
-              <table.FlexRender cell={cell} />
             </TableCell>
           );
         })}
@@ -1230,6 +1376,37 @@ export default function DataTable<TData extends RowData>({
     </TableBody>
   ) : undefined;
 
+  // Summary footer: the callback summarizes the filtered data (every row,
+  // all pages, tree sub-rows included) — never the skeleton or empty state.
+  // Rendered as the table's tfoot in normal mode; in virtualized mode as
+  // its own sibling table below the scrolling window (outside the virtual
+  // area by construction), sharing the same colgroup for column alignment.
+  const summaryRowsArguments = table.getFilteredRowModel().flatRows;
+  const summaryRows =
+    summary !== undefined && !loading && rows.length > 0
+      ? summary(summaryRowsArguments)
+      : undefined;
+  const summaryTfoot =
+    summaryRows !== undefined && summaryRows.length > 0 ? (
+      <tfoot x-class={[summaryFoot, stickyFooter && stickyFoot]}>
+        {summaryRows.map((summaryRow, rowIndex) => (
+          <tr key={`summary-${rowIndex}`} aria-label={summaryRow.label}>
+            {selectable && <TableCell>{null}</TableCell>}
+            {leafHeaders.map((header, cellIndex) => {
+              const cell = summaryRow.cells[cellIndex];
+              return (
+                <TableCell key={header.id}>
+                  {typeof cell === 'function'
+                    ? cell(summaryRowsArguments)
+                    : cell}
+                </TableCell>
+              );
+            })}
+          </tr>
+        ))}
+      </tfoot>
+    ) : undefined;
+
   // Column-settings menu: every hideable leaf column, hidden ones included
   // (so they can come back). The checkbox inputs carry `menuitemcheckbox` —
   // the role a `menu` must own — while the wrapping labels stay generic, so
@@ -1299,6 +1476,12 @@ export default function DataTable<TData extends RowData>({
               <TableBody>{emptyRow}</TableBody>
             </table>
           )}
+          {summaryTfoot !== undefined && (
+            <table x-class={[tableBase, fixedLayout]}>
+              {colgroup}
+              {summaryTfoot}
+            </table>
+          )}
         </div>
       ) : (
         <div x-class={[stickyHeader ? stickyScrollArea : scrollArea]}>
@@ -1316,6 +1499,7 @@ export default function DataTable<TData extends RowData>({
                 </>
               )}
             </TableBody>
+            {summaryTfoot}
           </table>
         </div>
       )}
@@ -1339,4 +1523,7 @@ export type {
   DataTableColumnDef,
   DataTableColumnMeta,
   DataTableVirtualized,
+  DataTableSummary,
+  DataTableSummaryCell,
+  DataTableCellEditorProps,
 };

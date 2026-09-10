@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 import Button from './Button';
 import ButtonLink from './ButtonLink';
+import {buttonVariants, buttonSizes} from './index';
 
 describe('Button', () => {
   it('renders children', () => {
@@ -193,5 +194,28 @@ describe('ButtonLink', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+describe('buttonVariants / buttonSizes exports', () => {
+  it('exposes the variant skin classes for composition', () => {
+    expect(Object.keys(buttonVariants)).toEqual(['solid', 'outline', 'ghost']);
+    for (const cls of Object.values(buttonVariants)) {
+      expect(cls).toBeTruthy();
+    }
+  });
+
+  it('exposes the size skin classes for composition', () => {
+    expect(Object.keys(buttonSizes)).toEqual(['sm', 'md', 'lg']);
+    for (const cls of Object.values(buttonSizes)) {
+      expect(cls).toBeTruthy();
+    }
+  });
+
+  it('are the exact classes Button wears', () => {
+    render(<Button variant="outline" size="lg">Skin</Button>);
+    const button = screen.getByRole('button', { name: 'Skin' });
+    expect(button).toHaveClass(buttonVariants.outline);
+    expect(button).toHaveClass(buttonSizes.lg);
   });
 });

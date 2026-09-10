@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/dialog.css';
 
 export { Dialog };
-export type { DialogProps, DialogHandle } from 'haze-ui';
+export type { DialogProps, DialogHandle, DialogClassNames } from 'haze-ui';

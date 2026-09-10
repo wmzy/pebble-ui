@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -10,6 +11,9 @@ type PasswordInputProps = {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  /** Forwarded to the inner password `<input>` (not the wrapper div) —
+   * the element form bridges and `ref.current.focus()` reach. */
+  ref?: Ref<HTMLInputElement>;
 };
 
 export default function PasswordInput({
@@ -18,11 +22,13 @@ export default function PasswordInput({
   placeholder,
   disabled,
   className,
+  ref,
 }: PasswordInputProps) {
   const [value, setValue] = useControl(valueControl, '');
 
   return (
     <PasswordInputCore
+      ref={ref}
       value={value}
       onChange={(next) => {
         setValue(next);

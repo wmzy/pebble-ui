@@ -36,6 +36,21 @@ export type TreeState = {
 };
 
 /**
+ * Virtualized windowing metrics for `Tree.virtualized`.
+ */
+export type TreeVirtualizedConfig = {
+  /** Scrollport height in px. Default `320`. */
+  height?: number;
+  /** Row height in px. Default `32` — the treeitem min-height (2rem). */
+  itemHeight?: number;
+  /**
+   * Extra rows kept mounted above/below the visible window. Defaults to
+   * `VirtualList`'s `5`.
+   */
+  overscan?: number;
+};
+
+/**
  * Tree 组件 Props
  */
 export type TreeProps = {
@@ -65,6 +80,18 @@ export type TreeProps = {
   titleRender?: (node: TreeNodeData) => ReactNode;
   /** 自定义节点图标渲染 */
   iconRender?: (node: TreeNodeData) => ReactNode;
+  /**
+   * Render the tree through `VirtualList` so large trees mount only the
+   * visible window (plus overscan) instead of the full DOM list: the
+   * visible rows are flattened depth-first (depth indent preserved) and
+   * windowed. `false`/omitted (default) keeps the plain nested DOM
+   * path; an object additionally customizes row metrics.
+   * `expandedKeys`/`selectedKeys`/`checkedKeys` semantics are identical
+   * in both paths, and roving-tabindex keyboard navigation works the
+   * same way — focus moves `scrollToIndex` the target row into the
+   * window before focusing it.
+   */
+  virtualized?: boolean | TreeVirtualizedConfig;
   /** （受控）展开的节点 */
   expandedKeys?: ControlOrValue<string[]>;
   /** （受控）选中的节点 */

@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
@@ -274,5 +275,15 @@ describe('SliderCore', () => {
     expect(high).toHaveValue('80');
     fireEvent.change(low!, { target: { value: '90' } });
     expect(onChange).toHaveBeenCalledWith([80, 80]);
+  });
+});
+
+describe('Slider ref forwarding', () => {
+  it('forwards ref to the range input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Slider ref={ref} aria-label='Volume' />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

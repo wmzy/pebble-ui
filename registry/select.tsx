@@ -16,10 +16,10 @@
 // 'use client' directive, so imports resolve cleanly from RSC; the
 // wrapper inherits client semantics either way.
 
-import { Select, Option, SelectCore } from 'haze-ui';
+import { Select, Option, SelectCore, OptionGroup } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/select.css';
 
-export { Select, Option, SelectCore };
-export type { SelectProps, OptionProps, SelectCoreProps } from 'haze-ui';
+export { Select, Option, SelectCore, OptionGroup };
+export type { SelectProps, OptionProps, SelectCoreProps, OptionGroupProps } from 'haze-ui';

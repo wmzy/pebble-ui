@@ -1,10 +1,12 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
 import Select from './Select';
 import SelectCore from './SelectCore';
 import Option from './Option';
+import OptionGroup from './OptionGroup';
 
 describe('Option', () => {
   it('renders an option element', () => {
@@ -426,7 +428,7 @@ describe('SelectCore multiple', () => {
 
 describe('Select multiple virtualization', () => {
   // Row height of the virtualized path — OPTION_ROW_HEIGHT in
-  // SelectMultiple.tsx (space-1 padding top+bottom + the taller of the
+  // SelectFloating.tsx (space-1 padding top+bottom + the taller of the
   // text-sm line box at leading-normal and the 1.125rem checkbox).
   const ROW_HEIGHT = 29;
 
@@ -587,5 +589,556 @@ describe('Select multiple virtualization', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+const GROUPED_FRUITS = [
+  <OptionGroup key="citrus" label="Citrus">
+    <Option value="orange">Orange</Option>
+    <Option value="lemon">Lemon</Option>
+  </OptionGroup>,
+  <OptionGroup key="berries" label="Berries">
+    <Option value="strawberry">Strawberry</Option>
+    <Option value="raspberry">Raspberry</Option>
+  </OptionGroup>,
+];
+
+describe('Select searchable', () => {
+  it('keeps the native select by default and swaps it for a floating trigger with searchable', () => {
+    const { container, unmount } = render(
+      <Select aria-label="fruit">{FRUITS}</Select>
+    );
+    expect(container.querySelector('select')).toBeInTheDocument();
+    unmount();
+
+    const { container: searchableContainer } = render(
+      <Select searchable aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    expect(searchableContainer.querySelector('select')).toBeNull();
+    const trigger = screen.getByRole('combobox', { name: 'fruit' });
+    expect(trigger.tagName).toBe('BUTTON');
+    expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('opens the panel with a focused search input that filters options', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select searchable aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    const search = screen.getByRole('textbox', { name: 'Search options' });
+    // The panel's search input takes focus on open, so typing filters
+    // straight away.
+    expect(search).toHaveFocus();
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+
+    await user.type(search, 'ban');
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(screen.getByRole('option', { name: 'Banana' })).toBeInTheDocument();
+
+    // Clicking the match commits it too: panel closes, label shows.
+    await user.click(screen.getByRole('option', { name: 'Banana' }));
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(within(trigger).getByText('Banana')).toBeInTheDocument();
+
+    // A fresh open starts with a clean query — the just-picked value
+    // stays visible.
+    await user.click(trigger);
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+
+    await user.clear(search);
+    await user.type(search, 'zzz');
+    expect(screen.queryByRole('option')).not.toBeInTheDocument();
+    expect(screen.getByText('No matches')).toBeInTheDocument();
+  });
+
+  it('selects the highlighted match with Enter, closes the panel and refocuses the trigger', async () => {
+    const user = userEvent.setup();
+    const onValuesChange = vi.fn();
+    render(
+      <Select searchable onValuesChange={onValuesChange} aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('ban');
+    // Typing auto-highlights the first match — the trigger (and the
+    // focused search input) mirror it through aria-activedescendant.
+    const banana = screen.getByRole('option', { name: 'Banana' });
+    expect(trigger).toHaveAttribute('aria-activedescendant', banana.id);
+
+    await user.keyboard('{Enter}');
+    expect(onValuesChange).toHaveBeenCalledWith('banana');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveFocus();
+    expect(within(trigger).getByText('Banana')).toBeInTheDocument();
+  });
+
+  it('moves the highlight with arrows and closes with Escape from the search input', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select searchable aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    await user.keyboard('{ArrowDown}');
+    expect(trigger).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: 'Banana' }).id
+    );
+    await user.keyboard('{Escape}');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveFocus();
+    expect(trigger).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('filters the multiple listbox as well, keeping toggling working', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple searchable aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search options' }),
+      'ban'
+    );
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    await user.click(screen.getByRole('option', { name: 'Banana' }));
+    expect(within(trigger).getByText('Banana')).toBeInTheDocument();
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('has no axe violations while searching with a keyboard highlight', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(
+      <Select searchable value="apple" aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search options' }),
+      'an'
+    );
+    expect(trigger).toHaveAttribute('aria-activedescendant');
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Select clearable', () => {
+  it('clears a floating single value through the × without opening the panel', async () => {
+    const user = userEvent.setup();
+    const onValuesChange = vi.fn();
+    render(
+      <Select
+        searchable
+        clearable
+        value="apple"
+        onValuesChange={onValuesChange}
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    const clear = within(trigger).getByTitle('Clear');
+    await user.click(clear);
+    expect(onValuesChange).toHaveBeenCalledWith('');
+    // Clearing must not flip the panel either way.
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveFocus();
+    expect(within(trigger).getByText('Select…')).toBeInTheDocument();
+  });
+
+  it('offers no × while the value is empty and clears via Backspace', async () => {
+    const user = userEvent.setup();
+    const onValuesChange = vi.fn();
+    render(
+      <Select
+        searchable
+        clearable
+        value="apple"
+        onValuesChange={onValuesChange}
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    await user.keyboard('{Backspace}');
+    expect(onValuesChange).toHaveBeenCalledWith('');
+    expect(within(trigger).queryByTitle('Clear')).not.toBeInTheDocument();
+  });
+
+  it('overlays the native single select without displacing it', async () => {
+    const user = userEvent.setup();
+    const onValuesChange = vi.fn();
+    render(
+      <Select
+        clearable
+        value="apple"
+        onValuesChange={onValuesChange}
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const select = screen.getByRole('combobox');
+    expect(select.tagName).toBe('SELECT');
+    expect(screen.getByTitle('Clear')).toBeInTheDocument();
+
+    await user.click(screen.getByTitle('Clear'));
+    expect(onValuesChange).toHaveBeenCalledWith('');
+    expect(select).toHaveFocus();
+    expect(screen.queryByTitle('Clear')).not.toBeInTheDocument();
+
+    // Selection keeps working through the untouched native element.
+    await user.selectOptions(select, 'banana');
+    expect(onValuesChange).toHaveBeenCalledWith('banana');
+    expect(select).toHaveValue('banana');
+  });
+
+  it('clears the whole multiple selection in one click', async () => {
+    const user = userEvent.setup();
+    const onValuesChange = vi.fn();
+    render(
+      <Select
+        multiple
+        clearable
+        value={['apple', 'banana']}
+        onValuesChange={onValuesChange}
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    await user.click(within(trigger).getByTitle('Clear'));
+    expect(onValuesChange).toHaveBeenCalledWith([]);
+    expect(within(trigger).getByText('Select…')).toBeInTheDocument();
+  });
+
+  it('has no axe violations with the clear affordance rendered', async () => {
+    const { axe } = await import('jest-axe');
+    render(
+      <Select
+        searchable
+        clearable
+        value="apple"
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Select groups', () => {
+  it('renders native optgroups in single mode and keeps selection working', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select aria-label="fruit">{GROUPED_FRUITS}</Select>
+    );
+    const select = screen.getByRole('combobox');
+    expect(screen.getByRole('group', { name: 'Citrus' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Berries' })).toBeInTheDocument();
+    await user.selectOptions(select, 'strawberry');
+    expect(select).toHaveValue('strawberry');
+  });
+
+  it('renders role=group sections with a continuous keyboard order across groups', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple aria-label="fruit">
+        {GROUPED_FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(trigger).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: 'Orange' }).id
+    );
+    // End jumps across the group boundary into the last option.
+    await user.keyboard('{End}');
+    expect(trigger).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: 'Raspberry' }).id
+    );
+    const groups = within(screen.getByRole('listbox')).getAllByRole('group');
+    expect(groups.map((g) => g.getAttribute('aria-label'))).toEqual([
+      'Citrus',
+      'Berries',
+    ]);
+    // Set semantics stay flat across the whole visible list.
+    expect(screen.getAllByRole('option')[0]).toHaveAttribute(
+      'aria-setsize',
+      '4'
+    );
+    expect(screen.getByRole('option', { name: 'Raspberry' })).toHaveAttribute(
+      'aria-posinset',
+      '4'
+    );
+  });
+
+  it('drops emptied groups while searching', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple searchable aria-label="fruit">
+        {GROUPED_FRUITS}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search options' }),
+      'stra'
+    );
+    expect(screen.getByRole('option', { name: 'Strawberry' })).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Citrus' })).not.toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Berries' })).toBeInTheDocument();
+  });
+
+  it('renders the group headers inside the virtualized list', async () => {
+    // jsdom 30 has no ResizeObserver and VirtualList's sticky group
+    // headers observe their boxes — stub the same silent observer its
+    // own test file uses (fixed-height rows render from the itemHeight
+    // math either way; only header measurement stays unmeasured).
+    class SilentResizeObserver {
+      observe() {
+        /* silent by design */
+      }
+      unobserve() {
+        /* silent by design */
+      }
+      disconnect() {
+        /* silent by design */
+      }
+    }
+    vi.stubGlobal('ResizeObserver', SilentResizeObserver);
+    const user = userEvent.setup();
+    render(
+      <Select multiple virtualized aria-label="fruit">
+        {GROUPED_FRUITS}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    expect(screen.getByText('Citrus')).toBeInTheDocument();
+    expect(screen.getByText('Berries')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Lemon' })).toHaveAttribute(
+      'aria-setsize',
+      '4'
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it('has no axe violations with the grouped listbox open', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(
+      <Select multiple value={['orange']} aria-label="fruit">
+        {GROUPED_FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Select maxTagCount', () => {
+  it('collapses overflow chips into a +N badge listing the hidden labels', () => {
+    render(
+      <Select
+        multiple
+        maxTagCount={1}
+        value={['apple', 'banana', 'cherry']}
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    expect(within(trigger).getByText('Apple')).toBeInTheDocument();
+    expect(within(trigger).queryByText('Banana')).not.toBeInTheDocument();
+    expect(within(trigger).queryByText('Cherry')).not.toBeInTheDocument();
+    const badge = within(trigger).getByText('+2');
+    expect(badge).toHaveAttribute('title', 'Banana, Cherry');
+  });
+
+  it('updates the badge as Backspace removes the last selection', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select
+        multiple
+        maxTagCount={1}
+        value={['apple', 'banana', 'cherry']}
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    trigger.focus();
+    await user.keyboard('{Backspace}');
+    expect(within(trigger).getByText('+1')).toBeInTheDocument();
+    expect(within(trigger).getByText('Apple')).toBeInTheDocument();
+    expect(within(trigger).getByText('+1')).toHaveAttribute('title', 'Banana');
+  });
+
+  it('collapses everything at maxTagCount 0', () => {
+    render(
+      <Select
+        multiple
+        maxTagCount={0}
+        value={['apple', 'banana']}
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    expect(within(trigger).queryByText('Apple')).not.toBeInTheDocument();
+    expect(within(trigger).getByText('+2')).toBeInTheDocument();
+  });
+
+  it('has no axe violations with collapsed chips', async () => {
+    const { axe } = await import('jest-axe');
+    render(
+      <Select
+        multiple
+        clearable
+        maxTagCount={1}
+        value={['apple', 'banana', 'cherry']}
+        aria-label="fruit"
+      >
+        {FRUITS}
+      </Select>
+    );
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Select loading', () => {
+  it('replaces the options with a spinner and marks the panel aria-busy', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple loading aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('option')).not.toBeInTheDocument();
+    const panel = document.getElementById(
+      trigger.getAttribute('aria-controls') ?? ''
+    );
+    expect(panel).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('keeps search inert while loading — no filtering, no no-match lie', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select multiple searchable loading aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    const search = screen.getByRole('textbox', { name: 'Search options' });
+    await user.type(search, 'ban');
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('option')).not.toBeInTheDocument();
+    expect(screen.queryByText('No matches')).not.toBeInTheDocument();
+    // Arrow keys stay inert over the empty visible list.
+    await user.keyboard('{ArrowDown}');
+    expect(trigger).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('has no axe violations while loading', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(
+      <Select multiple searchable loading aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Select ref forwarding', () => {
+  it('forwards ref to the native select in single mode', () => {
+    const ref = createRef<HTMLSelectElement>();
+    render(
+      <Select ref={ref} aria-label="fruit">
+        <Option value="apple">Apple</Option>
+      </Select>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLSelectElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
+  });
+
+  it('forwards ref to the trigger button in multiple mode', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(
+      <Select ref={ref} multiple aria-label="fruit">
+        <Option value="apple">Apple</Option>
+      </Select>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
+  });
+
+  it('forwards ref to the native select in clearable single mode', () => {
+    const ref = createRef<HTMLSelectElement>();
+    render(
+      <Select ref={ref} clearable aria-label="fruit">
+        <Option value="apple">Apple</Option>
+      </Select>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLSelectElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

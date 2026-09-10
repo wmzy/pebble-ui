@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import PasswordInput from './PasswordInput';
@@ -92,5 +93,15 @@ describe('PasswordInputCore', () => {
     await user.click(screen.getByRole('button'));
     expect(container.querySelector('input')).toHaveAttribute('type', 'text');
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('PasswordInput ref forwarding', () => {
+  it('forwards ref to the inner password input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<PasswordInput ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

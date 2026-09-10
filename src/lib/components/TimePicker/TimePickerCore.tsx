@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -7,6 +7,8 @@ type TimePickerCoreProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  /** Forwarded to the `<input>` element. */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<
   ComponentPropsWithoutRef<'input'>,
   'value' | 'onChange' | 'type' | 'placeholder'
@@ -44,10 +46,12 @@ export default function TimePickerCore({
   onChange,
   placeholder,
   className,
+  ref,
   ...rest
 }: TimePickerCoreProps) {
   return (
     <input
+      ref={ref}
       type="time"
       x-class={[input, className]}
       value={value}

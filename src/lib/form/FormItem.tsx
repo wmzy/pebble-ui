@@ -9,15 +9,17 @@ import type {
   FieldPath,
   FieldRules,
   Name,
+  Path,
+  PathSegments,
   ValidationMode,
   FormInstance,
   PathValueOf
 } from 'react-f0rm';
 
 
-import {useId} from 'react';
+import {useContext, useId} from 'react';
 import {css} from '@linaria/core';
-import {useField} from 'react-f0rm';
+import {FormContext, useField} from 'react-f0rm';
 
 
 /**
@@ -31,13 +33,18 @@ import {useField} from 'react-f0rm';
  * the value argument is `PathValueOf<TValues, P>` — the field's actual
  * type — instead of `any`. The bare defaults keep untyped call sites
  * exactly as permissive as before.
+ *
+ * The `meta` shape mirrors react-f0rm's `Validator` (`form`/`path`/
+ * `signal`) on purpose, so its resolver adapters — `zodResolver`,
+ * `standardSchemaResolver` from `react-f0rm/resolvers/*` — slot straight
+ * into `FormItem`'s `validate` prop without a wrapper.
  */
 export type FieldValidator<
   TValues extends Record<string, any> = any,
   P extends FieldPath<TValues> | Name = Name
 > = (
   value: PathValueOf<TValues, P>,
-  meta: {form: FormInstance; signal: AbortSignal}
+  meta: {form: FormInstance; path: Path; signal: AbortSignal}
 ) =>
   | string
   | FieldError
@@ -66,6 +73,15 @@ export type FormItemBinding<TValues, P extends FieldPath<TValues> | Name> = {
    * It routes through the same mode-gated, re-validating pipeline as
    * react-f0rm's built-in Field/Checkbox/Select. */
   onChange: (next: PathValueOf<TValues, P>) => void;
+  /**
+   * react-f0rm's focus channel (callback ref): attach it to the
+   * control's `ref` (`<InputCore ref={focusRef} />`) so
+   * `setFocus(form, name)` and a failed submit's first-error
+   * auto-focus can reach this field's element. Without it, focus
+   * requests aimed at this field are silent no-ops (react-f0rm's
+   * `setFocus` contract).
+   */
+  focusRef: (el: any) => void;
 };
 
 /**
@@ -125,7 +141,12 @@ export type FormItemOwnProps<
   TValues extends Record<string, any> = any,
   P extends FieldPath<TValues> | Name = Name
 > = {
-  form: FormInstance<TValues>;
+  /**
+   * 表单实例（`useForm()`/`createForm()` 的返回值）。可省略：省略时从
+   * 最近的 `<FormProvider value={form}>` 读取（react-f0rm 的 form
+   * context），显式传入的 `form` 总是优先。两者都没有时 throw。
+   */
+  form?: FormInstance<TValues>;
   name: P;
   label?: ReactNode;
   /** Field-level validator, registered through react-f0rm's own
@@ -170,6 +191,9 @@ export type FormItemOwnProps<
  */
 type FormItemWiredProps = {
   id?: unknown;
+  /** the focus channel: react-f0rm's `focusRef` rides the control's
+   * `ref` — `setFocus` and failed-submit auto-focus depend on it */
+  ref?: unknown;
   onBlur?: unknown;
   onChange?: unknown;
   /** the value channel: `value` directly, or the prop `valueToProps`
@@ -196,6 +220,12 @@ type FormItemReservedProps<
 export type FormItemProps<
   TValues extends Record<string, any> = any,
   P extends FieldPath<TValues> | Name = Name,
+  // `Record<never, never>` (≡ {}) is intentional: the default input-props
+  // surface must Omit to a bare object so the render-prop/as arms stay a
+  // closed surface — `Record<string, unknown | never>` carries an index
+  // signature that absorbs or rejects forwarded props. no-generated-empty-
+  // object-type's replacements don't preserve `Omit<{}, K> = {}`.
+  // eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type
   TInputProps extends Record<string, any> = Record<never, never>,
   TRawElement extends FormItemRawElement = never
 > = FormItemOwnProps<TValues, P> &
@@ -314,11 +344,13 @@ const errorText = css`
  *
  * With `as`, the id/aria/onBlur/onChange wiring happens here: the control
  * gets `id`, `aria-invalid`/`aria-describedby` while the field errors,
- * and `onChange={(v) => onChange(toValue(v))}` where `toValue` defaults
+ * `onChange={(v) => onChange(toValue(v))}` where `toValue` defaults
  * to identity (haze cores emit plain values — pass
  * `eventToValue={(e) => e.target.value}` for a raw DOM element) and the
  * value lands as `{value}` or, with `valueToProps`, whatever props the
- * control wants (e.g. `{checked}` for CheckboxCore).
+ * control wants (e.g. `{checked}` for CheckboxCore). react-f0rm's focus
+ * channel rides the control's `ref`, so `setFocus(form, name)` and a
+ * failed submit's first-error auto-focus reach the field's element.
  *
  * The ergonomic form for haze-ui cores is `input`: the rest of the JSX
  * props — and JSX children, e.g. a `SelectCore`'s `<option>`s — are
@@ -335,10 +367,10 @@ const errorText = css`
  * />
  * ```
  *
- * The same wiring as `as` applies (id, aria, onBlur, onChange, value);
- * wired and FormItem-owned prop names are reserved — a control prop that
- * collides (CheckboxCore's `label`) needs the render-prop or
- * `as`/`asProps` channel.
+ * The same wiring as `as` applies (id, aria, onBlur, onChange, value,
+ * and the `ref`-riding focus channel); wired and FormItem-owned prop
+ * names are reserved — a control prop that collides (CheckboxCore's
+ * `label`) needs the render-prop or `as`/`asProps` channel.
  *
  * `input` also accepts raw DOM bindings — no core required:
  *
@@ -370,6 +402,8 @@ const errorText = css`
 export default function FormItem<
   TValues extends Record<string, any> = any,
   P extends FieldPath<TValues> | Name = Name,
+  // See the identical note on FormItemProps above.
+  // eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type
   TInputProps extends Record<string, any> = Record<never, never>,
   TRawElement extends FormItemRawElement = never
 >({
@@ -395,13 +429,36 @@ export default function FormItem<
   const id = `haze-field-${generatedId}`;
   const errorId = `${id}-error`;
 
+  // `form` prop first, then react-f0rm's form context (a mounted
+  // <FormProvider value={form}>); neither — a descriptive error naming
+  // both exits, instead of f0rm's bare internal "no form provided".
+  const formFromContext = useContext(FormContext);
+  const resolvedForm = form ?? formFromContext;
+  if (!resolvedForm) {
+    throw new Error(
+      'FormItem: no form provided — pass `form={form}` or render inside a <FormProvider value={form}>.'
+    );
+  }
+
   // react-f0rm's useField is the single binding layer: per-field value
   // subscription, user-change writes with mode gating, blur-scheduled
-  // validation, delayError-gated display errors.
-  const {value, onChange, onBlur, errors} = useField({
-    form,
-    name,
-    validate,
+  // validation, delayError-gated display errors. `focusRef` carries the
+  // focus channel — wired onto the control's ref below so `setFocus`
+  // and a failed submit's first-error auto-focus reach the field.
+  //
+  // f0rm 1.3 narrows useField's path generic to
+  // `FieldPath<TValues> | PathSegments`, while FormItem deliberately
+  // keeps the permissive public `P extends FieldPath<TValues> | Name`
+  // (a plain string at untyped call sites). Explicit type arguments keep
+  // the inferred result narrow (value is `PathValueOf<TValues, …>`, not
+  // `any`); the value flows back out P-typed at the binding.
+  const {value, onChange, onBlur, errors, focusRef} = useField<
+    TValues,
+    FieldPath<TValues> | PathSegments
+  >({
+    form: resolvedForm,
+    name: name as FieldPath<TValues> | PathSegments,
+    validate: validate as FieldValidator<TValues, FieldPath<TValues> | PathSegments>,
     mode,
     validateDebounce,
     delayError,
@@ -443,11 +500,16 @@ export default function FormItem<
   // JSX on a bare type parameter trips overload resolution (children of
   // `(IntrinsicAttributes & TInputProps)["children"]`); render through a
   // permissive view of the component — the call-site types live on
-  // FormItemProps, not here. A raw binding's `element` is a tag name,
-  // which JSX accepts as the element type directly.
+  // FormItemProps, not here. The `ref` key in the permissive props keeps
+  // the focus-channel wiring below type-checkable. A raw binding's
+  // `element` is a tag name, which JSX accepts as the element type
+  // directly.
   const InputComponent = (
     rawBinding ? rawBinding.element : Input
-  ) as ComponentType<Record<string, any>> | FormItemRawElement | undefined;
+  ) as
+    | ComponentType<Record<string, any> & {ref?: unknown}>
+    | FormItemRawElement
+    | undefined;
 
   return (
     <div x-class={[item, className]}>
@@ -465,8 +527,11 @@ export default function FormItem<
           id={id}
           aria-invalid={invalid || undefined}
           aria-describedby={invalid ? errorId : undefined}
+          // the focus channel rides the control's ref (raw DOM elements
+          // and haze cores both accept a callback ref there)
+          ref={focusRef}
           onBlur={onBlur}
-          onChange={(e: any) => onChange(toValue(e))}
+          onChange={(e: any) => onChange(toValue(e) as PathValueOf<TValues, P>)}
           {...(valueToProps ? valueToProps(value) : {value})}>
           {children as ReactNode}
         </InputComponent>
@@ -481,8 +546,11 @@ export default function FormItem<
           id={id}
           aria-invalid={invalid || undefined}
           aria-describedby={invalid ? errorId : undefined}
+          // the focus channel rides the control's ref (raw DOM elements
+          // and haze cores both accept a callback ref there)
+          ref={focusRef}
           onBlur={onBlur}
-          onChange={(e: any) => onChange(toValue(e))}
+          onChange={(e: any) => onChange(toValue(e) as PathValueOf<TValues, P>)}
           {...(valueToProps ? valueToProps(value) : {value})}
         />
       ) : (
@@ -492,8 +560,9 @@ export default function FormItem<
           invalid,
           errors,
           onBlur,
-          value,
-          onChange
+          value: value as PathValueOf<TValues, P>,
+          onChange,
+          focusRef
         })
       )}
       {invalid && (

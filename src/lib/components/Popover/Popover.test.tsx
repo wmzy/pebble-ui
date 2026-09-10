@@ -584,3 +584,46 @@ describe('tier-2 placement: viewport flip (placeFloatingPanel)', () => {
     }
   });
 });
+
+describe('Popover classNames slots', () => {
+  it('applies trigger to the trigger and content to the panel', () => {
+    render(
+      <Popover
+        content="Body"
+        classNames={{ trigger: 'trigger-custom', content: 'content-custom' }}
+      >
+        Trigger
+      </Popover>
+    );
+    expect(screen.getByText('Trigger')).toHaveClass('trigger-custom');
+    const panelId = screen.getByText('Trigger').getAttribute('aria-controls')!;
+    expect(document.getElementById(panelId)).toHaveClass('content-custom');
+  });
+
+  it('leaves the trigger without any class attribute when classNames is omitted', () => {
+    render(<Popover content="Body">Trigger</Popover>);
+    // Strict zero-change: the trigger has no base class, so an omitted
+    // slot must not materialize an empty class="" attribute either.
+    expect(screen.getByText('Trigger')).not.toHaveAttribute('class');
+    expect(screen.getByText('Trigger').className).toBe('');
+  });
+
+  it('lands the content slot after the className prop on the panel', () => {
+    render(
+      <Popover
+        content="Body"
+        className="plain-class"
+        classNames={{ content: 'content-custom' }}
+      >
+        Trigger
+      </Popover>
+    );
+    const panelId = screen.getByText('Trigger').getAttribute('aria-controls')!;
+    const panel = document.getElementById(panelId)!;
+    expect(panel).toHaveClass('plain-class');
+    expect(panel).toHaveClass('content-custom');
+    expect(panel.className.indexOf('plain-class')).toBeLessThan(
+      panel.className.indexOf('content-custom')
+    );
+  });
+});

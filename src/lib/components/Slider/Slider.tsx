@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -27,6 +27,11 @@ type SliderProps = {
    * identically named sliders are ambiguous — prefer the tuple).
    */
   'aria-label'?: string | [string, string];
+  /**
+   * Forwarded to the `<input type='range'>` — the only input in single
+   * mode, the low thumb (first tab stop) in range mode.
+   */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<ComponentPropsWithoutRef<'input'>, 'type' | 'value' | 'aria-label'>;
 
 /** A min/max attribute as a finite number, else the native default. */
@@ -41,6 +46,7 @@ export default function Slider({
   className,
   onChange,
   onValuesChange,
+  ref,
   ...rest
 }: SliderProps) {
   const rangeDefault: [number, number] = [
@@ -59,6 +65,7 @@ export default function Slider({
 
   return (
     <SliderCore
+      ref={ref}
       value={value}
       onChange={handleValueChange}
       onNativeChange={onChange}

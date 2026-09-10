@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/popover.css';
 
 export { Popover };
-export type { PopoverProps, PopoverHandle } from 'haze-ui';
+export type { PopoverProps, PopoverHandle, PopoverClassNames } from 'haze-ui';

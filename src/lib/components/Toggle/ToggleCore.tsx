@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -14,6 +14,8 @@ type ToggleCoreProps = {
   /** Equal padding on all sides — for icon-only square toggles. */
   square?: boolean;
   className?: string;
+  /** Forwarded to the `<button>` element. */
+  ref?: Ref<HTMLButtonElement>;
 } & Omit<ComponentPropsWithoutRef<'button'>, 'type' | 'aria-pressed'>;
 
 /**
@@ -64,11 +66,13 @@ export default function ToggleCore({
   size = 'md',
   square = false,
   className,
+  ref,
   ...rest
 }: ToggleCoreProps) {
   const sizeClass = square ? squareSizes[size] : sizes[size];
   return (
     <button
+      ref={ref}
       type='button'
       aria-pressed={pressed}
       x-class={[base, surfaces[pressed ? 'pressed' : 'rest'], sizeClass, className]}

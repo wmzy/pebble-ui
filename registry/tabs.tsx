@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/tabs.css';
 
 export { Tabs, TabList, Tab, TabPanel };
-export type { TabsProps, TabListProps, TabProps, TabPanelProps } from 'haze-ui';
+export type { TabsProps, TabsClassNames, TabListProps, TabProps, TabPanelProps } from 'haze-ui';

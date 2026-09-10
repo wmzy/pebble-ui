@@ -1,5 +1,7 @@
 export { useClipboard } from './useClipboard';
 export type { UseClipboardResult } from './useClipboard';
+export { useClickOutside } from './useClickOutside';
+export type { UseClickOutsideOptions } from './useClickOutside';
 export { useDebouncedCallback } from './useDebouncedCallback';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useFullscreen } from './useFullscreen';
@@ -11,5 +13,6 @@ export type { UseInViewOptions } from './useInView';
 export { useLocalStorage } from './useLocalStorage';
 export { useMediaQuery } from './useMediaQuery';
 export { usePrefersReducedMotion } from './usePrefersReducedMotion';
+export { usePrevious } from './usePrevious';
 export { useSessionStorage } from './useSessionStorage';
 export { useTitle } from './useTitle';

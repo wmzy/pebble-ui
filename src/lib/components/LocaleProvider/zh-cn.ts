@@ -32,12 +32,23 @@ const zhCN: HazeStrings = {
     nextMonth: '下个月',
     today: '今天',
     selectMonth: '选择月份',
+    selectQuarter: '选择季度',
+    selectYear: '选择年份',
     previousYear: '上一年',
     nextYear: '下一年',
+    previousDecade: '上一个十年',
+    nextDecade: '下一个十年',
     weekNumber: '周',
   },
   cascader: {
     expand: '展开',
+  },
+  combobox: {
+    create: '创建「{query}」',
+    noResults: '无结果',
+  },
+  command: {
+    noResults: '无结果',
   },
   sidebar: {
     toggle: '切换侧边栏',
@@ -65,6 +76,11 @@ const zhCN: HazeStrings = {
     previousSlide: '上一张幻灯片',
     nextSlide: '下一张幻灯片',
     goToSlide: '跳转到第 {index} 张幻灯片',
+  },
+  chat: {
+    newMessages: '新消息',
+    stopGeneration: '停止生成',
+    copy: '复制',
   },
   chatInput: {
     placeholder: '输入消息…',
@@ -149,6 +165,12 @@ const zhCN: HazeStrings = {
   select: {
     placeholder: '请选择',
     listboxLabel: '选项',
+    clear: '清除',
+    searchLabel: '搜索选项',
+    searchPlaceholder: '搜索…',
+    noMatch: '无匹配项',
+    loading: '选项加载中…',
+    moreTags: '+{count}',
   },
   spinner: {
     loading: '加载中',
@@ -198,6 +220,12 @@ const zhCN: HazeStrings = {
     hint: '将文件拖拽到此处，或点击上传',
     clickHint: '点击浏览文件',
     label: '上传文件',
+    retry: '重试上传',
+    cancel: '取消上传',
+    remove: '移除文件',
+    uploading: '上传中',
+    success: '上传成功',
+    error: '上传失败',
   },
 };
 

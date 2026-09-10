@@ -44,6 +44,34 @@ export default function DateRangePickerDemo() {
       </div>
 
       <div className={section}>
+        <h2>Presets</h2>
+        <p>
+          <code>presets</code> renders shortcut rows at the top of the
+          panel — clicking one applies its range to the start/end pair.
+        </p>
+        <DateRangePicker
+          months={2}
+          presets={[
+            { label: 'First fortnight', range: ['2026-01-01', '2026-01-14'] },
+            { label: 'Rest of January', range: ['2026-01-15', '2026-01-31'] },
+          ]}
+        />
+      </div>
+
+      <div className={section}>
+        <h2>disabledDate</h2>
+        <p>
+          A predicate over each day&apos;s <code>Date</code> disables cells
+          on the dual-month calendar — weekends below.
+        </p>
+        <DateRangePicker
+          startDate='2026-01-15'
+          months={2}
+          disabledDate={(date) => date.getDay() === 0 || date.getDay() === 6}
+        />
+      </div>
+
+      <div className={section}>
         <h2>Props</h2>
         <PropsTable of='DateRangePickerProps' />
       </div>

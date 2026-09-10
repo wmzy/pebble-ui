@@ -1,5 +1,6 @@
 import { expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import Switch from './Switch';
@@ -100,5 +101,15 @@ describe('SwitchCore', () => {
     expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false');
     rerender(<SwitchCore checked onChange={onChange} aria-label="core" />);
     expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
+  });
+});
+
+describe('Switch ref forwarding', () => {
+  it('forwards ref to the switch button', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(<Switch ref={ref} aria-label='Notifications' />);
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

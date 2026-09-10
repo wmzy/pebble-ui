@@ -6,26 +6,26 @@ export { TOKEN_REGISTRY, COMPONENT_TOKENS } from './tokens/registry';
 export type { TokenDef } from './tokens/registry';
 
 // components
-export { Button, ButtonLink } from './components/Button';
+export { Button, ButtonLink, buttonVariants, buttonSizes } from './components/Button';
 export type { ButtonProps, ButtonLinkProps } from './components/Button';
 export { Input, InputCore } from './components/Input';
 export type { InputProps, InputCoreProps } from './components/Input';
-export { Select, Option, SelectCore } from './components/Select';
-export type { SelectProps, OptionProps, SelectCoreProps } from './components/Select';
+export { Select, Option, SelectCore, OptionGroup } from './components/Select';
+export type { SelectProps, OptionProps, SelectCoreProps, OptionGroupProps } from './components/Select';
 export { Checkbox, CheckboxCore } from './components/Checkbox';
 export type { CheckboxProps, CheckboxCoreProps } from './components/Checkbox';
 export { Switch, SwitchCore } from './components/Switch';
 export type { SwitchProps, SwitchCoreProps } from './components/Switch';
 export { Toggle, ToggleCore } from './components/Toggle';
 export type { ToggleProps, ToggleCoreProps } from './components/Toggle';
-export { Badge } from './components/Badge';
+export { Badge, badgeVariants, badgeSizes } from './components/Badge';
 export type { BadgeProps } from './components/Badge';
 export { Dialog } from './components/Dialog';
-export type { DialogProps, DialogHandle } from './components/Dialog';
+export type { DialogProps, DialogHandle, DialogClassNames } from './components/Dialog';
 export { Tooltip } from './components/Tooltip';
 export type { TooltipProps } from './components/Tooltip';
 export { Popover } from './components/Popover';
-export type { PopoverProps, PopoverHandle } from './components/Popover';
+export type { PopoverProps, PopoverHandle, PopoverClassNames } from './components/Popover';
 export { Card } from './components/Card';
 export type { CardProps } from './components/Card';
 export { Radio, RadioGroup, RadioGroupCore } from './components/Radio';
@@ -37,6 +37,7 @@ export type { SliderProps, SliderCoreProps } from './components/Slider';
 export { Tabs, TabList, Tab, TabPanel } from './components/Tabs';
 export type {
   TabsProps,
+  TabsClassNames,
   TabListProps,
   TabProps,
   TabPanelProps,
@@ -74,11 +75,11 @@ export type { NumberInputProps, NumberInputCoreProps } from './components/Number
 export { FileInput } from './components/FileInput';
 export type { FileInputProps } from './components/FileInput';
 export { Toast, ToastContainer, useToast, toast } from './components/Toast';
-export type { ToastProps, ToastContainerProps, ToastOptions, ToastVariant } from './components/Toast';
+export type { ToastProps, ToastContainerProps, ToastOptions, ToastVariant, ToastClassNames } from './components/Toast';
 export { List, ListItem } from './components/List';
 export type { ListProps, ListItemProps } from './components/List';
-export { Combobox } from './components/Combobox';
-export type { ComboboxProps } from './components/Combobox';
+export { Combobox, ComboboxOption, ComboboxGroup } from './components/Combobox';
+export type { ComboboxProps, ComboboxOptionProps, ComboboxGroupProps, ComboboxOptionData, ComboboxVirtualizedConfig } from './components/Combobox';
 export {
   Table,
   TableHead,
@@ -96,7 +97,7 @@ export type {
 export { Carousel, CarouselSlide } from './components/Carousel';
 export type { CarouselProps, CarouselSlideProps } from './components/Carousel';
 export { Datepicker, DatepickerCore } from './components/Datepicker';
-export type { DatepickerProps, DatepickerCoreProps } from './components/Datepicker';
+export type { DatepickerProps, DatepickerCoreProps, DatepickerPreset } from './components/Datepicker';
 export { Tree } from './components/Tree';
 export type { TreeProps, TreeNodeData } from './components/Tree';
 
@@ -117,8 +118,8 @@ export type { DrawerProps, DrawerHandle } from './components/Drawer';
 
 export { Stepper, Step } from './components/Stepper';
 export type { StepperProps, StepProps } from './components/Stepper';
-export { Command, CommandInput, CommandList, CommandItem } from './components/Command';
-export type { CommandProps, CommandInputProps, CommandListProps, CommandItemProps } from './components/Command';
+export { Command, CommandInput, CommandList, CommandItem, CommandGroup, CommandDialog } from './components/Command';
+export type { CommandProps, CommandInputProps, CommandListProps, CommandItemProps, CommandGroupProps, CommandDialogProps } from './components/Command';
 export { ResizableGroup, ResizablePanel, ResizableHandle } from './components/Resizable';
 export type { ResizableGroupProps, ResizablePanelProps, ResizableHandleProps } from './components/Resizable';
 export {
@@ -132,11 +133,11 @@ export type {
   ResizableHandleProps as SplitterHandleProps,
 } from './components/Resizable';
 export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './components/Collapsible';
-export type { CollapsibleProps, CollapsibleTriggerProps, CollapsibleContentProps } from './components/Collapsible';
+export type { CollapsibleProps, CollapsibleTriggerProps, CollapsibleContentProps, CollapsibleClassNames } from './components/Collapsible';
 export { Transfer, TransferCore } from './components/Transfer';
 export type { TransferProps, TransferItem, TransferCoreProps } from './components/Transfer';
 export { Upload, UploadCore } from './components/Upload';
-export type { UploadProps, UploadCoreProps } from './components/Upload';
+export type { UploadProps, UploadCoreProps, UploadHandle, UploadStatus, UploadFileStatus, UploadRequest, UploadRequestOptions, UploadListItemActions, UploadListItemRender } from './components/Upload';
 export { ColorPicker, ColorPickerCore } from './components/ColorPicker';
 export type { ColorPickerProps, ColorPickerCoreProps } from './components/ColorPicker';
 export { Rating, RatingCore } from './components/Rating';
@@ -157,7 +158,7 @@ export type { ScrollAreaProps } from './components/ScrollArea';
 export { TimePicker, TimePickerCore } from './components/TimePicker';
 export type { TimePickerProps, TimePickerCoreProps } from './components/TimePicker';
 export { DateRangePicker, DateRangePickerCore } from './components/DateRangePicker';
-export type { DateRangePickerProps, DateRangePickerCoreProps } from './components/DateRangePicker';
+export type { DateRangePickerProps, DateRangePickerCoreProps, DateRangePickerPreset } from './components/DateRangePicker';
 export { OTPInput, OTPInputCore } from './components/OTPInput';
 export type { OTPInputProps, OTPInputCoreProps } from './components/OTPInput';
 export { PasswordInput, PasswordInputCore } from './components/PasswordInput';
@@ -211,12 +212,15 @@ export { useDirection, getDirection, localeDirection } from './utils/direction';
 export type { Direction } from './utils/direction';
 
 // data table (TanStack headless + haze styles)
-export { DataTable } from './components/DataTable';
+export { DataTable, dataTableSum, dataTableAvg, dataTableCount } from './components/DataTable';
 export type {
   DataTableProps,
   DataTableColumnDef,
   DataTableColumnMeta,
   DataTableVirtualized,
+  DataTableSummary,
+  DataTableSummaryCell,
+  DataTableCellEditorProps,
 } from './components/DataTable';
 
 // chart (recharts optional peer + haze tokens)
@@ -229,7 +233,7 @@ export type { KbdProps } from './components/Kbd';
 export { AvatarGroup } from './components/AvatarGroup';
 export type { AvatarGroupProps } from './components/AvatarGroup';
 export { Calendar } from './components/Calendar';
-export type { CalendarProps } from './components/Calendar';
+export type { CalendarProps, CalendarPickerMode } from './components/Calendar';
 export { HoverCard } from './components/HoverCard';
 export type { HoverCardProps } from './components/HoverCard';
 export { Toolbar, ToolbarButton, ToolbarSeparator, ToolbarToggle } from './components/Toolbar';
@@ -301,9 +305,34 @@ export type { UseClipboardResult } from './hooks';
 export type { FullscreenTarget, UseFullscreenHandle } from './hooks';
 export { useHotkeys, hotkey, useInView, useLocalStorage, useSessionStorage } from './hooks';
 export type { HotkeyHandler, UseHotkeysOptions, UseInViewOptions } from './hooks';
+export { useClickOutside } from './hooks';
+export type { UseClickOutsideOptions } from './hooks';
+export { usePrevious } from './hooks';
 
-// form integration (react-f0rm peer)
-export { FormItem } from './form';
+// form integration (react-f0rm, a regular dependency)
+export {
+  FormItem,
+  FormList,
+  // context layer + imperative form APIs re-exported so consumers of
+  // `haze-ui` never need to import react-f0rm directly
+  FormProvider,
+  useFormContext,
+  useFieldArray,
+  useFieldArrayItem,
+  useWatch,
+  trigger,
+  setFocus,
+  setServerErrors,
+  setValue,
+  getValue,
+  getValues,
+  reset,
+  // schema resolvers (react-f0rm subpath re-exports)
+  hasStandardProps,
+  standardSchemaFormValidator,
+  standardSchemaResolver,
+  zodResolver,
+} from './form';
 export type {
   FieldValidator,
   FormItemAsProps,
@@ -313,7 +342,11 @@ export type {
   FormItemRawElement,
   FormItemRawElementBinding,
   FormInstance,
+  FormListProps,
+  FormListBinding,
+  FormListField,
   PathValueOf,
+  StandardSchemaV1,
 } from './form';
 
 // re-export ecosystem utilities

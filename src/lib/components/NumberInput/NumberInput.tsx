@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -11,6 +11,9 @@ type NumberInputProps = {
   max?: number;
   step?: number;
   size?: 'sm' | 'md' | 'lg';
+  /** Forwarded to the inner number `<input>` (not the wrapper div) —
+   * the element form bridges and `ref.current.focus()` reach. */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<ComponentPropsWithoutRef<'input'>, 'type' | 'value' | 'size'>;
 
 export default function NumberInput({
@@ -21,12 +24,14 @@ export default function NumberInput({
   size,
   className,
   onChange,
+  ref,
   ...rest
 }: NumberInputProps) {
   const [value, setValue] = useControl(valueControl, 0);
 
   return (
     <NumberInputCore
+      ref={ref}
       value={value}
       onChange={setValue}
       onNativeChange={onChange}

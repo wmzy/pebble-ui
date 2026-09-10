@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import type { MentionsOption } from './MentionsCore';
@@ -18,6 +18,9 @@ type MentionsProps = {
   trigger?: string;
   placeholder?: string;
   className?: string;
+  /** Forwarded to the underlying `<textarea>` — the element form bridges
+   * and `ref.current.focus()` reach. */
+  ref?: Ref<HTMLTextAreaElement>;
 } & Omit<
   ComponentPropsWithoutRef<'textarea'>,
   'value' | 'onChange' | 'placeholder' | 'className' | 'style'
@@ -26,12 +29,14 @@ type MentionsProps = {
 export default function Mentions({
   value: valueControl,
   onChange,
+  ref,
   ...rest
 }: MentionsProps) {
   const [value, setValue] = useControl(valueControl, '');
 
   return (
     <MentionsCore
+      ref={ref}
       value={value}
       onChange={(next) => {
         setValue(next);

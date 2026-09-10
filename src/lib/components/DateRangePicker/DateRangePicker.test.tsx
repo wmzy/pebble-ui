@@ -211,3 +211,68 @@ describe('DateRangePickerCore', () => {
     expect(results.violations).toEqual([]);
   });
 });
+
+describe('DateRangePicker presets', () => {
+  const presets = [
+    { label: 'First fortnight', range: ['2026-01-01', '2026-01-14'] as [string, string] },
+    { label: 'Rest of January', range: ['2026-01-15', '2026-01-31'] as [string, string] },
+  ];
+
+  it('renders shortcut rows above the dual-month panel and applies a range', async () => {
+    const user = userEvent.setup();
+    const onStartChange = vi.fn();
+    const onEndChange = vi.fn();
+    render(
+      <DateRangePickerCore
+        startDate=""
+        endDate=""
+        onStartChange={onStartChange}
+        onEndChange={onEndChange}
+        months={2}
+        presets={presets}
+      />
+    );
+    // Presets share the panel with the calendars.
+    expect(screen.getAllByRole('grid')).toHaveLength(2);
+    await user.click(screen.getByRole('button', { name: 'Rest of January' }));
+    expect(onStartChange).toHaveBeenCalledWith('2026-01-15');
+    expect(onEndChange).toHaveBeenCalledWith('2026-01-31');
+  });
+
+  it('applies presets through the sugar component (uncontrolled)', async () => {
+    const user = userEvent.setup();
+    render(
+      <DateRangePicker
+        months={2}
+        presets={presets}
+      />
+    );
+    await user.click(screen.getByRole('button', { name: 'First fortnight' }));
+    expect(screen.getByLabelText('Start date')).toHaveValue('2026-01-01');
+    expect(screen.getByLabelText('End date')).toHaveValue('2026-01-14');
+  });
+
+  it('renders the preset panel without calendars when months stays 1', () => {
+    render(<DateRangePicker presets={presets} />);
+    expect(
+      screen.getByRole('button', { name: 'First fortnight' })
+    ).toBeInTheDocument();
+    expect(document.querySelector('[role="grid"]')).not.toBeInTheDocument();
+  });
+});
+
+describe('DateRangePicker disabledDate', () => {
+  it('disables predicate days on the dual-month calendar', () => {
+    render(
+      <DateRangePicker
+        startDate="2026-01-15"
+        months={2}
+        disabledDate={(date) => date.getDay() === 0}
+      />
+    );
+    const day = (date: string) =>
+      document.querySelector<HTMLButtonElement>(`[data-haze-day="${date}"]`);
+    expect(day('2026-01-04')).toBeDisabled();
+    expect(day('2026-01-15')).toBeEnabled();
+  });
+});

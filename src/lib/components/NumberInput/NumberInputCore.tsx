@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -15,6 +15,8 @@ type NumberInputCoreProps = {
   step?: number;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Forwarded to the inner number `<input>` (not the wrapper div). */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<ComponentPropsWithoutRef<'input'>, 'type' | 'value' | 'onChange' | 'size'>;
 
 const wrapper = css`
@@ -130,6 +132,7 @@ export default function NumberInputCore({
   step = 1,
   size = 'md',
   className,
+  ref,
   ...rest
 }: NumberInputCoreProps) {
   const strings = useStrings('numberInput');
@@ -152,6 +155,7 @@ export default function NumberInputCore({
         −
       </button>
       <input
+        ref={ref}
         type='number'
         x-class={[input, inputSizes[size]]}
         value={value}

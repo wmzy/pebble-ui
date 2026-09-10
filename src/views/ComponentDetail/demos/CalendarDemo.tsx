@@ -47,6 +47,44 @@ export default function CalendarDemo() {
       </div>
 
       <div className={section}>
+        <h2>Picker modes</h2>
+        <p>
+          <code>picker</code> promotes the quick-select grids to
+          first-class modes. Values serialize per mode: <code>month</code>{' '}
+          → <code>&apos;YYYY-MM&apos;</code>, <code>quarter</code> →{' '}
+          <code>&apos;YYYY-Qn&apos;</code>, <code>year</code> →{' '}
+          <code>&apos;YYYY&apos;</code>. Each grid keeps the day grid&apos;s
+          roving keyboard (arrows, Home/End, PageUp/Down period hops) and
+          RTL mirroring.
+        </p>
+        <div className={row}>
+          <Calendar picker='month' />
+        </div>
+        <div className={row}>
+          <Calendar picker='quarter' />
+        </div>
+        <div className={row}>
+          <Calendar picker='year' />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>disabledDate</h2>
+        <p>
+          A predicate over the representative <code>Date</code> — the day
+          itself in date mode, day 1 of the period in month/quarter/year
+          modes — disables cells alongside <code>min</code>/<code>max</code>.
+          Disabled cells are inert to clicks and skipped by keyboard roving.
+        </p>
+        <div className={row}>
+          <Calendar
+            value={dateCtrl}
+            disabledDate={(date) => date.getDay() === 0 || date.getDay() === 6}
+          />
+        </div>
+      </div>
+
+      <div className={section}>
         <h2>Week numbers</h2>
         <div className={row}>
           <Calendar showWeekNumbers onSelect={noop} />
@@ -109,8 +147,9 @@ export default function CalendarDemo() {
           <ul>
             <li>
               Grid uses <strong>role=&quot;grid&quot;</strong> with rows,
-              columnheaders and gridcells — the month quick select keeps the
-              same grid pattern with its own roving focus
+              columnheaders and gridcells — the month quick select and the
+              month/quarter/year picker modes keep the same grid pattern
+              with their own roving focus
             </li>
             <li>
               The selected day is exposed via{' '}

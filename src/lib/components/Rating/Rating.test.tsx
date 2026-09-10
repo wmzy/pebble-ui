@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import Rating from './Rating';
@@ -118,5 +119,15 @@ describe('RatingCore', () => {
     const stars = screen.getAllByRole('radio');
     await user.click(stars[2]!);
     expect(onChange).toHaveBeenCalledWith(3);
+  });
+});
+
+describe('Rating ref forwarding', () => {
+  it('forwards ref to the tab-stop star', () => {
+    const ref = createRef<HTMLSpanElement>();
+    render(<Rating ref={ref} aria-label='Rating' />);
+    expect(ref.current).toBeInstanceOf(HTMLSpanElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

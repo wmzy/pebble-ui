@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import type { ToastItem, ToastUpdateOptions } from './ToastContext';
+import type { ToastClassNames } from './Toast';
 
 import {css} from '@linaria/core';
 import {useState, useCallback, useRef, useEffect} from 'react';
@@ -28,6 +29,15 @@ type ToastContainerProps = {
   maxCount?: number;
   /** Viewport edge the stack is pinned to. */
   placement?: ToastPlacement;
+  /**
+   * Semantic slot classes (AntD v6 `classNames` shape) for the whole
+   * toast family — `viewport` lands on the fixed stack this container
+   * renders, `item`/`content`/`close` flow to every toast (see
+   * {@link ToastClassNames}). Toasts are fired imperatively through
+   * `useToast()`/`toast()`, so this prop is the one place to theme
+   * them. Omitting it changes nothing.
+   */
+  classNames?: ToastClassNames;
 };
 
 const containerBase = css`
@@ -65,6 +75,7 @@ export default function ToastContainer({
   children,
   maxCount,
   placement = 'bottom-right',
+  classNames,
 }: ToastContainerProps) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   // Ids whose exit animation is in flight; the toast stays in `toasts`
@@ -159,7 +170,7 @@ export default function ToastContainer({
   return (
     <ToastProvider value={{ toasts, addToast, removeToast, updateToast }}>
       {children}
-      <div x-class={[containerBase, toastPlacements[placement]]}>
+      <div x-class={[containerBase, toastPlacements[placement], classNames?.viewport]}>
         {toasts.map((t) => {
           // Promise-phase sentinels resolve against the locale pack at
           // render time — `toast.promise` may have fired outside any
@@ -175,6 +186,7 @@ export default function ToastContainer({
                 variant={t.variant}
                 duration={t.duration}
                 onClose={() => removeToast(t.id)}
+                classNames={classNames}
               >
                 {deferredKey ? strings[deferredKey] : t.content}
               </Toast>

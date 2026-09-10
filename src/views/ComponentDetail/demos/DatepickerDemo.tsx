@@ -14,6 +14,8 @@ import { CssVarsSection } from './shared';
 export default function DatepickerDemo() {
   const [, , valueCtrl] = useControl(undefined, '');
   const [value] = useControl(valueCtrl);
+  const [, , monthCtrl] = useControl(undefined, '2026-03');
+  const [month] = useControl(monthCtrl);
 
   return (
     <>
@@ -35,6 +37,67 @@ export default function DatepickerDemo() {
             Selected: {value}
           </p>
         )}
+      </div>
+
+      <div className={section}>
+        <h2>Picker modes</h2>
+        <p>
+          <code>picker</code> swaps the panel for a month, quarter or year
+          grid; the value serializes as <code>&apos;YYYY-MM&apos;</code>,{' '}
+          <code>&apos;YYYY-Qn&apos;</code> or <code>&apos;YYYY&apos;</code>{' '}
+          respectively.
+        </p>
+        <div className={fieldRow}>
+          <Datepicker picker='month' value={monthCtrl} placeholder='Pick a month' />
+        </div>
+        {month && (
+          <p
+            style={{
+              fontSize: 'var(--haze-text-sm)',
+              color: 'var(--haze-color-text-secondary)',
+            }}
+          >
+            Selected: {month}
+          </p>
+        )}
+        <div className={fieldRow}>
+          <Datepicker picker='quarter' placeholder='Pick a quarter' />
+        </div>
+        <div className={fieldRow}>
+          <Datepicker picker='year' placeholder='Pick a year' />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Presets</h2>
+        <p>
+          <code>presets</code> renders shortcut rows above the calendar —
+          clicking one applies its value and closes the panel.
+        </p>
+        <div className={fieldRow}>
+          <Datepicker
+            placeholder='Pick a date'
+            presets={[
+              { label: 'Start of May', value: '2026-05-01' },
+              { label: 'Mid May', value: '2026-05-15' },
+              { label: 'End of May', value: '2026-05-31' },
+            ]}
+          />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>disabledDate</h2>
+        <p>
+          A predicate over each day&apos;s <code>Date</code> disables cells
+          alongside <code>min</code>/<code>max</code> — weekends below.
+        </p>
+        <div className={fieldRow}>
+          <Datepicker
+            placeholder='Weekdays only'
+            disabledDate={(date) => date.getDay() === 0 || date.getDay() === 6}
+          />
+        </div>
       </div>
 
       <div className={section}>

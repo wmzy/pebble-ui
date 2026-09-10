@@ -12,18 +12,62 @@ import {
   addMonths,
   buildMonthCells,
   formatDate,
+  formatMonthValue,
+  formatQuarterValue,
+  formatYearValue,
   getDaysInMonth,
   getISOWeekNumber,
   parseCivilDate,
+  parseMonthValue,
+  parseQuarterValue,
+  parseYearValue,
 } from './date';
 
+/** Granularity Calendar picks at. Each mode serializes its `value` and
+ * `onSelect` payload to a plain string: `"YYYY-MM-DD"` (date),
+ * `"YYYY-MM"` (month), `"YYYY-Qn"` with n 1–4 (quarter) or `"YYYY"`
+ * (year). */
+type CalendarPickerMode = 'date' | 'month' | 'quarter' | 'year';
+
 type CalendarProps = {
-  /** Selected date as "YYYY-MM-DD"; empty string means nothing selected. */
+  /**
+   * Granularity the calendar picks at. `"date"` (default) renders the
+   * day grid; `"month"` a 3×4 month grid over one year; `"quarter"`
+   * a 4-quarter grid over one year; `"year"` a 12-year grid stepped a
+   * decade at a time. Values follow each mode's serialization (see
+   * {@link CalendarPickerMode}); `months`, `showWeekNumbers`,
+   * `weekStartsOn` and the range props apply to the day grid only.
+   * @default 'date'
+   */
+  picker?: CalendarPickerMode;
+  /**
+   * Selected value as a plain string whose format follows `picker`:
+   * "YYYY-MM-DD" (date, the default), "YYYY-MM" (month), "YYYY-Qn"
+   * (quarter) or "YYYY" (year). Empty string means nothing selected.
+   */
   value?: ControlOrValue<string>;
-  /** Earliest selectable date ("YYYY-MM-DD"). */
+  /**
+   * Earliest selectable date ("YYYY-MM-DD"). In the month/quarter/year
+   * modes a cell is disabled only when its whole period lies before
+   * `min` (the period's last day < `min`).
+   */
   min?: string;
-  /** Latest selectable date ("YYYY-MM-DD"). */
+  /**
+   * Latest selectable date ("YYYY-MM-DD"). In the month/quarter/year
+   * modes a cell is disabled only when its whole period lies after
+   * `max` (the period's first day > `max`).
+   */
   max?: string;
+  /**
+   * Disables individual cells by predicate, alongside `min`/`max` (a
+   * cell is disabled when either hits). Called with the cell's
+   * representative date as a local-midnight `Date`: the day itself in
+   * the date mode, day 1 of the month in the month mode, day 1 of the
+   * quarter's first month in the quarter mode, January 1 in the year
+   * mode. Disabled cells render natively disabled (inert to clicks,
+   * skipped by keyboard roving).
+   */
+  disabledDate?: (date: Date) => boolean;
   /** BCP 47 locale used for month and weekday formatting. */
   locale?: string;
   /** Explicit first day of the week: 0 = Sunday, 1 = Monday. */
@@ -54,8 +98,10 @@ type CalendarProps = {
    */
   rangeEnd?: string;
   /**
-   * Called with the picked "YYYY-MM-DD" date. Still fires alongside the
-   * controllable `value` for callers that prefer event-style wiring.
+   * Called with the picked value — "YYYY-MM-DD" (date), "YYYY-MM"
+   * (month), "YYYY-Qn" (quarter) or "YYYY" (year), matching `picker`.
+   * Still fires alongside the controllable `value` for callers that
+   * prefer event-style wiring.
    */
   onSelect?: (date: string) => void;
 } & Omit<ComponentPropsWithoutRef<'div'>, 'onSelect'>;
@@ -254,6 +300,15 @@ const quickGrid = css`
   text-align: center;
 `;
 
+/* Quarter picker grid: one row of four quarter cells (same cell
+   chrome as the month grid, one column per quarter). */
+const quarterGrid = css`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  text-align: center;
+`;
+
 /* Legacy weekday headers, indexed 0 = Sunday … 6 = Saturday. Kept for the
    no-locale default: Intl "short" weekday names differ ("Sun" vs "Su") and
    the default rendering must stay unchanged. */
@@ -409,16 +464,21 @@ function useGridKeyboard(
 }
 
 /**
- * Month-grid keyboard roving for the quick-select view (WAI-ARIA grid
- * pattern over a 3-column grid): ←/→ move one month, ↑/↓ one row,
- * Home/End jump to the row's first/last month, PageUp/PageDown step the
- * year keeping the focused month. Enter/Space pick via the button's
- * native activation. Mirrors the day grid's `dir="rtl"` arrow mirroring.
+ * Selector-grid keyboard roving (WAI-ARIA grid pattern over a
+ * `columns`-column cell grid — the quick-select month view and the
+ * month/quarter/year picker modes): ←/→ move one cell, ↑/↓ one row,
+ * Home/End jump to the row's first/last cell skipping disabled cells
+ * (the day grid's `focusFrom`), PageUp/PageDown step the period (year
+ * or decade) keeping the focused cell — `pendingCellIndexRef` hands the
+ * index to the effect that re-focuses after the view commits.
+ * Enter/Space pick via the button's native activation. Mirrors the day
+ * grid's `dir="rtl"` arrow mirroring.
  */
-function useQuickSelectKeyboard(
+function useSelectorGridKeyboard(
   gridRef: RefObject<HTMLDivElement | null>,
-  stepYear: (delta: number) => void,
-  pendingFocusMonthRef: RefObject<number | null>
+  columns: number,
+  step: (delta: number) => void,
+  pendingCellIndexRef: RefObject<number | null>
 ) {
   return (event: ReactKeyboardEvent<HTMLDivElement>) => {
     const grid = gridRef.current;
@@ -433,8 +493,8 @@ function useQuickSelectKeyboard(
       getDirection(grid) === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
     const backward = forward === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
     const move = (delta: number) => {
-      const index = (current < 0 ? 0 : current) + delta;
-      if (index >= 0 && index < buttons.length) {
+      const index = focusFrom(buttons, current < 0 ? 0 : current, delta);
+      if (index !== null) {
         event.preventDefault();
         buttons[index]!.focus();
       }
@@ -448,29 +508,40 @@ function useQuickSelectKeyboard(
         move(-1);
         return;
       case 'ArrowDown':
-        move(3);
+        move(columns);
         return;
       case 'ArrowUp':
-        move(-3);
+        move(-columns);
         return;
       case 'Home': {
-        const rowStart = current < 0 ? 0 : current - (current % 3);
-        event.preventDefault();
-        buttons[rowStart]!.focus();
+        const rowStart = current < 0 ? 0 : current - (current % columns);
+        const index = focusFrom(buttons, rowStart - 1, 1);
+        if (index !== null) {
+          event.preventDefault();
+          buttons[index]!.focus();
+        }
         return;
       }
       case 'End': {
         const rowEnd =
-          current < 0 ? 2 : Math.min(current - (current % 3) + 2, buttons.length - 1);
-        event.preventDefault();
-        buttons[rowEnd]!.focus();
+          current < 0
+            ? columns - 1
+            : Math.min(
+                current - (current % columns) + columns - 1,
+                buttons.length - 1
+              );
+        const index = focusFrom(buttons, rowEnd + 1, -1);
+        if (index !== null) {
+          event.preventDefault();
+          buttons[index]!.focus();
+        }
         return;
       }
       case 'PageUp':
       case 'PageDown': {
         event.preventDefault();
-        pendingFocusMonthRef.current = current < 0 ? 0 : current;
-        stepYear(event.key === 'PageDown' ? 1 : -1);
+        pendingCellIndexRef.current = current < 0 ? 0 : current;
+        step(event.key === 'PageDown' ? 1 : -1);
         return;
       }
     }
@@ -478,9 +549,11 @@ function useQuickSelectKeyboard(
 }
 
 export default function Calendar({
+  picker = 'date',
   value: valueControl,
   min,
   max,
+  disabledDate,
   locale,
   weekStartsOn,
   showWeekNumbers = false,
@@ -501,9 +574,14 @@ export default function Calendar({
   // month hops and quick-select month picks — the cells do not exist
   // until the state commits).
   const pendingFocusRef = useRef<string | null>(null);
-  // Quick-select view: month button (0 = January … 11 = December) to
-  // focus once the selector renders (open handover and year hops).
-  const pendingQuickMonthRef = useRef<number | null>(null);
+  // Quick-select view: month button index (0 = January … 11 = December,
+  // DOM order) to focus once the selector renders (open handover and
+  // year hops).
+  const pendingQuickCellRef = useRef<number | null>(null);
+  // Month/quarter/year modes: cell index to focus once the stepped
+  // view (year or decade hop) commits.
+  const pendingModeCellRef = useRef<number | null>(null);
+  const modeGridRef = useRef<HTMLDivElement>(null);
   const titleBtnRef = useRef<HTMLButtonElement>(null);
   const quickGridRef = useRef<HTMLDivElement>(null);
   // Pure internal UI state: the quick-select view swap never surfaces as
@@ -513,11 +591,25 @@ export default function Calendar({
 
   // Civil parse: `new Date(value)` would read the value as UTC midnight
   // and land west-of-UTC users on the previous day — showing February
-  // for a '2026-03-01' value in America/New_York.
+  // for a '2026-03-01' value in America/New_York. Picker modes parse
+  // their own serialization; only the year steers their view, so a
+  // January anchor normalizes `initial` across modes.
+  const modeValue =
+    picker === 'month'
+      ? parseMonthValue(value)
+      : picker === 'quarter'
+        ? parseQuarterValue(value)
+        : picker === 'year'
+          ? parseYearValue(value)
+          : null;
   const initial =
-    (value && parseCivilDate(value)) ||
-    (rangeStart && parseCivilDate(rangeStart)) ||
-    new Date();
+    picker === 'date'
+      ? (value && parseCivilDate(value)) ||
+        (rangeStart && parseCivilDate(rangeStart)) ||
+        new Date()
+      : modeValue
+        ? new Date(modeValue.year, 0, 1)
+        : new Date();
   const [viewYear, setViewYear] = useState(initial.getFullYear());
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
 
@@ -559,19 +651,27 @@ export default function Calendar({
   // (PageUp/Down year hop keeping the focused month).
   useEffect(() => {
     if (!quickOpen) return;
-    const month = pendingQuickMonthRef.current;
-    pendingQuickMonthRef.current = null;
-    const grid = quickGridRef.current;
-    if (!grid) return;
-    const target =
-      month !== null
-        ? grid.querySelector<HTMLButtonElement>(`[data-haze-month="${month}"]`)
-        : null;
-    (target ?? grid.querySelector<HTMLButtonElement>('button'))?.focus();
+    const index = pendingQuickCellRef.current;
+    pendingQuickCellRef.current = null;
+    const buttons = dayButtons(quickGridRef.current);
+    if (buttons.length === 0) return;
+    (buttons[index ?? 0] ?? buttons[0])!.focus();
   }, [quickOpen, quickYear]);
 
+  // Focus handover for the picker-mode grids: PageUp/Down period hops
+  // replace every cell (year or decade shift), so the pending index is
+  // re-resolved against the freshly committed grid.
+  useEffect(() => {
+    if (picker === 'date') return;
+    const index = pendingModeCellRef.current;
+    pendingModeCellRef.current = null;
+    if (index === null) return;
+    const buttons = dayButtons(modeGridRef.current);
+    (buttons[index] ?? buttons[0])?.focus();
+  }, [picker, viewYear]);
+
   const openQuickSelect = () => {
-    pendingQuickMonthRef.current = viewMonth;
+    pendingQuickCellRef.current = viewMonth;
     setQuickYear(viewYear);
     setQuickOpen(true);
   };
@@ -601,10 +701,23 @@ export default function Calendar({
     pendingFocusRef
   );
 
-  const handleQuickGridKeyDown = useQuickSelectKeyboard(
+  const handleQuickGridKeyDown = useSelectorGridKeyboard(
     quickGridRef,
+    3,
     (delta) => setQuickYear((year) => year + delta),
-    pendingQuickMonthRef
+    pendingQuickCellRef
+  );
+
+  // Picker modes: prev/next and PageUp/Down step one year (month and
+  // quarter modes) or one decade (year mode), keeping the focused cell.
+  const modeColumns = picker === 'quarter' ? 4 : 3;
+  const stepModePeriod = (delta: number) =>
+    setViewYear((year) => year + delta * (picker === 'year' ? 10 : 1));
+  const handleModeGridKeyDown = useSelectorGridKeyboard(
+    modeGridRef,
+    modeColumns,
+    stepModePeriod,
+    pendingModeCellRef
   );
 
   const goPrevMonth = () => setView(addMonths(viewYear, viewMonth, -1));
@@ -617,10 +730,41 @@ export default function Calendar({
     setViewMonth(now.getMonth());
   };
 
-  const isDisabled = (dateStr: string) => {
+  const isCellDisabled = (year: number, month: number, day: number) => {
+    const dateStr = formatDate(year, month, day);
     if (min && dateStr < min) return true;
     if (max && dateStr > max) return true;
-    return false;
+    return disabledDate?.(new Date(year, month, day)) ?? false;
+  };
+
+  // A month cell is disabled when its whole period is out of range (any
+  // day could still be pickable inside) or its representative day —
+  // day 1 — is rejected by `disabledDate`.
+  const isMonthCellDisabled = (year: number, month: number) => {
+    if (min && formatDate(year, month, getDaysInMonth(year, month)) < min)
+      return true;
+    if (max && formatDate(year, month, 1) > max) return true;
+    return disabledDate?.(new Date(year, month, 1)) ?? false;
+  };
+
+  const isQuarterCellDisabled = (year: number, quarter: number) => {
+    const firstMonth = quarter * 3 - 3;
+    const lastMonth = quarter * 3 - 1;
+    if (min && formatDate(year, lastMonth, getDaysInMonth(year, lastMonth)) < min)
+      return true;
+    if (max && formatDate(year, firstMonth, 1) > max) return true;
+    return disabledDate?.(new Date(year, firstMonth, 1)) ?? false;
+  };
+
+  const isYearCellDisabled = (year: number) => {
+    if (min && formatDate(year, 11, 31) < min) return true;
+    if (max && formatDate(year, 0, 1) > max) return true;
+    return disabledDate?.(new Date(year, 0, 1)) ?? false;
+  };
+
+  const pickModeValue = (next: string) => {
+    setValue(next);
+    onSelect?.(next);
   };
 
   const rangeStartSet = rangeStart !== undefined && rangeStart !== '';
@@ -703,7 +847,7 @@ export default function Calendar({
                       !selected && isInRange(dateStr) && dayInRange,
                       c.outside && dayOutside,
                     ]}
-                    disabled={isDisabled(dateStr)}
+                    disabled={isCellDisabled(c.year, c.month, c.day)}
                     onClick={() => {
                       setValue(dateStr);
                       onSelect?.(dateStr);
@@ -786,6 +930,164 @@ export default function Calendar({
     }
   }
 
+  /* ── Picker modes ── First-class month/quarter/year grids: a period
+   *  stepper header (year, or decade in the year mode) above a cell
+   *  grid whose cells select directly. Same grid/gridcell semantics
+   *  and roving keyboard as the day grid; the date mode's quick-select
+   *  is the in-place cousin of the month mode. */
+  if (picker !== 'date') {
+    const decadeStart = Math.floor(viewYear / 10) * 10;
+    const previousLabel =
+      picker === 'year' ? strings.previousDecade : strings.previousYear;
+    const nextLabel =
+      picker === 'year' ? strings.nextDecade : strings.nextYear;
+    const title =
+      picker === 'year'
+        ? `${decadeStart} – ${decadeStart + 11}`
+        : String(viewYear);
+
+    const modeGrid =
+      picker === 'month' ? (
+        <div
+          ref={modeGridRef}
+          x-class={[quickGrid]}
+          role='grid'
+          aria-label={strings.selectMonth}
+          onKeyDown={handleModeGridKeyDown}
+        >
+          {[0, 1, 2, 3].map((rowIndex) => (
+            <div role='row' key={rowIndex} x-class={[rowContents]}>
+              {[0, 1, 2].map((column) => {
+                const month = rowIndex * 3 + column;
+                const selected =
+                  value === formatMonthValue(viewYear, month);
+                return (
+                  <span
+                    role='gridcell'
+                    key={month}
+                    aria-selected={selected}
+                    x-class={[cellContents]}
+                  >
+                    <button
+                      type='button'
+                      data-haze-month={month}
+                      x-class={[dayBtn, selected && daySelected]}
+                      disabled={isMonthCellDisabled(viewYear, month)}
+                      onClick={() =>
+                        pickModeValue(formatMonthValue(viewYear, month))
+                      }
+                    >
+                      {monthNames[month]}
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      ) : picker === 'quarter' ? (
+        <div
+          ref={modeGridRef}
+          x-class={[quarterGrid]}
+          role='grid'
+          aria-label={strings.selectQuarter}
+          onKeyDown={handleModeGridKeyDown}
+        >
+          <div role='row' x-class={[rowContents]}>
+            {[1, 2, 3, 4].map((quarter) => {
+              const selected =
+                value === formatQuarterValue(viewYear, quarter);
+              return (
+                <span
+                  role='gridcell'
+                  key={quarter}
+                  aria-selected={selected}
+                  x-class={[cellContents]}
+                >
+                  <button
+                    type='button'
+                    data-haze-quarter={quarter}
+                    x-class={[dayBtn, selected && daySelected]}
+                    disabled={isQuarterCellDisabled(viewYear, quarter)}
+                    onClick={() =>
+                      pickModeValue(formatQuarterValue(viewYear, quarter))
+                    }
+                  >
+                    Q{quarter}
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div
+          ref={modeGridRef}
+          x-class={[quickGrid]}
+          role='grid'
+          aria-label={strings.selectYear}
+          onKeyDown={handleModeGridKeyDown}
+        >
+          {[0, 1, 2, 3].map((rowIndex) => (
+            <div role='row' key={rowIndex} x-class={[rowContents]}>
+              {[0, 1, 2].map((column) => {
+                const year = decadeStart + rowIndex * 3 + column;
+                const selected = value === formatYearValue(year);
+                return (
+                  <span
+                    role='gridcell'
+                    key={year}
+                    aria-selected={selected}
+                    x-class={[cellContents]}
+                  >
+                    <button
+                      type='button'
+                      data-haze-year={year}
+                      x-class={[dayBtn, selected && daySelected]}
+                      disabled={isYearCellDisabled(year)}
+                      onClick={() => pickModeValue(formatYearValue(year))}
+                    >
+                      {year}
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      );
+
+    return (
+      <div ref={rootRef} x-class={[calendarWrapper, className]} {...rest}>
+        <div x-class={[header]}>
+          <button
+            type='button'
+            x-class={[headerBtn]}
+            onClick={() => stepModePeriod(-1)}
+            aria-label={previousLabel}
+          >
+            ‹
+          </button>
+          <span x-class={[headerTitle]}>{title}</span>
+          <span x-class={[headerTrailing]}>
+            <button type='button' x-class={[headerBtn]} onClick={goToday}>
+              {strings.today}
+            </button>
+            <button
+              type='button'
+              x-class={[headerBtn]}
+              onClick={() => stepModePeriod(1)}
+              aria-label={nextLabel}
+            >
+              ›
+            </button>
+          </span>
+        </div>
+        {modeGrid}
+      </div>
+    );
+  }
+
   return (
     <div ref={rootRef} x-class={[calendarWrapper, className]} {...rest}>
       <div x-class={[header]}>
@@ -857,4 +1159,4 @@ export default function Calendar({
   );
 }
 
-export type { CalendarProps };
+export type { CalendarProps, CalendarPickerMode };

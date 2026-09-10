@@ -2,13 +2,14 @@ import type { MockInstance } from 'vitest';
 
 import type { ExpandedState, RowSelectionState } from '@tanstack/react-table';
 
-import type { DataTableColumnDef } from './DataTable';
+import type { DataTableColumnDef, DataTableProps } from './DataTable';
 
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { render, screen, act, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
 import DataTable from './DataTable';
+import { dataTableAvg, dataTableCount, dataTableSum } from './summary';
 
 type Person = {
   id: string;
@@ -1256,6 +1257,697 @@ describe('DataTable virtualization', () => {
         getRowId={rowId}
       />
     );
+    const results = await axe(container, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+// ─── Tree data (subRows) ───────────────────────────────────────
+
+type OrgUnit = {
+  id: string;
+  name: string;
+  headcount: number;
+  subRows?: OrgUnit[];
+};
+
+const org: OrgUnit[] = [
+  {
+    id: 'eng',
+    name: 'Engineering',
+    headcount: 40,
+    subRows: [
+      {
+        id: 'platform',
+        name: 'Platform',
+        headcount: 12,
+        subRows: [{ id: 'infra', name: 'Infrastructure', headcount: 5 }],
+      },
+      { id: 'product', name: 'Product', headcount: 10 },
+    ],
+  },
+  { id: 'sales', name: 'Sales', headcount: 8 },
+];
+
+const orgColumns: DataTableColumnDef<OrgUnit>[] = [
+  { accessorKey: 'name', header: 'Team' },
+  { accessorKey: 'headcount', header: 'Headcount' },
+];
+
+describe('DataTable tree data', () => {
+  it('renders only roots until a parent is expanded', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable columns={orgColumns} data={org} getRowId={(row) => row.id} />
+    );
+
+    expect(bodyRows()).toHaveLength(2);
+    // Expanders appear on parents only — leaves stay bare.
+    expect(
+      screen.getByRole('button', { name: 'Expand row eng' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Expand row sales' })
+    ).not.toBeInTheDocument();
+    // Tree expanders carry no aria-controls: the controlled region is not
+    // a single element (children are rows), unlike the panel flavor.
+    expect(
+      screen.getByRole('button', { name: 'Expand row eng' })
+    ).not.toHaveAttribute('aria-controls');
+
+    await user.click(screen.getByRole('button', { name: 'Expand row eng' }));
+
+    // Children render as real rows in document order; grandchildren stay
+    // hidden until their own parent opens.
+    expect(bodyRows()).toHaveLength(4);
+    expect(screen.getByText('Platform')).toBeInTheDocument();
+    expect(screen.getByText('Product')).toBeInTheDocument();
+    expect(screen.queryByText('Infrastructure')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Collapse row eng' })
+    ).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'Expand row platform' }));
+    expect(screen.getByText('Infrastructure')).toBeInTheDocument();
+    expect(bodyRows()).toHaveLength(5);
+  });
+
+  it('indents children by depth in the first content column', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable columns={orgColumns} data={org} getRowId={(row) => row.id} />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Expand row eng' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Expand row platform' })
+    );
+
+    const indentOf = (label: string) => {
+      const row = screen.getByText(label).closest('tr');
+      const firstCell = within(row as HTMLElement).getAllByRole('cell')[0];
+      return firstCell?.querySelector<HTMLElement>(
+        ':scope > span[aria-hidden="true"]'
+      );
+    };
+    // One indent unit per depth level; roots carry none.
+    expect(indentOf('Platform')?.style.width).toBe(
+      'calc(var(--haze-space-4) * 1)'
+    );
+    expect(indentOf('Infrastructure')?.style.width).toBe(
+      'calc(var(--haze-space-4) * 2)'
+    );
+    expect(indentOf('Engineering')).toBeNull();
+    // The selection column, when present, keeps its own un-indented cell.
+  });
+
+  it('reads the tree from a custom subRowsKey', async () => {
+    type Node = { id: string; name: string; children?: Node[] };
+    const nodes: Node[] = [
+      {
+        id: 'root',
+        name: 'Root',
+        children: [{ id: 'leaf', name: 'Leaf' }],
+      },
+    ];
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        columns={[{ accessorKey: 'name', header: 'Name' }] as DataTableColumnDef<Node>[]}
+        data={nodes}
+        getRowId={(row) => row.id}
+        subRowsKey='children'
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Expand row root' }));
+    expect(screen.getByText('Leaf')).toBeInTheDocument();
+  });
+
+  it('keeps expanded control semantics for tree rows', () => {
+    function Harness() {
+      const [, , expandedCtrl] = useControl<ExpandedState>(undefined, {
+        eng: true,
+      });
+      return (
+        <DataTable
+          columns={orgColumns}
+          data={org}
+          getRowId={(row) => row.id}
+          expanded={expandedCtrl}
+        />
+      );
+    }
+
+    render(<Harness />);
+
+    // The controlled initial state opens the parent from the start.
+    expect(screen.getByText('Platform')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Expand row platform' })
+    ).toBeInTheDocument();
+  });
+
+  it('gives explicit expansion props priority over subRows data', () => {
+    render(
+      <DataTable
+        columns={orgColumns}
+        data={org}
+        getRowId={(row) => row.id}
+        expanded={{ eng: true }}
+        renderExpandedRow={(row) => <output>Panel {row.id}</output>}
+      />
+    );
+
+    // The custom panel flavor wins: subRows are never read, so no child
+    // rows flatten into the body — only the panel renders below the row.
+    expect(screen.getByText('Panel eng')).toBeInTheDocument();
+    expect(screen.queryByText('Platform')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Expand row platform' })).not.toBeInTheDocument();
+  });
+
+  it('ignores subRows data entirely without any expansion opt-in state', () => {
+    // No explicit props and subRows present, but expanded state default {}
+    // keeps everything collapsed — the plain flat view of the roots.
+    render(
+      <DataTable columns={orgColumns} data={org} getRowId={(row) => row.id} />
+    );
+
+    expect(bodyRows()).toHaveLength(2);
+    expect(screen.queryByText('Platform')).not.toBeInTheDocument();
+  });
+});
+
+// ─── Summary rows ──────────────────────────────────────────────
+
+describe('DataTable summary', () => {
+  const summaryOf: NonNullable<DataTableProps<Person>['summary']> = (rows) => [
+    {
+      label: 'Totals',
+      cells: [
+        `count ${dataTableCount(rows)}`,
+        `sum ${dataTableSum(rows, 'age')}`,
+      ],
+    },
+  ];
+
+  it('renders a labeled tfoot row with one cell per column', () => {
+    render(
+      <DataTable columns={columns} data={people} summary={summaryOf} />
+    );
+
+    const summaryRow = screen.getByRole('row', { name: 'Totals' });
+    expect(summaryRow.closest('tfoot')).toBeInTheDocument();
+    const cells = within(summaryRow).getAllByRole('cell');
+    expect(cells).toHaveLength(2);
+    expect(cells[0]).toHaveTextContent('count 5');
+    expect(cells[1]).toHaveTextContent('sum 160');
+  });
+
+  it('summarizes the whole filtered data, not the current page', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        pageSize={2}
+        summary={summaryOf}
+      />
+    );
+
+    expect(screen.getByRole('row', { name: 'Totals' })).toHaveTextContent(
+      'count 5'
+    );
+    expect(screen.getByRole('row', { name: 'Totals' })).toHaveTextContent(
+      'sum 160'
+    );
+  });
+
+  it('aligns the selection column with an empty leading cell', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        selectable
+        getRowId={rowId}
+        summary={summaryOf}
+      />
+    );
+
+    const cells = within(
+      screen.getByRole('row', { name: 'Totals' })
+    ).getAllByRole('cell');
+    expect(cells).toHaveLength(3);
+    expect(cells[0]).toHaveTextContent('');
+    expect(cells[1]).toHaveTextContent('count 5');
+  });
+
+  it('skips the footer while loading or empty', () => {
+    const { rerender } = render(
+      <DataTable columns={columns} data={people} loading summary={summaryOf} />
+    );
+    expect(document.querySelector('tfoot')).toBeNull();
+
+    rerender(<DataTable columns={columns} data={[]} summary={summaryOf} />);
+    expect(document.querySelector('tfoot')).toBeNull();
+  });
+
+  it('applies the sticky footer variant only when stickyFooter', () => {
+    const { rerender } = render(
+      <DataTable columns={columns} data={people} summary={summaryOf} />
+    );
+    expect(document.querySelector('tfoot')?.className).not.toContain(
+      'stickyFoot'
+    );
+
+    rerender(
+      <DataTable
+        columns={columns}
+        data={people}
+        stickyHeader
+        stickyFooter
+        summary={summaryOf}
+      />
+    );
+    expect(document.querySelector('tfoot')?.className).toContain('stickyFoot');
+  });
+
+  it('toggles the summary through the helpers with sparse numeric data', () => {
+    type Item = { id: string; label: string; qty?: number };
+    const items: Item[] = [
+      { id: 'a', label: 'A', qty: 2 },
+      { id: 'b', label: 'B' },
+      { id: 'c', label: 'C', qty: 4 },
+    ];
+    render(
+      <DataTable
+        columns={[
+          { accessorKey: 'label', header: 'Label' },
+          { accessorKey: 'qty', header: 'Qty' },
+        ] as DataTableColumnDef<Item>[]}
+        data={items}
+        getRowId={(row) => row.id}
+        summary={(rows) => [
+          {
+            cells: [
+              `count ${dataTableCount(rows)}`,
+              `sum ${dataTableSum(rows, 'qty')}`,
+            ],
+          },
+          {
+            cells: [
+              `avg ${dataTableAvg(rows, 'qty')}`,
+              `labelSum ${dataTableSum(rows, 'label')}`,
+            ],
+          },
+          { cells: [() => dataTableAvg(rows, 'label') ?? '—', ''] },
+        ]}
+      />
+    );
+
+    // Missing cells drop out of both divisor and total; string columns sum
+    // to 0 and never produce an average.
+    expect(screen.getByText('count 3')).toBeInTheDocument();
+    expect(screen.getByText('sum 6')).toBeInTheDocument();
+    expect(screen.getByText('avg 3')).toBeInTheDocument();
+    expect(screen.getByText('labelSum 0')).toBeInTheDocument();
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
+});
+
+// ─── Editable cells ────────────────────────────────────────────
+
+describe('DataTable cell editing', () => {
+  it('leaves cells inert unless editable', () => {
+    render(<DataTable columns={columns} data={people} getRowId={rowId} />);
+
+    expect(screen.getByText('Charlie').closest('td')).not.toHaveAttribute(
+      'tabindex'
+    );
+  });
+
+  it('enters edit mode on double-click with a labeled focused input', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable columns={columns} data={people} getRowId={rowId} editable />
+    );
+
+    const cell = screen.getByText('Charlie').closest('td')!;
+    expect(cell).toHaveAttribute('tabindex', '0');
+    await user.dblClick(cell);
+
+    const input = screen.getByRole('textbox', {
+      name: 'Edit Name in row u1',
+    });
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue('Charlie');
+    // The resting cell content is replaced while editing.
+    expect(screen.queryByText('Charlie')).not.toBeInTheDocument();
+  });
+
+  it('enters edit mode with Enter on the focused cell', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable columns={columns} data={people} getRowId={rowId} editable />
+    );
+
+    const cell = screen.getByText('Alice').closest('td')!;
+    cell.focus();
+    await user.keyboard('{Enter}');
+
+    expect(
+      screen.getByRole('textbox', { name: 'Edit Name in row u2' })
+    ).toBeInTheDocument();
+  });
+
+  it('saves on Enter and reports the edit without touching data', async () => {
+    const user = userEvent.setup();
+    const onCellEdit = vi.fn();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        getRowId={rowId}
+        editable
+        onCellEdit={onCellEdit}
+      />
+    );
+
+    await user.dblClick(screen.getByText('Charlie').closest('td') as HTMLElement);
+    const input = screen.getByRole('textbox', { name: 'Edit Name in row u1' });
+    await user.type(input, ' Jr.');
+    await user.keyboard('{Enter}');
+
+    expect(onCellEdit).toHaveBeenCalledTimes(1);
+    expect(onCellEdit).toHaveBeenCalledWith('u1', 'name', 'Charlie Jr.', 'Charlie');
+    // The data is consumer-owned: the cell keeps rendering the old value.
+    expect(screen.getByText('Charlie')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('cancels on Escape without reporting', async () => {
+    const user = userEvent.setup();
+    const onCellEdit = vi.fn();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        getRowId={rowId}
+        editable
+        onCellEdit={onCellEdit}
+      />
+    );
+
+    await user.dblClick(screen.getByText('Charlie').closest('td') as HTMLElement);
+    const input = screen.getByRole('textbox', { name: 'Edit Name in row u1' });
+    await user.type(input, ' Jr.');
+    await user.keyboard('{Escape}');
+
+    expect(onCellEdit).not.toHaveBeenCalled();
+    expect(screen.getByText('Charlie')).toBeInTheDocument();
+    // Focus returns to the cell so keyboard flow continues.
+    expect(screen.getByText('Charlie').closest('td')).toHaveFocus();
+  });
+
+  it('saves on blur when focus leaves the editor', async () => {
+    const user = userEvent.setup();
+    const onCellEdit = vi.fn();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        getRowId={rowId}
+        editable
+        onCellEdit={onCellEdit}
+      />
+    );
+
+    await user.dblClick(screen.getByText('Bob').closest('td') as HTMLElement);
+    const input = screen.getByRole('textbox', { name: 'Edit Name in row u3' });
+    await user.type(input, '!');
+    await user.tab();
+
+    expect(onCellEdit).toHaveBeenCalledTimes(1);
+    expect(onCellEdit).toHaveBeenCalledWith('u3', 'name', 'Bob!', 'Bob');
+  });
+
+  it('does not report when the value is unchanged', async () => {
+    const user = userEvent.setup();
+    const onCellEdit = vi.fn();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        getRowId={rowId}
+        editable
+        onCellEdit={onCellEdit}
+      />
+    );
+
+    await user.dblClick(screen.getByText('Charlie').closest('td') as HTMLElement);
+    await user.keyboard('{Enter}');
+
+    expect(onCellEdit).not.toHaveBeenCalled();
+    expect(screen.getByText('Charlie')).toBeInTheDocument();
+  });
+
+  it('parses numbers for the number editor, reporting null when cleared', async () => {
+    const user = userEvent.setup();
+    const onCellEdit = vi.fn();
+    const numberColumns: DataTableColumnDef<Person>[] = [
+      { accessorKey: 'name', header: 'Name', meta: { editor: false } },
+      { accessorKey: 'age', header: 'Age', meta: { editor: 'number' } },
+    ];
+    render(
+      <DataTable
+        columns={numberColumns}
+        data={people}
+        getRowId={rowId}
+        editable
+        onCellEdit={onCellEdit}
+      />
+    );
+
+    await user.dblClick(screen.getByText('35').closest('td') as HTMLElement);
+    const input = screen.getByRole('spinbutton', {
+      name: 'Edit Age in row u1',
+    });
+    expect(input).toHaveAttribute('type', 'number');
+    await user.clear(input);
+    await user.type(input, '42');
+    await user.keyboard('{Enter}');
+    expect(onCellEdit).toHaveBeenCalledWith('u1', 'age', 42, 35);
+
+    // Clearing the draft commits null rather than coercing to 0.
+    await user.dblClick(screen.getByText('28').closest('td') as HTMLElement);
+    const second = screen.getByRole('spinbutton', {
+      name: 'Edit Age in row u2',
+    });
+    await user.clear(second);
+    await user.keyboard('{Enter}');
+    expect(onCellEdit).toHaveBeenCalledWith('u2', 'age', null, 28);
+  });
+
+  it('opts columns out through meta.editor false', async () => {
+    const user = userEvent.setup();
+    const mixedColumns: DataTableColumnDef<Person>[] = [
+      { accessorKey: 'name', header: 'Name', meta: { editor: false } },
+      { accessorKey: 'age', header: 'Age' },
+    ];
+    render(
+      <DataTable columns={mixedColumns} data={people} getRowId={rowId} editable />
+    );
+
+    expect(screen.getByText('Charlie').closest('td')).not.toHaveAttribute(
+      'tabindex'
+    );
+    expect(screen.getByText('35').closest('td')).toHaveAttribute(
+      'tabindex',
+      '0'
+    );
+
+    // Opted-out cells ignore double-clicks.
+    await user.dblClick(screen.getByText('Charlie').closest('td') as HTMLElement);
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('renders a custom editor with save and cancel channels', async () => {
+    const user = userEvent.setup();
+    const onCellEdit = vi.fn();
+    const customColumns: DataTableColumnDef<Person>[] = [
+      { accessorKey: 'name', header: 'Name' },
+      {
+        accessorKey: 'age',
+        header: 'Age',
+        meta: {
+          editor: ({ value, row, onSave, onCancel }) => (
+            <div>
+              <output>{`editing ${row.id}:${row.getValue('name') as string}`}</output>
+              <button type='button' onClick={() => onSave(Number(value) + 1)}>
+                Bump
+              </button>
+              <button type='button' onClick={onCancel}>
+                Dismiss
+              </button>
+            </div>
+          ),
+        },
+      },
+    ];
+    render(
+      <DataTable
+        columns={customColumns}
+        data={people}
+        getRowId={rowId}
+        editable
+        onCellEdit={onCellEdit}
+      />
+    );
+
+    await user.dblClick(screen.getByText('35').closest('td') as HTMLElement);
+    expect(screen.getByText('editing u1:Charlie')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(onCellEdit).not.toHaveBeenCalled();
+    expect(screen.getByText('35')).toBeInTheDocument();
+
+    await user.dblClick(screen.getByText('35').closest('td') as HTMLElement);
+    await user.click(screen.getByRole('button', { name: 'Bump' }));
+    expect(onCellEdit).toHaveBeenCalledWith('u1', 'age', 36, 35);
+    expect(screen.getByText('35')).toBeInTheDocument();
+  });
+});
+
+// ─── Tree data + virtualization + summary interplay ────────────
+
+describe('DataTable enterprise tree, virtualization and summary', () => {
+  // Same jsdom mocks as the virtualization suite: no layout, no
+  // ResizeObserver — the observer reports synchronously and the rect mock
+  // fabricates the heights DataTable measures (scroll region 400, header 40).
+  type ObserveCallback = (entries: ResizeObserverEntry[]) => void;
+
+  class MockResizeObserver {
+    observed = new Set<Element>();
+
+    constructor(private callback: ObserveCallback) {}
+
+    report(target: Element) {
+      this.callback([{ target } as ResizeObserverEntry]);
+    }
+
+    observe(target: Element) {
+      if (this.observed.has(target)) return;
+      this.observed.add(target);
+      this.report(target);
+    }
+
+    unobserve(target: Element) {
+      this.observed.delete(target);
+    }
+
+    disconnect() {
+      this.observed.clear();
+    }
+  }
+
+  let rectSpy: MockInstance;
+
+  beforeEach(() => {
+    vi.stubGlobal('ResizeObserver', MockResizeObserver);
+    rectSpy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.tagName === 'THEAD') {
+          return { height: 40 } as DOMRect;
+        }
+        if (this.tagName === 'DIV') {
+          return { height: 400 } as DOMRect;
+        }
+        return { height: 0 } as DOMRect;
+      });
+  });
+
+  afterEach(() => {
+    rectSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  const groups = Array.from({ length: 100 }, (_, index) => ({
+    id: `g${index}`,
+    name: `Group ${index}`,
+    subRows: [
+      { id: `g${index}-a`, name: `Item ${index}.a` },
+      { id: `g${index}-b`, name: `Item ${index}.b` },
+    ],
+  }));
+
+  it('flows expanded tree children through the virtualized window', async () => {
+    const user = userEvent.setup();
+    render(
+      <DataTable
+        columns={[{ accessorKey: 'name', header: 'Name' }] as DataTableColumnDef<(typeof groups)[number]>[]}
+        data={groups}
+        virtualized
+        getRowId={(row) => row.id}
+      />
+    );
+
+    expect(bodyRows()).toHaveLength(16);
+    expect(screen.queryByText('Item 0.a')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Expand row g0' }));
+
+    // The expanded row model already yields the flat display order, so
+    // the window simply mounts 16 of the now-102 rows: g0's children slot
+    // in right after it and push Group 14 out of the window.
+    expect(bodyRows()).toHaveLength(16);
+    expect(screen.getByText('Item 0.a')).toBeInTheDocument();
+    expect(screen.getByText('Item 0.b')).toBeInTheDocument();
+    expect(screen.queryByText('Group 14')).not.toBeInTheDocument();
+  });
+
+  it('pins the summary outside the virtualized scroll window', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        virtualized
+        summary={(rows) => [{ label: 'Totals', cells: ['Total', dataTableSum(rows, 'age')] }]}
+      />
+    );
+
+    // The summary is a single tfoot in its own sibling table below the
+    // VirtualList — the header table never contains it.
+    const tfoot = document.querySelector('tfoot');
+    expect(tfoot).toBeInTheDocument();
+    expect(tfoot?.querySelector('td')).toHaveTextContent('Total');
+    const tables = document.querySelectorAll('table');
+    // header + 5 row tables (all rows fit the window) + the summary table
+    expect(tables).toHaveLength(7);
+    expect(tables[0]?.contains(tfoot as Node)).toBe(false);
+    expect(tables[6]).toContainElement(tfoot);
+  });
+});
+
+describe('DataTable tree, summary and editing accessibility', () => {
+  it('has no axe violations with a tree expanded, summary footer and an open editor', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    const { container } = render(
+      <DataTable
+        columns={orgColumns}
+        data={org}
+        getRowId={(row) => row.id}
+        expanded={{ eng: true }}
+        summary={(rows) => [
+          { label: 'Totals', cells: ['Total', dataTableSum(rows, 'headcount')] },
+        ]}
+        editable
+      />
+    );
+    await user.dblClick(screen.getByText('Sales').closest('td') as HTMLElement);
+
     const results = await axe(container, {
       rules: { region: { enabled: false } },
     });

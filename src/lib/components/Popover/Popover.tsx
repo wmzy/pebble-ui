@@ -6,7 +6,11 @@ import { css } from '@linaria/core';
 import { useId, useImperativeHandle, useMemo, useRef } from 'react';
 import { useControl } from 'react-use-control';
 
+import { classnames } from '../../utils/classnames';
 import { FloatingPanel, useFloating } from '../../utils/floating';
+// Manual merge (not x-class): FloatingPanel appends its `className` prop
+// last in its own x-class array, so both consumer classes arrive there
+// in order — plain `className` first, the `content` slot after it.
 
 /**
  * Imperative handle exposed through the React 19 `ref` prop (same API
@@ -25,6 +29,21 @@ type PopoverHandle = {
   focusTrigger: () => void;
 };
 
+/**
+ * Semantic slot classes (AntD v6 `classNames` shape): consumer classes
+ * appended at the end of each part's class list (able to override
+ * component defaults). Popover has exactly two structural parts:
+ *
+ * - `trigger` — the clickable wrapper around `children`
+ * - `content` — the floating panel
+ */
+type PopoverClassNames = {
+  /** The trigger wrapper (the `role="button"` span around `children`). */
+  trigger?: string;
+  /** The floating panel. */
+  content?: string;
+};
+
 type PopoverProps = {
   content: ReactNode;
   open?: ControlOrValue<boolean>;
@@ -33,6 +52,13 @@ type PopoverProps = {
    * to all four edges, an object per edge.
    */
   collisionPadding?: CollisionPadding;
+  /**
+   * Semantic slot classes (AntD v6 `classNames` shape) — see
+   * {@link PopoverClassNames}. `classNames.content` lands after the
+   * panel's `className` prop; `classNames.trigger` has no default class
+   * to fight with. Omitting it changes nothing.
+   */
+  classNames?: PopoverClassNames;
   className?: string;
   children: ReactNode;
   ref?: Ref<PopoverHandle>;
@@ -60,6 +86,7 @@ export default function Popover({
   content,
   open: openControl,
   collisionPadding,
+  classNames,
   className,
   children,
   ref,
@@ -108,6 +135,10 @@ export default function Popover({
     <span className={container}>
       <span
         ref={triggerRef}
+        // Plain className (not x-class): the trigger has no base class, so
+        // an omitted slot must leave the attribute absent — undefined does
+        // exactly that, while x-class would compile to class="".
+        className={classNames?.trigger}
         style={floating.triggerStyle}
         // aria-expanded requires an interactive role; a bare span resolves
         // to role=generic, which ARIA 1.2 does not allow it on (axe
@@ -138,7 +169,7 @@ export default function Popover({
         placement="bottom-span"
         id={id}
         visualClass={panelVisuals}
-        className={className}
+        className={classnames(className, classNames?.content)}
       >
         {content}
       </FloatingPanel>
@@ -146,4 +177,4 @@ export default function Popover({
   );
 }
 
-export type { PopoverProps, PopoverHandle };
+export type { PopoverProps, PopoverHandle, PopoverClassNames };

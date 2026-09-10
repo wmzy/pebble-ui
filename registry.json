@@ -237,10 +237,10 @@
     {
       "name": "badge",
       "type": "registry:ui",
-      "title": "Badge",
+      "title": "Badge / badgeVariants / badgeSizes",
       "description": "Small inline status label with variant and color options.",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "Small inline status label with variant and color options.\n\nExports: `Badge`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/badge\n```\n\nThe wrapper lands at `components/ui/haze/badge.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/badge.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "Small inline status label with variant and color options.\n\nExports: `Badge`, `badgeVariants`, `badgeSizes`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/badge\n```\n\nThe wrapper lands at `components/ui/haze/badge.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/badge.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "general"
       ],
@@ -453,10 +453,10 @@
     {
       "name": "button",
       "type": "registry:ui",
-      "title": "Button / ButtonLink",
+      "title": "Button / ButtonLink / buttonVariants / buttonSizes",
       "description": "Action button with `variant`/`size`/`square` options over a native `<button>`; `ButtonLink` renders the same styles as an anchor.",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "Action button with `variant`/`size`/`square` options over a native `<button>`; `ButtonLink` renders the same styles as an anchor.\n\nExports: `Button`, `ButtonLink`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/button\n```\n\nThe wrapper lands at `components/ui/haze/button.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/button.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "Action button with `variant`/`size`/`square` options over a native `<button>`; `ButtonLink` renders the same styles as an anchor.\n\nExports: `Button`, `ButtonLink`, `buttonVariants`, `buttonSizes`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/button\n```\n\nThe wrapper lands at `components/ui/haze/button.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/button.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "general"
       ],
@@ -748,10 +748,10 @@
     {
       "name": "combobox",
       "type": "registry:ui",
-      "title": "Combobox",
+      "title": "Combobox / ComboboxOption / ComboboxGroup",
       "description": "Autocomplete text input with filterable option list.",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "Autocomplete text input with filterable option list.\n\nExports: `Combobox`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/combobox\n```\n\nThe wrapper lands at `components/ui/haze/combobox.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/combobox.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "Autocomplete text input with filterable option list.\n\nExports: `Combobox`, `ComboboxOption`, `ComboboxGroup`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/combobox\n```\n\nThe wrapper lands at `components/ui/haze/combobox.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/combobox.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "form"
       ],
@@ -769,10 +769,10 @@
     {
       "name": "command",
       "type": "registry:ui",
-      "title": "Command / CommandInput / CommandList / CommandItem",
+      "title": "Command / CommandInput / CommandList / CommandItem / CommandGroup / CommandDialog",
       "description": "Command palette surface: `CommandInput` plus filterable `CommandItem`s in a `CommandList`.",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "Command palette surface: `CommandInput` plus filterable `CommandItem`s in a `CommandList`.\n\nExports: `Command`, `CommandInput`, `CommandList`, `CommandItem`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/command\n```\n\nThe wrapper lands at `components/ui/haze/command.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/command.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "Command palette surface: `CommandInput` plus filterable `CommandItem`s in a `CommandList`.\n\nExports: `Command`, `CommandInput`, `CommandList`, `CommandItem`, `CommandGroup`, `CommandDialog`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/command\n```\n\nThe wrapper lands at `components/ui/haze/command.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/command.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "navigation"
       ],
@@ -874,10 +874,10 @@
     {
       "name": "data-table",
       "type": "registry:ui",
-      "title": "DataTable",
+      "title": "DataTable / dataTableSum / dataTableAvg / dataTableCount",
       "description": "Feature table on @tanstack/react-table with sorting, pagination and row selection.",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "Feature table on @tanstack/react-table with sorting, pagination and row selection.\n\nExports: `DataTable`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/data-table\n```\n\nThe wrapper lands at `components/ui/haze/data-table.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/data-table.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "Feature table on @tanstack/react-table with sorting, pagination and row selection.\n\nExports: `DataTable`, `dataTableSum`, `dataTableAvg`, `dataTableCount`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/data-table\n```\n\nThe wrapper lands at `components/ui/haze/data-table.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/data-table.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "data-display"
       ],
@@ -1127,16 +1127,15 @@
     {
       "name": "form",
       "type": "registry:ui",
-      "title": "FormItem",
+      "title": "FormItem / FormList / FormProvider / useFormContext / useFieldArray / useFieldArrayItem / useWatch / trigger / setFocus / setServerErrors / setValue / getValue / getValues / reset / hasStandardProps / standardSchemaFormValidator / standardSchemaResolver / zodResolver",
       "description": "react-f0rm field wrapper adding label, error and aria wiring to controlled cores.",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "react-f0rm field wrapper adding label, error and aria wiring to controlled cores.\n\nExports: `FormItem`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/form\n```\n\nThe wrapper lands at `components/ui/haze/form.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/form.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "react-f0rm field wrapper adding label, error and aria wiring to controlled cores.\n\nExports: `FormItem`, `FormList`, `FormProvider`, `useFormContext`, `useFieldArray`, `useFieldArrayItem`, `useWatch`, `trigger`, `setFocus`, `setServerErrors`, `setValue`, `getValue`, `getValues`, `reset`, `hasStandardProps`, `standardSchemaFormValidator`, `standardSchemaResolver`, `zodResolver`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/form\n```\n\nThe wrapper lands at `components/ui/haze/form.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/form.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "form"
       ],
       "dependencies": [
-        "haze-ui",
-        "react-f0rm"
+        "haze-ui"
       ],
       "files": [
         {
@@ -1716,10 +1715,10 @@
     {
       "name": "select",
       "type": "registry:ui",
-      "title": "Select / Option / SelectCore",
+      "title": "Select / Option / SelectCore / OptionGroup",
       "description": "Dropdown select over `SelectCore` with `<option>` children.",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "Dropdown select over `SelectCore` with `<option>` children.\n\nExports: `Select`, `Option`, `SelectCore`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/select\n```\n\nThe wrapper lands at `components/ui/haze/select.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/select.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "Dropdown select over `SelectCore` with `<option>` children.\n\nExports: `Select`, `Option`, `SelectCore`, `OptionGroup`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/select\n```\n\nThe wrapper lands at `components/ui/haze/select.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/select.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "form"
       ],

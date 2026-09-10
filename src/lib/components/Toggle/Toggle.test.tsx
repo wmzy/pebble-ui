@@ -1,5 +1,6 @@
 import { expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
@@ -122,5 +123,15 @@ describe('ToggleCore', () => {
       <ToggleCore pressed onPressedChange={onPressedChange} aria-label="core" />
     );
     expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('Toggle ref forwarding', () => {
+  it('forwards ref to the button element', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(<Toggle ref={ref} aria-label='Bold' />);
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

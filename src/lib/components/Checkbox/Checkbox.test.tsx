@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import Checkbox from './Checkbox';
@@ -87,5 +88,15 @@ describe('CheckboxCore', () => {
     expect(screen.getByRole('checkbox')).not.toBeChecked();
     rerender(<CheckboxCore checked onChange={onChange} aria-label="core" />);
     expect(screen.getByRole('checkbox')).toBeChecked();
+  });
+});
+
+describe('Checkbox ref forwarding', () => {
+  it('forwards ref to the checkbox input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Checkbox ref={ref} aria-label='Accept' />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

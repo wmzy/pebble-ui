@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import TagInput from './TagInput';
@@ -270,5 +271,15 @@ describe('TagInput sortable', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+describe('TagInput ref forwarding', () => {
+  it('forwards ref to the inner text input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<TagInput ref={ref} placeholder='Add tag' />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

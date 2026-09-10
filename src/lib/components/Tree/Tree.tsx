@@ -1,12 +1,27 @@
-import type { TreeNodeData, TreeProps } from './types';
+import type {
+  FocusEvent as ReactFocusEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
+import type { VirtualListHandle } from '../VirtualList';
+
+import type { TreeNodeData, TreeProps, TreeVirtualizedConfig } from './types';
+import type { VisibleTreeRow } from './utils';
 
 import { useControl } from 'react-use-control';
 
 import { css } from '@linaria/core';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { getDirection } from '../../utils/direction';
+import { VirtualList } from '../VirtualList';
 
 import TreeItem from './TreeItem';
-import { findNodeByKey, getChildKeys, getParentKey } from './utils';
+import {
+  findNodeByKey,
+  flattenVisibleTree,
+  getChildKeys,
+  getParentKey,
+} from './utils';
 
 const base = css`
   font-family: var(--haze-font-sans);
@@ -14,6 +29,20 @@ const base = css`
   color: var(--haze-color-text);
   overflow: auto;
 `;
+
+/* Virtualized wrapper: the VirtualList scrollport owns scrolling — no
+   `overflow` here, avoiding a nested scroll container that could grow a
+   second scrollbar (the same trade-off as SelectFloating/Combobox). */
+const virtualTree = css`
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-text);
+`;
+
+/* Default virtualized scrollport height (px). */
+const VIRTUAL_TREE_HEIGHT = 320;
+/* Default virtualized row height: the treeitem min-height (2rem). */
+const VIRTUAL_TREE_ROW_HEIGHT = 32;
 
 const group = css`
   min-width: 0;
@@ -69,6 +98,7 @@ export default function Tree({
   loadingIcon,
   titleRender,
   iconRender,
+  virtualized,
   expandedKeys: expandedKeysControl,
   selectedKeys: selectedKeysControl,
   checkedKeys: checkedKeysControl,
@@ -98,6 +128,167 @@ export default function Tree({
   );
   const checkedKeys = derived.checked;
   const halfCheckedKeys = derived.halfChecked;
+
+  // `virtualized` resolution: object config enables and customizes,
+  // `true` enables with defaults, anything else keeps the plain DOM.
+  const virtual = virtualized !== undefined && virtualized !== false;
+  const virtualConfig: TreeVirtualizedConfig | undefined =
+    typeof virtualized === 'object' ? virtualized : undefined;
+
+  // Roving tabindex (WAI-ARIA tree pattern): the key of the row that
+  // owns the tree's single tab stop. Purely internal focus bookkeeping —
+  // never a prop — held in state only so the rendered `tabIndex`
+  // follows it; `null` before the first interaction parks the stop on
+  // the first focusable row.
+  const [focusedKey, setFocusedKey] = useState<string | null>(null);
+  // Row the next commit must focus. Keyboard focus moves resolve here so
+  // virtualized targets can mount first (the window shift and this flag
+  // land in the same commit).
+  const [pendingFocusKey, setPendingFocusKey] = useState<string | null>(null);
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<VirtualListHandle>(null);
+
+  // Visible rows in depth-first order — the keyboard model and the
+  // virtualized windowing share this one flattening.
+  const visibleRows = useMemo(
+    () => flattenVisibleTree(treeData, expandedKeys, disabled),
+    [treeData, expandedKeys, disabled]
+  );
+
+  // The tab stop: the focused row, falling back to the first focusable
+  // row (also when the focused row left the visible set — a collapsed
+  // controlled subtree — so the tree never loses its stop).
+  const stopKey = (() => {
+    const focused = visibleRows.find(
+      (row) => row.key === focusedKey && !row.disabled
+    );
+    if (focused) return focused.key;
+    return visibleRows.find((row) => !row.disabled)?.key ?? null;
+  })();
+
+  // Apply a keyboard focus move: scroll the target row into the
+  // (virtual) window, then let the effect below focus it after commit.
+  function focusRow(index: number) {
+    const row = visibleRows[index];
+    if (!row || row.disabled) return;
+    if (virtual) listRef.current?.scrollToIndex(index, 'auto');
+    setFocusedKey(row.key);
+    setPendingFocusKey(row.key);
+  }
+
+  /** Next focusable row from `from` stepping by `step`; `-1` when none —
+   *  APG tree arrows do not wrap, so focus stays put at the ends. */
+  function nextFocusableIndex(from: number, step: 1 | -1): number {
+    for (
+      let i = from + step;
+      i >= 0 && i < visibleRows.length;
+      i += step
+    ) {
+      const row = visibleRows[i];
+      if (row && !row.disabled) return i;
+    }
+    return -1;
+  }
+
+  function handleFocus(event: ReactFocusEvent<HTMLDivElement>) {
+    // Focus landing on a treeitem (mouse click or Tab) moves the roving
+    // stop with it.
+    const target = event.target as HTMLElement;
+    if (target.getAttribute('role') !== 'treeitem') return;
+    const key = target.dataset.treeKey;
+    if (key) setFocusedKey(key);
+  }
+
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const rows = visibleRows;
+    if (rows.length === 0) return;
+    const target = event.target as HTMLElement;
+    if (target.getAttribute('role') !== 'treeitem') return;
+    const currentKey = target.dataset.treeKey;
+    const currentIndex = currentKey
+      ? rows.findIndex((row) => row.key === currentKey)
+      : -1;
+    const current = currentIndex >= 0 ? rows[currentIndex] : undefined;
+    if (!current || current.disabled) return;
+
+    const isLeaf = current.node.isLeaf ?? !current.node.children?.length;
+    // Inward/outward arrows mirror under dir="rtl", read from the DOM at
+    // event time — the layout truth (Calendar's day-grid precedent).
+    const rtl = getDirection(event.currentTarget) === 'rtl';
+    const expandKey = rtl ? 'ArrowLeft' : 'ArrowRight';
+    const collapseKey = rtl ? 'ArrowRight' : 'ArrowLeft';
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        focusRow(nextFocusableIndex(currentIndex, 1));
+        return;
+      case 'ArrowUp':
+        event.preventDefault();
+        focusRow(nextFocusableIndex(currentIndex, -1));
+        return;
+      case expandKey: {
+        event.preventDefault();
+        if (isLeaf) return; // end node: nothing (APG)
+        if (expandedKeys.includes(current.key)) {
+          // Open: move to the first child — the next visible row.
+          focusRow(nextFocusableIndex(currentIndex, 1));
+        } else {
+          handleToggle(current.key); // closed: open, focus stays
+        }
+        return;
+      }
+      case collapseKey: {
+        event.preventDefault();
+        if (!isLeaf && expandedKeys.includes(current.key)) {
+          handleToggle(current.key); // open: close, focus stays
+          return;
+        }
+        // Closed or end node: move to the parent (root: no-op, APG).
+        const parentIndex =
+          current.parentKey === null
+            ? -1
+            : rows.findIndex((row) => row.key === current.parentKey);
+        if (parentIndex >= 0) focusRow(parentIndex);
+        return;
+      }
+      case 'Home':
+        event.preventDefault();
+        focusRow(nextFocusableIndex(-1, 1));
+        return;
+      case 'End':
+        event.preventDefault();
+        focusRow(nextFocusableIndex(rows.length, -1));
+        return;
+      case 'Enter':
+        event.preventDefault();
+        handleSelect(current.key);
+        return;
+      case ' ':
+      case 'Space': {
+        // user-event's {Space} reports the legacy key name — accept both.
+        if (!checkable) return; // page keeps native Space scroll
+        event.preventDefault();
+        handleCheck(current.key);
+        return;
+      }
+    }
+  }
+
+  // Keyboard focus moves land here, after the commit that (in virtual
+  // mode) shifted the window onto the target row.
+  useEffect(() => {
+    if (pendingFocusKey === null) return;
+    const root = rootRef.current;
+    if (!root) return;
+    const el = Array.from(
+      root.querySelectorAll<HTMLElement>('[role="treeitem"]')
+    ).find((item) => item.dataset.treeKey === pendingFocusKey);
+    if (!el) return; // not mounted — retried when the rows change
+    el.focus();
+    setPendingFocusKey(null);
+  }, [pendingFocusKey, visibleRows]);
 
   function handleToggle(key: string) {
     const isExpanded = expandedKeys.includes(key);
@@ -233,6 +424,7 @@ export default function Tree({
             titleRender={titleRender}
             iconRender={iconRender}
             isLast={currentIsLast}
+            tabIndex={node.key === stopKey ? 0 : -1}
             onToggle={() => handleToggle(node.key)}
             onSelect={() => handleSelect(node.key)}
             onCheck={() => handleCheck(node.key)}
@@ -245,11 +437,78 @@ export default function Tree({
     });
   }
 
+  /** One flattened row for the virtualized window (same TreeItem props
+   *  as the recursive path; the group nesting becomes aria-level on the
+   *  flat rows). */
+  function renderRow(row: VisibleTreeRow) {
+    const isChecked = checkedKeys.includes(row.key);
+    const isHalfChecked = halfCheckedKeys.includes(row.key);
+    const checkedState: 'checked' | 'halfChecked' | 'unchecked' = isChecked
+      ? 'checked'
+      : isHalfChecked
+        ? 'halfChecked'
+        : 'unchecked';
+
+    return (
+      <TreeItem
+        node={row.node}
+        level={row.level}
+        expanded={expandedKeys.includes(row.key)}
+        selected={selectedKeys.includes(row.key)}
+        checked={checkedState}
+        disabled={disabled}
+        checkable={checkable}
+        selectable={selectable}
+        blockNode={blockNode}
+        showLine={showLine}
+        showIcon={showIcon}
+        switcherIcon={switcherIcon}
+        loadingIcon={loadingIcon}
+        loading={false}
+        titleRender={titleRender}
+        iconRender={iconRender}
+        isLast={row.isLast}
+        tabIndex={row.key === stopKey ? 0 : -1}
+        onToggle={() => handleToggle(row.key)}
+        onSelect={() => handleSelect(row.key)}
+        onCheck={() => handleCheck(row.key)}
+      />
+    );
+  }
+
+  if (virtual) {
+    return (
+      <div
+        role='tree'
+        ref={rootRef}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        x-class={[virtualTree, className]}
+      >
+        <VirtualList
+          ref={listRef}
+          data-virtualized
+          items={visibleRows}
+          height={virtualConfig?.height ?? VIRTUAL_TREE_HEIGHT}
+          itemHeight={virtualConfig?.itemHeight ?? VIRTUAL_TREE_ROW_HEIGHT}
+          overscan={virtualConfig?.overscan}
+          renderItem={renderRow}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div role='tree' x-class={[base, className]}>
+    <div
+      role='tree'
+      ref={rootRef}
+      onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
+      x-class={[base, className]}
+    >
       {renderNodes(treeData, 0, [])}
     </div>
   );
 }
 
-export type { TreeProps };
+export type { TreeProps, TreeVirtualizedConfig };

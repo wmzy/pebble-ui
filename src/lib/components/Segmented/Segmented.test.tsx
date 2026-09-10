@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import Segmented from './Segmented';
@@ -67,5 +68,16 @@ describe('SegmentedCore', () => {
     render(<SegmentedCore options={['A', 'B']} value="A" onChange={onChange} />);
     await user.click(screen.getByRole('button', {name: 'B'}));
     expect(onChange).toHaveBeenCalledWith('B');
+  });
+});
+
+describe('Segmented ref forwarding', () => {
+  it('forwards ref to the selected option button', () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(<Segmented ref={ref} options={['day', 'week']} />);
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
+    expect(ref.current).toHaveTextContent('day');
   });
 });

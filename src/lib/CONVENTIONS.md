@@ -119,9 +119,22 @@ Rules:
 - The third return value (`valueCtrl`) can be passed to sub-components for state sharing
 - Use `controlEqual` with `memo` when the component is expensive to render
 
-### No `ref` forwarding by default
+### `ref` forwarding to the focusable element
 
-Only add `forwardRef` (or the ref prop pattern in React 19) when there is a concrete use case. Don't add it preemptively.
+Field controls MUST forward their `ref` prop (React 19 ref-as-prop — no
+`forwardRef` wrapper) to the actual focusable element: the input the user
+types into, the trigger button, or the current tab-stop item in a roving
+group (Rating's selected star, Segmented's selected button, RadioGroup's
+checked radio). This is the channel form integration (react-f0rm's
+`focusRef` via FormItem), tests and assistive tooling grab onto — a ref
+aimed at a wrapper `<div>` is a dead channel. When the component keeps
+its own element handle on the same node (floating triggers, inner
+inputs), merge both refs (`mergeRefs` from `src/lib/utils/refs.ts`).
+
+Components exposing a richer imperative surface than focus (open/close,
+scroll-to-index, …) expose an `XxxHandle` ref instead:
+`ref?: Ref<XxxHandle>`. Don't add one preemptively — the plain element
+ref covers the field-control contract.
 
 ## Styling
 

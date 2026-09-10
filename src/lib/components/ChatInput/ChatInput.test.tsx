@@ -59,9 +59,61 @@ describe('ChatInput', () => {
     expect(screen.getByPlaceholderText('Type a message...')).toBeDisabled();
   });
 
+  describe('stop generation', () => {
+    it('swaps the send button for an enabled stop control', () => {
+      render(<ChatInput generating onSend={vi.fn()} onStop={vi.fn()} />);
+      const stopBtn = screen.getByRole('button', { name: 'Stop generating' });
+      expect(stopBtn).toBeEnabled();
+      expect(screen.queryByRole('button', { name: 'Send' })).not.toBeInTheDocument();
+    });
+
+    it('calls onStop instead of onSend when the stop control is clicked', async () => {
+      const user = userEvent.setup();
+      const onSend = vi.fn();
+      const onStop = vi.fn();
+      render(<ChatInput generating onSend={onSend} onStop={onStop} />);
+      await user.click(screen.getByRole('button', { name: 'Stop generating' }));
+      expect(onStop).toHaveBeenCalledTimes(1);
+      expect(onSend).not.toHaveBeenCalled();
+    });
+
+    it('Enter stops generation instead of sending and keeps the draft', async () => {
+      const user = userEvent.setup();
+      const onSend = vi.fn();
+      const onStop = vi.fn();
+      render(<ChatInput generating value="draft" onSend={onSend} onStop={onStop} />);
+      await user.type(screen.getByPlaceholderText('Type a message...'), '{Enter}');
+      expect(onStop).toHaveBeenCalledTimes(1);
+      expect(onSend).not.toHaveBeenCalled();
+      const textarea = screen.getByPlaceholderText(
+        'Type a message...',
+      );
+      expect(textarea).toHaveValue('draft');
+    });
+
+    it('returns to the send control once generation ends', () => {
+      const { rerender } = render(
+        <ChatInput generating onSend={vi.fn()} onStop={vi.fn()} />,
+      );
+      rerender(<ChatInput generating={false} onSend={vi.fn()} onStop={vi.fn()} />);
+      // Empty draft: the send button is back and disabled again.
+      expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
+    });
+
+    it('keeps the stop control disabled when the input itself is disabled', () => {
+      render(<ChatInput generating disabled onStop={vi.fn()} />);
+      expect(screen.getByRole('button', { name: 'Stop generating' })).toBeDisabled();
+    });
+  });
+
   it('has no axe violations', async () => {
     const { axe } = await import('jest-axe');
-    render(<ChatInput placeholder="Type a message..." onSend={() => undefined} />);
+    render(
+      <>
+        <ChatInput placeholder="Type a message..." onSend={() => undefined} />
+        <ChatInput generating onSend={() => undefined} onStop={() => undefined} />
+      </>
+    );
     const results = await axe(document.body, {
       rules: { region: { enabled: false } },
     });

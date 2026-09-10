@@ -19,7 +19,7 @@ import {
   Segmented,
   TagInput,
   localeDirection,
-  useDirection,
+  useDirection,zodResolver
 } from '@/lib';
 import {
   fieldRow,
@@ -31,20 +31,18 @@ import {
 
 import { useHazeChat } from './ai-chat-adapter';
 import { useMockChat } from './mock-use-chat';
-import { zodValidator } from './zod-validator';
 import { arPack, frPack } from './locale-packs';
 
 // 展示的是真实适配器源码（?raw 导入），文档与实现永不漂移——同
 // ComponentDetail/DemoSource 的源码映射机制。
 const rawSources = import.meta.glob<string>(
-  './{zod-validator,locale-packs,ai-chat-adapter,mock-use-chat}.{ts,tsx}',
+  './{locale-packs,ai-chat-adapter,mock-use-chat}.{ts,tsx}',
   {
     query: '?raw',
     import: 'default',
     eager: true,
   }
 );
-const adapterSource = rawSources['./zod-validator.ts'] ?? '';
 const packsSource = rawSources['./locale-packs.ts'] ?? '';
 const aiAdapterSource = rawSources['./ai-chat-adapter.tsx'] ?? '';
 const aiMockSource = rawSources['./mock-use-chat.ts'] ?? '';
@@ -152,12 +150,12 @@ const passwordSchema = z.string().min(8, 'Password must be at least 8 characters
 const emailSchema = z.email('Enter a valid email address');
 
 // Schemas are stateless values — one adapter instance can back any number
-// of fields and calls.
-const validateUsernameShape = zodValidator(usernameSchema);
+// of fields and calls. `zodResolver` ships with haze-ui itself.
+const validateUsernameShape = zodResolver(usernameSchema);
 const validatePassword: FieldValidator<SignupValues, 'password'> =
-  zodValidator(passwordSchema);
+  zodResolver(passwordSchema);
 const validateEmail: FieldValidator<SignupValues, 'email'> =
-  zodValidator(emailSchema);
+  zodResolver(emailSchema);
 
 /**
  * Simulated availability round-trip: resolves an error message when the
@@ -359,12 +357,10 @@ function AIRuntimeDemo() {
         <ChatInput
           className={aiChatInput}
           placeholder='Ask about haze-ui — try “css”, or “error” to fail'
-          disabled={busy}
+          generating={busy}
           onSend={send}
+          onStop={stop}
         />
-        <Button variant='outline' disabled={!busy} onClick={stop}>
-          Stop
-        </Button>
       </div>
       {error ? (
         <p className={aiChatHint}>status: error — send another message to retry</p>
@@ -405,13 +401,21 @@ export default function Recipes() {
           <ZodSignupDemo />
         </div>
 
-        <h3>The adapter</h3>
+        <h3>The adapter ships with haze-ui</h3>
         <p className={paragraph}>
-          The whole integration is one function — shown here as the real
-          source that powers the demo above:
+          This used to be a hand-written bridge; the resolver now lives in
+          the library itself — import it from{' '}
+          <code className={inlineCode}>haze-ui</code> and every schema you
+          already have becomes form validation:
         </p>
         <CodeBlock language='ts' className={codeMargin}>
-          {adapterSource}
+          {`import { zodResolver } from 'haze-ui';
+
+const usernameSchema = z.string()
+  .min(1, 'Username is required')
+  .min(3, 'Username must be at least 3 characters');
+
+const validateUsername = zodResolver(usernameSchema);`}
         </CodeBlock>
         <p className={paragraph}>
           Three details carry the contract:
@@ -429,14 +433,11 @@ export default function Recipes() {
             built-ins). FormItem displays the first error of the field.
           </li>
           <li>
-            zod v4&apos;s parse params (
-            <code className={inlineCode}>ParseContext</code>) have no{' '}
-            <code className={inlineCode}>AbortSignal</code> slot, so
-            cancellation races the parse: on abort the validator resolves{' '}
-            <code className={inlineCode}>undefined</code> — the safe
-            non-answer, because react-f0rm discards superseded rounds on its
-            own side too. A cancelled parse that later fails is still handled
-            and never surfaces as an unhandled rejection.
+            When a validation round is superseded,{' '}
+            <code className={inlineCode}>meta.signal</code> aborts and the
+            resolver resolves <code className={inlineCode}>undefined</code> —
+            the safe non-answer, because react-f0rm discards superseded
+            rounds on its own side too.
           </li>
           <li>
             A passing parse resolves <code className={inlineCode}>undefined</code>{' '}
@@ -462,7 +463,7 @@ const passwordSchema = z.string().min(8, 'Password must be at least 8 characters
 const emailSchema = z.email('Enter a valid email address');
 
 // one adapter per schema, reused by any number of fields
-const validatePassword = zodValidator(passwordSchema);
+const validatePassword = zodResolver(passwordSchema);
 
 <FormItem
   form={form}
@@ -749,7 +750,7 @@ localeDirection('fr-FR'); // 'ltr'
         <CodeBlock language='tsx' className={codeMargin}>
           {`import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { ChatContainer, ChatInput, Button } from 'haze-ui';
+import { ChatContainer, ChatInput } from 'haze-ui';
 
 import { useHazeChat } from './ai-chat-adapter';
 
@@ -762,8 +763,7 @@ function SupportChat() {
   return (
     <div>
       <ChatContainer>{messages}</ChatContainer>
-      <ChatInput disabled={busy} onSend={send} />
-      {busy && <Button variant='outline' onClick={stop}>Stop</Button>}
+      <ChatInput generating={busy} onSend={send} onStop={stop} />
     </div>
   );
 }`}

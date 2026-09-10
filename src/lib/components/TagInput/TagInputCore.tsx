@@ -1,3 +1,5 @@
+import type { Ref } from 'react';
+
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { css } from '@linaria/core';
 
@@ -7,6 +9,7 @@ import { useStrings } from '../LocaleProvider';
 import { formatString } from '../LocaleProvider/locale';
 import { SortableRegion } from '../../utils/sortable';
 import { sortableItemStyle } from '../../utils/sortable-shared';
+import { mergeRefs } from '../../utils/refs';
 
 type TagInputCoreProps = {
   value: string[];
@@ -32,6 +35,8 @@ type TagInputCoreProps = {
   'aria-invalid'?: boolean;
   /** 指向 FormItem 渲染的错误 span（id={errorId}），透传给内部 input。 */
   'aria-describedby'?: string;
+  /** Forwarded to the inner text `<input>` (not the root div). */
+  ref?: Ref<HTMLInputElement>;
 };
 
 const container = css`
@@ -172,10 +177,17 @@ export default function TagInputCore({
   id,
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedby,
+  ref,
 }: TagInputCoreProps) {
   const [inputValue, setInputValue] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // The consumer's ref rides the same inner input (id/aria land there
+  // for the same reason — the root div is not the focusable field).
+  const setInputRef = useCallback(
+    (node: HTMLInputElement | null) => mergeRefs(inputRef, ref)(node),
+    [inputRef, ref]
+  );
   // After a removal re-render, focus the remove button at this index (or
   // the input when no tags remain) so keyboard focus never drops.
   const pendingFocusRef = useRef<number | null>(null);
@@ -294,7 +306,7 @@ export default function TagInputCore({
         tagList
       )}
       <input
-        ref={inputRef}
+        ref={setInputRef}
         x-class={[inputEl]}
         id={id}
         aria-invalid={ariaInvalid}

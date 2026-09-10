@@ -1,5 +1,6 @@
 import {
   flattenTreeData,
+  flattenVisibleTree,
   findNodeByKey,
   getChildKeys,
   getParentKey,
@@ -84,5 +85,68 @@ describe('Tree utils', () => {
         },
       ])
     ).toEqual(['x']);
+  });
+});
+
+describe('flattenVisibleTree', () => {
+  it('lists expanded-visible rows depth-first with levels and parents', () => {
+    const rows = flattenVisibleTree(tree, ['a', 'a-1'], false);
+    expect(rows.map((r) => r.key)).toEqual(['a', 'a-1', 'a-1-x', 'a-2', 'b']);
+    expect(rows.map((r) => r.level)).toEqual([0, 1, 2, 1, 0]);
+    expect(rows.map((r) => r.parentKey)).toEqual([null, 'a', 'a-1', 'a', null]);
+  });
+
+  it('omits collapsed subtrees', () => {
+    expect(flattenVisibleTree(tree, [], false).map((r) => r.key)).toEqual([
+      'a',
+      'b',
+    ]);
+  });
+
+  it('builds the showLine is-last chain per level', () => {
+    const rows = flattenVisibleTree(tree, ['a'], false);
+    expect(rows.map((r) => r.key)).toEqual(['a', 'a-1', 'a-2', 'b']);
+    expect(rows.map((r) => r.isLast)).toEqual([
+      [false], // a — not the last root
+      [false, false], // a-1 — not the last child of a
+      [false, true], // a-2 — last child of a
+      [true], // b — last root
+    ]);
+  });
+
+  it('marks tree-level and node-level disabled rows', () => {
+    const data = [
+      { key: 'x', title: 'X', disabled: true },
+      { key: 'y', title: 'Y' },
+    ];
+    expect(flattenVisibleTree(data, [], false).map((r) => r.disabled)).toEqual([
+      true,
+      false,
+    ]);
+    expect(flattenVisibleTree(data, [], true).map((r) => r.disabled)).toEqual([
+      true,
+      true,
+    ]);
+  });
+
+  it('keeps disabled parents expandable — their children stay focusable rows', () => {
+    const rows = flattenVisibleTree(
+      [
+        {
+          key: 'd',
+          title: 'D',
+          disabled: true,
+          children: [{ key: 'd-1', title: 'D1' }],
+        },
+      ],
+      ['d'],
+      false
+    );
+    expect(rows.map((r) => r.key)).toEqual(['d', 'd-1']);
+    expect(rows.map((r) => r.disabled)).toEqual([true, false]);
+  });
+
+  it('handles empty input', () => {
+    expect(flattenVisibleTree([], [], false)).toEqual([]);
   });
 });

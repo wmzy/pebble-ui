@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/date-range-picker.css';
 
 export { DateRangePicker, DateRangePickerCore };
-export type { DateRangePickerProps, DateRangePickerCoreProps } from 'haze-ui';
+export type { DateRangePickerProps, DateRangePickerCoreProps, DateRangePickerPreset } from 'haze-ui';

@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -28,6 +29,9 @@ type TagInputProps = {
   'aria-invalid'?: boolean;
   /** 指向 FormItem 渲染的错误 span（id={errorId}），透传给内部 input。 */
   'aria-describedby'?: string;
+  /** Forwarded to the inner text `<input>` (not the root div) — the
+   * element form bridges and `ref.current.focus()` reach. */
+  ref?: Ref<HTMLInputElement>;
 };
 
 export default function TagInput({
@@ -41,11 +45,13 @@ export default function TagInput({
   id,
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedby,
+  ref,
 }: TagInputProps) {
   const [tags, setTags] = useControl(valueControl, []);
 
   return (
     <TagInputCore
+      ref={ref}
       value={tags}
       onChange={(next) => {
         setTags(next);

@@ -2,13 +2,15 @@ import type {
   ChangeEvent,
   ComponentPropsWithoutRef,
   KeyboardEvent,
+  Ref,
   SyntheticEvent,
 } from 'react';
 
 import { css } from '@linaria/core';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { FloatingPanel, useFloating } from '../../utils/floating';
+import { mergeRefs } from '../../utils/refs';
 import { useStrings } from '../LocaleProvider';
 
 export type MentionsOption = {
@@ -29,6 +31,8 @@ type MentionsCoreProps = {
   trigger?: string;
   placeholder?: string;
   className?: string;
+  /** Forwarded to the `<textarea>` element. */
+  ref?: Ref<HTMLTextAreaElement>;
 } & Omit<
   ComponentPropsWithoutRef<'textarea'>,
   'value' | 'onChange' | 'placeholder' | 'className' | 'style'
@@ -175,6 +179,7 @@ export default function MentionsCore({
   placeholder,
   className,
   'aria-label': ariaLabel,
+  ref,
   ...rest
 }: MentionsCoreProps) {
   const strings = useStrings('mentions');
@@ -183,6 +188,10 @@ export default function MentionsCore({
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const id = useId();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const setTextareaRef = useCallback(
+    (node: HTMLTextAreaElement | null) => mergeRefs(textareaRef, ref)(node),
+    [textareaRef, ref]
+  );
   const panelRef = useRef<HTMLDivElement>(null);
 
   const floating = useFloating({
@@ -314,7 +323,7 @@ export default function MentionsCore({
       x-class={[wrapper, className]}
     >
       <textarea
-        ref={textareaRef}
+        ref={setTextareaRef}
         style={floating.triggerStyle}
         aria-label={ariaLabel ?? placeholder ?? strings.label}
         aria-autocomplete="list"

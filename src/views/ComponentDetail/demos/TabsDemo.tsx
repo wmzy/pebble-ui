@@ -1,3 +1,4 @@
+import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
 
 import { Tabs, TabList, Tab, TabPanel } from '@/lib';
@@ -9,6 +10,22 @@ import A11yNote from '../A11yNote';
 import { intro, section } from '../styles';
 
 import { CssVarsSection } from './shared';
+
+// classNames 槽位演示：一条记录从 <Tabs> 根分发到全部四个部位
+// （root/list/tab/panel，键名见 TabsClassNames）。
+const themedRoot = css`
+  gap: var(--haze-space-2);
+`;
+
+const themedTab = css`
+  font-weight: var(--haze-weight-bold);
+`;
+
+const themedPanel = css`
+  background: var(--haze-color-primary-subtle);
+  border-radius: var(--haze-radius-md);
+  padding: var(--haze-space-4);
+`;
 
 // ─── Tabs ──────────────────────────────────────────────────────
 export default function TabsDemo() {
@@ -32,6 +49,33 @@ export default function TabsDemo() {
           <TabPanel value='tab1'>Content for Tab One.</TabPanel>
           <TabPanel value='tab2'>Content for Tab Two.</TabPanel>
           <TabPanel value='tab3'>Content for Tab Three.</TabPanel>
+        </Tabs>
+      </div>
+
+      <div className={section}>
+        <h2>classNames slots</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          One <code>classNames</code> record on the{' '}
+          <code>&lt;Tabs&gt;</code> root reaches every part through
+          context (AntD v6 shape): <code>root</code>, <code>list</code>,{' '}
+          <code>tab</code> (every tab, not just the active one) and{' '}
+          <code>panel</code> (every panel). Slot classes arrive after the
+          component defaults — here the panels get a primary-tinted
+          surface and the tabs bold labels.
+        </p>
+        <Tabs value='tab1' classNames={{ root: themedRoot, tab: themedTab, panel: themedPanel }}>
+          <TabList>
+            <Tab value='tab1'>Tab One</Tab>
+            <Tab value='tab2'>Tab Two</Tab>
+          </TabList>
+          <TabPanel value='tab1'>Content for Tab One.</TabPanel>
+          <TabPanel value='tab2'>Content for Tab Two.</TabPanel>
         </Tabs>
       </div>
 

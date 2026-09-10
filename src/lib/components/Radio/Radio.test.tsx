@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import RadioGroup from './RadioGroup';
@@ -105,5 +106,29 @@ describe('RadioGroupCore', () => {
       </RadioGroupCore>
     );
     expect(screen.getByRole('radio', {name: 'Green'})).toBeChecked();
+  });
+});
+
+describe('Radio ref forwarding', () => {
+  it('forwards Radio ref to the radio input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Radio ref={ref} value='a'>Option A</Radio>);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
+  });
+
+  it('forwards RadioGroup ref to the checked-or-first radio input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(
+      <RadioGroup ref={ref}>
+        <Radio value='a'>A</Radio>
+        <Radio value='b'>B</Radio>
+      </RadioGroup>
+    );
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
+    expect(ref.current).toHaveAttribute('value', 'a');
   });
 });

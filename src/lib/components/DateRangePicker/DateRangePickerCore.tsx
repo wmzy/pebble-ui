@@ -6,6 +6,15 @@ import { useStrings } from '../LocaleProvider';
 
 import Calendar from '../Calendar/Calendar';
 
+/** One shortcut row at the top of the range panel: clicking applies
+ * `range` as the start/end pair. */
+type DateRangePickerPreset = {
+  /** Visible row copy. */
+  label: string;
+  /** Applied range as two "YYYY-MM-DD" strings. */
+  range: [string, string];
+};
+
 type DateRangePickerCoreProps = {
   startDate: string;
   endDate: string;
@@ -21,6 +30,13 @@ type DateRangePickerCoreProps = {
    * @default 1
    */
   months?: 1 | 2;
+  /** Disables individual dates on the panel's Calendar (see Calendar's
+   * `disabledDate`). */
+  disabledDate?: (date: Date) => boolean;
+  /** Shortcut rows at the top of the panel; clicking applies the
+   * preset's range to the start/end pair. Providing presets renders
+   * the inline panel even with the default `months={1}`. */
+  presets?: DateRangePickerPreset[];
   className?: string;
 };
 
@@ -82,6 +98,44 @@ const sep = css`
   font-size: var(--haze-text-sm);
 `;
 
+/* Shortcut rows heading the panel (SelectFloating's option-row style),
+   a hairline separating them from the calendars below. */
+const presetList = css`
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--haze-space-1) 0;
+  margin-block-end: var(--haze-space-2);
+  border-block-end: 1px solid var(--haze-color-border);
+`;
+
+const presetRow = css`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: var(--haze-space-1) var(--haze-space-3);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-text);
+  cursor: pointer;
+  text-align: start;
+
+  &:hover {
+    background: var(--haze-color-bg-subtle);
+  }
+
+  &:active {
+    background: var(--haze-color-bg-muted);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
+  }
+`;
+
 export default function DateRangePickerCore({
   startDate,
   endDate,
@@ -89,6 +143,8 @@ export default function DateRangePickerCore({
   onEndChange,
   separator = '–',
   months = 1,
+  disabledDate,
+  presets,
   className,
 }: DateRangePickerCoreProps) {
   const strings = useStrings('dateRangePicker');
@@ -106,6 +162,8 @@ export default function DateRangePickerCore({
       onEndChange(date);
     }
   };
+
+  const hasPresets = presets !== undefined && presets.length > 0;
 
   const inputs = (
     <>
@@ -127,7 +185,9 @@ export default function DateRangePickerCore({
     </>
   );
 
-  if (months !== 2) {
+  // The inline panel exists for the dual-month calendar and on its own
+  // for presets (shortcut rows above nothing still set both inputs).
+  if (months !== 2 && !hasPresets) {
     return (
       <div x-class={[container, className]}>
         {inputs}
@@ -139,15 +199,35 @@ export default function DateRangePickerCore({
     <div x-class={[container, stackedContainer, className]}>
       <div x-class={[inputsRow]}>{inputs}</div>
       <div x-class={[panel]}>
-        <Calendar
-          months={2}
-          rangeStart={startDate}
-          rangeEnd={endDate}
-          onSelect={handleCalendarSelect}
-        />
+        {hasPresets && (
+          <div x-class={[presetList]}>
+            {presets.map((preset) => (
+              <button
+                key={`${preset.label}:${preset.range.join('~')}`}
+                type='button'
+                x-class={[presetRow]}
+                onClick={() => {
+                  onStartChange(preset.range[0]);
+                  onEndChange(preset.range[1]);
+                }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {months === 2 && (
+          <Calendar
+            months={2}
+            rangeStart={startDate}
+            rangeEnd={endDate}
+            disabledDate={disabledDate}
+            onSelect={handleCalendarSelect}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-export type { DateRangePickerCoreProps };
+export type { DateRangePickerCoreProps, DateRangePickerPreset };

@@ -165,20 +165,26 @@ const msgActions = css`
   flex-shrink: 0;
   padding-top: var(--haze-space-6);
   opacity: 0;
-  transition: opacity var(--haze-duration-fast) var(--haze-ease);
+  visibility: hidden;
+  transition: opacity var(--haze-duration-fast) var(--haze-ease),
+    visibility var(--haze-duration-fast) var(--haze-ease);
+
+  /* Reveal on hover AND focus-within — Tab reaches the transparent
+     buttons, and the row lights up around whichever one is focused.
+     Host attribute selector per the library's reveal pattern (Select's
+     clear button): cross-class selector interpolation does not survive
+     the css pipeline. */
+  [data-workflow-actions]:hover &,
+  [data-workflow-actions]:focus-within & {
+    opacity: 1;
+    visibility: visible;
+  }
 `;
 
 const msgRow = css`
   display: flex;
   align-items: flex-start;
   gap: var(--haze-space-2);
-
-  /* Reveal on hover AND focus-within — Tab reaches the transparent
-     buttons, and the row lights up around whichever one is focused. */
-  &:hover ${msgActions},
-  &:focus-within ${msgActions} {
-    opacity: 1;
-  }
 `;
 
 const msgRowUser = css`
@@ -395,7 +401,11 @@ function ChatMessageWorkflowDemo() {
             reflow !== null && index >= reflow.from && index > reflow.done;
           const editing = editingId === m.id;
           return (
-            <div key={m.id} x-class={[msgRow, m.role === 'user' && msgRowUser]}>
+            <div
+              key={m.id}
+              x-class={[msgRow, m.role === 'user' && msgRowUser]}
+              data-workflow-actions
+            >
               <ChatMessage
                 role={m.role}
                 name={m.name}
@@ -520,6 +530,48 @@ export default function ChatMessageDemo() {
       </div>
 
       <div className={section}>
+        <h2>Copy &amp; Actions</h2>
+        <ChatMessage
+          role='assistant'
+          name='Assistant'
+          copyable
+          actions={
+            <>
+              <Button
+                size='sm'
+                variant='ghost'
+                aria-label='Regenerate this reply'
+              >
+                ↻
+              </Button>
+              <Button size='sm' variant='ghost' aria-label='Pin this message'>
+                ☆
+              </Button>
+            </>
+          }
+        >
+          Hover this message (or Tab into it): the copy button copies the
+          rendered text and flips to a check for 1.5s, while the actions slot
+          carries whatever else your product needs — regenerate and pin here.
+        </ChatMessage>
+        <ChatMessage role='user' name='You' copyable>
+          User messages get the same bar — the reveal is hover and
+          focus-within, so keyboard users reach it by Tab.
+        </ChatMessage>
+        <p className={dataTableNote}>
+          <code>copyable</code> opts a message into the built-in copy action;
+          <code>actions</code> is a free <code>ReactNode</code> slot rendered
+          beside it (either prop alone reveals the bar). The reveal animates{' '}
+          <code>opacity</code> and <code>visibility</code> together, so the
+          transparent buttons are not focusable or clickable while hidden —
+          and because the bar reserves its space, nothing shifts on hover.
+          Copy reads the bubble&apos;s rendered <code>textContent</code>, so
+          markdown or nested elements copy as their visible text; the button
+          label comes from the <code>chat.copy</code> string.
+        </p>
+      </div>
+
+      <div className={section}>
         <h2>Edit / Resend / Branch (recipe)</h2>
         <ChatMessageWorkflowDemo />
         <p className={dataTableNote}>
@@ -555,6 +607,14 @@ export default function ChatMessageDemo() {
             </li>
             <li>System messages are centered with muted styling</li>
             <li>Status text provides visual feedback for message delivery</li>
+            <li>
+              The copy/actions bar reveals on{' '}
+              <strong>:focus-within</strong> as well as hover, so Tab reaches
+              the built-in copy button (labeled by the{' '}
+              <strong>chat.copy</strong> string) and every slotted action;
+              <code>visibility</code> transitions with <code>opacity</code>,
+              keeping hidden buttons out of the tab order
+            </li>
             <li>
               Recipe rows reveal their action bar on{' '}
               <strong>:focus-within</strong>, so Tab reaches every action

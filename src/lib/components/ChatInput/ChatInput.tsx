@@ -9,6 +9,16 @@ import { useStrings } from '../LocaleProvider';
 type ChatInputProps = {
   value?: ControlOrValue<string>;
   onSend?: (message: string) => void;
+  /**
+   * While `true` the send button becomes a stop control: it shows the
+   * stop glyph with the `chat.stopGeneration` label, stays enabled
+   * regardless of the draft, and activating it — by click or by Enter —
+   * calls `onStop` instead of `onSend` (Enter never sends mid-generation;
+   * Shift+Enter still inserts a newline).
+   */
+  generating?: boolean;
+  /** Called when the user requests the running generation to stop. */
+  onStop?: () => void;
   placeholder?: string;
   disabled?: boolean;
   maxLength?: number;
@@ -72,9 +82,26 @@ const sendBtn = css`
   }
 `;
 
+/** Explicit width/height: a viewBox-only inline svg contributes zero
+ * content size in flex containers and collapses to 0×0. */
+const StopGlyph = () => (
+  <svg
+    width='12'
+    height='12'
+    viewBox='0 0 12 12'
+    fill='currentColor'
+    aria-hidden='true'
+    focusable='false'
+  >
+    <rect x='2' y='2' width='8' height='8' rx='1.5' />
+  </svg>
+);
+
 export default function ChatInput({
   value: valueControl,
   onSend,
+  generating = false,
+  onStop,
   placeholder,
   disabled,
   maxLength,
@@ -83,9 +110,14 @@ export default function ChatInput({
   const [value, setValue] = useControl(valueControl, '');
   const ref = useRef<HTMLTextAreaElement>(null);
   const strings = useStrings('chatInput');
+  const chatStrings = useStrings('chat');
   const placeholderLabel = placeholder ?? strings.placeholder;
 
   const handleSend = useCallback(() => {
+    if (generating) {
+      onStop?.();
+      return;
+    }
     const trimmed = value.trim();
     if (!trimmed || disabled) return;
     onSend?.(trimmed);
@@ -93,7 +125,7 @@ export default function ChatInput({
     if (ref.current) {
       ref.current.style.height = 'auto';
     }
-  }, [value, disabled, onSend, setValue]);
+  }, [generating, onStop, value, disabled, onSend, setValue]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -127,10 +159,10 @@ export default function ChatInput({
         x-class={[sendBtn]}
         type="button"
         onClick={handleSend}
-        disabled={disabled || !value.trim()}
-        aria-label={strings.send}
+        disabled={disabled || (!generating && !value.trim())}
+        aria-label={generating ? chatStrings.stopGeneration : strings.send}
       >
-        &uarr;
+        {generating ? <StopGlyph /> : <>&uarr;</>}
       </button>
     </div>
   );

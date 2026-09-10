@@ -1,6 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-import { css } from '@linaria/core';
+// sibling module (not `styles.ts`) — Linaria derives dev class names from
+// the file basename, and a shared `styles` basename collides with
+// Button/styles.ts (identical `haze-styles__*` selectors cross-wire the
+// two components' rules in dev AND collide in dist css)
+import { base, sizes, variants } from './badge-styles';
 
 type BadgeProps = {
   variant?: 'default' | 'success' | 'warning' | 'danger' | 'info';
@@ -9,50 +13,6 @@ type BadgeProps = {
   style?: CSSProperties;
   children: ReactNode;
 };
-
-const base = css`
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--haze-radius-full);
-  font-family: var(--haze-font-sans);
-  font-weight: var(--haze-weight-medium);
-  line-height: var(--haze-leading-tight);
-  white-space: nowrap;
-`;
-
-const variants = {
-  default: css`
-    background: var(--haze-color-bg-muted);
-    color: var(--haze-color-text-secondary);
-  `,
-  success: css`
-    background: var(--haze-color-success-subtle);
-    color: var(--haze-color-success);
-  `,
-  warning: css`
-    background: var(--haze-color-warning-subtle);
-    color: var(--haze-color-warning);
-  `,
-  danger: css`
-    background: var(--haze-color-danger-subtle);
-    color: var(--haze-color-danger);
-  `,
-  info: css`
-    background: var(--haze-color-info-subtle);
-    color: var(--haze-color-info);
-  `,
-} as const;
-
-const sizes = {
-  sm: css`
-    padding: var(--haze-space-0) var(--haze-space-2);
-    font-size: var(--haze-text-xs);
-  `,
-  md: css`
-    padding: var(--haze-space-1) var(--haze-space-3);
-    font-size: var(--haze-text-sm);
-  `,
-} as const;
 
 export default function Badge({
   variant = 'default',

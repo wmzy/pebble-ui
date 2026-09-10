@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/datepicker.css';
 
 export { Datepicker, DatepickerCore };
-export type { DatepickerProps, DatepickerCoreProps } from 'haze-ui';
+export type { DatepickerProps, DatepickerCoreProps, DatepickerPreset } from 'haze-ui';

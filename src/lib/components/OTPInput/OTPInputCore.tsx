@@ -1,14 +1,19 @@
+import type { Ref } from 'react';
+
 import { useRef, useCallback } from 'react';
 import { css } from '@linaria/core';
 
 import { useStrings } from '../LocaleProvider';
 import { formatString } from '../LocaleProvider/locale';
+import { mergeRefs } from '../../utils/refs';
 
 type OTPInputCoreProps = {
   length?: number;
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  /** Forwarded to the first cell's `<input>`. */
+  ref?: Ref<HTMLInputElement>;
 };
 
 const container = css`
@@ -41,9 +46,16 @@ export default function OTPInputCore({
   value,
   onChange,
   className,
+  ref,
 }: OTPInputCoreProps) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const strings = useStrings('otpInput');
+  // The forwarded ref rides cell 0 — the first cell is the component's
+  // focus entry point.
+  const setFirstCellRef = useCallback(
+    (node: HTMLInputElement | null) => mergeRefs(ref)(node),
+    [ref]
+  );
 
   const handleChange = useCallback(
     (index: number, char: string) => {
@@ -84,7 +96,10 @@ export default function OTPInputCore({
       {Array.from({ length }, (_, i) => (
         <input
           key={i}
-          ref={(el) => { refs.current[i] = el; }}
+          ref={(el) => {
+            refs.current[i] = el;
+            if (i === 0) setFirstCellRef(el);
+          }}
           x-class={[cell]}
           type="text"
           inputMode="numeric"

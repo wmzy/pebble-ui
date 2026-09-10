@@ -4,4 +4,8 @@ export type {
   DataTableColumnDef,
   DataTableColumnMeta,
   DataTableVirtualized,
+  DataTableSummary,
+  DataTableSummaryCell,
+  DataTableCellEditorProps,
 } from './DataTable';
+export { dataTableSum, dataTableAvg, dataTableCount } from './summary';

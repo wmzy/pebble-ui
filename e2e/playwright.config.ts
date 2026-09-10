@@ -46,18 +46,23 @@ export default defineConfig({
       // across engines. Firefox resolves the anchored tier like chromium
       // (anchor positioning shipped in Firefox 141+), and falls to the
       // JS-positioned tier on older engines — the specs assert the same
-      // contracts either way. Everything else stays chromium-only,
+      // contracts either way. The rtl and keyboard-critical specs extend
+      // the engine matrix without pixel baselines: logical-property
+      // mirroring and keyboard interaction contracts (Tree roving,
+      // Combobox multi-select chips, Calendar picker-mode grids) must
+      // hold on every engine. Everything else stays chromium-only,
       // including the pixel baselines, which have no firefox snapshots.
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      testMatch: /(floating-collision|popover|dialog|dropdown-menu)\.spec\.ts$/,
+      testMatch: /(floating-collision|popover|dialog|dropdown-menu|rtl|keyboard-critical)\.spec\.ts$/,
     },
     {
       // WebKit likewise (anchor positioning shipped in WebKit 2.46+);
-      // same engine-sensitive scope as firefox: collision + overlays.
+      // same engine-sensitive scope as firefox: collision + overlays +
+      // rtl + keyboard-critical.
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      testMatch: /(floating-collision|popover|dialog|dropdown-menu)\.spec\.ts$/,
+      testMatch: /(floating-collision|popover|dialog|dropdown-menu|rtl|keyboard-critical)\.spec\.ts$/,
     },
   ],
   webServer: {

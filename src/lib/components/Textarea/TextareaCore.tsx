@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, Ref } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -10,6 +10,8 @@ type TextareaCoreProps = {
   onNativeChange?: ComponentPropsWithoutRef<'textarea'>['onChange'];
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Forwarded to the `<textarea>` element. */
+  ref?: Ref<HTMLTextAreaElement>;
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'value' | 'onChange' | 'size'>;
 
 const base = css`
@@ -67,10 +69,12 @@ export default function TextareaCore({
   onNativeChange,
   size = 'md',
   className,
+  ref,
   ...rest
 }: TextareaCoreProps) {
   return (
     <textarea
+      ref={ref}
       x-class={[base, sizes[size], className]}
       value={value}
       onChange={(e) => {

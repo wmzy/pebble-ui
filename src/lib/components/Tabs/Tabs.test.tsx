@@ -132,3 +132,49 @@ describe('Tabs', () => {
     expect(results.violations).toEqual([]);
   });
 });
+
+describe('Tabs classNames slots', () => {
+  it('distributes root, list, tab and panel to every structural part', () => {
+    const { container } = render(
+      <Tabs
+        value="one"
+        classNames={{
+          root: 't-root',
+          list: 't-list',
+          tab: 't-tab',
+          panel: 't-panel',
+        }}
+      >
+        <TabList>
+          <Tab value="one">Tab 1</Tab>
+          <Tab value="two">Tab 2</Tab>
+        </TabList>
+        <TabPanel value="one">Panel 1</TabPanel>
+        <TabPanel value="two">Panel 2</TabPanel>
+      </Tabs>
+    );
+    expect(container.firstChild).toHaveClass('t-root');
+    expect(screen.getByRole('tablist')).toHaveClass('t-list');
+    // one record themes every tab / every panel, not just the active one
+    for (const tab of screen.getAllByRole('tab')) {
+      expect(tab).toHaveClass('t-tab');
+    }
+    for (const panel of screen.getAllByRole('tabpanel')) {
+      expect(panel).toHaveClass('t-panel');
+    }
+  });
+
+  it('keeps the class lists untouched when classNames is omitted', () => {
+    const { container } = render(<TabsFixture />);
+    const parts = [
+      container.firstChild as HTMLElement,
+      screen.getByRole('tablist'),
+      ...screen.getAllByRole('tab'),
+      ...screen.getAllByRole('tabpanel'),
+    ];
+    for (const el of parts) {
+      expect(el.className).toBe(el.className.trim());
+      expect(el.className).not.toContain('  ');
+    }
+  });
+});

@@ -1,4 +1,7 @@
-import { Combobox } from '@/lib';
+import { useState } from 'react';
+import { useControl } from 'react-use-control';
+
+import { Button, Combobox } from '@/lib';
 
 import PropsTable from '../PropsTable';
 
@@ -15,15 +18,31 @@ const MANY_OPTIONS = Array.from({ length: 1000 }, (_, i) => ({
   label: `Option ${i + 1}`,
 }));
 
+const FRUITS = [
+  { value: 'apple', label: 'Apple' },
+  { value: 'banana', label: 'Banana' },
+  { value: 'cherry', label: 'Cherry' },
+  { value: 'grape', label: 'Grape' },
+  { value: 'mango', label: 'Mango' },
+  { value: 'orange', label: 'Orange' },
+];
+
+const PRODUCE = [
+  { value: 'apple', label: 'Apple', group: 'Fruits' },
+  { value: 'banana', label: 'Banana', group: 'Fruits' },
+  { value: 'cherry', label: 'Cherry', group: 'Fruits' },
+  { value: 'carrot', label: 'Carrot', group: 'Vegetables' },
+  { value: 'daikon', label: 'Daikon', group: 'Vegetables' },
+  { value: 'endive', label: 'Endive', group: 'Vegetables' },
+];
+
 export default function ComboboxDemo() {
-  const fruits = [
-    { value: 'apple', label: 'Apple' },
-    { value: 'banana', label: 'Banana' },
-    { value: 'cherry', label: 'Cherry' },
-    { value: 'grape', label: 'Grape' },
-    { value: 'mango', label: 'Mango' },
-    { value: 'orange', label: 'Orange' },
-  ];
+  // ControlOrValue contract: drive the component through a control,
+  // never a bare value (a bare value is only the uncontrolled initial
+  // value — later prop changes are ignored).
+  const [, , tagsCtrl] = useControl<string[]>(undefined, []);
+  // Async-search stand-in for the loading example.
+  const [loading, setLoading] = useState(false);
 
   return (
     <>
@@ -35,7 +54,114 @@ export default function ComboboxDemo() {
       <div className={section}>
         <h2>Demo</h2>
         <div className={fieldRow}>
-          <Combobox options={fruits} placeholder="Search fruits..." />
+          <Combobox options={FRUITS} placeholder="Search fruits..." />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Multiple</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>multiple</code> turns the trigger into a chip box: selected
+          values render as chips, <strong>Enter</strong> toggles the
+          highlighted option without closing the panel, and{' '}
+          <strong>Backspace</strong> on an empty query drops the last chip.
+          The value is <code>string[]</code>; changes flow through{' '}
+          <code>onValuesChange</code>.
+        </p>
+        <div className={fieldRow}>
+          <Combobox
+            multiple
+            options={FRUITS}
+            value={tagsCtrl}
+            placeholder="Pick fruits..."
+          />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Groups</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          Options carrying a <code>group</code> label cluster into sticky{' '}
+          <code>role=&quot;group&quot;</code> sections (the{' '}
+          <code>ComboboxGroup</code> shape). Groups whose every option was
+          filtered out hide entirely, and keyboard navigation stays
+          continuous across sections. Works with virtualization too.
+        </p>
+        <div className={fieldRow}>
+          <Combobox options={PRODUCE} placeholder="Search produce..." />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Creatable</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          With <code>creatable</code>, a query that matches nothing offers a{' '}
+          <code>Create &quot;…&quot;</code> row (copy from{' '}
+          <code>LocaleProvider</code>). Committing it calls{' '}
+          <code>onCreate</code> and appends the value to a local option set
+          that lives until the component unmounts.
+        </p>
+        <div className={fieldRow}>
+          <Combobox options={FRUITS} creatable placeholder="Type 'kiwi'..." />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Match highlighting, loading &amp; empty states</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>highlightMatches</code> wraps the case-insensitive query hit
+          in each label with a token-styled <code>&lt;mark&gt;</code>. An
+          empty result list shows the <code>combobox.noResults</code> locale
+          string unless <code>empty</code> provides custom content.{' '}
+          <code>maxHeight</code> (px) caps both the plain and virtualized
+          panels — default 200.
+        </p>
+        <div className={fieldRow}>
+          <Combobox
+            options={FRUITS}
+            highlightMatches
+            maxHeight={120}
+            empty={<em>No such fruit</em>}
+            placeholder="Try 'an'..."
+          />
+        </div>
+        <div className={fieldRow}>
+          <Combobox
+            options={FRUITS}
+            loading={loading}
+            placeholder="Async search..."
+          />{' '}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setLoading((v) => !v)}
+          >
+            {loading ? 'Stop' : 'Start'} loading
+          </Button>
         </div>
       </div>
 
@@ -80,11 +206,14 @@ export default function ComboboxDemo() {
             </li>
             <li>
               Options use <strong>role=&quot;listbox&quot;</strong> and{' '}
-              <strong>role=&quot;option&quot;</strong>
+              <strong>role=&quot;option&quot;</strong>; groups add{' '}
+              <strong>role=&quot;group&quot;</strong> named by their heading
             </li>
             <li>
               <strong>Arrow keys</strong> navigate options,{' '}
-              <strong>Enter</strong> selects, <strong>Escape</strong> closes
+              <strong>Enter</strong> selects (toggles in multiple mode),{' '}
+              <strong>Backspace</strong> removes the last chip,{' '}
+              <strong>Escape</strong> closes
             </li>
           </ul>
         </A11yNote>

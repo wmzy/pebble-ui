@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import Input from './Input';
@@ -75,5 +76,15 @@ describe('InputCore', () => {
     expect(screen.getByRole('textbox')).toHaveValue('');
     rerender(<InputCore value="a" onChange={onChange} aria-label="core" />);
     expect(screen.getByRole('textbox')).toHaveValue('a');
+  });
+});
+
+describe('Input ref forwarding', () => {
+  it('forwards ref to the input element', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Input ref={ref} aria-label='Name' />);
+    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

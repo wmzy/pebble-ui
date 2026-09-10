@@ -1,6 +1,9 @@
 import type { CSSProperties } from 'react';
 
+import { css } from '@linaria/core';
+
 import { Button, ButtonLink, Icon } from '@/lib';
+import { buttonVariants, buttonSizes } from '@/lib/components/Button';
 
 import PropsTable from '../PropsTable';
 
@@ -17,6 +20,17 @@ const tokenScope = {
   '--haze-button-font-size-md': 'var(--haze-text-base)',
   '--haze-button-radius': '999px',
 } as CSSProperties;
+
+// Composition demo: wear the exported skin pieces on a custom element.
+const brandedCompose = css`
+  border-color: var(--haze-color-primary);
+  color: var(--haze-color-primary);
+  background: var(--haze-color-primary-subtle);
+
+  &:hover {
+    background: color-mix(in srgb, var(--haze-color-primary) 15%, transparent);
+  }
+`;
 
 // ─── Button ────────────────────────────────────────────────────
 export default function ButtonDemo() {
@@ -153,6 +167,39 @@ export default function ButtonDemo() {
           <ButtonLink href='#button' variant='outline' aria-disabled tabIndex={-1}>
             Link Disabled
           </ButtonLink>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Composing with buttonVariants / buttonSizes</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          The exported <code>buttonVariants</code> /{' '}
+          <code>buttonSizes</code> maps carry the exact skin classes{' '}
+          <code>Button</code> wears (shadcn <code>buttonVariants</code>{' '}
+          precedent) — spread them onto any custom element to match the
+          design system without rendering a <code>&lt;button&gt;</code>.
+          This anchor composes the <code>outline</code> variant with the{' '}
+          <code>md</code> size and one custom class on top.
+        </p>
+        <div className={row}>
+          <a
+            href='#button'
+            className={`${buttonVariants.outline} ${buttonSizes.md} ${brandedCompose}`}
+          >
+            Composed anchor
+          </a>
+          <a
+            href='#button'
+            className={`${buttonVariants.ghost} ${buttonSizes.sm}`}
+          >
+            Ghost skin, sm
+          </a>
         </div>
       </div>
 

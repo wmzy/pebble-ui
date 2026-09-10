@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
 
 import Textarea from './Textarea';
@@ -66,5 +67,15 @@ describe('TextareaCore', () => {
     render(<TextareaCore value="" onChange={onChange} aria-label="core" />);
     await user.type(screen.getByRole('textbox'), 'a');
     expect(onChange).toHaveBeenCalledWith('a');
+  });
+});
+
+describe('Textarea ref forwarding', () => {
+  it('forwards ref to the textarea element', () => {
+    const ref = createRef<HTMLTextAreaElement>();
+    render(<Textarea ref={ref} aria-label='Notes' />);
+    expect(ref.current).toBeInstanceOf(HTMLTextAreaElement);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(ref.current);
   });
 });

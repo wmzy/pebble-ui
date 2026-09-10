@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, Ref, ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -10,6 +10,8 @@ type CheckboxCoreProps = {
   onNativeChange?: ComponentPropsWithoutRef<'input'>['onChange'];
   label?: ReactNode;
   className?: string;
+  /** Forwarded to the checkbox `<input>` element. */
+  ref?: Ref<HTMLInputElement>;
 } & Omit<ComponentPropsWithoutRef<'input'>, 'checked' | 'onChange' | 'type'>;
 
 const base = css`
@@ -77,10 +79,12 @@ export default function CheckboxCore({
   onNativeChange,
   className,
   label,
+  ref,
   ...rest
 }: CheckboxCoreProps) {
   const input = (
     <input
+      ref={ref}
       type='checkbox'
       x-class={[base, className]}
       checked={checked}
