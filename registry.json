@@ -2185,10 +2185,10 @@
     {
       "name": "tag-group",
       "type": "registry:ui",
-      "title": "TagGroup / TagGroupItem",
-      "description": "Flex-wrap container laying out Tag children with consistent gap; `sortable` + `onReorder` for dnd-kit drag reordering.",
+      "title": "TagGroup / TagGroupItem / SortableTagGroup",
+      "description": "Flex-wrap container laying out Tag children with consistent gap; `SortableTagGroup` + `onReorder` for dnd-kit drag reordering.",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "Flex-wrap container laying out Tag children with consistent gap; `sortable` + `onReorder` for dnd-kit drag reordering.\n\nExports: `TagGroup`, `TagGroupItem`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/tag-group\n```\n\nThe wrapper lands at `components/ui/haze/tag-group.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/tag-group.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "Flex-wrap container laying out Tag children with consistent gap; `SortableTagGroup` + `onReorder` for dnd-kit drag reordering.\n\nExports: `TagGroup`, `TagGroupItem`, `SortableTagGroup`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/tag-group\n```\n\nThe wrapper lands at `components/ui/haze/tag-group.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/tag-group.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "general"
       ],
@@ -2209,10 +2209,10 @@
     {
       "name": "tag-input",
       "type": "registry:ui",
-      "title": "TagInput / TagInputCore",
-      "description": "Enter-to-commit token input; `sortable` enables dnd-kit drag reordering (new order via `onChange`).",
+      "title": "TagInput / TagInputCore / SortableTagInput / SortableTagInputCore",
+      "description": "Enter-to-commit token input; `SortableTagInput` enables dnd-kit drag reordering (via `onChange`).",
       "author": "wmzy <https://github.com/wmzy>",
-      "docs": "Enter-to-commit token input; `sortable` enables dnd-kit drag reordering (new order via `onChange`).\n\nExports: `TagInput`, `TagInputCore`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/tag-input\n```\n\nThe wrapper lands at `components/ui/haze/tag-input.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/tag-input.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
+      "docs": "Enter-to-commit token input; `SortableTagInput` enables dnd-kit drag reordering (via `onChange`).\n\nExports: `TagInput`, `TagInputCore`, `SortableTagInput`, `SortableTagInputCore`.\n\n## Install\n\n```bash\nnpx shadcn@latest add wmzy/haze-ui/tag-input\n```\n\nThe wrapper lands at `components/ui/haze/tag-input.tsx` (via the `@ui/` target placeholder from `components.json`) and re-exports the component(s) from the `haze-ui` npm package, which is installed automatically.\n\n## Theming\n\nhaze-ui ships JS and CSS separately — the installed wrapper already imports\n`haze-ui/css/tokens.css` and `haze-ui/css/tag-input.css`, so no extra stylesheet setup is needed.\n\nActivate the design tokens by applying the classes to a root element:\n\n```jsx\nimport { lightTheme, spacing, typography } from 'haze-ui';\n\n// on <body> or any root container — darkTheme is a drop-in swap\n<div className={`${lightTheme} ${spacing} ${typography}`}>…</div>\n```\n\nDetails: https://github.com/wmzy/haze-ui/tree/main/registry",
       "categories": [
         "form"
       ],

@@ -410,9 +410,9 @@ const descriptions = {
   tabs: 'Tab panel switcher with controllable active tab (`TabList`, `Tab`, `TabPanel`).',
   tag: 'Compact status label with variant color and optional close button.',
   'tag-group':
-    'Flex-wrap container laying out Tag children with consistent gap; `sortable` + `onReorder` for dnd-kit drag reordering.',
+    'Flex-wrap container laying out Tag children with consistent gap; `SortableTagGroup` + `onReorder` for dnd-kit drag reordering.',
   'tag-input':
-    'Enter-to-commit token input; `sortable` enables dnd-kit drag reordering (new order via `onChange`).',
+    'Enter-to-commit token input; `SortableTagInput` enables dnd-kit drag reordering (via `onChange`).',
   textarea: 'Multiline text input.',
   'thinking-indicator': 'Animated bouncing-dots indicator that the agent is processing.',
   'time-picker': 'Time-of-day input with controllable value.',

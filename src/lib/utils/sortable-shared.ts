@@ -1,8 +1,4 @@
-import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core';
 import type { Transform } from '@dnd-kit/utilities';
-
-import { css } from '@linaria/core';
-import { createContext, useContext } from 'react';
 
 import {
   KeyboardSensor,
@@ -14,17 +10,22 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 /**
- * Non-component drag-and-drop primitives shared by the opt-in `sortable`
- * modes (TagInput, TagGroup) and the sortable wrappers in `sortable.tsx`.
- * Split from the component file per the react-refresh sibling-file
- * convention (Button/styles.ts, Chart/chart-elements.tsx precedents) —
- * not part of the public barrel; consumers needing custom sortable
- * surfaces should compose @dnd-kit directly.
+ * Non-component drag-and-drop primitives for the Sortable* variants and
+ * the sortable wrappers in `sortable.tsx`. Split from the component file
+ * per the react-refresh sibling-file convention (Button/styles.ts,
+ * Chart/chart-elements.tsx precedents) — not part of the public barrel;
+ * consumers needing custom sortable surfaces should compose @dnd-kit
+ * directly.
  *
  * The @dnd-kit packages are optional peers following the Chart/recharts
  * contract: these helpers import them statically, so under preserveModules
- * only bundles that actually reach a `sortable` component resolve the
+ * only bundles that actually reach a Sortable* variant resolve the
  * dependency.
+ *
+ * Base components (TagGroup, TagGroupItem, TagInputCore) must NOT import
+ * this module or utils/sortable — either would drag the @dnd-kit runtime
+ * into every consumer. Only the Sortable* variants and utils/sortable.tsx
+ * import from here.
  */
 
 /** Sensors shared by every sortable surface: pointer drags with a small
@@ -49,29 +50,3 @@ export function sortableItemStyle(
     transition: transition ?? undefined,
   };
 }
-
-export type SortableHandle = {
-  attributes: DraggableAttributes;
-  listeners: DraggableSyntheticListeners;
-};
-
-/**
- * Handle props for the item's drag activator. SortableItem provides it so
- * the item component (e.g. TagGroupItem) can place the interactive handle
- * on its label span — a sibling of any close button — instead of letting
- * dnd-kit's role=button land on an ancestor of interactive content (axe
- * nested-interactive). Null outside a SortableItem.
- */
-export const SortableHandleContext = createContext<SortableHandle | null>(null);
-
-export function useSortableHandle() {
-  return useContext(SortableHandleContext);
-}
-
-/** Drag-affordance styles for the element that carries the handle props
- * (cursor + letting PointerSensor own touch drags instead of scrolling). */
-export const sortableHandle = css`
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-`;

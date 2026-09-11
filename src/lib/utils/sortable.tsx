@@ -7,11 +7,8 @@ import { css } from '@linaria/core';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 
-import {
-  SortableHandleContext,
-  sortableItemStyle,
-  useSortableSensors,
-} from './sortable-shared';
+import { SortableHandleContext } from './sortable-handle';
+import { sortableItemStyle, useSortableSensors } from './sortable-shared';
 
 /**
  * Internal sortable wrapper components (the non-component primitives live

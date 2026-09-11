@@ -75,11 +75,14 @@ const sharedLayers = {
     'select',
     'tooltip',
   ],
-  // Sortable primitives (components in utils/sortable.tsx, hooks/styles in
-  // utils/sortable-shared.ts): their classes ride along with the two
-  // components that have opt-in `sortable` modes.
-  'utils/sortable': ['tag-input', 'tag-group'],
-  'utils/sortable-shared': ['tag-input', 'tag-group'],
+  // Sortable css layers: utils/sortable-handle (the drag-handle class
+  // TagGroupItem applies to its label) rides with tag-group via
+  // TagGroupItem; utils/sortable (the SortableItem wrapper node css) rides
+  // with tag-group via SortableTagGroup. The tag-input sortable variant
+  // uses the css-less SortableRegion and defines its tag classes locally,
+  // so tag-input needs no utils css.
+  'utils/sortable': ['tag-group'],
+  'utils/sortable-handle': ['tag-group'],
 };
 
 /**

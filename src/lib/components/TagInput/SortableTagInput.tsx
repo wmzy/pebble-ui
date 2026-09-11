@@ -3,9 +3,9 @@ import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
 
-import TagInputCore from './TagInputCore';
+import SortableTagInputCore from './SortableTagInputCore';
 
-type TagInputProps = {
+type SortableTagInputProps = {
   value?: ControlOrValue<string[]>;
   onChange?: (value: string[]) => void;
   placeholder?: string;
@@ -27,7 +27,16 @@ type TagInputProps = {
   ref?: Ref<HTMLInputElement>;
 };
 
-export default function TagInput({
+/**
+ * Controllable-state sugar over `SortableTagInputCore`: drag-and-drop tag
+ * reordering built on the @dnd-kit optional peers — install
+ * `@dnd-kit/core`, `@dnd-kit/sortable` and `@dnd-kit/utilities` to use
+ * it (the plain `TagInput` never touches them). Reorders leave through
+ * `onChange` with the new array — the same single exit as add/remove.
+ * Keyboard: focus a tag's label, Space lifts, arrows move, Space drops,
+ * Escape cancels.
+ */
+export default function SortableTagInput({
   value: valueControl,
   onChange,
   placeholder,
@@ -38,11 +47,11 @@ export default function TagInput({
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedby,
   ref,
-}: TagInputProps) {
+}: SortableTagInputProps) {
   const [tags, setTags] = useControl(valueControl, []);
 
   return (
-    <TagInputCore
+    <SortableTagInputCore
       ref={ref}
       value={tags}
       onChange={(next) => {
@@ -60,4 +69,4 @@ export default function TagInput({
   );
 }
 
-export type { TagInputProps };
+export type { SortableTagInputProps };

@@ -1,15 +1,29 @@
-import type { Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { css } from '@linaria/core';
 
-import { rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
-
 import { useStrings } from '../LocaleProvider';
 import { formatString } from '../LocaleProvider/locale';
-import { SortableRegion } from '../../utils/sortable';
-import { sortableItemStyle } from '../../utils/sortable-shared';
 import { mergeRefs } from '../../utils/refs';
+
+import { listWrap, tag, removeBtn } from './tag-input-styles';
+
+/** One rendered tag, offered to `renderTag` injectors.
+ * @internal */
+type TagSlot = {
+  tag: string;
+  index: number;
+  removeLabel: string;
+  onRemove: () => void;
+};
+
+/** The tag list handed to `wrapTagList` injectors.
+ * @internal */
+type TagListSlot = {
+  count: number;
+  onMove: (from: number, to: number) => void;
+};
 
 type TagInputCoreProps = {
   value: string[];
@@ -18,12 +32,19 @@ type TagInputCoreProps = {
   maxTags?: number;
   disabled?: boolean;
   /**
-   * Opt-in drag-and-drop tag reordering (@dnd-kit optional peers). Order
-   * changes leave through `onChange` with the new array — the same single
-   * exit as add/remove. Keyboard: focus a tag's label, Space lifts,
-   * arrows move, Space drops, Escape cancels.
+   * Replaces the per-tag rendering. Receives everything the default
+   * listitem renders from (label, index, localized remove label and the
+   * remove callback) so an injector can rebuild it with drag semantics.
+   * @internal
    */
-  sortable?: boolean;
+  renderTag?: (slot: TagSlot) => ReactNode;
+  /**
+   * Wraps the rendered tag list (the ul). Receives the item count and a
+   * dnd-free move callback — an injector adds the drag context, moves
+   * leave through `onChange` like every other list change.
+   * @internal
+   */
+  wrapTagList?: (list: ReactNode, slot: TagListSlot) => ReactNode;
   className?: string;
   /**
    * 字段 id（FormItem 桥生成）：必须挂到内部可聚焦的 input 上而非根
@@ -35,7 +56,8 @@ type TagInputCoreProps = {
   'aria-invalid'?: boolean;
   /** 指向 FormItem 渲染的错误 span（id={errorId}），透传给内部 input。 */
   'aria-describedby'?: string;
-  /** Forwarded to the inner text `<input>` (not the root div). */
+  /** Forwarded to the inner text `<input>` (not the root div) — the
+   * element form bridges and `ref.current.focus()` reach. */
   ref?: Ref<HTMLInputElement>;
 };
 
@@ -58,46 +80,6 @@ const container = css`
   }
 `;
 
-/* Tags flow inline with the input: the list itself wraps while staying a
-   flex participant of the container. */
-const listWrap = css`
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--haze-space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-`;
-
-const tag = css`
-  display: inline-flex;
-  align-items: center;
-  gap: var(--haze-space-1);
-  padding: var(--haze-space-0) var(--haze-space-2);
-  background: var(--haze-color-bg-muted);
-  border-radius: var(--haze-radius-sm);
-  font-size: var(--haze-text-sm);
-  color: var(--haze-color-text);
-  line-height: var(--haze-leading-relaxed);
-`;
-
-const removeBtn = css`
-  display: inline-flex;
-  align-items: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--haze-color-text-muted);
-  font-size: var(--haze-text-xs);
-  padding: var(--haze-space-1);
-  min-width: 1.5rem;
-  min-height: 1.5rem;
-
-  &:hover {
-    color: var(--haze-color-text);
-  }
-`;
-
 const inputEl = css`
   flex: 1;
   min-width: 4rem;
@@ -110,69 +92,14 @@ const inputEl = css`
   padding: 0;
 `;
 
-/* The sortable mode's drag handle: the label text span inside the li. The
-   li keeps its listitem role, so the handle carries the interactive bits. */
-const tagHandle = css`
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-`;
-
-const tagDragging = css`
-  /* Stack the translated tag above its siblings while dragging. */
-  position: relative;
-  z-index: 1;
-`;
-
-type SortableTagProps = {
-  id: number;
-  label: string;
-  removeLabel: string;
-  onRemove: () => void;
-};
-
-/** One sortable tag listitem. The li itself stays a plain listitem (axe
- * aria-required-children: ul children must be listitems); the label span
- * is the drag handle with dnd-kit's button semantics. */
-function SortableTag({ id, label, removeLabel, onRemove }: SortableTagProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id,
-  });
-
-  return (
-    <li
-      ref={setNodeRef}
-      style={sortableItemStyle(transform, transition)}
-      x-class={[tag, isDragging && tagDragging]}
-    >
-      <span x-class={[tagHandle]} {...attributes} {...listeners}>
-        {label}
-      </span>
-      <button
-        x-class={[removeBtn]}
-        type="button"
-        onClick={onRemove}
-        onKeyDown={(e) => {
-          if (e.key === 'Backspace') {
-            e.preventDefault();
-            onRemove();
-          }
-        }}
-        aria-label={removeLabel}
-      >
-        x
-      </button>
-    </li>
-  );
-}
-
 export default function TagInputCore({
   value: tags,
   onChange,
   placeholder,
   maxTags,
   disabled,
-  sortable,
+  renderTag,
+  wrapTagList,
   className,
   id,
   'aria-invalid': ariaInvalid,
@@ -233,6 +160,21 @@ export default function TagInputCore({
     [tags, onChange]
   );
 
+  // Dnd-free move: copy the array, splice the tag into its new slot. A
+  // drag context (injected via wrapTagList) resolves indices and calls
+  // this; the reordered array leaves through onChange like add/remove.
+  const moveTag = useCallback(
+    (from: number, to: number) => {
+      if (from === to) return;
+      const next = [...tags];
+      const [moved] = next.splice(from, 1);
+      if (moved === undefined) return;
+      next.splice(to, 0, moved);
+      onChange(next);
+    },
+    [tags, onChange]
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
@@ -248,20 +190,17 @@ export default function TagInputCore({
     tags.length === 1 ? strings.tagCountSingular : strings.tagCount,
     { count: tags.length }
   );
-  // A disabled input must not offer drag handles either.
-  const sortableEnabled = sortable && !disabled;
 
   const tagList = (
     <ul x-class={[listWrap]}>
       {tags.map((t, i) =>
-        sortableEnabled ? (
-          <SortableTag
-            key={i}
-            id={i}
-            label={t}
-            removeLabel={formatString(strings.removeTag, { tag: t })}
-            onRemove={() => removeTag(i)}
-          />
+        renderTag ? (
+          renderTag({
+            tag: t,
+            index: i,
+            removeLabel: formatString(strings.removeTag, { tag: t }),
+            onRemove: () => removeTag(i),
+          })
         ) : (
           <li key={i} x-class={[tag]}>
             {t}
@@ -294,17 +233,9 @@ export default function TagInputCore({
       {/* Tags form the list; the input is a sibling so the list's
           children are only listitems (axe aria-required-children) and
           screen readers hear one listitem per tag. */}
-      {sortableEnabled ? (
-        <SortableRegion
-          ids={tags.map((_, i) => i)}
-          strategy={rectSortingStrategy}
-          onMove={(from, to) => onChange(arrayMove(tags, from, to))}
-        >
-          {tagList}
-        </SortableRegion>
-      ) : (
-        tagList
-      )}
+      {wrapTagList
+        ? wrapTagList(tagList, { count: tags.length, onMove: moveTag })
+        : tagList}
       <input
         ref={setInputRef}
         x-class={[inputEl]}
@@ -322,4 +253,4 @@ export default function TagInputCore({
   );
 }
 
-export type { TagInputCoreProps };
+export type { TagInputCoreProps, TagSlot, TagListSlot };

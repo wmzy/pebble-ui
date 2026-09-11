@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { css } from '@linaria/core';
 
 import { useStrings } from '../LocaleProvider';
-import { sortableHandle, useSortableHandle } from '../../utils/sortable-shared';
+import { sortableHandle, useSortableHandle } from '../../utils/sortable-handle';
 
 type TagGroupItemProps = {
   children: ReactNode;

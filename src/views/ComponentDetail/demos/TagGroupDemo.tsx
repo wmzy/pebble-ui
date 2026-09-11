@@ -1,6 +1,6 @@
 import { useControl } from 'react-use-control';
 
-import { Switch, TagGroup, TagGroupItem } from '@/lib';
+import { SortableTagGroup, TagGroup, TagGroupItem } from '@/lib';
 
 import PropsTable from '../PropsTable';
 
@@ -10,7 +10,7 @@ import { intro, section, fieldRow } from '../styles';
 
 import { noop } from './shared';
 
-/** Reorders `list` by the index permutation TagGroup reports. */
+/** Reorders `list` by the index permutation SortableTagGroup reports. */
 function applyOrder<T>(list: T[], order: number[]): T[] {
   return order.flatMap((index) => {
     const item = list[index];
@@ -27,20 +27,15 @@ function SortableTagGroupExample() {
     'Linaria',
     'OKLCH',
   ]);
-  const [sortable, , sortableCtrl] = useControl(undefined, true);
 
   return (
     <>
       <div className={fieldRow}>
-        <Switch checked={sortableCtrl} aria-label='Toggle chip sorting' />
-        <TagGroup
-          sortable={sortable}
-          onReorder={(order) => setTags(applyOrder(tags, order))}
-        >
+        <SortableTagGroup onReorder={(order) => setTags(applyOrder(tags, order))}>
           {tags.map((tag) => (
             <TagGroupItem key={tag}>{tag}</TagGroupItem>
           ))}
-        </TagGroup>
+        </SortableTagGroup>
       </div>
       <p>Current order: {tags.join(' → ')}</p>
     </>
@@ -53,11 +48,12 @@ export default function TagGroupDemo() {
     <>
       <h1>TagGroup</h1>
       <p className={intro}>
-        Group of tags with optional close buttons, plus an opt-in sortable
-        mode built on <a href='https://dndkit.com'>dnd-kit</a> (optional
-        peers — install <code>@dnd-kit/core</code>,{' '}
+        Group of tags with optional close buttons, plus a sortable variant
+        built on <a href='https://dndkit.com'>dnd-kit</a> (optional peers —
+        install <code>@dnd-kit/core</code>,{' '}
         <code>@dnd-kit/sortable</code> and <code>@dnd-kit/utilities</code>{' '}
-        only if you use <code>sortable</code>). Reordering is parent-driven:
+        only if you use <code>SortableTagGroup</code>/{' '}
+        <code>SortableTagInput</code>). Reordering is parent-driven:
         <code>onReorder</code> reports the new index order and you re-render
         the children accordingly.
       </p>
@@ -93,7 +89,7 @@ export default function TagGroupDemo() {
             <li>Group uses <strong>role=&quot;group&quot;</strong></li>
             <li>Close button has <strong>aria-label=&quot;Remove&quot;</strong></li>
             <li>
-              Sortable mode: focus a chip, press <strong>Space</strong> to
+              SortableTagGroup: focus a chip, press <strong>Space</strong> to
               lift, arrow keys to move, <strong>Space</strong> to drop,{' '}
               <strong>Escape</strong> to cancel
             </li>

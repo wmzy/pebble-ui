@@ -114,6 +114,37 @@ distContract('dist 发布契约：Node ESM / vitest 可直接 import', () => {
       expect([...new Set(offenders)].sort()).toEqual([]);
     });
 
+    it('基础 Tag 组件族保持 dnd-free：仅 Sortable* 变体与 utils 原语可触 @dnd-kit', () => {
+      // @dnd-kit 三件套是 optional peers（Chart/recharts 同款契约）：
+      // 基础 TagGroup/TagGroupItem/TagInput/TagInputCore 不得引用它们，
+      // 否则每个消费者都被迫安装 dnd 运行时。只有 Sortable* 变体和
+      // utils/sortable、utils/sortable-shared 两个原语模块允许静态引入。
+      // 名单与产物双向对齐（镜像 RSC-safe 用例的两侧校验）：名单外出现
+      // @dnd-kit 导入违规；名单内已存在的模块却没有引用（陈旧名单）
+      // 同样违规。utils/sortable-handle 的 @dnd-kit 导入是 type-only，
+      // 转译后擦除，故不在名单内。按导入说明符匹配而非裸字符串，避免
+      // 产物里保留的 JSDoc 文字误报。
+      const dndImport = /(?:from|import)\s*["']@dnd-kit[^"']*["']/;
+      const allowlist = new Set([
+        'components/TagGroup/SortableTagGroup.js',
+        'components/TagInput/SortableTagInputCore.js',
+        'utils/sortable.js',
+        'utils/sortable-shared.js',
+      ]);
+      const offenders = jsFiles.filter(
+        (rel) =>
+          !allowlist.has(rel) &&
+          dndImport.test(readFileSync(path.join(distDir, rel), 'utf8'))
+      );
+      expect(offenders).toEqual([]);
+      const stale = [...allowlist].filter(
+        (rel) =>
+          existsSync(path.join(distDir, rel)) &&
+          !dndImport.test(readFileSync(path.join(distDir, rel), 'utf8'))
+      );
+      expect(stale).toEqual([]);
+    });
+
     it('barrel / form / headless / 有状态组件 / 浮层原语仍注入 use client', () => {
       // 根 barrel re-export 全量组件（含状态组件），必须保持客户端边界；
       // form/headless（hooks）、Switch/Button（useControl/内部状态）、

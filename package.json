@@ -185,6 +185,18 @@
       "limit": "2 KB"
     },
     {
+      "name": "TagGroup+TagGroupItem only — dnd-free (bundled from barrel)",
+      "path": "dist/index.js",
+      "import": "{TagGroup, TagGroupItem}",
+      "limit": "6 KB"
+    },
+    {
+      "name": "SortableTagInput — pulls the @dnd-kit trio (from barrel)",
+      "path": "dist/index.js",
+      "import": "{SortableTagInput}",
+      "limit": "30 KB"
+    },
+    {
       "name": "Dashboard profile: Button + Input + Select + Dialog + Toast + Pagination",
       "path": "dist/index.js",
       "import": "{Button, Input, Select, Dialog, Toast, Pagination}",

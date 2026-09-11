@@ -16,10 +16,10 @@
 // 'use client' directive, so imports resolve cleanly from RSC; the
 // wrapper inherits client semantics either way.
 
-import { TagGroup, TagGroupItem } from 'haze-ui';
+import { TagGroup, TagGroupItem, SortableTagGroup } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/tag-group.css';
 
-export { TagGroup, TagGroupItem };
-export type { TagGroupProps, TagGroupItemProps } from 'haze-ui';
+export { TagGroup, TagGroupItem, SortableTagGroup };
+export type { TagGroupProps, TagGroupItemProps, SortableTagGroupProps } from 'haze-ui';
