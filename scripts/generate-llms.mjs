@@ -56,7 +56,11 @@ const DESCRIPTIONS = {
   Badge: 'small inline status label with variant and color options.',
   Button:
     'action button with `variant`/`size`/`square` options; native `<button>` under the hood.',
+  CountUp:
+    'animated number ticker: rAF + ease-out interpolation toward `to`, honoring `prefers-reduced-motion` with an instant snap.',
   Divider: 'content separator line, horizontal or vertical.',
+  Ellipsis:
+    'interactive text truncation: N-line clamp with truncation detection, optional tooltip and expand/collapse.',
   Icon: 'inline SVG icon wrapper with token-sized `sm`/`md`/`lg` boxes.',
   Tag: 'compact status label with variant color and an optional close button.',
   TagGroup:
@@ -119,6 +123,8 @@ const DESCRIPTIONS = {
     'two-state pressed button (`aria-pressed`) with sizes and `square` icon mode; `ToolbarToggle` variant rides toolbar roving focus.',
   Transfer:
     'two-column shuttle moving options between source and target lists.',
+  TreeSelect:
+    'tree selection in a floating panel (AntD TreeSelect counterpart): selectable rows commit one key, cascading checkboxes commit `string[]`, with panel search, lazy `loadData` and chip overflow.',
   Upload:
     'file picker with accumulating `File[]` value, `accept`/`multiple`, `directory` picking and `listType` rendering.',
 
@@ -157,6 +163,8 @@ const DESCRIPTIONS = {
   Kbd: 'keyboard key-cap styling for shortcuts.',
   List: 'styled `ul`/`ol`/plain list variants.',
   Progress: 'progress bar or circle driven by a percentage `value`.',
+  QRCode:
+    'QR code rendered as one crisp SVG path with `value`/`size`/`level`/`bordered` options and theme-token module/background colors.',
   Stat: 'metric display with title, value and trend indicator.',
   Table: 'styled semantic table (`striped`, `bordered`).',
   Timeline: 'vertical timeline container for `TimelineItem` children.',
@@ -193,6 +201,8 @@ const DESCRIPTIONS = {
   Banner:
     'dismissible top banner with info/success/warning/danger variants.',
   Empty: 'empty-state placeholder with image and description.',
+  Result:
+    'result feedback page: status illustration (`success`/`error`/`info`/`warning`/`403`/`404`/`500`), `title`, `subTitle` and an `extra` action area; `icon` replaces the default illustration.',
   Skeleton:
     'shimmering loading placeholder (`text`/`circular`/`rectangular`).',
   Spinner: 'loading spinner.',

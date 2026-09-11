@@ -7,7 +7,7 @@
 - [Full API reference (llms-full.txt)](llms-full.txt): every component's props, types,
   defaults and descriptions in one generated file.
 
-117 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
+122 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
 against `--haze-*` design tokens. ESM-only, `preserveModules` dist, tree-shakeable.
 `'use client'` is pre-injected on interactive modules; 36 static, hook-free modules
 (tokens + presentational components) ship without it and render as React Server
@@ -19,13 +19,12 @@ semantics and mirrored floating placements under `dir="rtl"`. Peer range
 
 ```sh
 npm i haze-ui
-# optional peers, only for the components that need them:
-npm i react-f0rm                            # FormItem
-npm i @tanstack/react-table                 # DataTable
-npm i recharts                              # Chart
-npm i @dnd-kit/core @dnd-kit/sortable \
-      @dnd-kit/utilities                    # TagInput/TagGroup sortable
 ```
+
+Only `react` and `react-dom` are peers. Every engine — `react-f0rm` (forms),
+`@tanstack/react-table` (DataTable), `recharts` (Chart), the `@dnd-kit` trio
+(sortable tags), `qrcode` (QRCode) — is a regular dependency installed with
+haze-ui, and bundlers still tree-shake the ones your imports never reach.
 
 shadcn CLI users can instead `pnpm dlx shadcn@latest add wmzy/haze-ui/<item>`
 — this repo is a GitHub registry (root `registry.json`); each item installs a
@@ -63,6 +62,8 @@ re-deriving file names.
 - **Tag** — compact status label with variant color and an optional close button.
 - **TagGroup** — flex-wrap container laying out Tag children with consistent gap; `sortable` + `onReorder(nextOrder)` for dnd-kit drag reordering.
 - **Typography** — text primitives: `Title`, `Text`, `Paragraph` on typography tokens.
+- **Ellipsis** — interactive text truncation: N-line clamp with truncation detection, optional tooltip and expand/collapse.
+- **CountUp** — animated number ticker: rAF + ease-out interpolation toward `to`, honoring `prefers-reduced-motion` with an instant snap.
 
 ### Layout
 
@@ -104,6 +105,7 @@ re-deriving file names.
 - **TimePicker** — time-of-day input with controllable value.
 - **Toggle** — two-state pressed button (`aria-pressed`) with sizes and `square` icon mode; `ToolbarToggle` variant rides toolbar roving focus.
 - **Transfer** — two-column shuttle moving options between source and target lists.
+- **TreeSelect** — tree selection in a floating panel (AntD TreeSelect counterpart): selectable rows commit one key, cascading checkboxes commit `string[]`, with panel search, lazy `loadData` and chip overflow.
 - **Upload** — file picker with accumulating `File[]` value, `accept`/`multiple`, `directory` picking and `listType` rendering.
 
 ### Overlays
@@ -125,7 +127,7 @@ re-deriving file names.
 - **Calendar** — month-grid date surface with `min`/`max`, locale and `weekStartsOn`.
 - **Card** — content card with `elevated`/`outlined`/`filled` variants.
 - **Carousel** — slideshow with controllable active index and autoplay.
-- **Chart** — line/area/bar/pie charts over `recharts` (optional peer), colors and axes on haze tokens; series cycle the semantic palette, `renderTooltip` customizes the tooltip.
+- **Chart** — line/area/bar/pie charts over `recharts` (a haze-ui dependency), colors and axes on haze tokens; series cycle the semantic palette, `renderTooltip` customizes the tooltip.
 - **Chip** — rounded status chip with optional icon and close button.
 - **CodeBlock** — monospace code container with a language badge; `highlight` plugs in an async syntax highlighter.
 - **DataTable** — feature table on `@tanstack/react-table` (sorting, row selection, client or `manual` pagination); `dataTableToCsv` exports the rows.
@@ -135,6 +137,7 @@ re-deriving file names.
 - **Kbd** — keyboard key-cap styling for shortcuts.
 - **List** — styled `ul`/`ol`/plain list variants.
 - **Progress** — progress bar or circle driven by a percentage `value`.
+- **QRCode** — QR code rendered as one crisp SVG path with `value`/`size`/`level`/`bordered` options and theme-token module/background colors.
 - **Stat** — metric display with title, value and trend indicator.
 - **Table** — styled semantic table (`striped`, `bordered`).
 - **Timeline** — vertical timeline container for `TimelineItem` children.
@@ -163,6 +166,7 @@ re-deriving file names.
 - **AsyncSection** — declarative loading / error / content states for async data.
 - **Banner** — dismissible top banner with info/success/warning/danger variants.
 - **Empty** — empty-state placeholder with image and description.
+- **Result** — result feedback page: status illustration (`success`/`error`/`info`/`warning`/`403`/`404`/`500`), `title`, `subTitle` and an `extra` action area; `icon` replaces the default illustration.
 - **Skeleton** — shimmering loading placeholder (`text`/`circular`/`rectangular`).
 - **Spinner** — loading spinner.
 - **Toast** — toast notifications via `useToast` + `ToastContainer` (imperative `toast()` helper included).
@@ -236,7 +240,7 @@ the styled library; stable public API with the same semver commitment.
 
 ## Forms: react-f0rm integration
 
-Form state belongs to [react-f0rm](https://github.com/wmzy/react-f0rm) (optional peer).
+Form state belongs to [react-f0rm](https://github.com/wmzy/react-f0rm) (a haze-ui dependency).
 haze-ui ships controlled cores — `InputCore`, `SelectCore`, `SwitchCore`, `TextareaCore`,
 `TagInputCore`, `TransferCore`, `UploadCore`, `CheckboxCore`, … — that speak the plain
 `{value, onChange}` pair its headless `useField` hook emits, with zero adapters.
@@ -258,15 +262,15 @@ binding via `as`/`input` props. The sugar components (`Input`, `Select`, …) ke
 
 A self-contained, machine-executable setup protocol — every step is copy-paste safe.
 
-1. Install the library, then only the optional peers the components you use need:
+1. Install the library:
 
    ```sh
    npm i haze-ui
-   npm i react-f0rm                 # FormItem only
-   npm i @tanstack/react-table      # DataTable only
-   npm i recharts                   # Chart only
-   npm i @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities  # sortable TagGroup/TagInput only
    ```
+
+   `react` and `react-dom` are the only peers; all engine packages (form,
+   table, chart, dnd, qr) arrive as regular dependencies and never enter
+   the bundle for components you don't import.
 
    Peer range is `react: ^19.0.0`; there is no React 18 compatibility layer.
 

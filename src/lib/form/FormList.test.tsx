@@ -406,7 +406,7 @@ describe('schema resolvers (react-f0rm/resolvers re-exports)', () => {
       email: z.email('Enter a valid email address')
     });
     const form = createForm({
-      initialValues: {title: '', email: '', tags: []},
+      initialValues: {title: '', email: ''},
       validate: standardSchemaFormValidator(schema),
       // form-level rounds are set-only per field; validateDeps lists the
       // fields whose changes re-run the schema and whose stale errors

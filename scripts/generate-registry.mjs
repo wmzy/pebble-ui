@@ -422,7 +422,7 @@ const descriptions = {
     'AI prompt composer: auto-growing textarea with inline context tags, `@`-trigger suggestions and a configurable submit key.',
   progress: 'Progress bar or circle driven by a percentage `value`.',
   'qr-code':
-    'QR code rendered as one crisp SVG path over the `qrcode` optional peer; theme-token module/background colors with `value`/`size`/`level`/`bordered` options.',
+    'QR code rendered as one crisp SVG path over the `qrcode` engine dependency; theme-token module/background colors with `value`/`size`/`level`/`bordered` options.',
   radio:
     'Radio option and group with controllable selection (`Radio`, `RadioGroup`, headless `RadioGroupCore`).',
   rating: 'Star rating with half-step support.',

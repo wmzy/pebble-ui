@@ -1,7 +1,3 @@
-/* eslint-disable react/jsx-key --
-   the CASES fixtures are [name, element] tuples rendered one element per
-   test as a hydrateRoot root — never as array children — so keys would be
-   dead weight; the rule cannot tell fixtures from real lists. */
 //
 // SSR hydration test (default jsdom environment): every fixture is first
 // rendered with react-dom/server's renderToString, then the exact same

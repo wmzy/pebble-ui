@@ -1,8 +1,4 @@
 // @vitest-environment node
-/* eslint-disable react/jsx-key --
-   the CASES fixtures are [name, element, expects] tuples rendered one
-   element per test through renderToString — never as array children — so
-   keys would be dead weight; the rule cannot tell fixtures from real lists. */
 //
 // SSR smoke test in a REAL window-less environment: every fixture below
 // goes through react-dom/server's renderToString, so any module-top-level

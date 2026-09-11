@@ -7,7 +7,12 @@
     },
     "declaration": true,
     "emitDeclarationOnly": true,
+    // tools-config 0.5 起 base 默认 noEmit 且不再带 stripInternal，产出型项目显式声明
+    "noEmit": false,
+    "stripInternal": true,
     "declarationDir": "dist/types",
+    // tsc 产出走 declarationDir；outDir 供 tsc-alias 定位重写目标（base 0.5 起不再携带）
+    "outDir": "dist/types",
     "rootDir": "src/lib"
   },
   "include": ["src/lib"],
