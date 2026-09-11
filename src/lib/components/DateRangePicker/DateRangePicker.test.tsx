@@ -276,3 +276,69 @@ describe('DateRangePicker disabledDate', () => {
     expect(day('2026-01-15')).toBeEnabled();
   });
 });
+
+describe('DateRangePicker common presets', () => {
+  const BUILT_INS = [
+    'Today',
+    'Yesterday',
+    'Last 7 days',
+    'Last 30 days',
+    'This month',
+    'Last month',
+  ];
+
+  it('renders the six built-in rows for presets="common"', () => {
+    render(<DateRangePicker presets="common" />);
+    const rows = screen.getAllByRole('button').map((row) => row.textContent);
+    expect(rows).toEqual(BUILT_INS);
+  });
+
+  it('applies the built-in ranges relative to a pinned today', () => {
+    vi.useFakeTimers();
+    // 2026-01-15: last-30-days and last-month cross the year boundary.
+    vi.setSystemTime(new Date(2026, 0, 15));
+    try {
+      render(<DateRangePicker presets="common" />);
+      const start = screen.getByLabelText('Start date');
+      const end = screen.getByLabelText('End date');
+      const apply = (name: string, range: [string, string]) => {
+        fireEvent.click(screen.getByRole('button', { name }));
+        expect(start).toHaveValue(range[0]);
+        expect(end).toHaveValue(range[1]);
+      };
+      apply('Today', ['2026-01-15', '2026-01-15']);
+      apply('Yesterday', ['2026-01-14', '2026-01-14']);
+      apply('Last 7 days', ['2026-01-09', '2026-01-15']);
+      apply('Last 30 days', ['2025-12-17', '2026-01-15']);
+      apply('This month', ['2026-01-01', '2026-01-31']);
+      apply('Last month', ['2025-12-01', '2025-12-31']);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('appends custom rows after the built-ins', () => {
+    render(
+      <DateRangePicker
+        presets={[
+          'common',
+          { label: 'Q1 freeze', range: ['2026-01-01', '2026-03-31'] },
+        ]}
+      />
+    );
+    const rows = screen.getAllByRole('button').map((row) => row.textContent);
+    expect(rows).toEqual([...BUILT_INS, 'Q1 freeze']);
+    fireEvent.click(screen.getByRole('button', { name: 'Q1 freeze' }));
+    expect(screen.getByLabelText('Start date')).toHaveValue('2026-01-01');
+    expect(screen.getByLabelText('End date')).toHaveValue('2026-03-31');
+  });
+
+  it('shares the panel with the dual-month calendars', () => {
+    render(<DateRangePicker presets="common" months={2} />);
+    expect(screen.getAllByRole('grid')).toHaveLength(2);
+    // One preset row plus the shared calendar header's Today button.
+    expect(
+      screen.getAllByRole('button', { name: 'Today' })
+    ).toHaveLength(2);
+  });
+});

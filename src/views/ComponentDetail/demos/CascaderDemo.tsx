@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react';
 import type { CascaderOption } from '@/lib';
 
+import { useEffect, useRef, useState } from 'react';
 import { useControl } from 'react-use-control';
 
 import { Cascader } from '@/lib';
@@ -57,8 +59,59 @@ const MANY_REGIONS: CascaderOption[] = Array.from(
   })
 );
 
+/** String form of a (possibly node) label, for the fake server below. */
+const labelText = (label: ReactNode): string =>
+  typeof label === 'string' ? label : '';
+
+/**
+ * Fake server for the remote-search example: rebuilds the region tree
+ * with only the branches whose city or district labels match the raw
+ * query — exactly what a real backend would return for Cascader's
+ * onSearch (the component itself never filters).
+ */
+function searchRegions(query: string): CascaderOption[] {
+  const needle = query.trim();
+  if (needle === '') return REGIONS;
+  const matches: CascaderOption[] = [];
+  for (const province of REGIONS) {
+    if ((province.children ?? []).length === 0) {
+      if (labelText(province.label).includes(needle)) matches.push(province);
+      continue;
+    }
+    const children = (province.children ?? []).flatMap((city): CascaderOption[] => {
+      const districts = (city.children ?? []).filter((district) =>
+        labelText(district.label).includes(needle)
+      );
+      if (districts.length > 0) return [{ ...city, children: districts }];
+      return labelText(city.label).includes(needle) ? [city] : [];
+    });
+    if (children.length > 0) matches.push({ ...province, children });
+  }
+  return matches;
+}
+
 export default function CascaderDemo() {
   const [path, , pathCtrl] = useControl(undefined, [] as string[]);
+  // Remote-search stand-in: the fake server rebuilds the tree per
+  // query after a delay. A pending timer is cancelled on unmount (and
+  // superseded by the next query).
+  const [remoteRegions, setRemoteRegions] = useState<CascaderOption[]>(REGIONS);
+  const [remoteLoading, setRemoteLoading] = useState(false);
+  const remoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (remoteTimer.current !== null) clearTimeout(remoteTimer.current);
+    },
+    []
+  );
+  const handleRemoteSearch = (query: string) => {
+    setRemoteLoading(true);
+    if (remoteTimer.current !== null) clearTimeout(remoteTimer.current);
+    remoteTimer.current = setTimeout(() => {
+      setRemoteLoading(false);
+      setRemoteRegions(searchRegions(query));
+    }, 400);
+  };
 
   return (
     <>
@@ -125,6 +178,36 @@ export default function CascaderDemo() {
             options={MANY_REGIONS}
             virtualized
             placeholder='Select province / city'
+          />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Remote search</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>onSearch</code> adds a search field to the panel: every
+          query transition fires the callback with the raw query — each
+          keystroke, clearing the field, and the reset back to{' '}
+          <code>&apos;&apos;</code> when the panel closes (so you can
+          restore the full tree) — and the panel renders exactly the{' '}
+          <code>options</code> you rebuild in response, committing the
+          path that rebuilt tree defines. Pair with <code>loading</code>{' '}
+          for the pending state; debouncing is the consumer&apos;s
+          concern. This fake server prunes the tree per query — try{' '}
+          <code>西湖</code> or <code>南山</code>.
+        </p>
+        <div className={fieldRow}>
+          <Cascader
+            options={remoteRegions}
+            onSearch={handleRemoteSearch}
+            loading={remoteLoading}
+            placeholder='Search regions…'
           />
         </div>
       </div>

@@ -158,7 +158,7 @@ export type { ScrollAreaProps } from './components/ScrollArea';
 export { TimePicker, TimePickerCore } from './components/TimePicker';
 export type { TimePickerProps, TimePickerCoreProps } from './components/TimePicker';
 export { DateRangePicker, DateRangePickerCore } from './components/DateRangePicker';
-export type { DateRangePickerProps, DateRangePickerCoreProps, DateRangePickerPreset } from './components/DateRangePicker';
+export type { DateRangePickerProps, DateRangePickerCoreProps, DateRangePickerPreset, DateRangePickerPresets } from './components/DateRangePicker';
 export { OTPInput, OTPInputCore } from './components/OTPInput';
 export type { OTPInputProps, OTPInputCoreProps } from './components/OTPInput';
 export { PasswordInput, PasswordInputCore } from './components/PasswordInput';
@@ -188,7 +188,7 @@ export type { BannerProps } from './components/Banner';
 export { ConfirmDialog } from './components/ConfirmDialog';
 export type { ConfirmDialogProps } from './components/ConfirmDialog';
 export { CodeBlock } from './components/CodeBlock';
-export type { CodeBlockProps } from './components/CodeBlock';
+export type { CodeBlockProps, Highlighter } from './components/CodeBlock';
 export { AspectRatio } from './components/AspectRatio';
 export type { AspectRatioProps } from './components/AspectRatio';
 export { VirtualList } from './components/VirtualList';
@@ -202,7 +202,7 @@ export type { SwipeActionProps } from './components/SwipeAction';
 
 // i18n
 export { default as LocaleProvider, useStrings } from './components/LocaleProvider';
-export { defaultStrings, enUS, zhCN, createStrings } from './components/LocaleProvider';
+export { defaultStrings, enUS, zhCN, jaJP, createStrings } from './components/LocaleProvider';
 export type { LocaleProviderProps, HazeStrings } from './components/LocaleProvider';
 export type { DeepPartial } from './components/LocaleProvider';
 
@@ -212,7 +212,7 @@ export { useDirection, getDirection, localeDirection } from './utils/direction';
 export type { Direction } from './utils/direction';
 
 // data table (TanStack headless + haze styles)
-export { DataTable, dataTableSum, dataTableAvg, dataTableCount } from './components/DataTable';
+export { DataTable, dataTableSum, dataTableAvg, dataTableCount, dataTableToCsv } from './components/DataTable';
 export type {
   DataTableProps,
   DataTableColumnDef,
@@ -221,11 +221,12 @@ export type {
   DataTableSummary,
   DataTableSummaryCell,
   DataTableCellEditorProps,
+  DataTableCsvOptions,
 } from './components/DataTable';
 
 // chart (recharts optional peer + haze tokens)
 export { Chart } from './components/Chart';
-export type { ChartProps, ChartSeries, ChartType } from './components/Chart';
+export type { ChartProps, ChartSeries, ChartType, ChartTooltipPayload, ChartTooltipEntry } from './components/Chart';
 
 // display & overlay additions
 export { Kbd } from './components/Kbd';
@@ -291,6 +292,26 @@ export type { LogViewerProps, LogEntry, LogLevel } from './components/LogViewer'
 export { AsyncSection } from './components/AsyncSection';
 export type { AsyncSectionProps } from './components/AsyncSection';
 
+// data display & ai/chat additions (wave 5)
+export { Descriptions } from './components/Descriptions';
+export type { DescriptionsProps, DescriptionsItem } from './components/Descriptions';
+export { JsonView } from './components/JsonView';
+export type { JsonViewProps, MoreLabelFn } from './components/JsonView';
+export { Sources } from './components/Sources';
+export type { SourcesProps, SourceItem } from './components/Sources';
+export { FilePreview } from './components/FilePreview';
+export type { FilePreviewProps, FilePreviewFile, FilePreviewStatus } from './components/FilePreview';
+export { InlineCompletion } from './components/InlineCompletion';
+export type { InlineCompletionProps } from './components/InlineCompletion';
+
+// layout, navigation & forms additions (wave 5)
+export { FloatButton, FloatButtonGroup } from './components/FloatButton';
+export type { FloatButtonProps, FloatButtonGroupProps } from './components/FloatButton';
+export { Masonry } from './components/Masonry';
+export type { MasonryProps } from './components/Masonry';
+export { Signature } from './components/Signature';
+export type { SignatureProps } from './components/Signature';
+
 // hooks
 export {
   useTitle,
@@ -298,11 +319,13 @@ export {
   usePrefersReducedMotion,
   useDebouncedValue,
   useDebouncedCallback,
+  useDarkMode,
   useClipboard,
   useFullscreen,
 } from './hooks';
 export type { UseClipboardResult } from './hooks';
 export type { FullscreenTarget, UseFullscreenHandle } from './hooks';
+export type { ColorMode, UseDarkModeOptions, UseDarkModeResult } from './hooks';
 export { useHotkeys, hotkey, useInView, useLocalStorage, useSessionStorage } from './hooks';
 export type { HotkeyHandler, UseHotkeysOptions, UseInViewOptions } from './hooks';
 export { useClickOutside } from './hooks';

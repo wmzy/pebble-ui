@@ -898,3 +898,205 @@ describe('Upload — action mode (XHR)', () => {
     expect(screen.queryByText(/%/)).not.toBeInTheDocument();
   });
 });
+
+describe('Upload — picture-card list', () => {
+  // jsdom ships no Blob URL support (URL.createObjectURL is undefined)
+  // — stub the pair the thumbnail cells use.
+  const createObjectURL = vi.fn(() => 'blob:card-thumb');
+  const revokeObjectURL = vi.fn();
+
+  beforeEach(() => {
+    createObjectURL.mockClear();
+    revokeObjectURL.mockClear();
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: createObjectURL,
+      configurable: true,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: revokeObjectURL,
+      configurable: true,
+    });
+  });
+  afterEach(() => {
+    delete (URL as { createObjectURL?: unknown }).createObjectURL;
+    delete (URL as { revokeObjectURL?: unknown }).revokeObjectURL;
+  });
+
+  it('renders an object-URL thumbnail for image files', async () => {
+    const { request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList listType="picture-card" />);
+    const image = new File(['img'], 'photo.png', { type: 'image/png' });
+    await userEvent.upload(getFileInput(), image);
+    await flushUploads();
+    expect(createObjectURL).toHaveBeenCalledWith(image);
+    const img = document.querySelector<HTMLImageElement>('li[data-status] img');
+    expect(img).not.toBeNull();
+    expect(img).toHaveAttribute('src', 'blob:card-thumb');
+    expect(img).toHaveAttribute('alt', 'photo.png');
+  });
+
+  it('revokes the thumbnail object URL when the component unmounts', async () => {
+    const { request } = makeDeferredRequest();
+    const { unmount } = render(
+      <Upload request={request} showUploadList listType="picture-card" />
+    );
+    await userEvent.upload(
+      getFileInput(),
+      new File(['img'], 'a.png', { type: 'image/png' })
+    );
+    await flushUploads();
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    unmount();
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:card-thumb');
+  });
+
+  it('falls back to an explicitly sized type icon for non-image files', async () => {
+    const { request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList listType="picture-card" />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['hi'], 'notes.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+    const item = document.querySelector('li[data-status]')!;
+    expect(item.querySelector('img')).toBeNull();
+    expect(createObjectURL).not.toHaveBeenCalled();
+    // svg without intrinsic dimensions collapses to 0×0 in flex — the
+    // fallback icon must carry explicit width/height
+    const icon = item.querySelector('span[role="img"] svg')!;
+    expect(icon).toHaveAttribute('width', '24');
+    expect(icon).toHaveAttribute('height', '24');
+    expect(screen.getByTitle('notes.txt')).toBeInTheDocument();
+  });
+
+  it('masks the card with the live percent while uploading', async () => {
+    const { calls, request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList listType="picture-card" />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['img'], 'a.png', { type: 'image/png' })
+    );
+    await flushUploads();
+    calls[0]!.onProgress(60);
+    await flushUploads();
+    expect(screen.getByText('60%')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '60');
+    calls[0]!.resolve();
+    await flushUploads();
+    expect(screen.queryByText(/%/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+
+  it('reveals the remove button with an overridable label and revokes on remove', async () => {
+    const onChange = vi.fn();
+    const { request } = makeDeferredRequest();
+    const file = new File(['img'], 'a.png', { type: 'image/png' });
+    const { rerender } = render(
+      <UploadCore
+        value={[file]}
+        onChange={onChange}
+        request={request}
+        showUploadList
+        listType="picture-card"
+      />
+    );
+    await flushUploads();
+    expect(screen.getByRole('button', { name: 'Remove file' })).toBeInTheDocument();
+
+    rerender(
+      <UploadCore
+        value={[file]}
+        onChange={onChange}
+        request={request}
+        showUploadList
+        listType="picture-card"
+        removeLabel="Delete image"
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Delete image' }));
+    expect(onChange).toHaveBeenLastCalledWith([]);
+    rerender(
+      <UploadCore
+        value={[]}
+        onChange={onChange}
+        request={request}
+        showUploadList
+        listType="picture-card"
+      />
+    );
+    await flushUploads();
+    expect(document.querySelector('li[data-status]')).toBeNull();
+    // the card left with the applied value — its blob URL went with it
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:card-thumb');
+  });
+
+  it('marks failed cards with the error state and retries in place', async () => {
+    const { calls, request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList listType="picture-card" />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['img'], 'a.png', { type: 'image/png' })
+    );
+    await flushUploads();
+    calls[0]!.reject(new Error('boom'));
+    await flushUploads();
+    expect(document.querySelector('li[data-status="error"]')).toBeInTheDocument();
+    expect(screen.getByText('Upload failed')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retry upload' }));
+    await flushUploads();
+    expect(calls).toHaveLength(2);
+    calls[1]!.resolve();
+    await flushUploads();
+    expect(document.querySelector('li[data-status="success"]')).toBeInTheDocument();
+  });
+
+  it('keeps the text row structure when listType is omitted', async () => {
+    const { request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['img'], 'a.png', { type: 'image/png' })
+    );
+    await flushUploads();
+    const item = document.querySelector('li[data-status]')!;
+    expect(item.querySelector('img')).toBeNull();
+    expect(screen.getByTitle('a.png')).toBeInTheDocument();
+    expect(screen.getByText('Uploading 0%')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel upload' })).toBeInTheDocument();
+  });
+
+  it('has no axe violations across mixed picture-card states', async () => {
+    const { axe } = await import('jest-axe');
+    const { calls, request } = makeDeferredRequest();
+    render(
+      <Upload request={request} multiple showUploadList listType="picture-card" />
+    );
+    await userEvent.upload(getFileInput(), [
+      new File(['img'], 'a.png', { type: 'image/png' }),
+      new File(['txt'], 'notes.txt', { type: 'text/plain' }),
+    ]);
+    await flushUploads();
+    calls[0]!.resolve();
+    calls[1]!.reject(new Error('boom'));
+    await flushUploads();
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Upload — directory picking', () => {
+  it('forwards the non-standard directory attributes to the input', () => {
+    const { rerender } = render(<Upload directory multiple />);
+    const input = getFileInput();
+    expect(input).toHaveAttribute('webkitdirectory');
+    expect(input).toHaveAttribute('directory');
+
+    rerender(<Upload multiple />);
+    const bare = getFileInput();
+    expect(bare).not.toHaveAttribute('webkitdirectory');
+    expect(bare).not.toHaveAttribute('directory');
+  });
+});

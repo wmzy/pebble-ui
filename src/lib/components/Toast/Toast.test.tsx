@@ -54,6 +54,42 @@ describe('Toast', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
   });
 
+  it('labels the close button from the active locale pack', () => {
+    render(
+      <LocaleProvider locale='ja-JP'>
+        <Toast onClose={vi.fn()} duration={0}>Message</Toast>
+      </LocaleProvider>
+    );
+    expect(screen.getByRole('button', { name: '閉じる' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Close' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('re-resolves the close label when the locale switches', () => {
+    const { rerender } = render(
+      <LocaleProvider locale='zh-CN'>
+        <Toast onClose={vi.fn()} duration={0}>Message</Toast>
+      </LocaleProvider>
+    );
+    expect(screen.getByRole('button', { name: '关闭' })).toBeInTheDocument();
+    rerender(
+      <LocaleProvider locale='ja-JP'>
+        <Toast onClose={vi.fn()} duration={0}>Message</Toast>
+      </LocaleProvider>
+    );
+    expect(screen.getByRole('button', { name: '閉じる' })).toBeInTheDocument();
+  });
+
+  it('lets a strings override win for the close label', () => {
+    render(
+      <LocaleProvider strings={{ toast: { close: 'Dismiss' } }}>
+        <Toast onClose={vi.fn()} duration={0}>Message</Toast>
+      </LocaleProvider>
+    );
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+  });
+
   it('calls onClose when close button clicked', async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();

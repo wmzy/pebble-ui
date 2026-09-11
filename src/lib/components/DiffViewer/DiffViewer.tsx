@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type DiffLine = {
   type: 'added' | 'removed' | 'unchanged';
   content: string;
@@ -108,11 +110,12 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
 }
 
 export default function DiffViewer({ oldValue, newValue, className }: DiffViewerProps) {
+  const strings = useStrings('diffViewer');
   const lines = useMemo(() => computeDiff(oldValue, newValue), [oldValue, newValue]);
 
   return (
     <div x-class={[wrapper, className]}>
-      <div x-class={[header]}>Diff</div>
+      <div x-class={[header]}>{strings.header}</div>
       <div x-class={[body]}>
         {lines.map((line, i) => (
           <div key={i} x-class={[lineStyle, line.type === 'added' && added, line.type === 'removed' && removed]}>

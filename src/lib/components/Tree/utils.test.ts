@@ -1,10 +1,14 @@
 import {
+  filterTreeByQuery,
   flattenTreeData,
   flattenVisibleTree,
   findNodeByKey,
   getChildKeys,
   getParentKey,
   getAllLeafKeys,
+  matchRanges,
+  mergeLoadedChildren,
+  pruneLoadedChildren,
 } from './utils';
 
 const tree = [
@@ -148,5 +152,92 @@ describe('flattenVisibleTree', () => {
 
   it('handles empty input', () => {
     expect(flattenVisibleTree([], [], false)).toEqual([]);
+  });
+});
+
+describe('matchRanges', () => {
+  it('finds every case-insensitive non-overlapping occurrence', () => {
+    expect(matchRanges('Banana bandana', 'ANA')).toEqual([
+      [1, 4],
+      [11, 14],
+    ]);
+  });
+
+  it('returns empty for an empty query or no hit', () => {
+    expect(matchRanges('Target file', '')).toEqual([]);
+    expect(matchRanges('Target file', 'zzz')).toEqual([]);
+  });
+});
+
+describe('filterTreeByQuery', () => {
+  it('keeps matches plus their ancestor path and reports both key sets', () => {
+    const result = filterTreeByQuery(tree, 'x');
+    expect(result).not.toBeNull();
+    expect(result!.matchedKeys).toEqual(['a-1-x']);
+    expect([...result!.ancestorKeys].sort()).toEqual(['a', 'a-1']);
+    expect(result!.tree).toHaveLength(1);
+    expect(result!.tree[0]!.key).toBe('a');
+    expect(result!.tree[0]!.children).toHaveLength(1);
+    expect(result!.tree[0]!.children![0]!.key).toBe('a-1');
+    expect(result!.tree[0]!.children![0]!.children).toHaveLength(1);
+  });
+
+  it('keeps a node whose own title misses when a descendant hits', () => {
+    const result = filterTreeByQuery(tree, 'A1X');
+    expect(result!.tree[0]!.children).toHaveLength(1);
+    expect(result!.tree[0]!.children![0]!.key).toBe('a-1');
+  });
+
+  it('returns null for an empty query so callers keep their data by reference', () => {
+    expect(filterTreeByQuery(tree, '')).toBeNull();
+  });
+
+  it('returns an empty tree when nothing matches', () => {
+    expect(filterTreeByQuery(tree, 'zzz')!.tree).toEqual([]);
+  });
+});
+
+describe('mergeLoadedChildren', () => {
+  it('attaches cached children to childless nodes anywhere in the tree', () => {
+    const merged = mergeLoadedChildren(tree, {
+      b: [{ key: 'b-1', title: 'B1' }],
+    });
+    expect(merged[1]!.children).toEqual([{ key: 'b-1', title: 'B1' }]);
+  });
+
+  it('marks an empty load as a leaf', () => {
+    const merged = mergeLoadedChildren([{ key: 'b', title: 'B' }], {
+      b: [],
+    });
+    expect(merged[0]!.isLeaf).toBe(true);
+    expect(merged[0]!.children).toBeUndefined();
+  });
+
+  it('never overrides children the controlled data ships itself', () => {
+    const merged = mergeLoadedChildren(tree, {
+      a: [{ key: 'intruder', title: 'Intruder' }],
+    });
+    expect(merged[0]!.children!.map((n) => n.key)).toEqual(['a-1', 'a-2']);
+  });
+
+  it('returns the same reference when nothing is cached', () => {
+    expect(mergeLoadedChildren(tree, {})).toBe(tree);
+  });
+});
+
+describe('pruneLoadedChildren', () => {
+  it('drops entries whose key left the controlled data', () => {
+    const loaded = { gone: [{ key: 'gone-0', title: 'G0' }] };
+    expect(pruneLoadedChildren(loaded, tree)).toEqual({});
+  });
+
+  it('drops entries whose node now ships its own children', () => {
+    const loaded = { a: [{ key: 'stale', title: 'Stale' }] };
+    expect(pruneLoadedChildren(loaded, tree)).toEqual({});
+  });
+
+  it('keeps valid entries and the reference when nothing is pruned', () => {
+    const loaded = { b: [{ key: 'b-1', title: 'B1' }] };
+    expect(pruneLoadedChildren(loaded, tree)).toBe(loaded);
   });
 });

@@ -4,6 +4,7 @@ import type { HazeStringsOverrides, LocaleContextValue } from './LocaleContext';
 import { useContext } from 'react';
 
 import { enUS } from './locale';
+import { jaJP } from './ja-jp';
 import { zhCN } from './zh-cn';
 
 import { LocaleContext } from './LocaleContext';
@@ -19,14 +20,18 @@ function collectLayers(
 
 /**
  * Picks the built-in pack for a BCP 47 tag: Chinese variants ('zh',
- * 'zh-CN', 'zh_TW', …) resolve to `zhCN`, anything else — or no
- * locale at all — falls back to English.
+ * 'zh-CN', 'zh_TW', …) resolve to `zhCN`, Japanese variants ('ja',
+ * 'ja-JP', 'ja_JP', …) to `jaJP`, anything else — or no locale at
+ * all — falls back to English.
  */
 function resolveBuiltinStrings(locale: string | undefined): HazeStrings {
   if (locale) {
     const tag = locale.toLowerCase();
     if (tag === 'zh' || tag.startsWith('zh-') || tag.startsWith('zh_')) {
       return zhCN;
+    }
+    if (tag === 'ja' || tag.startsWith('ja-') || tag.startsWith('ja_')) {
+      return jaJP;
     }
   }
   return enUS;

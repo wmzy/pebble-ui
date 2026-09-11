@@ -8,7 +8,10 @@ import { render, screen, act, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useControl } from 'react-use-control';
 
+import LocaleProvider from '../LocaleProvider';
+
 import DataTable from './DataTable';
+import { dataTableToCsv } from './csv';
 import { dataTableAvg, dataTableCount, dataTableSum } from './summary';
 
 type Person = {
@@ -1952,5 +1955,384 @@ describe('DataTable tree, summary and editing accessibility', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+describe('DataTable server mode (manual)', () => {
+  it('reports SortingState through onSortChange without reordering rows', async () => {
+    const user = userEvent.setup();
+    const onSortChange = vi.fn();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        sortable
+        manual
+        pageSize={5}
+        pageCount={3}
+        onSortChange={onSortChange}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Name' }));
+
+    expect(onSortChange).toHaveBeenCalledTimes(1);
+    expect(onSortChange).toHaveBeenCalledWith([{ id: 'name', desc: false }]);
+    // The server owns the order — rows render exactly as received.
+    expect(bodyRows()[0]).toHaveTextContent('Charlie');
+    expect(bodyRows()[4]).toHaveTextContent('Evan');
+    // The header state still tracks the requested sort direction.
+    expect(
+      screen.getByRole('columnheader', { name: 'Name' })
+    ).toHaveAttribute('aria-sort', 'ascending');
+
+    await user.click(screen.getByRole('button', { name: 'Name' }));
+    expect(onSortChange).toHaveBeenCalledWith([{ id: 'name', desc: true }]);
+    expect(bodyRows()[0]).toHaveTextContent('Charlie');
+  });
+
+  it('fires onPageChange from footer clicks and never slices server rows', async () => {
+    const user = userEvent.setup();
+    const onPageChange = vi.fn();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        manual
+        pageSize={2}
+        pageCount={3}
+        onPageChange={onPageChange}
+      />
+    );
+
+    // All 5 server rows render despite pageSize 2 — no local slicing.
+    expect(bodyRows()).toHaveLength(5);
+
+    await user.click(screen.getByRole('button', { name: '2' }));
+    expect(onPageChange).toHaveBeenCalledWith(2);
+    expect(bodyRows()).toHaveLength(5);
+    expect(screen.getByRole('button', { name: '2' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(onPageChange).toHaveBeenCalledWith(3);
+    expect(bodyRows()).toHaveLength(5);
+  });
+
+  it('derives footer pages from pageCount instead of data.length', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        manual
+        pageSize={5}
+        pageCount={7}
+      />
+    );
+
+    // 5 rows at pageSize 5 would be a single page; the server says 7.
+    expect(screen.getByRole('button', { name: '7' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
+  });
+
+  it('keeps footer math on data.length when not manual', () => {
+    render(<DataTable columns={columns} data={people} pageSize={5} />);
+
+    expect(screen.queryByRole('button', { name: '2' })).not.toBeInTheDocument();
+  });
+
+  it('reports page and sorting changes in local mode too', async () => {
+    const user = userEvent.setup();
+    const onPageChange = vi.fn();
+    const onSortChange = vi.fn();
+    render(
+      <DataTable
+        columns={columns}
+        data={people}
+        sortable
+        pageSize={2}
+        onPageChange={onPageChange}
+        onSortChange={onSortChange}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Name' }));
+    expect(onSortChange).toHaveBeenCalledWith([{ id: 'name', desc: false }]);
+    expect(bodyRows()[0]).toHaveTextContent('Alice');
+
+    await user.click(screen.getByRole('button', { name: '2' }));
+    expect(onPageChange).toHaveBeenCalledWith(2);
+  });
+
+  it('selects rows on a server page through the same control plumbing', async () => {
+    const user = userEvent.setup();
+    function Harness() {
+      const [selection, , selectionCtrl] = useControl<RowSelectionState>(
+        undefined,
+        {}
+      );
+      const selected = Object.keys(selection)
+        .filter((key) => selection[key])
+        .join(' ');
+      return (
+        <>
+          <DataTable
+            columns={columns}
+            data={people}
+            manual
+            pageSize={5}
+            pageCount={2}
+            selectable
+            getRowId={rowId}
+            rowSelection={selectionCtrl}
+          />
+          <output data-testid='selection'>{selected}</output>
+        </>
+      );
+    }
+
+    render(<Harness />);
+
+    await user.click(screen.getByRole('checkbox', { name: 'Select row u2' }));
+    expect(
+      screen.getByRole('checkbox', { name: 'Select row u2' })
+    ).toBeChecked();
+    expect(screen.getByTestId('selection')).toHaveTextContent('u2');
+
+    // Select-all over the server page reflects through the same state
+    // (key order follows the existing selection — compare as a set).
+    await user.click(screen.getByRole('checkbox', { name: 'Select all rows' }));
+    const selectedIds = screen
+      .getByTestId('selection')
+      .textContent.split(' ')
+      .filter(Boolean)
+      .sort();
+    expect(selectedIds).toEqual(['u1', 'u2', 'u3', 'u4', 'u5']);
+  });
+});
+
+describe('DataTable manual virtualization', () => {
+  // Same jsdom mocks as the virtualization suite: no layout, no
+  // ResizeObserver — the observer reports synchronously and the rect mock
+  // fabricates the heights DataTable measures (scroll region 400, header 40).
+  type ObserveCallback = (entries: ResizeObserverEntry[]) => void;
+
+  class MockResizeObserver {
+    observed = new Set<Element>();
+
+    constructor(private callback: ObserveCallback) {}
+
+    observe(target: Element) {
+      if (this.observed.has(target)) return;
+      this.observed.add(target);
+      this.callback([{ target } as ResizeObserverEntry]);
+    }
+
+    unobserve(target: Element) {
+      this.observed.delete(target);
+    }
+
+    disconnect() {
+      this.observed.clear();
+    }
+  }
+
+  let rectSpy: MockInstance;
+
+  beforeEach(() => {
+    vi.stubGlobal('ResizeObserver', MockResizeObserver);
+    rectSpy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.tagName === 'THEAD') {
+          return { height: 40 } as DOMRect;
+        }
+        if (this.tagName === 'DIV') {
+          return { height: 400 } as DOMRect;
+        }
+        return { height: 0 } as DOMRect;
+      });
+  });
+
+  afterEach(() => {
+    rectSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it('windows a manual table the same way as a local one', () => {
+    const many: Person[] = Array.from({ length: 1000 }, (_, i) => ({
+      id: `u${i}`,
+      name: `Person ${i}`,
+      age: 20 + i,
+    }));
+    render(
+      <DataTable
+        columns={columns}
+        data={many}
+        manual
+        pageSize={1000}
+        pageCount={5}
+        virtualized
+        getRowId={rowId}
+      />
+    );
+
+    // viewport 400 − header 40 = 360px at 34px/row → rows 0–10 plus the
+    // default overscan of 5 — the server payload windows untouched.
+    expect(bodyRows()).toHaveLength(16);
+    expect(bodyRows()[0]).toHaveTextContent('Person 0');
+    expect(bodyRows()[15]).toHaveTextContent('Person 15');
+  });
+});
+
+describe('dataTableToCsv', () => {
+  type CsvRow = { label: string; detail: string };
+
+  it('escapes commas, quotes, line breaks and keeps CRLF separators', () => {
+    const rows: CsvRow[] = [
+      { label: 'Ada, Grace', detail: 'plain' },
+      { label: 'Quote " Ada', detail: 'plain' },
+      { label: 'two\nlines', detail: 'plain' },
+      { label: 'crlf\r\nbreak', detail: 'plain' },
+    ];
+    const cols: DataTableColumnDef<CsvRow>[] = [
+      { accessorKey: 'label', header: 'Label' },
+      { accessorKey: 'detail', header: 'Detail' },
+    ];
+
+    expect(dataTableToCsv(rows, cols)).toBe(
+      '\uFEFFLabel,Detail\r\n' +
+        '"Ada, Grace",plain\r\n' +
+        '"Quote "" Ada",plain\r\n' +
+        '"two\nlines",plain\r\n' +
+        '"crlf\r\nbreak",plain'
+    );
+  });
+
+  it('prepends a BOM for Excel by default and drops it on request', () => {
+    const rows: CsvRow[] = [{ label: '张伟', detail: '上海' }];
+    const cols: DataTableColumnDef<CsvRow>[] = [
+      { accessorKey: 'label', header: '姓名' },
+      { accessorKey: 'detail', header: '城市' },
+    ];
+
+    // CJK stays verbatim; the BOM is what makes Excel decode it as UTF-8.
+    expect(dataTableToCsv(rows, cols)).toBe('\uFEFF姓名,城市\r\n张伟,上海');
+    expect(dataTableToCsv(rows, cols, { bom: false })).toBe(
+      '姓名,城市\r\n张伟,上海'
+    );
+  });
+
+  it('skips excludeFromExport columns and hidden columns', () => {
+    type Row = { name: string; role: string; internal: string; secret: string };
+    const rows: Row[] = [
+      { name: 'Ada', role: 'Engineer', internal: 'u1', secret: 's1' },
+    ];
+    const cols: DataTableColumnDef<Row>[] = [
+      { accessorKey: 'name', header: 'Name' },
+      { accessorKey: 'role', header: 'Role' },
+      {
+        accessorKey: 'internal',
+        header: 'Internal id',
+        meta: { excludeFromExport: true },
+      },
+      { accessorKey: 'secret', header: 'Secret' },
+    ];
+
+    const csv = dataTableToCsv(rows, cols, { columnVisibility: { secret: false } });
+    expect(csv).toBe('\uFEFFName,Role\r\nAda,Engineer');
+  });
+
+  it('skips display-only columns and serializes accessorFn values', () => {
+    type Row = { name: string; score: number; joined: string };
+    const rows: Row[] = [{ name: 'Ada', score: 21, joined: '2021-04-12' }];
+    const cols: DataTableColumnDef<Row>[] = [
+      // No accessorKey/accessorFn — nothing to serialize.
+      { id: 'actions', header: 'Actions' },
+      { accessorKey: 'name', header: 'Name' },
+      {
+        accessorFn: (row) => row.score * 2,
+        id: 'doubled',
+        header: '×2',
+      },
+      { accessorKey: 'joined', header: 'Joined' },
+    ];
+
+    expect(dataTableToCsv(rows, cols)).toBe(
+      '\uFEFFName,×2,Joined\r\nAda,42,2021-04-12'
+    );
+  });
+
+  it('exports null, undefined and Date values predictably', () => {
+    type Row = { name: string | null; when: Date | undefined; note?: string };
+    const rows: Row[] = [
+      { name: null, when: new Date('2021-04-12T08:30:00Z'), note: undefined },
+    ];
+    const cols: DataTableColumnDef<Row>[] = [
+      { accessorKey: 'name', header: 'Name' },
+      { accessorKey: 'when', header: 'When' },
+      { accessorKey: 'note', header: 'Note' },
+    ];
+
+    expect(dataTableToCsv(rows, cols)).toBe(
+      '\uFEFFName,When,Note\r\n,2021-04-12T08:30:00.000Z,'
+    );
+  });
+
+  it('flattens grouped columns to their leaves', () => {
+    type Row = { first: string; last: string; age: number };
+    const rows: Row[] = [{ first: 'Ada', last: 'Lovelace', age: 36 }];
+    const cols: DataTableColumnDef<Row>[] = [
+      {
+        header: 'Person',
+        columns: [
+          { accessorKey: 'first', header: 'First' },
+          { accessorKey: 'last', header: 'Last' },
+        ],
+      },
+      { accessorKey: 'age', header: 'Age' },
+    ];
+
+    expect(dataTableToCsv(rows, cols)).toBe(
+      '\uFEFFFirst,Last,Age\r\nAda,Lovelace,36'
+    );
+  });
+
+  it('exports data rows only as the header line and nothing when no column exports', () => {
+    const cols: DataTableColumnDef<CsvRow>[] = [
+      { accessorKey: 'label', header: 'Label' },
+    ];
+
+    expect(dataTableToCsv([], cols)).toBe('\uFEFFLabel');
+    expect(
+      dataTableToCsv([{ label: 'x', detail: 'y' }], [
+        { id: 'actions', header: 'Actions' },
+      ])
+    ).toBe('');
+  });
+});
+
+describe('DataTable strings', () => {
+  it('labels the select-all checkbox through the locale pack', () => {
+    render(
+      <LocaleProvider locale='zh-CN'>
+        <DataTable columns={columns} data={people} selectable />
+      </LocaleProvider>
+    );
+
+    expect(screen.getByRole('checkbox', { name: '全选' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: 'Select all rows' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps the English pack without a provider', () => {
+    render(<DataTable columns={columns} data={people} selectable />);
+
+    expect(
+      screen.getByRole('checkbox', { name: 'Select all rows' })
+    ).toBeInTheDocument();
   });
 });

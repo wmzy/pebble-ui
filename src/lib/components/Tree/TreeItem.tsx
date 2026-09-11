@@ -7,6 +7,8 @@ import { useId } from 'react';
 
 import { useStrings } from '../LocaleProvider';
 
+import { matchRanges } from './utils';
+
 type TreeItemProps = {
   node: TreeNodeData;
   level: number;
@@ -22,6 +24,15 @@ type TreeItemProps = {
   switcherIcon?: ReactNode;
   loadingIcon?: ReactNode;
   loading: boolean;
+  /**
+   * Lazy loading is armed (`loadData` provided): a childless node
+   * without `isLeaf: true` renders as expandable instead of a leaf.
+   */
+  loadable?: boolean;
+  /** The last lazy load of this node rejected — show the retry note. */
+  loadFailed?: boolean;
+  /** Active search query — string titles highlight their matches. */
+  searchValue?: string;
   titleRender?: (node: TreeNodeData) => ReactNode;
   iconRender?: (node: TreeNodeData) => ReactNode;
   isLast: boolean[];
@@ -33,6 +44,7 @@ type TreeItemProps = {
   onToggle: () => void;
   onSelect: () => void;
   onCheck: () => void;
+  onRetry?: () => void;
 };
 
 const indentSize = 24;
@@ -177,6 +189,36 @@ const loadingIcon = css`
   }
 `;
 
+/* Search-hit highlight: warning-subtle on warning mirrors the Badge
+   warning variant's token pairing. */
+const mark = css`
+  background: var(--haze-color-warning-subtle);
+  color: var(--haze-color-warning);
+  border-radius: var(--haze-radius-sm);
+  padding: 0 var(--haze-space-1);
+`;
+
+/* Inline lazy-load failure note: retry affordance on the node row. */
+const loadFailedNote = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--haze-space-1);
+  flex-shrink: 0;
+  margin-inline-start: var(--haze-space-2);
+  font-size: var(--haze-text-xs);
+  color: var(--haze-color-danger);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--haze-color-danger-hover);
+  }
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+`;
+
 const indentLine = css`
   display: inline-block;
   width: ${indentSize}px;
@@ -254,6 +296,41 @@ const SpinnerIcon = () => (
   </svg>
 );
 
+const RetryIcon = () => (
+  <svg
+    viewBox='0 0 16 16'
+    fill='none'
+    stroke='currentColor'
+    strokeWidth='2'
+    strokeLinecap='round'
+    strokeLinejoin='round'
+  >
+    <path d='M13.5 8a5.5 5.5 0 1 1-1.61-3.89' />
+    <path d='M13.5 1.5v3h-3' />
+  </svg>
+);
+
+/** Wraps every case-insensitive occurrence of `query` inside `text`
+ *  with a token-styled `<mark>`; returns `text` when nothing matches. */
+function highlightTitle(text: string, query: string): ReactNode {
+  const ranges = matchRanges(text, query);
+  if (ranges.length === 0) return text;
+
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  ranges.forEach(([start, end], index) => {
+    if (start > cursor) parts.push(text.slice(cursor, start));
+    parts.push(
+      <mark key={index} className={mark}>
+        {text.slice(start, end)}
+      </mark>
+    );
+    cursor = end;
+  });
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return parts;
+}
+
 export default function TreeItem({
   node,
   level,
@@ -269,6 +346,9 @@ export default function TreeItem({
   switcherIcon,
   loadingIcon: loadingIconProp,
   loading,
+  loadable,
+  loadFailed,
+  searchValue,
   titleRender,
   iconRender,
   isLast,
@@ -276,9 +356,12 @@ export default function TreeItem({
   onToggle,
   onSelect,
   onCheck,
+  onRetry,
 }: TreeItemProps) {
   const hasChildren = !!node.children?.length;
-  const isLeaf = node.isLeaf ?? !hasChildren;
+  // With lazy loading armed, a childless node without an explicit
+  // isLeaf stays expandable — its children arrive from `loadData`.
+  const isLeaf = node.isLeaf ?? (!hasChildren && !loadable);
   const strings = useStrings('tree');
   // 与 Dialog 的 haze-dialog-title-${useId()} 同一套生成模式：给节点标题
   // 一个稳定 id，供复选框 aria-labelledby 引用（ReactNode 标题也能命名）。
@@ -288,7 +371,11 @@ export default function TreeItem({
     showLine: showLine && !isLast[i],
   }));
 
-  const titleContent = titleRender ? titleRender(node) : node.title;
+  const titleContent = titleRender
+    ? titleRender(node)
+    : typeof node.title === 'string' && searchValue
+      ? highlightTitle(node.title, searchValue)
+      : node.title;
   const iconContent = iconRender ? iconRender(node) : node.icon;
 
   return (
@@ -300,6 +387,7 @@ export default function TreeItem({
         aria-selected={selected}
         aria-expanded={isLeaf ? undefined : expanded}
         aria-level={level + 1}
+        aria-busy={loading || undefined}
         x-class={[
           item,
           blockNode && blockItem,
@@ -380,6 +468,20 @@ export default function TreeItem({
         )}
 
         <span className={title} id={titleId}>{titleContent}</span>
+
+        {loadFailed && (
+          <span
+            role='button'
+            x-class={loadFailedNote}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRetry?.();
+            }}
+          >
+            <RetryIcon />
+            {strings.loadError} · {strings.retry}
+          </span>
+        )}
       </div>
     </div>
   );

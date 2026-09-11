@@ -91,6 +91,12 @@ type DataTableColumnMeta = {
    */
   filterable?: boolean;
   /**
+   * `true` keeps the column out of `dataTableToCsv` exports — the flag for
+   * columns whose cells are presentation-only (badges, action buttons) or
+   * internal (row ids) and meaningless in a spreadsheet.
+   */
+  excludeFromExport?: boolean;
+  /**
    * Cell editor for this column while the table-level `editable` switch is
    * on. `'text'` and `'number'` render the built-in inline editor (an
    * `InputCore`; the number variant parses the draft on save and reports

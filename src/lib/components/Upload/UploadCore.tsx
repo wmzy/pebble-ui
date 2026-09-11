@@ -86,6 +86,26 @@ type UploadCoreProps = {
    */
   showUploadList?: boolean | { itemRender?: UploadListItemRender };
   /**
+   * Rendering style of the built-in list (default `text`): `text`
+   * rows, or a `picture-card` grid of square thumbnail cards —
+   * object-URL previews for image files (revoked once the card leaves),
+   * a type-icon fallback for the rest, an upload mask with the live
+   * percent, and a danger border + retry on error.
+   */
+  listType?: 'text' | 'picture-card';
+  /**
+   * Overrides the built-in remove-button label (list rows and
+   * picture-card corners); defaults to the locale string.
+   */
+  removeLabel?: string;
+  /**
+   * Picks directories instead of files: forwards the non-standard
+   * `webkitdirectory`/`directory` attributes to the hidden input, so
+   * the native dialog enumerates every file inside the chosen folder
+   * (combine with `multiple` so the whole tree stays in the list).
+   */
+  directory?: boolean;
+  /**
    * Fires whenever the tracked entries change (added, removed, status
    * or percent) with the complete snapshot in value order. Only tracks
    * while `request`/`action` or `showUploadList` is in play.
@@ -214,6 +234,9 @@ export default function UploadCore({
   data,
   manual = false,
   showUploadList,
+  listType,
+  removeLabel,
+  directory,
   onStatusChange,
   className,
   children,
@@ -486,6 +509,13 @@ export default function UploadCore({
     inputRef.current?.click();
   }, []);
 
+  // `webkitdirectory`/`directory` are non-standard (no React DOM
+  // types); browsers key off attribute presence, so empty-string
+  // values. Typed through a variable — JSX spread of a non-literal
+  // skips excess-property checking.
+  const directoryAttributes: { webkitdirectory?: string; directory?: string } =
+    directory ? { webkitdirectory: '', directory: '' } : {};
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     // role="button": Enter and Space activate; Space would also scroll.
     if (e.key !== 'Enter' && e.key !== ' ') return;
@@ -555,6 +585,7 @@ export default function UploadCore({
           type="file"
           accept={accept}
           multiple={multiple}
+          {...directoryAttributes}
           onChange={handleChange}
           // implementation detail of the dropzone (role="button"): hide it
           // from a11y tree and tab order; input.click() still opens the dialog
@@ -574,6 +605,8 @@ export default function UploadCore({
       {listEnabled && entries.length > 0 && (
         <UploadList
           entries={entries}
+          listType={listType}
+          removeLabel={removeLabel}
           itemRender={
             typeof showUploadList === 'object' ? showUploadList.itemRender : undefined
           }

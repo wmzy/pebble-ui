@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useControl } from 'react-use-control';
 
 import { Select, Option, OptionGroup } from '@/lib/components/Select';
@@ -39,6 +40,16 @@ const GROUPED_FRAMEWORKS = [
   </OptionGroup>,
 ];
 
+// Simulated remote corpus for the remote-search example — stands in
+// for a server-side query endpoint.
+const REMOTE_ITEMS = [
+  ...FRAMEWORKS,
+  { value: 'preact', label: 'Preact' },
+  { value: 'qwik', label: 'Qwik' },
+  { value: 'lit', label: 'Lit' },
+  { value: 'alpine', label: 'Alpine.js' },
+];
+
 const noteStyle = {
   fontSize: 'var(--haze-text-sm)',
   color: 'var(--haze-color-text-secondary)',
@@ -76,6 +87,34 @@ export default function SelectDemo() {
     undefined,
     false
   );
+  // Remote-search stand-in: the fake server owns the option list and
+  // answers each query after a delay. A pending timer is cancelled on
+  // unmount (and superseded by the next query).
+  const [remoteItems, setRemoteItems] = useState(REMOTE_ITEMS);
+  const [remoteLoading, setRemoteLoading] = useState(false);
+  const remoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (remoteTimer.current !== null) clearTimeout(remoteTimer.current);
+    },
+    []
+  );
+  const handleRemoteSearch = (query: string) => {
+    setRemoteLoading(true);
+    if (remoteTimer.current !== null) clearTimeout(remoteTimer.current);
+    remoteTimer.current = setTimeout(() => {
+      setRemoteLoading(false);
+      // "Server-side" matching — the component does none of this.
+      const needle = query.trim().toLowerCase();
+      setRemoteItems(
+        needle === ''
+          ? REMOTE_ITEMS
+          : REMOTE_ITEMS.filter((item) =>
+              item.label.toLowerCase().includes(needle)
+            )
+      );
+    }, 500);
+  };
 
   return (
     <>
@@ -289,6 +328,42 @@ export default function SelectDemo() {
           >
             {loading ? 'Finish loading' : 'Start loading'}
           </Button>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Remote search</h2>
+        <p style={noteStyle}>
+          <code>onSearch</code> turns the search panel into a remote query
+          field: every query transition fires the callback — each
+          keystroke, clearing the input (the empty query restores the
+          full list), and the reset when the panel closes — while the
+          component stops filtering locally, rendering exactly the{' '}
+          <code>options</code> you pass back. Pair with{' '}
+          <code>loading</code> for the pending state; debouncing is the
+          consumer&apos;s concern. This fake server matches on the label
+          after a half-second delay.
+        </p>
+        <div className={fieldRow}>
+          <Select
+            searchable
+            onSearch={handleRemoteSearch}
+            loading={remoteLoading}
+            placeholder='Search frameworks…'
+          >
+            {remoteItems.map((item) => (
+              <Option key={item.value} value={item.value}>
+                {item.label}
+              </Option>
+            ))}
+          </Select>
+        </div>
+        <div className={row}>
+          <span style={valueStyle}>
+            {remoteLoading
+              ? 'Searching…'
+              : `Server returned ${remoteItems.length} options`}
+          </span>
         </div>
       </div>
 

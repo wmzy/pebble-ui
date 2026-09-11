@@ -455,6 +455,148 @@ describe('Cascader', () => {
   });
 });
 
+describe('Cascader remote search', () => {
+  // A pruned tree a "server" might rebuild for the query 南山.
+  const NANSHAN_MATCHES: CascaderOption[] = [
+    {
+      label: '广东',
+      value: 'gd',
+      children: [
+        {
+          label: '深圳',
+          value: 'sz',
+          children: [{ label: '南山区', value: 'nanshan' }],
+        },
+      ],
+    },
+  ];
+
+  it('opens a search panel, reports raw queries and renders the rebuilt tree', async () => {
+    const user = userEvent.setup();
+    const onSearch = vi.fn();
+    const onChange = vi.fn();
+    const props = {
+      onSearch,
+      onChange,
+      placeholder: 'Select region',
+    } as const;
+    const { rerender } = render(<Cascader options={OPTIONS} {...props} />);
+    const trigger = screen.getByRole('button', { name: 'Select region' });
+
+    await user.click(trigger);
+    // The panel gains a search input that takes focus on open; the
+    // columns render the consumer's tree untouched — no local filter.
+    const search = screen.getByRole('textbox', { name: 'Search options' });
+    expect(search).toHaveFocus();
+    expect(menuCount()).toBe(2);
+
+    await user.type(search, '南山');
+    expect(onSearch).toHaveBeenLastCalledWith('南山');
+    expect(screen.getByRole('menuitem', { name: /浙江/ })).toBeInTheDocument();
+
+    // The consumer rebuilds options; the panel simply renders the new
+    // tree, and committing inside it reports the rebuilt path.
+    rerender(<Cascader options={NANSHAN_MATCHES} {...props} />);
+    expect(screen.getByRole('menuitem', { name: /广东/ })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /浙江/ })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('menuitem', { name: /广东/ }));
+    await user.click(screen.getByRole('menuitem', { name: /深圳/ }));
+    await user.click(screen.getByRole('menuitem', { name: '南山区' }));
+    expect(onChange).toHaveBeenCalledWith(['gd', 'sz', 'nanshan']);
+    // The leaf commit closes the panel — the query reset back to the
+    // empty string is reported so the consumer restores the full tree.
+    expect(onSearch).toHaveBeenLastCalledWith('');
+  });
+
+  it('shows the loading and no-match states of a remote search', async () => {
+    const user = userEvent.setup();
+    const onSearch = vi.fn();
+    const { rerender } = render(
+      <Cascader
+        options={OPTIONS}
+        onSearch={onSearch}
+        loading
+        placeholder='Select region'
+      />
+    );
+    const trigger = screen.getByRole('button', { name: 'Select region' });
+    await user.click(trigger);
+    // Loading owns the column area: spinner, no stale columns, and the
+    // trigger's aria-controls still resolves (the columns wrapper keeps
+    // its id through the pending state).
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+    expect(document.querySelector('[aria-busy="true"]')).not.toBeNull();
+    expect(
+      document.getElementById(trigger.getAttribute('aria-controls')!)
+    ).toBeInTheDocument();
+
+    // The server returns nothing: the no-match block replaces columns.
+    rerender(
+      <Cascader options={[]} onSearch={onSearch} placeholder='Select region' />
+    );
+    expect(screen.getByText('No matches')).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+  });
+
+  it('shows the loading state without a search panel too (lazy root load)', async () => {
+    const user = userEvent.setup();
+    render(
+      <Cascader options={OPTIONS} loading placeholder='Select region' />
+    );
+    await user.click(screen.getByRole('button', { name: 'Select region' }));
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    // The panel drops its menu role while loading — a menu whose only
+    // child is the spinner block would be an aria violation.
+    expect(document.querySelector('[aria-busy="true"]')).not.toHaveAttribute(
+      'role',
+      'menu'
+    );
+  });
+
+  it('keeps the plain drill-down panel when onSearch is absent', async () => {
+    const user = userEvent.setup();
+    render(<Cascader options={OPTIONS} placeholder='Select region' />);
+    await user.click(screen.getByRole('button', { name: 'Select region' }));
+    // No search input — the panel stays the plain column strip with
+    // initial focus on the first option, exactly as before.
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(menuCount()).toBe(2);
+    expect(screen.getByRole('menuitem', { name: /浙江/ })).toHaveFocus();
+  });
+
+  it('has no axe violations while remote searching', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <Cascader
+        options={OPTIONS}
+        onSearch={() => undefined}
+        placeholder='Select region'
+      />
+    );
+    const trigger = screen.getByRole('button', { name: 'Select region' });
+    await user.click(trigger);
+    const search = screen.getByRole('textbox', { name: 'Search options' });
+    await user.type(search, '南山');
+    // Scan both the pending shell and the rebuilt results.
+    rerender(
+      <Cascader
+        options={NANSHAN_MATCHES}
+        onSearch={() => undefined}
+        placeholder='Select region'
+      />
+    );
+    await user.click(screen.getByRole('menuitem', { name: /广东/ }));
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
 describe('Cascader ref forwarding', () => {
   it('forwards ref to the trigger button', () => {
     const ref = createRef<HTMLButtonElement>();

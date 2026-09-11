@@ -92,6 +92,31 @@ export type TreeProps = {
    * window before focusing it.
    */
   virtualized?: boolean | TreeVirtualizedConfig;
+  /**
+   * Async child loading: called when a node **without** `children` and
+   * without `isLeaf: true` is expanded (by click, keyboard, controlled
+   * `expandedKeys`, or the auto-expanded ancestor path of a search hit).
+   *
+   * While the promise is pending the node's switcher shows the loading
+   * spinner; resolved children are merged into an internal cache, so
+   * collapsing and re-expanding does **not** request again. Cache entries
+   * are dropped when the controlled `treeData` no longer maps onto them
+   * (the key disappeared, or the node now ships children of its own —
+   * controlled data always wins). An empty array marks the node as a
+   * leaf. A rejected promise renders an inline "Load failed · Retry"
+   * affordance on the node row; expanding a failed node again also
+   * retries.
+   */
+  loadData?: (node: TreeNodeData) => Promise<TreeNodeData[]>;
+  /**
+   * Search filter: when non-empty, only nodes whose (string) title
+   * matches case-insensitively — plus the ancestor path leading to
+   * them — are rendered, ancestors auto-expanded so hits stay visible,
+   * and every match is wrapped in a token-styled `<mark>`. `titleRender`
+   * output is passed through untouched. When nothing matches, the
+   * localized empty state is shown.
+   */
+  searchValue?: string;
   /** （受控）展开的节点 */
   expandedKeys?: ControlOrValue<string[]>;
   /** （受控）选中的节点 */

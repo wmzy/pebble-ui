@@ -80,6 +80,17 @@ type SelectFloatingProps = {
    */
   loading?: boolean;
   /**
+   * Remote search: while set, local query filtering is suspended — the
+   * panel renders exactly the options received through `entries`, and
+   * every query transition of the panel's search input is reported
+   * here instead: each keystroke, clearing the field, and the reset
+   * back to `''` when the panel closes (so the consumer can restore
+   * the full list before the next open). The consumer owns the
+   * options end to end; pair with `loading` for the pending state.
+   * Debouncing is the consumer's concern.
+   */
+  onSearch?: (query: string) => void;
+  /**
    * Multiple mode only: render at most this many chips; the rest
    * collapse into a `+N` badge whose `title` tooltip lists the
    * overflow labels. Selection semantics are unchanged — the badge is
@@ -532,6 +543,7 @@ export default function SelectFloating({
   searchable = false,
   clearable = false,
   loading = false,
+  onSearch,
   maxTagCount,
   size = 'md',
   virtualized,
@@ -581,8 +593,14 @@ export default function SelectFloating({
   const allOptions = flattenSelectEntries(entries);
   // While loading the options area shows a Spinner — no filtering runs
   // (an empty pass would claim "no matches" about options we simply
-  // have not received yet) and keyboard navigation is inert.
-  const visibleEntries = loading ? [] : filterSelectEntries(entries, query);
+  // have not received yet) and keyboard navigation is inert. Remote
+  // mode (onSearch set) never filters locally either: the visible set
+  // is exactly the consumer's current entries, refetched per query.
+  const visibleEntries = loading
+    ? []
+    : onSearch
+      ? entries
+      : filterSelectEntries(entries, query);
   const visibleOptions = flattenSelectEntries(visibleEntries);
 
   // Flat index at which each entry's options begin — the bridge between
@@ -639,6 +657,23 @@ export default function SelectFloating({
       searchRef.current?.focus();
     }
   }, [searchable, open, floating.shown]);
+
+  // Remote-search report (Toast's latest-ref pattern: an inline arrow
+  // has a fresh identity every parent render, so the callback rides a
+  // ref and the report effect keys on the query alone). Fires once per
+  // actual query transition — every keystroke, clearing the field, and
+  // the close-reset back to '' — including empty queries, which the
+  // consumer uses to restore the full list. Never fires on mount.
+  const onSearchRef = useRef(onSearch);
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+  const reportedQueryRef = useRef(query);
+  useEffect(() => {
+    if (reportedQueryRef.current === query) return;
+    reportedQueryRef.current = query;
+    onSearchRef.current?.(query);
+  }, [query]);
 
   // A closed panel starts the next open with a fresh query — a stale
   // filter surviving close/reopen would hide the very value the user

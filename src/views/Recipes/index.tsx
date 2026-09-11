@@ -32,11 +32,12 @@ import {
 import { useHazeChat } from './ai-chat-adapter';
 import { useMockChat } from './mock-use-chat';
 import { arPack, frPack } from './locale-packs';
+import { MemberCrudDemo } from './member-crud';
 
 // 展示的是真实适配器源码（?raw 导入），文档与实现永不漂移——同
 // ComponentDetail/DemoSource 的源码映射机制。
 const rawSources = import.meta.glob<string>(
-  './{locale-packs,ai-chat-adapter,mock-use-chat}.{ts,tsx}',
+  './{locale-packs,ai-chat-adapter,mock-use-chat,member-crud}.{ts,tsx}',
   {
     query: '?raw',
     import: 'default',
@@ -46,6 +47,7 @@ const rawSources = import.meta.glob<string>(
 const packsSource = rawSources['./locale-packs.ts'] ?? '';
 const aiAdapterSource = rawSources['./ai-chat-adapter.tsx'] ?? '';
 const aiMockSource = rawSources['./mock-use-chat.ts'] ?? '';
+const memberCrudSource = rawSources['./member-crud.tsx'] ?? '';
 
 const paragraph = css`
   font-family: var(--haze-font-sans);
@@ -377,10 +379,12 @@ export default function Recipes() {
         Integration recipes for pairing haze-ui with the ecosystem. Each
         recipe is a live demo plus the exact code behind it — start typing in
         the form below and watch schema errors, async checks and cancellation
-        all fire in real time, switch languages in the locale recipe to see
-        packs, partial overrides and RTL derivation at work, or chat with the
-        AI runtime recipe: a Vercel AI SDK useChat shape driving the agent
-        components through one small adapter.
+        all fire in real time, run the CRUD recipe&apos;s server-paginated
+        table end to end (search, sort, create, edit, delete — toasts and
+        all), switch languages in the locale recipe to see packs, partial
+        overrides and RTL derivation at work, or chat with the AI runtime
+        recipe: a Vercel AI SDK useChat shape driving the agent components
+        through one small adapter.
       </p>
 
       <div className={section}>
@@ -536,6 +540,104 @@ const validatePassword = zodResolver(passwordSchema);
           cancelled checks stay invisible to both the form state and the
           console.
         </p>
+      </div>
+
+      <div className={section}>
+        <h2>CRUD table — FormItem × DataTable server mode × Toast</h2>
+        <p className={paragraph}>
+          The classic admin screen, assembled from the pieces the recipes
+          above introduced: a{' '}
+          <code className={inlineCode}>DataTable</code> in{' '}
+          <code className={inlineCode}>manual</code> mode talking to a
+          (fake) server — pagination and sorting are the server&apos;s job,
+          the table just renders what arrives — plus a{' '}
+          <code className={inlineCode}>FormItem</code> dialog for
+          create/edit, a <code className={inlineCode}>ConfirmDialog</code>{' '}
+          for delete, and <code className={inlineCode}>useToast</code>{' '}
+          feedback after every mutation. Everything below is live: search,
+          click a sort header, page around, edit a member, delete one on the
+          last page and watch the footer clamp.
+        </p>
+
+        <h3>Live demo</h3>
+        <MemberCrudDemo />
+
+        <h3>The server contract</h3>
+        <p className={paragraph}>
+          <code className={inlineCode}>manual</code> hands pagination and
+          sorting to the server: the table renders{' '}
+          <code className={inlineCode}>data</code> exactly as fetched — no
+          local reordering, no page slicing — while sort-header clicks still
+          toggle <code className={inlineCode}>sorting</code> (and{' '}
+          <code className={inlineCode}>aria-sort</code>) and the footer still
+          tracks <code className={inlineCode}>page</code>. You observe both
+          through the callbacks and refetch:
+        </p>
+        <CodeBlock language='tsx' className={codeMargin}>
+          {`const [page, setPage] = useState(1);
+const [sorting, setSorting] = useState<SortingState>([]);
+
+<DataTable
+  columns={columns}
+  data={snapshot.rows}          // the last server answer — render as received
+  manual                        // server-side pagination + sorting
+  sortable                      // headers still toggle sorting state
+  loading={pending}             // snapshot lags the request → skeleton
+  pageSize={6}
+  pageCount={snapshot.pageCount} // the server owns the row total
+  onPageChange={setPage}        // footer clicks → refetch
+  onSortChange={(next) => {
+    setSorting(next);
+    setPage(1);                 // a new sort order restarts at page 1
+  }}
+  getRowId={(member) => String(member.id)}
+/>`}
+        </CodeBlock>
+        <p className={paragraph}>
+          The demo keeps the last answer in a{' '}
+          <code className={inlineCode}>snapshot</code> and derives{' '}
+          <code className={inlineCode}>loading</code> from &ldquo;snapshot
+          lags the request&rdquo; — no synchronous state writes inside the
+          fetch effect, so React 19 transitions and StrictMode both stay
+          quiet. Mutations bump a <code className={inlineCode}>reloadKey</code>{' '}
+          that joins the request key, which is also how a create can force{' '}
+          <code className={inlineCode}>setPage(1)</code> while a delete only
+          clamps the page when the last one emptied.
+        </p>
+
+        <h3>The dialog form</h3>
+        <p className={paragraph}>
+          One <code className={inlineCode}>MemberForm</code> serves create and
+          edit: the parent remounts it with{' '}
+          <code className={inlineCode}>key</code> on every open, so{' '}
+          <code className={inlineCode}>initialValues</code> alone loads the
+          record — no reset plumbing. The{' '}
+          <code className={inlineCode}>input</code> channel binds the cores
+          (<code className={inlineCode}>InputCore</code>,{' '}
+          <code className={inlineCode}>SelectCore</code> +{' '}
+          <code className={inlineCode}>Option</code> children) and FormItem
+          wires id, aria attributes,{' '}
+          <code className={inlineCode}>onBlur</code>,{' '}
+          <code className={inlineCode}>onChange</code> and the value itself;
+          validation is the same{' '}
+          <code className={inlineCode}>zodResolver</code> per-field schema
+          pattern from the recipe above. The dialog&apos;s{' '}
+          <code className={inlineCode}>open</code> travels through a{' '}
+          <code className={inlineCode}>useControl</code> Control — a plain
+          boolean would be an uncontrolled{' '}
+          <em>initial</em> value and the dialog would never reopen.
+        </p>
+
+        <h3>The whole file</h3>
+        <p className={paragraph}>
+          This is the real source powering the demo — fake server, form,
+          screen and layout, nothing elided. Swap the server bodies for{' '}
+          <code className={inlineCode}>fetch()</code> calls and it is a
+          production CRUD screen:
+        </p>
+        <CodeBlock language='tsx' className={codeMargin}>
+          {memberCrudSource}
+        </CodeBlock>
       </div>
 
       <div className={section}>

@@ -243,6 +243,43 @@ export default function UploadDemo() {
       </div>
 
       <div className={section}>
+        <h2>Picture-card list</h2>
+        <p style={noteStyle}>
+          <code>{"listType='picture-card'"}</code> turns the built-in
+          list into a grid of thumbnail cards: image files preview through
+          object URLs (revoked when cards leave), other files fall back to a
+          type icon. Uploading cards mask with the live percent; failed cards
+          take a danger border and offer retry; hovering a card floats its
+          remove button — <code>removeLabel</code> overrides the label (here{' '}
+          <code>Delete image</code>). Pick or drop several files; a name
+          containing <code>fail</code> takes the error path.
+        </p>
+        <div style={{ maxWidth: 480 }}>
+          <Upload
+            request={simulateRequest}
+            multiple
+            showUploadList
+            listType='picture-card'
+            removeLabel='Delete image'
+          />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Directory picker</h2>
+        <p style={noteStyle}>
+          <code>directory</code> forwards the non-standard{' '}
+          <code>webkitdirectory</code> attribute to the hidden input — the
+          native dialog picks whole folders and every file inside enters the
+          list (combine with <code>multiple</code>). Dragging several files
+          in at once works in every mode.
+        </p>
+        <div style={{ maxWidth: 480 }}>
+          <Upload directory multiple showUploadList />
+        </div>
+      </div>
+
+      <div className={section}>
         <h2>Props</h2>
         <PropsTable of='UploadProps' />
       </div>

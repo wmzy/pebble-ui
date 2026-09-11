@@ -79,6 +79,12 @@ const STATIC_SECTIONS = [
   'buttonmatrix',
   'selectmultiple',
   'slider',
+  'descriptions',
+  'jsonview',
+  'sources',
+  'filepreview',
+  'masonry',
+  'signature',
   'darkfields',
 ] as const;
 
@@ -94,6 +100,17 @@ test.describe('visual baselines — static components', () => {
       await expect(section).toHaveScreenshot(`${name}.png`);
     });
   }
+
+  // The ghost overlay only renders while the host is focused, so the
+  // section is clicked before capturing — caret blink is hidden by
+  // Playwright's default caret behavior for screenshot assertions.
+  test('inlinecompletion baseline frame (focused, ghost visible)', async ({
+    page,
+  }) => {
+    const section = page.locator('[data-snap="inlinecompletion"]');
+    await section.getByRole('textbox').click();
+    await expect(section).toHaveScreenshot('inlinecompletion.png');
+  });
 
   test('accordion baseline frame (first item open)', async ({ page }) => {
     const section = page.locator('[data-snap="accordion"]');

@@ -10,17 +10,21 @@ import type { VisibleTreeRow } from './utils';
 import { useControl } from 'react-use-control';
 
 import { css } from '@linaria/core';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getDirection } from '../../utils/direction';
+import { useStrings } from '../LocaleProvider';
 import { VirtualList } from '../VirtualList';
 
 import TreeItem from './TreeItem';
 import {
+  filterTreeByQuery,
   findNodeByKey,
   flattenVisibleTree,
   getChildKeys,
   getParentKey,
+  mergeLoadedChildren,
+  pruneLoadedChildren,
 } from './utils';
 
 const base = css`
@@ -47,6 +51,26 @@ const VIRTUAL_TREE_ROW_HEIGHT = 32;
 const group = css`
   min-width: 0;
 `;
+
+/* Search "no hits" block (Cascader's emptyBlock pattern). */
+const emptyBlock = css`
+  padding: var(--haze-space-3);
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-sm);
+`;
+
+/** Object spread minus one key — keeps the reference when absent. */
+function omitStatus(
+  prev: Record<string, 'loading' | 'error'>,
+  key: string
+): Record<string, 'loading' | 'error'> {
+  if (!(key in prev)) return prev;
+  const next: Record<string, 'loading' | 'error'> = {};
+  for (const [statusKey, status] of Object.entries(prev)) {
+    if (statusKey !== key) next[statusKey] = status;
+  }
+  return next;
+}
 
 function computeCheckedKeys(
   keys: string[],
@@ -99,6 +123,8 @@ export default function Tree({
   titleRender,
   iconRender,
   virtualized,
+  loadData,
+  searchValue,
   expandedKeys: expandedKeysControl,
   selectedKeys: selectedKeysControl,
   checkedKeys: checkedKeysControl,
@@ -107,6 +133,7 @@ export default function Tree({
   onSelect,
   onCheck,
 }: TreeProps) {
+  const strings = useStrings('tree');
   const [expandedKeys, setExpandedKeys] = useControl(
     expandedKeysControl,
     []
@@ -122,9 +149,96 @@ export default function Tree({
 
   const rawChecked = checkedKeysRaw;
 
+  // ── Lazy loading ────────────────────────────────────────────────
+  // Loaded children live in an internal cache; the controlled treeData
+  // stays the source of truth and always wins where it ships children.
+  const loadable = !!loadData;
+  const [loadedChildren, setLoadedChildren] = useState<
+    Record<string, TreeNodeData[]>
+  >({});
+  const [loadStatuses, setLoadStatuses] = useState<
+    Record<string, 'loading' | 'error'>
+  >({});
+  // In-flight guard: effect re-runs (dev StrictMode double-invoke, rapid
+  // prop churn) must not fire a second request for the same node.
+  const inFlightRef = useRef(new Set<string>());
+
+  // Cache entries that no longer map onto treeData are dropped here, and
+  // the write-back below makes the reset durable in state.
+  const loaded = useMemo(
+    () => pruneLoadedChildren(loadedChildren, treeData),
+    [loadedChildren, treeData]
+  );
+  useEffect(() => {
+    if (loaded !== loadedChildren) setLoadedChildren(loaded);
+  }, [loaded, loadedChildren]);
+
+  // The full data the tree reasons about: controlled nodes with lazy
+  // children overlaid.
+  const data = useMemo(
+    () => mergeLoadedChildren(treeData, loaded),
+    [treeData, loaded]
+  );
+
+  const startLoad = useCallback(
+    (key: string, node: TreeNodeData) => {
+      if (!loadData || inFlightRef.current.has(key)) return;
+      inFlightRef.current.add(key);
+      setLoadStatuses((prev) => ({ ...prev, [key]: 'loading' }));
+      void loadData(node)
+        .then((children) => {
+          inFlightRef.current.delete(key);
+          setLoadedChildren((prev) => ({ ...prev, [key]: children }));
+          setLoadStatuses((prev) => omitStatus(prev, key));
+        })
+        .catch(() => {
+          inFlightRef.current.delete(key);
+          setLoadStatuses((prev) => ({ ...prev, [key]: 'error' }));
+        });
+    },
+    [loadData]
+  );
+
+  function handleRetryLoad(key: string) {
+    const node = findNodeByKey(data, key);
+    if (!node) return;
+    startLoad(key, node);
+  }
+
+  // ── Search filtering ────────────────────────────────────────────
+  const filtered = useMemo(
+    () => filterTreeByQuery(data, searchValue),
+    [data, searchValue]
+  );
+  const searchActive = filtered !== null;
+  const displayData = filtered ? filtered.tree : data;
+  // Ancestor paths of hits auto-expand so matches stay visible; the
+  // consumer's expandedKeys are never mutated by the search itself.
+  const effectiveExpandedKeys = useMemo(() => {
+    if (!filtered || filtered.ancestorKeys.length === 0) return expandedKeys;
+    return Array.from(new Set([...expandedKeys, ...filtered.ancestorKeys]));
+  }, [expandedKeys, filtered]);
+
+  // Kick off loads for every expanded, loadable, not-yet-loaded node —
+  // covers user toggles, keyboard, controlled expandedKeys and the
+  // search auto-expanded ancestors alike.
+  useEffect(() => {
+    if (!loadData) return;
+    for (const key of effectiveExpandedKeys) {
+      const node = findNodeByKey(data, key);
+      if (!node || node.children?.length || node.isLeaf === true) continue;
+      if (loaded[key] !== undefined || loadStatuses[key] !== undefined) {
+        continue;
+      }
+      startLoad(key, node);
+    }
+  }, [loadData, startLoad, data, effectiveExpandedKeys, loaded, loadStatuses]);
+
+  // Checked cascade reasons about the full merged data, so lazy-loaded
+  // children participate exactly like controlled ones.
   const derived = useMemo(
-    () => computeCheckedKeys(rawChecked, treeData, checkStrictly),
-    [rawChecked, treeData, checkStrictly]
+    () => computeCheckedKeys(rawChecked, data, checkStrictly),
+    [rawChecked, data, checkStrictly]
   );
   const checkedKeys = derived.checked;
   const halfCheckedKeys = derived.halfChecked;
@@ -152,8 +266,8 @@ export default function Tree({
   // Visible rows in depth-first order — the keyboard model and the
   // virtualized windowing share this one flattening.
   const visibleRows = useMemo(
-    () => flattenVisibleTree(treeData, expandedKeys, disabled),
-    [treeData, expandedKeys, disabled]
+    () => flattenVisibleTree(displayData, effectiveExpandedKeys, disabled),
+    [displayData, effectiveExpandedKeys, disabled]
   );
 
   // The tab stop: the focused row, falling back to the first focusable
@@ -212,7 +326,10 @@ export default function Tree({
     const current = currentIndex >= 0 ? rows[currentIndex] : undefined;
     if (!current || current.disabled) return;
 
-    const isLeaf = current.node.isLeaf ?? !current.node.children?.length;
+    // Childless nodes stay expandable while lazy loading is armed.
+    const isLeaf =
+      current.node.isLeaf ??
+      (!current.node.children?.length && !loadable);
     // Inward/outward arrows mirror under dir="rtl", read from the DOM at
     // event time — the layout truth (Calendar's day-grid precedent).
     const rtl = getDirection(event.currentTarget) === 'rtl';
@@ -231,7 +348,7 @@ export default function Tree({
       case expandKey: {
         event.preventDefault();
         if (isLeaf) return; // end node: nothing (APG)
-        if (expandedKeys.includes(current.key)) {
+        if (effectiveExpandedKeys.includes(current.key)) {
           // Open: move to the first child — the next visible row.
           focusRow(nextFocusableIndex(currentIndex, 1));
         } else {
@@ -241,7 +358,7 @@ export default function Tree({
       }
       case collapseKey: {
         event.preventDefault();
-        if (!isLeaf && expandedKeys.includes(current.key)) {
+        if (!isLeaf && effectiveExpandedKeys.includes(current.key)) {
           handleToggle(current.key); // open: close, focus stays
           return;
         }
@@ -297,14 +414,18 @@ export default function Tree({
       : [...expandedKeys, key];
 
     setExpandedKeys(newKeys);
+    // Expanding a node whose last load failed retries it.
+    if (!isExpanded && loadStatuses[key] === 'error') {
+      setLoadStatuses((prev) => omitStatus(prev, key));
+    }
     onExpand?.(newKeys, {
       expanded: !isExpanded,
-      node: findNodeByKey(treeData, key)!,
+      node: findNodeByKey(data, key)!,
     });
   }
 
   function handleSelect(key: string) {
-    const node = findNodeByKey(treeData, key);
+    const node = findNodeByKey(data, key);
     if (!node?.selectable && node?.selectable !== undefined) return;
     if (!selectable) return;
 
@@ -323,7 +444,7 @@ export default function Tree({
     onSelect?.(newKeys, {
       selected: newKeys.includes(key),
       selectedNodes: newKeys
-        .map((k) => findNodeByKey(treeData, k)!)
+        .map((k) => findNodeByKey(data, k)!)
         .filter(Boolean),
       node: node!,
     });
@@ -331,7 +452,7 @@ export default function Tree({
 
   function handleCheck(key: string) {
     if (!checkable) return;
-    const node = findNodeByKey(treeData, key);
+    const node = findNodeByKey(data, key);
     if (node?.disableCheckbox) return;
     const isChecked = checkedKeys.includes(key);
     let newChecked: string[];
@@ -341,15 +462,15 @@ export default function Tree({
         ? checkedKeys.filter((k) => k !== key)
         : [...checkedKeys, key];
     } else {
-      const childKeys = getChildKeys(treeData, key);
+      const childKeys = getChildKeys(data, key);
       if (isChecked) {
         newChecked = checkedKeys.filter(
           (k) => k !== key && !childKeys.includes(k)
         );
-        let parentKey = getParentKey(treeData, key);
+        let parentKey = getParentKey(data, key);
         while (parentKey) {
           newChecked = newChecked.filter((k) => k !== parentKey);
-          parentKey = getParentKey(treeData, parentKey);
+          parentKey = getParentKey(data, parentKey);
         }
       } else {
         const toAdd = [key, ...childKeys].filter(
@@ -357,29 +478,29 @@ export default function Tree({
         );
         newChecked = [...checkedKeys, ...toAdd];
 
-        let parentKey = getParentKey(treeData, key);
+        let parentKey = getParentKey(data, key);
         while (parentKey) {
-          const siblings = getChildKeys(treeData, parentKey);
+          const siblings = getChildKeys(data, parentKey);
           const allSiblingsChecked = siblings.every((k) =>
             newChecked.includes(k)
           );
           if (allSiblingsChecked && !newChecked.includes(parentKey)) {
             newChecked.push(parentKey);
           }
-          parentKey = getParentKey(treeData, parentKey);
+          parentKey = getParentKey(data, parentKey);
         }
       }
     }
 
-    const computed = computeCheckedKeys(newChecked, treeData, checkStrictly);
+    const computed = computeCheckedKeys(newChecked, data, checkStrictly);
 
     setCheckedKeysRaw(checkStrictly ? newChecked : computed.checked);
     onCheck?.(checkStrictly ? newChecked : computed, {
       checked: !isChecked,
       checkedNodes: newChecked
-        .map((k) => findNodeByKey(treeData, k)!)
+        .map((k) => findNodeByKey(data, k)!)
         .filter(Boolean),
-      node: findNodeByKey(treeData, key)!,
+      node: findNodeByKey(data, key)!,
       halfCheckedKeys: computed.halfChecked,
     });
   }
@@ -391,10 +512,11 @@ export default function Tree({
   ) {
     return nodes.map((node, index) => {
       const hasChildren = !!node.children?.length;
-      const isExpanded = expandedKeys.includes(node.key);
+      const isExpanded = effectiveExpandedKeys.includes(node.key);
       const isSelected = selectedKeys.includes(node.key);
       const isChecked = checkedKeys.includes(node.key);
       const isHalfChecked = halfCheckedKeys.includes(node.key);
+      const status = loadStatuses[node.key];
       const checkedState: 'checked' | 'halfChecked' | 'unchecked' = isChecked
         ? 'checked'
         : isHalfChecked
@@ -420,7 +542,10 @@ export default function Tree({
             showIcon={showIcon}
             switcherIcon={switcherIcon}
             loadingIcon={loadingIcon}
-            loading={false}
+            loading={status === 'loading'}
+            loadable={loadable}
+            loadFailed={status === 'error'}
+            searchValue={searchValue}
             titleRender={titleRender}
             iconRender={iconRender}
             isLast={currentIsLast}
@@ -428,6 +553,7 @@ export default function Tree({
             onToggle={() => handleToggle(node.key)}
             onSelect={() => handleSelect(node.key)}
             onCheck={() => handleCheck(node.key)}
+            onRetry={() => handleRetryLoad(node.key)}
           />
           {hasChildren && isExpanded && (
             <div>{renderNodes(node.children!, level + 1, currentIsLast)}</div>
@@ -443,6 +569,7 @@ export default function Tree({
   function renderRow(row: VisibleTreeRow) {
     const isChecked = checkedKeys.includes(row.key);
     const isHalfChecked = halfCheckedKeys.includes(row.key);
+    const status = loadStatuses[row.key];
     const checkedState: 'checked' | 'halfChecked' | 'unchecked' = isChecked
       ? 'checked'
       : isHalfChecked
@@ -453,7 +580,7 @@ export default function Tree({
       <TreeItem
         node={row.node}
         level={row.level}
-        expanded={expandedKeys.includes(row.key)}
+        expanded={effectiveExpandedKeys.includes(row.key)}
         selected={selectedKeys.includes(row.key)}
         checked={checkedState}
         disabled={disabled}
@@ -464,7 +591,10 @@ export default function Tree({
         showIcon={showIcon}
         switcherIcon={switcherIcon}
         loadingIcon={loadingIcon}
-        loading={false}
+        loading={status === 'loading'}
+        loadable={loadable}
+        loadFailed={status === 'error'}
+        searchValue={searchValue}
         titleRender={titleRender}
         iconRender={iconRender}
         isLast={row.isLast}
@@ -472,7 +602,22 @@ export default function Tree({
         onToggle={() => handleToggle(row.key)}
         onSelect={() => handleSelect(row.key)}
         onCheck={() => handleCheck(row.key)}
+        onRetry={() => handleRetryLoad(row.key)}
       />
+    );
+  }
+
+  if (searchActive && displayData.length === 0) {
+    return (
+      <div
+        role='tree'
+        ref={rootRef}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        x-class={[base, className]}
+      >
+        <div x-class={emptyBlock}>{strings.noMatch}</div>
+      </div>
     );
   }
 
@@ -506,7 +651,7 @@ export default function Tree({
       onFocus={handleFocus}
       x-class={[base, className]}
     >
-      {renderNodes(treeData, 0, [])}
+      {renderNodes(displayData, 0, [])}
     </div>
   );
 }

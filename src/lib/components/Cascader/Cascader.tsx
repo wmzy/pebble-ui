@@ -16,6 +16,7 @@ import { getDirection } from '../../utils/direction';
 import { useFocusScope } from '../../utils/focus-scope';
 import { mergeRefs } from '../../utils/refs';
 import { useStrings } from '../LocaleProvider';
+import Spinner from '../Spinner/Spinner';
 import { VirtualList } from '../VirtualList';
 
 export type CascaderOption = {
@@ -54,6 +55,25 @@ type CascaderProps = {
   changeOnSelect?: boolean;
   /** Whether hovering a parent option expands its column; defaults to click. */
   expandTrigger?: 'click' | 'hover';
+  /**
+   * Remote search: when set, the panel opens with a search input on top
+   * of the columns and all local option logic defers to the consumer —
+   * typing fires this callback with the raw query (empty queries
+   * included, and the reset back to `''` when the panel closes, so the
+   * consumer can restore the full tree), and the panel simply renders
+   * whatever `options` the consumer rebuilds in response. Selecting
+   * from a rebuilt tree commits the path that tree defines. Pair with
+   * `loading` for the pending state; debouncing is the consumer's
+   * concern.
+   */
+  onSearch?: (query: string) => void;
+  /**
+   * Async option state: the panel's column area shows a Spinner with
+   * `aria-busy="true"` on the panel instead of the (stale) columns
+   * until it clears. Works with or without `onSearch` (lazy root-tree
+   * loads included).
+   */
+  loading?: boolean;
   /**
    * Render every column through VirtualList so wide trees mount only
    * the visible window (plus overscan) per column instead of the full
@@ -138,6 +158,86 @@ const panel = css`
   color: var(--haze-color-text);
   font-family: var(--haze-font-sans);
   box-shadow: var(--haze-shadow-lg);
+
+  /* Author "display" outranks the UA sheet's closed-popover rule
+     (display none on non-open popovers — the ImagePreview dialog
+     lesson), so the closed state is re-hidden here for the native
+     tier: scoped to the popover attribute because the fallback tier's
+     floatingHidden class already owns hiding there, and to the
+     non-open pseudo-class so the exit animation — which runs while
+     the popover is still open — keeps playing. */
+  &[popover]:not(:popover-open) {
+    display: none;
+  }
+`;
+
+/**
+ * Searchable panel chrome (`onSearch` set): same skin as `panel`, but a
+ * plain block flow container — the search input stacks above the
+ * columns wrapper, which owns the horizontal strip layout (an input
+ * cannot live inside `role="menu"`).
+ */
+const panelSearch = css`
+  padding: var(--haze-space-2);
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-lg);
+  background: var(--haze-color-bg);
+  color: var(--haze-color-text);
+  font-family: var(--haze-font-sans);
+  box-shadow: var(--haze-shadow-lg);
+`;
+
+/**
+ * The columns host of the searchable panel: the horizontal strip the
+ * plain panel's own `display: flex` provides, re-applied one level down
+ * so the search input can sit above it.
+ */
+const columnsStrip = css`
+  display: flex;
+  align-items: stretch;
+`;
+
+/** Search input heading the searchable panel. */
+const searchInput = css`
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-sm);
+  background: var(--haze-color-bg);
+  color: var(--haze-color-text);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  line-height: var(--haze-leading-normal);
+  padding: var(--haze-space-1) var(--haze-space-2);
+  margin-block-end: var(--haze-space-2);
+
+  &:focus {
+    outline: none;
+    border-color: var(--haze-color-primary);
+    box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
+  }
+`;
+
+/** Loading state of the column area — Spinner plus copy, centered. */
+const loadingBlock = css`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--haze-space-2);
+  padding: var(--haze-space-3);
+  color: var(--haze-color-text-secondary);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+`;
+
+/** Empty-search state of the column area. */
+const emptyBlock = css`
+  padding: var(--haze-space-3);
+  color: var(--haze-color-text-muted);
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-sm);
+  text-align: center;
 `;
 
 const column = css`
@@ -301,12 +401,19 @@ export default function Cascader({
   placeholder,
   changeOnSelect = false,
   expandTrigger = 'click',
+  onSearch,
+  loading = false,
   virtualized,
   className,
   ref,
   ...rest
 }: CascaderProps) {
   const strings = useStrings('cascader');
+  // Search-mode copy rides the `select` locale section (search label/
+  // placeholder/no-match/loading) — the cascader section has no search
+  // strings of its own and the locale packs are out of scope here; a
+  // dedicated `cascader.search` section can replace this read later.
+  const searchStrings = useStrings('select');
   const [open, setOpen] = useControl(false, false);
   const controlled = isControl(valueControl);
   const [value, setValue] = useControl(
@@ -322,6 +429,12 @@ export default function Cascader({
   // Focus target requested by a keyboard step, applied after the
   // matching columns (or their virtualized windows) have rendered.
   const [pendingFocus, setPendingFocus] = useState<PendingFocus | null>(null);
+  // Remote search mode: presence of `onSearch` swaps the panel for a
+  // search input plus consumer-owned options (see the prop docs). The
+  // query is internal UI state (never a prop), so useState is the
+  // correct primitive here, not useControl.
+  const searchMode = onSearch !== undefined;
+  const [query, setQuery] = useState('');
 
   // `virtualized` resolution: object config enables and customizes,
   // `true` enables with defaults, anything else keeps the plain DOM.
@@ -339,6 +452,8 @@ export default function Cascader({
     [triggerRef, ref]
   );
   const panelRef = useRef<HTMLDivElement>(null);
+  // Search input of the remote-search panel (search mode only).
+  const searchRef = useRef<HTMLInputElement>(null);
   // VirtualList handles per column level (virtualized mode only) —
   // keyboard focus steps scroll the target row into the window before
   // focusing it.
@@ -404,6 +519,14 @@ export default function Cascader({
     if (focusedOpenRef.current) return;
     const panel = panelRef.current;
     if (!panel) return;
+    // Search mode: initial focus lands in the panel's search input, so
+    // typing a query works straight away — arrow keys then roam into
+    // the columns below through the bubbled panel keydown handler.
+    if (searchMode) {
+      focusedOpenRef.current = true;
+      searchRef.current?.focus();
+      return;
+    }
     const items = Array.from(panel.querySelectorAll<HTMLElement>(ITEM_SELECTOR));
     const level = value.length - 1;
     const last = value[level];
@@ -441,7 +564,32 @@ export default function Cascader({
     if (!target) return;
     focusedOpenRef.current = true;
     target.focus();
-  }, [open, floating.shown, activePath, value, pendingFocus, virtual, options]);
+  }, [open, floating.shown, activePath, value, pendingFocus, virtual, options, searchMode]);
+
+  // Remote-search report (Toast's latest-ref pattern: an inline arrow
+  // has a fresh identity every parent render, so the callback rides a
+  // ref and the report effect keys on the query alone). Fires once per
+  // actual query transition — every keystroke, clearing the field, and
+  // the close-reset back to '' below — including empty queries, which
+  // the consumer uses to restore the full tree. Never fires on mount.
+  const onSearchRef = useRef(onSearch);
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+  const reportedQueryRef = useRef(query);
+  useEffect(() => {
+    if (reportedQueryRef.current === query) return;
+    reportedQueryRef.current = query;
+    onSearchRef.current?.(query);
+  }, [query]);
+
+  // A closed panel starts the next open with a fresh query — a stale
+  // remote result set surviving close/reopen would show the consumer's
+  // pruned tree while the input reads empty. Adjusted during render
+  // (the same React-endorsed reset as Select's searchable panel).
+  if (!open && query !== '') {
+    setQuery('');
+  }
 
   const setPanelRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -655,6 +803,47 @@ export default function Cascader({
     );
   };
 
+  // The columns area of the panel. Loading swaps it for a Spinner block
+  // (stale columns would lie about the fetch in flight); search mode
+  // additionally shows a no-match block when the consumer's rebuilt
+  // tree came back empty.
+  const columnsBody = columns.map((columnOptions, level) => (
+    <div
+      key={level}
+      role='menu'
+      data-haze-cascader-column={level}
+      x-class={[column, virtual && columnVirtual]}
+    >
+      {virtual ? (
+        <VirtualList
+          ref={setListRef(level)}
+          data-virtualized
+          items={columnOptions}
+          height={Math.min(
+            COLUMN_MAX_HEIGHT,
+            columnOptions.length * itemRowHeight
+          )}
+          itemHeight={itemRowHeight}
+          overscan={overscan}
+          renderItem={(option, i) => renderColumnItem(option, level, i)}
+        />
+      ) : (
+        columnOptions.map((option, i) => renderColumnItem(option, level, i))
+      )}
+    </div>
+  ));
+
+  const panelBody = loading ? (
+    <div x-class={loadingBlock}>
+      <Spinner size='sm' />
+      <span>{searchStrings.loading}</span>
+    </div>
+  ) : searchMode && options.length === 0 ? (
+    <div x-class={emptyBlock}>{searchStrings.noMatch}</div>
+  ) : (
+    columnsBody
+  );
+
   return (
     <div x-class={[wrapper, className]} {...rest}>
       <button
@@ -691,40 +880,39 @@ export default function Cascader({
         ref={setPanelRef}
         behavior={floating}
         placement='bottom'
-        id={id}
-        role='menu'
-        visualClass={panel}
+        // Search mode re-hosts the menu role (and the trigger's
+        // aria-controls target) on the columns wrapper — the search
+        // input cannot sit inside a menu. Loading drops the role from
+        // whichever element carries it: a menu whose only child is the
+        // Spinner block would be an aria-required-children violation.
+        id={searchMode ? undefined : id}
+        role={searchMode || loading ? undefined : 'menu'}
+        aria-busy={loading || undefined}
+        visualClass={searchMode ? panelSearch : panel}
         onKeyDown={handlePanelKeyDown}
       >
-        {columns.map((columnOptions, level) => (
-          <div
-            key={level}
-            role='menu'
-            data-haze-cascader-column={level}
-            x-class={[column, virtual && columnVirtual]}
-          >
-            {virtual ? (
-              <VirtualList
-                ref={setListRef(level)}
-                data-virtualized
-                items={columnOptions}
-                height={Math.min(
-                  COLUMN_MAX_HEIGHT,
-                  columnOptions.length * itemRowHeight
-                )}
-                itemHeight={itemRowHeight}
-                overscan={overscan}
-                renderItem={(option, i) =>
-                  renderColumnItem(option, level, i)
-                }
-              />
-            ) : (
-              columnOptions.map((option, i) =>
-                renderColumnItem(option, level, i)
-              )
-            )}
-          </div>
-        ))}
+        {searchMode ? (
+          <>
+            <input
+              ref={searchRef}
+              type='text'
+              aria-label={searchStrings.searchLabel}
+              placeholder={searchStrings.searchPlaceholder}
+              x-class={searchInput}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <div
+              id={id}
+              role={!loading && options.length > 0 ? 'menu' : undefined}
+              x-class={columnsStrip}
+            >
+              {panelBody}
+            </div>
+          </>
+        ) : (
+          panelBody
+        )}
       </FloatingPanel>
     </div>
   );

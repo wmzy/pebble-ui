@@ -944,6 +944,103 @@ describe('Combobox', () => {
     });
   });
 
+  describe('remote search', () => {
+    const REMOTE = [{ value: 'kiwano', label: 'Kiwano' }];
+
+    it('reports every query transition through onSearch and suspends local filtering', async () => {
+      const user = userEvent.setup();
+      const onSearch = vi.fn();
+      render(<Combobox options={OPTIONS} onSearch={onSearch} />);
+      const input = screen.getByRole('combobox');
+      await user.type(input, 'ban');
+      expect(onSearch).toHaveBeenLastCalledWith('ban');
+      // No local filtering: non-matching options stay listed — the
+      // consumer's options are the whole truth until they refetch.
+      expect(screen.getAllByRole('option')).toHaveLength(3);
+      expect(screen.getByRole('option', { name: 'Apple' })).toBeInTheDocument();
+
+      // Clearing reports the empty query so the consumer can restore
+      // the full list.
+      await user.clear(input);
+      expect(onSearch).toHaveBeenLastCalledWith('');
+    });
+
+    it('reports the query reset that follows a multiple-mode selection', async () => {
+      const user = userEvent.setup();
+      const onSearch = vi.fn();
+      const onValuesChange = vi.fn();
+      const props = {
+        multiple: true,
+        onSearch,
+        onValuesChange,
+        placeholder: 'Pick fruits',
+      } as const;
+      const { rerender } = render(<Combobox options={OPTIONS} {...props} />);
+      const input = screen.getByRole('combobox');
+      await user.type(input, 'ban');
+      // The consumer narrows the options to the fetched matches, then
+      // the user picks the highlighted one.
+      rerender(
+        <Combobox
+          options={[{ value: 'banana', label: 'Banana' }]}
+          {...props}
+        />
+      );
+      await user.keyboard('{ArrowDown}{Enter}');
+      expect(onValuesChange).toHaveBeenCalledWith(['banana']);
+      // Selecting clears the query — reported so the consumer restores
+      // the full list for the next pick.
+      expect(onSearch).toHaveBeenLastCalledWith('');
+    });
+
+    it('pairs with loading — spinner while pending, refetched options after', async () => {
+      const user = userEvent.setup();
+      const onSearch = vi.fn();
+      const { rerender } = render(
+        <Combobox options={REMOTE} onSearch={onSearch} loading />
+      );
+      const input = screen.getByRole('combobox');
+      expect(input).toHaveAttribute('aria-busy', 'true');
+      await user.type(input, 'ki');
+      expect(onSearch).toHaveBeenLastCalledWith('ki');
+      // Loading owns the panel: spinner row, no stale option list, no
+      // empty state — even though nothing matches the query locally.
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(screen.queryByRole('option', { name: 'Kiwano' })).not.toBeInTheDocument();
+
+      // The fetch lands: loading clears and the consumer's options
+      // render exactly as received — still unfiltered.
+      rerender(<Combobox options={REMOTE} onSearch={onSearch} />);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Kiwano' })).toBeInTheDocument();
+    });
+
+    it('keeps local filtering when onSearch is absent', async () => {
+      const user = userEvent.setup();
+      render(<Combobox options={OPTIONS} />);
+      await user.type(screen.getByRole('combobox'), 'ban');
+      expect(screen.getAllByRole('option')).toHaveLength(1);
+      expect(screen.getByRole('option', { name: 'Banana' })).toBeInTheDocument();
+    });
+
+    it('has no axe violations while remote searching', async () => {
+      const { axe } = await import('jest-axe');
+      const user = userEvent.setup();
+      render(
+        <Combobox
+          options={OPTIONS}
+          onSearch={() => undefined}
+          placeholder="Search fruit"
+        />
+      );
+      await user.type(screen.getByRole('combobox'), 'ban');
+      const results = await axe(document.body, {
+        rules: { region: { enabled: false } },
+      });
+      expect(results.violations).toEqual([]);
+    });
+  });
+
   describe('maxHeight', () => {
     function listboxOf(input: HTMLElement) {
       return document.getElementById(input.getAttribute('aria-controls')!)!;

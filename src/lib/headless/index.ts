@@ -2,10 +2,15 @@
  * `haze-ui/headless` — the behavior layer the haze-ui components are built
  * on, curated for authors assembling their own components: floating-panel
  * positioning (native popover + anchor positioning with graceful fallback
- * tiers), exit-animation presence, focus trapping, tab-order queries, and
- * pure collision geometry. Same source, same version, same design tokens
- * as the `haze-ui` component library — none of it is exported from the
- * main entry.
+ * tiers), exit-animation presence, focus trapping, tab-order queries,
+ * pure collision geometry, menu/submenu keyboard machinery, RTL direction
+ * resolution, ref composition, View-Transition-wrapped state flips, and
+ * the document-level interaction hooks (click-outside, hotkeys, in-view,
+ * media queries) plus the storage-persisted state hooks. Same source,
+ * same version, same design tokens as the `haze-ui` component library —
+ * the general-purpose hooks and direction helpers are also exported from
+ * the main entry; this module gathers the whole behavior layer under one
+ * import.
  *
  * Stable public API: this module carries the same semver commitment as
  * the `haze-ui` component library — breaking changes land only on a
@@ -13,10 +18,18 @@
  * own components, within that contract.
  */
 
+import { useClickOutside } from '../hooks/useClickOutside';
+import { hotkey, useHotkeys } from '../hooks/useHotkeys';
+import { useInView } from '../hooks/useInView';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { usePrevious } from '../hooks/usePrevious';
+import { useSessionStorage } from '../hooks/useSessionStorage';
 import {
   computeFloatingPosition,
   resolvePadding,
 } from '../utils/collision';
+import { getDirection, localeDirection, useDirection } from '../utils/direction';
 import {
   FloatingPanel,
   floatingPlacementClasses,
@@ -33,7 +46,21 @@ import {
   TABBABLE_SELECTOR,
 } from '../utils/focus';
 import { useFocusScope } from '../utils/focus-scope';
+import {
+  getEnabledMenuItems,
+  useMenuKeyboard,
+  useRovingTabindex,
+} from '../utils/menuKeyboard';
 import { Presence, whenExitSettles } from '../utils/presence';
+import { mergeRefs } from '../utils/refs';
+import {
+  SUBMENU_CLOSE_GRACE_MS,
+  SUBMENU_OPEN_DELAY_MS,
+  SubmenuProvider,
+  useSubmenu,
+  useSubmenuContext,
+} from '../utils/submenu';
+import { useViewTransitionFlip } from '../utils/view-transition';
 
 // ---------------------------------------------------------------------------
 // Floating behavior (../utils/floating)
@@ -242,3 +269,261 @@ export type { CollisionPadding } from '../utils/collision';
  * on), plus `collisionPadding`. Consumers may pass any subset.
  */
 export type { CollisionStrategy } from '../utils/collision';
+
+// ---------------------------------------------------------------------------
+// Menu keyboard (../utils/menuKeyboard)
+// ---------------------------------------------------------------------------
+
+/**
+ * Enabled menu items inside a container, in DOM order. `role="menu"`
+ * containers scope each item to its nearest menu ancestor, so a nested
+ * submenu's items belong to their own level — the same query the
+ * haze-ui menu families' traversal, typeahead and roving tabindex run
+ * on. The item selector is customizable for non-menu containers
+ * (listboxes, command palettes).
+ */
+export { getEnabledMenuItems };
+
+/**
+ * Keyboard behavior for a roving-tabindex item container (WAI-ARIA menu
+ * button pattern): the orientation's main-axis arrows move focus
+ * wrapping and skipping disabled items (mirrored under `dir="rtl"` for
+ * horizontal layouts), Home/End jump to the ends, Escape and Tab close,
+ * printable characters run typeahead. Returns the `onKeyDown` handler
+ * to spread on the container — the engine DropdownMenu, ContextMenu and
+ * Command run on.
+ */
+export { useMenuKeyboard };
+
+/**
+ * Options accepted by {@link useMenuKeyboard}: the container ref, the
+ * close callback, an optional custom item selector, the submenu-level
+ * `onCloseToStart` callback and the layout `orientation`.
+ */
+export type UseMenuKeyboardOptions = Parameters<typeof useMenuKeyboard>[0];
+
+/**
+ * Roving tabindex for a menu/listbox container: exactly one item is a
+ * tab stop at any time — kept on activation, moved with focus, and
+ * re-synced by a MutationObserver when the item set changes (e.g. a
+ * filtered list). While `active` is false the effect is inert.
+ */
+export { useRovingTabindex };
+
+/**
+ * Options accepted by {@link useRovingTabindex}: the container ref, the
+ * `active` flag and an optional custom item selector.
+ */
+export type UseRovingTabindexOptions = Parameters<typeof useRovingTabindex>[0];
+
+// ---------------------------------------------------------------------------
+// Submenu mechanism (../utils/submenu)
+// ---------------------------------------------------------------------------
+
+/**
+ * The nested-submenu mechanism behind `MenuSub*` / `DropdownMenuSub*`:
+ * owns the open state (controllable through the `open` option), drives
+ * the floating pair, wires hover intent (rest-delayed open, graceful
+ * close) and the level-scoped keyboard contract — the inline-end arrow
+ * opens focusing the first item, Escape and the inline-start arrow
+ * close only this level, Tab closes the whole stack. Returns the
+ * behavior record the family components skin.
+ */
+export { useSubmenu };
+
+/**
+ * Options accepted by {@link useSubmenu}: the `open` state (controlled
+ * control or uncontrolled initial value) and `onOpenChange`, fired on
+ * every open transition whatever drove it.
+ */
+export type UseSubmenuOptions = Parameters<typeof useSubmenu>[0];
+
+/**
+ * Behavior record returned by {@link useSubmenu}: the open state, the
+ * trigger/content refs, the panel id, the floating behavior, and the
+ * handlers to spread on the trigger (`onPointerEnter`, `onKeyDown`)
+ * and the panel (`onKeyDown`).
+ */
+export type { SubmenuBehavior } from '../utils/submenu';
+
+/**
+ * Context provider carrying a {@link SubmenuBehavior} from a Sub
+ * container to its trigger/content parts — for authors composing their
+ * own submenu skins. Nesting works naturally: each Sub re-provides for
+ * its own parts.
+ */
+export { SubmenuProvider };
+
+/**
+ * Read the nearest {@link SubmenuBehavior} provided by an enclosing
+ * {@link SubmenuProvider}. Throws outside one.
+ */
+export { useSubmenuContext };
+
+/**
+ * Pointer rest time before a submenu opens on hover (intent, not
+ * rest), in milliseconds.
+ */
+export { SUBMENU_OPEN_DELAY_MS };
+
+/**
+ * Grace before a hover-opened submenu closes after the pointer settled
+ * outside it, in milliseconds.
+ */
+export { SUBMENU_CLOSE_GRACE_MS };
+
+// ---------------------------------------------------------------------------
+// Direction / RTL (../utils/direction)
+// ---------------------------------------------------------------------------
+
+/**
+ * Writing direction of a subtree: `'ltr'` or `'rtl'`.
+ */
+export type { Direction } from '../utils/direction';
+
+/**
+ * Direction implied by a BCP 47 tag — RTL primary language subtags
+ * (`ar`, `fa`, `he`, `ur`, …) resolve to `'rtl'`, everything else to
+ * `'ltr'`; `undefined` when no tag is given.
+ */
+export { localeDirection };
+
+/**
+ * Rendered direction of an element: the nearest ancestor carrying a
+ * `dir` attribute, `'ltr'` when none does. The layout truth that
+ * arrow-key mirroring and JS placement math must follow — read it at
+ * event/measure time, never from React state.
+ */
+export { getDirection };
+
+/**
+ * Declared direction for the current tree: the LocaleProvider chain's
+ * explicit `direction` prop or locale-derived direction, falling back
+ * to the document's rendered direction when no provider is mounted.
+ * Prefer {@link getDirection} on the concrete element whenever the
+ * value must match the painted layout.
+ */
+export { useDirection };
+
+// ---------------------------------------------------------------------------
+// Ref composition (../utils/refs)
+// ---------------------------------------------------------------------------
+
+/**
+ * Compose several refs (object and/or callback) into one callback ref —
+ * the pattern for merging a behavior record's `triggerRef`/`panelRef`
+ * with your own element handle on the same node.
+ */
+export { mergeRefs };
+
+// ---------------------------------------------------------------------------
+// View transitions (../utils/view-transition)
+// ---------------------------------------------------------------------------
+
+/**
+ * Wrap a boolean open-state flip in a View Transition — the same outlet
+ * the Dialog/Drawer/BottomSheet `viewTransition` prop runs on. Every
+ * write executes inside `document.startViewTransition(() =>
+ * flushSync(...))`; the full guard chain (disabled,
+ * `prefers-reduced-motion: reduce`, unsupported engine) degrades to a
+ * direct write. Pass the flag and the `useControl` setter, and use the
+ * returned writer wherever the state flips.
+ */
+export { useViewTransitionFlip };
+
+// ---------------------------------------------------------------------------
+// Document-level interaction hooks (../hooks)
+// ---------------------------------------------------------------------------
+
+/**
+ * Call back on `pointerdown` outside an element: attach the returned
+ * stable callback ref to the target, optionally ignore refs (e.g. the
+ * trigger), and toggle `enabled` with the panel's open state so a
+ * closed overlay costs no listener. Shadow-DOM retargeted clicks are
+ * attributed correctly via `event.composedPath()`.
+ */
+export { useClickOutside };
+
+/**
+ * Options accepted by {@link useClickOutside}: `enabled` (default
+ * `true`) and the `ignore` ref list — elements whose hits do not count
+ * as outside.
+ */
+export type { UseClickOutsideOptions } from '../hooks/useClickOutside';
+
+/**
+ * Declarative keyboard shortcuts: a map of spec strings (`'mod+k'`,
+ * `'ctrl+shift+p'`, `'?'`, named keys) to handlers, listened on the
+ * window (or a ref target). `mod` normalizes per platform (⌘ on macOS,
+ * Ctrl elsewhere), editable focus suppresses fires unless
+ * `allowInInput`, and the map may be an inline literal — a latest-ref
+ * keeps the listener mounted once.
+ */
+export { useHotkeys };
+
+/**
+ * Combine several hotkey specs into one comma-joined alias binding so
+ * a single handler catches any of them:
+ * `useHotkeys({ [hotkey('mod+k', 'mod+j')]: cycle })`.
+ */
+export { hotkey };
+
+/**
+ * Handler signature {@link useHotkeys} calls with the raw KeyboardEvent
+ * (already `preventDefault`-ed and stopped when it fires).
+ */
+export type { HotkeyHandler } from '../hooks/useHotkeys';
+
+/**
+ * Options accepted by {@link useHotkeys}: `enabled`, `target` (element
+ * ref or `window`), `eventName` and `allowInInput`.
+ */
+export type { UseHotkeysOptions } from '../hooks/useHotkeys';
+
+/**
+ * Observe whether an element is in the viewport: attach the returned
+ * callback ref and read the `inView` flag. `once: true` freezes after
+ * the first intersection (lazy-load style); engines without
+ * IntersectionObserver (SSR, jsdom) stay `false` without throwing.
+ */
+export { useInView };
+
+/**
+ * Options accepted by {@link useInView}: the IntersectionObserver init
+ * members plus the `once` freeze flag.
+ */
+export type { UseInViewOptions } from '../hooks/useInView';
+
+/**
+ * Subscribe to a CSS media query and return whether it currently
+ * matches; the query can change per render. SSR and hydration snapshots
+ * are `false` (no `window` access), and engines without `matchMedia`
+ * get a stable `false` instead of a throw.
+ */
+export { useMediaQuery };
+
+// ---------------------------------------------------------------------------
+// Persistent state hooks (../hooks)
+// ---------------------------------------------------------------------------
+
+/**
+ * The value from the previous render; `undefined` on the first.
+ * Compared by identity per render — no deep equality.
+ */
+export { usePrevious };
+
+/**
+ * localStorage-persisted controllable state: initial-value resolution
+ * is persisted value > uncontrolled prop > `initial`, uncontrolled
+ * writes persist as JSON, cross-tab updates arrive via `storage`
+ * events, and a controlled `control` stays the single source of truth
+ * (no write-back). Unavailable storage (private mode) degrades
+ * silently to in-memory state.
+ */
+export { useLocalStorage };
+
+/**
+ * sessionStorage-persisted controllable state — exactly the semantics
+ * of {@link useLocalStorage}, scoped to the tab session.
+ */
+export { useSessionStorage };

@@ -105,12 +105,35 @@ const zhCN: HazeStrings = {
   dateRangePicker: {
     startDate: '开始日期',
     endDate: '结束日期',
+    presetToday: '今天',
+    presetYesterday: '昨天',
+    presetLast7Days: '近 7 天',
+    presetLast30Days: '近 30 天',
+    presetThisMonth: '本月',
+    presetLastMonth: '上月',
+  },
+  datepicker: {
+    time: '时间',
+  },
+  dataTable: {
+    selectAll: '全选',
+    filterPlaceholder: '筛选',
+  },
+  diffViewer: {
+    header: '差异',
   },
   empty: {
     description: '暂无数据',
   },
   fileInput: {
     label: '选择文件',
+  },
+  filePreview: {
+    remove: '移除',
+    retry: '重试',
+    uploading: '上传中',
+    uploaded: '已上传',
+    error: '上传失败',
   },
   image: {
     zoomIn: '放大',
@@ -121,6 +144,13 @@ const zhCN: HazeStrings = {
   },
   inlineEdit: {
     placeholder: '点击编辑',
+  },
+  inlineCompletion: {
+    hint: '有可用的补全，按 Tab 接受，按 Esc 忽略。',
+  },
+  jsonView: {
+    copy: '复制',
+    more: '还有 {count} 项',
   },
   logViewer: {
     all: '全部',
@@ -162,6 +192,11 @@ const zhCN: HazeStrings = {
     star: '{count} 颗星',
     stars: '{count} 颗星',
   },
+  signature: {
+    clear: '清除',
+    undo: '撤销',
+    unsupported: '当前浏览器不支持签名板。',
+  },
   select: {
     placeholder: '请选择',
     listboxLabel: '选项',
@@ -174,6 +209,11 @@ const zhCN: HazeStrings = {
   },
   spinner: {
     loading: '加载中',
+  },
+  sources: {
+    label: '引用来源',
+    expand: '展开摘录',
+    collapse: '收起摘录',
   },
   tag: {
     remove: '移除',
@@ -194,6 +234,7 @@ const zhCN: HazeStrings = {
     loading: '加载中…',
     success: '成功',
     error: '出错了',
+    close: '关闭',
   },
   tokenCounter: {
     label: 'Token 数',
@@ -215,6 +256,9 @@ const zhCN: HazeStrings = {
   tree: {
     expand: '展开',
     collapse: '折叠',
+    loadError: '加载失败',
+    retry: '重试',
+    noMatch: '无匹配项',
   },
   upload: {
     hint: '将文件拖拽到此处，或点击上传',

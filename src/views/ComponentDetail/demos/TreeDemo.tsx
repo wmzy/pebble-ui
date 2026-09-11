@@ -1,3 +1,5 @@
+import { useCallback, useRef, useState } from 'react';
+
 import { Tree, type TreeNodeData } from '@/lib';
 
 import PropsTable from '../PropsTable';
@@ -9,32 +11,93 @@ import { intro, section } from '../styles';
 import { CssVarsSection } from './shared';
 
 // ─── Tree ───────────────────────────────────────────────────────
-export default function TreeDemo() {
-  const treeData: TreeNodeData[] = [
-    {
-      key: 'root',
-      title: 'Root',
-      children: [
-        {
-          key: 'parent-1',
-          title: 'Parent 1',
-          children: [
-            { key: 'child-1-1', title: 'Child 1-1' },
-            { key: 'child-1-2', title: 'Child 1-2' },
-          ],
-        },
-        {
-          key: 'parent-2',
-          title: 'Parent 2',
-          children: [
-            { key: 'child-2-1', title: 'Child 2-1' },
-            { key: 'child-2-2', title: 'Child 2-2' },
-          ],
-        },
-      ],
-    },
-  ];
 
+/** The shared sample tree (basic, checkable, and search sections). */
+const treeData: TreeNodeData[] = [
+  {
+    key: 'root',
+    title: 'Root',
+    children: [
+      {
+        key: 'parent-1',
+        title: 'Parent 1',
+        children: [
+          { key: 'child-1-1', title: 'Child 1-1' },
+          { key: 'child-1-2', title: 'Child 1-2' },
+        ],
+      },
+      {
+        key: 'parent-2',
+        title: 'Parent 2',
+        children: [
+          { key: 'child-2-1', title: 'Child 2-1' },
+          { key: 'child-2-2', title: 'Child 2-2' },
+        ],
+      },
+    ],
+  },
+];
+
+/** Fake server for the lazy-loading demo: 600 ms latency, one
+ *  deliberate failure per "flaky" node, deterministic children keyed
+ *  off the node's key (titles are ReactNode — never stringify them). */
+function useLazyServer() {
+  const failedOnce = useRef(new Set<string>());
+  return useCallback((node: TreeNodeData) => {
+    const key = node.key;
+    return new Promise<TreeNodeData[]>((resolve, reject) => {
+      setTimeout(() => {
+        if (key.startsWith('flaky') && !failedOnce.current.has(key)) {
+          failedOnce.current.add(key);
+          reject(new Error('simulated server error'));
+          return;
+        }
+        resolve(
+          Array.from({ length: 3 }, (_, i) => ({
+            key: `${key}-${i}`,
+            title: `${key} item ${i + 1}`,
+          }))
+        );
+      }, 600);
+    });
+  }, []);
+}
+
+function LazyTreeDemo() {
+  const loadData = useLazyServer();
+  return (
+    <Tree
+      treeData={[
+        { key: 'docs', title: 'Documents' },
+        { key: 'media', title: 'Media', isLeaf: true },
+        { key: 'flaky', title: 'Flaky server' },
+      ]}
+      loadData={loadData}
+    />
+  );
+}
+
+function SearchTreeDemo() {
+  const [searchValue, setSearchValue] = useState('');
+  return (
+    <>
+      <input
+        value={searchValue}
+        onChange={(event) => setSearchValue(event.target.value)}
+        placeholder='Search the tree… (try “2-1”)'
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+          marginBottom: 12,
+          padding: '6px 10px',
+        }}
+      />
+      <Tree treeData={treeData} searchValue={searchValue} />
+    </>
+  );
+}
+
+export default function TreeDemo() {
   // 200 groups × 6 rows = 1200 nodes for the virtualized example.
   const virtualData: TreeNodeData[] = Array.from(
     { length: 200 },
@@ -130,6 +193,39 @@ export default function TreeDemo() {
             expandedKeys={['group-0']}
             checkable
           />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Lazy Loading (loadData)</h2>
+        <p>
+          With <code>loadData</code>, nodes that ship no children (and are not{' '}
+          <code>isLeaf</code>) fetch them from your server the first time they
+          are expanded, show a spinner while in flight, and cache the result —
+          collapsing and re-expanding never requests again. The cache resets
+          when controlled <code>treeData</code> stops mapping onto it. A
+          rejected load renders an inline <em>Load failed · Retry</em>{' '}
+          affordance; expanding the failed node again retries too.{' '}
+          <code>Media</code> below is <code>isLeaf</code> and never loads;{' '}
+          <code>Flaky server</code> fails once on purpose.
+        </p>
+        <div style={{ maxWidth: 320 }}>
+          <LazyTreeDemo />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Search Filtering (searchValue)</h2>
+        <p>
+          A non-empty <code>searchValue</code> keeps only the nodes whose title
+          matches (case-insensitive) plus the ancestor path to them —
+          ancestors auto-expand so hits stay visible — and wraps each match in
+          a highlighted <code>&lt;mark&gt;</code>. When nothing matches, the
+          localized empty state is shown. Controlled{' '}
+          <code>expandedKeys</code> keep working underneath the filter.
+        </p>
+        <div style={{ maxWidth: 320 }}>
+          <SearchTreeDemo />
         </div>
       </div>
 

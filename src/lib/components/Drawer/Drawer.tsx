@@ -126,8 +126,12 @@ const placements = {
     width: 320px;
     min-width: 280px;
     max-width: 85vw;
-    /* physical: pins the left drawer to the physical left edge. */
+    /* physical: pins the left drawer to the physical left edge.
+       UA dialog:modal margin is auto — both sides must be explicit,
+       a lone margin-left 0 leaves the UA auto on the right and (with
+       an auto on both sides) centers the drawer. */
     margin-left: 0;
+    margin-right: auto;
     --haze-drawer-from-x: -100%;
     --haze-drawer-from-y: 0;
   `,
@@ -138,6 +142,7 @@ const placements = {
     max-width: 85vw;
     /* physical: pins the right drawer to the physical right edge. */
     margin-left: auto;
+    margin-right: 0;
     --haze-drawer-from-x: 100%;
     --haze-drawer-from-y: 0;
   `,
@@ -145,6 +150,7 @@ const placements = {
     width: 100vw;
     height: 320px;
     margin-top: 0;
+    margin-bottom: auto;
     --haze-drawer-from-x: 0;
     --haze-drawer-from-y: -100%;
   `,
@@ -152,6 +158,7 @@ const placements = {
     width: 100vw;
     height: 320px;
     margin-top: auto;
+    margin-bottom: 0;
     --haze-drawer-from-x: 0;
     --haze-drawer-from-y: 100%;
   `,

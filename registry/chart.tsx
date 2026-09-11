@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/chart.css';
 
 export { Chart };
-export type { ChartProps, ChartSeries, ChartType } from 'haze-ui';
+export type { ChartProps, ChartSeries, ChartType, ChartTooltipPayload, ChartTooltipEntry } from 'haze-ui';

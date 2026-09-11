@@ -24,6 +24,27 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm build
       - run: npm run size
+      # Read-only dist health check: top modules by size, appended to the
+      # job summary (no extra tooling — find/sort/numfmt only, nothing is
+      # installed and the build config is untouched; complements
+      # size-limit's per-budget gates with the full module picture).
+      - name: Dist size report (job summary)
+        run: |
+          total=$(du -sb dist | cut -f1)
+          {
+            echo '## dist size report — top 30 modules'
+            echo ''
+            echo '| bytes | size | file |'
+            echo '| ---: | ---: | --- |'
+            find dist -type f -printf '%s\t%p\n' \
+              | sort -rn | head -30 \
+              | while IFS=$'\t' read -r size file; do
+                printf '| %s | %s | `%s` |\n' "$size" "$(numfmt --to=iec --suffix=B "$size")" "$file"
+              done
+            echo ''
+            echo "- **files:** $(find dist -type f | wc -l)"
+            echo "- **total:** ${total} bytes ($(numfmt --to=iec --suffix=B "$total"))"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Real-browser smoke tests + pixel baselines against the vite harness in
   # e2e/app (not the built demo). Snapshots are only reproducible on the
@@ -43,3 +64,30 @@ jobs:
       - run: pnpm install
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:e2e
+
+  # Unit-test coverage gate (v8 provider; 70% thresholds configured in
+  # vite.config.mts). A separate job so it never adds time to the
+  # build/e2e critical path — it re-runs the same unit suite as the
+  # build job but instrumented, and uploads the lcov/text reports for
+  # local inspection (14-day retention: coverage is per-HEAD
+  # diagnostics, not a long-lived artifact).
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install
+      - run: pnpm coverage
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage
+          retention-days: 14

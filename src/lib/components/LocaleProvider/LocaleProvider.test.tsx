@@ -8,6 +8,7 @@ import { useDirection } from '../../utils/direction';
 
 import LocaleProvider from './LocaleProvider';
 import { defaultStrings, enUS } from './locale';
+import { jaJP } from './ja-jp';
 import { zhCN } from './zh-cn';
 
 /** Renders the useDirection() resolution for provider-chain assertions. */
@@ -105,23 +106,24 @@ describe('LocaleProvider', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('maps the zh-CN pack 1:1 onto the default pack', () => {
-    const assertSameShape = (en: unknown, zh: unknown, path: string) => {
-      expect(typeof zh).toBe(typeof en);
+  it('maps every built-in pack 1:1 onto the default pack', () => {
+    const assertSameShape = (en: unknown, translated: unknown, path: string) => {
+      expect(typeof translated).toBe(typeof en);
       if (typeof en === 'object' && en !== null) {
-        expect(Object.keys(zh as object).sort()).toEqual(
+        expect(Object.keys(translated as object).sort()).toEqual(
           Object.keys(en).sort()
         );
         for (const key of Object.keys(en)) {
           assertSameShape(
             (en as Record<string, unknown>)[key],
-            (zh as Record<string, unknown>)[key],
+            (translated as Record<string, unknown>)[key],
             `${path}.${key}`
           );
         }
       }
     };
-    assertSameShape(defaultStrings, zhCN, 'strings');
+    assertSameShape(defaultStrings, zhCN, 'zh-CN');
+    assertSameShape(defaultStrings, jaJP, 'ja-JP');
   });
 
   it('keeps enUS as an alias of the default pack', () => {
@@ -151,6 +153,68 @@ describe('LocaleProvider', () => {
       expect(screen.getByText('暂无数据')).toBeInTheDocument();
       unmount();
     }
+  });
+
+  it('serves the built-in ja-JP pack for locale="ja-JP"', () => {
+    render(
+      <LocaleProvider locale="ja-JP">
+        <Pagination total={20} />
+        <Empty />
+      </LocaleProvider>
+    );
+    expect(screen.getByRole('button', { name: '前へ' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '次へ' })).toBeInTheDocument();
+    expect(screen.getByText('データがありません')).toBeInTheDocument();
+    expect(screen.queryByText('No data')).not.toBeInTheDocument();
+  });
+
+  it('maps every Japanese language tag variant to the ja-JP pack', () => {
+    for (const locale of ['ja', 'ja-JP', 'ja_JP']) {
+      const { unmount } = render(
+        <LocaleProvider locale={locale}>
+          <Empty />
+        </LocaleProvider>
+      );
+      expect(screen.getByText('データがありません')).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it('layers the strings prop on top of the ja-JP pack', () => {
+    render(
+      <LocaleProvider
+        locale="ja-JP"
+        strings={{ empty: { description: '絞り込み結果はありません' } }}
+      >
+        <Empty />
+        <Pagination total={20} />
+      </LocaleProvider>
+    );
+    expect(screen.getByText('絞り込み結果はありません')).toBeInTheDocument();
+    // untouched keys keep the pack copy
+    expect(screen.getByRole('button', { name: '前へ' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '次へ' })).toBeInTheDocument();
+  });
+
+  it('lets a nested provider switch the pack, the innermost locale winning', () => {
+    render(
+      <LocaleProvider locale="zh-CN">
+        <Empty />
+        <LocaleProvider locale="ja-JP">
+          <Empty />
+        </LocaleProvider>
+        <LocaleProvider strings={{ empty: { description: '上書き' } }}>
+          <Empty />
+        </LocaleProvider>
+      </LocaleProvider>
+    );
+    // outer zh-CN copy
+    expect(screen.getByText('暂无数据')).toBeInTheDocument();
+    // inner ja-JP pack switches wholesale
+    expect(screen.getByText('データがありません')).toBeInTheDocument();
+    // an inner override layer beats the outer pack key
+    expect(screen.getByText('上書き')).toBeInTheDocument();
+    expect(screen.queryByText('No data')).not.toBeInTheDocument();
   });
 
   it('falls back to English for non-Chinese locales', () => {

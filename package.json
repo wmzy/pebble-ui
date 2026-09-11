@@ -55,7 +55,7 @@
   "scripts": {
     "start": "vite",
     "build": "BUILD_LIB=true vite build && node scripts/split-css.mjs && node scripts/generate-registry.mjs && tsc -p tsconfig.lib.json && tsc-alias -p tsconfig.lib.json",
-    "build:demo": "node scripts/write-version.mjs && BABEL_ENV=development BUILD_DEMO=true vite build && cp dist/index.html dist/404.html && cp llms.txt dist/ && cp llms-full.txt dist/",
+    "build:demo": "node scripts/write-version.mjs && node scripts/generate-llms.mjs && BABEL_ENV=development BUILD_DEMO=true vite build && cp dist/index.html dist/404.html && cp llms.txt dist/ && cp llms-full.txt dist/",
     "commit": "lint-staged && git-cz -n",
     "coverage": "vitest run --coverage",
     "lint": "eslint --fix src *.mjs",
@@ -188,16 +188,16 @@
       "name": "Dashboard profile: Button + Input + Select + Dialog + Toast + Pagination",
       "path": "dist/index.js",
       "import": "{Button, Input, Select, Dialog, Toast, Pagination}",
-      "limit": "15 KB"
+      "limit": "17 KB"
     },
     {
       "name": "CSS aggregate (dist/haze-ui.css, brotli)",
       "path": "dist/haze-ui.css",
-      "limit": "17.5 KB"
+      "limit": "19.5 KB"
     },
     {
       "path": "dist/haze-ui.css",
-      "limit": "21 KB",
+      "limit": "24 KB",
       "gzip": true
     },
     {
@@ -258,6 +258,54 @@
       "name": "CSS family ratchet: combobox",
       "path": "dist/css/combobox.css",
       "limit": "1.5 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: descriptions",
+      "path": "dist/css/descriptions.css",
+      "limit": "500 B",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: json-view",
+      "path": "dist/css/json-view.css",
+      "limit": "1 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: sources",
+      "path": "dist/css/sources.css",
+      "limit": "1 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: file-preview",
+      "path": "dist/css/file-preview.css",
+      "limit": "1 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: inline-completion",
+      "path": "dist/css/inline-completion.css",
+      "limit": "1 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: float-button",
+      "path": "dist/css/float-button.css",
+      "limit": "1.5 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: masonry",
+      "path": "dist/css/masonry.css",
+      "limit": "500 B",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: signature",
+      "path": "dist/css/signature.css",
+      "limit": "1 KB",
       "gzip": true
     }
   ]

@@ -321,9 +321,10 @@ const descriptions = {
   calendar: 'Month-grid date surface with `min`/`max`, locale and `weekStartsOn`.',
   card: 'Content card with `elevated`/`outlined`/`filled` variants.',
   carousel: 'Slideshow with controllable active index and autoplay.',
-  cascader: 'Multi-level drill-down selector committing a path of option values.',
+  cascader:
+    'Multi-level drill-down selector committing a path of option values; `onSearch` filters remotely, `loading` shows the pending state.',
   chart:
-    'Line/area/bar charts over recharts with colors and axes on haze tokens; series cycle the semantic palette.',
+    'Line/area/bar/pie charts over recharts with colors and axes on haze tokens; series cycle the semantic palette, `renderTooltip` customizes the tooltip.',
   'chat-container': 'Chat transcript scroll container with stick-to-bottom auto-scroll.',
   'chat-input': 'Message composer with a controllable value and onSend callback.',
   'chat-message':
@@ -331,11 +332,12 @@ const descriptions = {
   checkbox:
     'Checkbox input with controllable `checked` state; `CheckboxCore` is the headless form-bindable core.',
   chip: 'Rounded status chip with optional icon and close button.',
-  'code-block': 'Monospace code container with a language badge.',
+  'code-block':
+    'Monospace code container with a language badge; `highlight` plugs in an async syntax highlighter.',
   collapsible:
     'Unstyled open/close container with controllable `open` state (`CollapsibleTrigger`, `CollapsibleContent`).',
   'color-picker': 'Color selector with controllable value and preset swatches.',
-  combobox: 'Autocomplete text input with filterable option list.',
+  combobox: 'Autocomplete text input with filterable option list; `onSearch` defers filtering to the host.',
   command:
     'Command palette surface: `CommandInput` plus filterable `CommandItem`s in a `CommandList`.',
   'confirm-dialog': 'Ready-made confirm dialog with confirm/cancel actions and a danger variant.',
@@ -343,10 +345,11 @@ const descriptions = {
   'context-menu': 'Floating menu opened on right-click.',
   'conversation-list': 'Selectable list of conversations for a chat-history sidebar.',
   'data-table':
-    'Feature table on @tanstack/react-table with sorting, pagination and row selection.',
-  'date-range-picker': 'Picks a start/end date range.',
+    'Feature table on @tanstack/react-table with sorting, (manual) pagination, row selection and `dataTableToCsv` export.',
+  'date-range-picker':
+    'Picks a start/end date range, with built-in or custom `presets` (Today, Last 7 days, …).',
   datepicker:
-    'Date input with popup calendar (`YYYY-MM-DD` value); `DatepickerCore` is the headless core.',
+    'Date input with popup calendar (`YYYY-MM-DD` value); `showTime` adds a time-of-day field. `DatepickerCore` is the headless core.',
   dialog: 'Modal dialog with focus trapping.',
   'diff-viewer': 'Renders the line diff between old and new content for agent-proposed edits.',
   disclosure: 'Summary-header disclosure panel (details/summary semantics).',
@@ -389,7 +392,8 @@ const descriptions = {
     'Split-pane group with draggable dividers, horizontal or vertical; also exported as `SplitterGroup`/`SplitterPanel`/`SplitterHandle` (AntD-style naming).',
   'scroll-area': 'Scrollable region with custom-styled thin scrollbars and `maxHeight`.',
   segmented: 'Segmented control selecting one option from a compact set.',
-  select: 'Dropdown select over `SelectCore` with `<option>` children.',
+  select:
+    'Dropdown select over `SelectCore` with `<option>` children; `onSearch` enables server-side filtering.',
   sidebar:
     'App sidebar shell with controllable collapsed state: `SidebarGroup`/`SidebarItem`/`SidebarFooter`/`SidebarToggle` parts.',
   skeleton: 'Shimmering loading placeholder (`text`/`circular`/`rectangular`).',
@@ -424,13 +428,30 @@ const descriptions = {
   tooltip: 'Hover/focus hint bubble.',
   tour: 'Guided walkthrough spotlighting `steps` behind a mask, controllable `current`.',
   transfer: 'Two-column shuttle moving options between source and target lists.',
-  tree: 'Hierarchical tree with expand, select and check state.',
+  tree: 'Hierarchical tree with expand, select, check state, async `loadData` and `searchValue` filtering.',
   typography: 'Text primitives: `Title`, `Text`, `Paragraph` on typography tokens.',
-  upload: 'File picker with accumulating `File[]` value, `accept`/`multiple`.',
+  upload:
+    'File picker with accumulating `File[]` value, `accept`/`multiple`, `directory` picking and `listType` rendering.',
   'virtual-list':
     'Windowed list rendering only visible rows; fixed or measured dynamic heights.',
   watermark:
     'Tiled canvas watermark layer over children (or `fullscreen`), theme-aware color.',
+  descriptions:
+    'Definition-list description groups (`dl`/`dt`/`dd` over CSS Grid): `items` pairs, `columns`, `bordered`, `size`.',
+  'json-view':
+    'Collapsible JSON tree viewer with per-kind leaf colors, depth-based default expansion, truncation hints and an optional copy button.',
+  sources:
+    'Numbered citation list for RAG answers; excerpts reveal on hover/focus with a controllable `expanded` set, `compact` footnote form included.',
+  'file-preview':
+    'Attachment card with image thumbnail or extension badge, size formatting, upload progress and remove/retry actions.',
+  'inline-completion':
+    'Ghost-text completion overlay for input/textarea: Tab accepts the suggestion, Escape dismisses it.',
+  'float-button':
+    'Floating action button over the page (`FloatButtonGroup` for expandable stacks) with built-in back-to-top and help glyphs.',
+  masonry:
+    'Masonry (pinboard) layout: JS greedy column distribution balances children across `columns`.',
+  signature:
+    'Canvas signature pad committing a PNG data URL on every stroke, with undo, clear and a no-canvas fallback notice.',
 };
 
 // Component categories for the shadcn `categories` field (search
@@ -445,15 +466,15 @@ const CATEGORY_GROUPS = {
     'tag', 'tag-group', 'typography',
   ],
   layout: [
-    'aspect-ratio', 'app-shell', 'container', 'flex', 'grid', 'resizable',
-    'scroll-area', 'sidebar',
+    'aspect-ratio', 'app-shell', 'container', 'flex', 'grid', 'masonry',
+    'resizable', 'scroll-area', 'sidebar',
   ],
   form: [
     'cascader', 'checkbox', 'color-picker', 'combobox', 'datepicker',
     'date-range-picker', 'file-input', 'form', 'inline-edit', 'input',
     'mentions', 'number-input', 'otp-input', 'password-input', 'radio',
-    'rating', 'segmented', 'select', 'slider', 'switch', 'tag-input',
-    'textarea', 'time-picker', 'toggle', 'transfer', 'upload',
+    'rating', 'segmented', 'select', 'signature', 'slider', 'switch',
+    'tag-input', 'textarea', 'time-picker', 'toggle', 'transfer', 'upload',
   ],
   overlay: [
     'bottom-sheet', 'confirm-dialog', 'context-menu', 'dialog', 'drawer',
@@ -461,12 +482,14 @@ const CATEGORY_GROUPS = {
   ],
   'data-display': [
     'accordion', 'calendar', 'card', 'carousel', 'chart', 'chip',
-    'code-block', 'data-table', 'image', 'kbd', 'list', 'progress', 'stat',
-    'table', 'timeline', 'tree', 'virtual-list', 'watermark',
+    'code-block', 'data-table', 'descriptions', 'image', 'json-view', 'kbd',
+    'list', 'progress', 'stat', 'table', 'timeline', 'tree', 'virtual-list',
+    'watermark',
   ],
   navigation: [
     'affix', 'anchor', 'back-to-top', 'breadcrumb', 'command',
-    'navigation-bar', 'pagination', 'stepper', 'tabs', 'toolbar', 'tour',
+    'float-button', 'navigation-bar', 'pagination', 'stepper', 'tabs',
+    'toolbar', 'tour',
   ],
   feedback: [
     'alert', 'async-section', 'banner', 'empty', 'skeleton', 'spinner',
@@ -474,9 +497,10 @@ const CATEGORY_GROUPS = {
   ],
   agent: [
     'approval-card', 'chat-container', 'chat-input', 'chat-message',
-    'conversation-list', 'diff-viewer', 'log-viewer', 'markdown-renderer',
-    'model-picker', 'prompt-input', 'step-timeline', 'streaming-text',
-    'thinking-indicator', 'token-counter', 'tool-call-card',
+    'conversation-list', 'diff-viewer', 'file-preview', 'inline-completion',
+    'log-viewer', 'markdown-renderer', 'model-picker', 'prompt-input',
+    'sources', 'step-timeline', 'streaming-text', 'thinking-indicator',
+    'token-counter', 'tool-call-card',
   ],
   utilities: ['collapsible', 'disclosure', 'swipe-action'],
 };

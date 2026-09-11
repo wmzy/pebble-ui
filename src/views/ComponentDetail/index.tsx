@@ -39,6 +39,7 @@ import ChartDemo from './demos/ChartDemo';
 
 import { page } from './styles';
 
+import DemoPreview from './DemoPreview';
 import DemoSource from './DemoSource';
 
 import ButtonDemo from './demos/ButtonDemo';
@@ -227,6 +228,22 @@ import BottomSheetDemo from './demos/BottomSheetDemo';
 
 import SwipeActionDemo from './demos/SwipeActionDemo';
 
+import DescriptionsDemo from './demos/DescriptionsDemo';
+
+import JsonViewDemo from './demos/JsonViewDemo';
+
+import SourcesDemo from './demos/SourcesDemo';
+
+import FilePreviewDemo from './demos/FilePreviewDemo';
+
+import InlineCompletionDemo from './demos/InlineCompletionDemo';
+
+import FloatButtonDemo from './demos/FloatButtonDemo';
+
+import MasonryDemo from './demos/MasonryDemo';
+
+import SignatureDemo from './demos/SignatureDemo';
+
 // ─── Demo registry ─────────────────────────────────────────────
 const demos: Record<string, () => ReactNode> = {
   button: ButtonDemo,
@@ -322,6 +339,14 @@ const demos: Record<string, () => ReactNode> = {
   taggroup: TagGroupDemo,
   bottomsheet: BottomSheetDemo,
   swipeaction: SwipeActionDemo,
+  descriptions: DescriptionsDemo,
+  jsonview: JsonViewDemo,
+  sources: SourcesDemo,
+  filepreview: FilePreviewDemo,
+  inlinecompletion: InlineCompletionDemo,
+  floatbutton: FloatButtonDemo,
+  masonry: MasonryDemo,
+  signature: SignatureDemo,
   kbd: KbdDemo,
   avatargroup: AvatarGroupDemo,
   calendar: CalendarDemo,
@@ -409,7 +434,9 @@ export default function ComponentDetail() {
       {Demo ? (
         <>
           <CopyImportButton name={name} />
-          <Demo />
+          <DemoPreview>
+            <Demo />
+          </DemoPreview>
           <DemoSource name={name} />
         </>
       ) : (

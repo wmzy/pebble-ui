@@ -838,6 +838,16 @@
             "required": false
           },
           {
+            "name": "onSearch",
+            "type": "(query: string) => void",
+            "required": false
+          },
+          {
+            "name": "loading",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "virtualized",
             "type": "boolean | CascaderVirtualizedConfig",
             "required": false
@@ -887,6 +897,21 @@
           {
             "name": "height",
             "type": "number",
+            "required": false
+          },
+          {
+            "name": "innerRadius",
+            "type": "string | number",
+            "required": false
+          },
+          {
+            "name": "layout",
+            "type": "'horizontal' | 'vertical'",
+            "required": false
+          },
+          {
+            "name": "renderTooltip",
+            "type": "(payload: ChartTooltipPayload<T>) => ReactNode",
             "required": false
           },
           {
@@ -1170,6 +1195,11 @@
             "required": false
           },
           {
+            "name": "highlight",
+            "type": "Highlighter",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -1417,6 +1447,11 @@
           },
           {
             "name": "onCreate",
+            "type": "(query: string) => void",
+            "required": false
+          },
+          {
+            "name": "onSearch",
             "type": "(query: string) => void",
             "required": false
           },
@@ -1886,6 +1921,7 @@
       "cssFamily": "data-table",
       "imports": [
         "DataTable",
+        "dataTableToCsv",
         "dataTableSum",
         "dataTableAvg",
         "dataTableCount"
@@ -1984,6 +2020,26 @@
           {
             "name": "page",
             "type": "ControlOrValue<number>",
+            "required": false
+          },
+          {
+            "name": "manual",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "pageCount",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "onPageChange",
+            "type": "(page: number) => void",
+            "required": false
+          },
+          {
+            "name": "onSortChange",
+            "type": "(sorting: SortingState) => void",
             "required": false
           },
           {
@@ -2178,7 +2234,7 @@
           },
           {
             "name": "presets",
-            "type": "DateRangePickerPreset[]",
+            "type": "DateRangePickerPresets",
             "required": false
           },
           {
@@ -2245,6 +2301,11 @@
             "required": false
           },
           {
+            "name": "showTime",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "locale",
             "type": "string",
             "required": false
@@ -2307,6 +2368,11 @@
             "required": false
           },
           {
+            "name": "showTime",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "locale",
             "type": "string",
             "required": false
@@ -2329,6 +2395,43 @@
           {
             "name": "ref",
             "type": "Ref<HTMLInputElement>",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Descriptions": {
+      "routeKey": "descriptions",
+      "cssFamily": "descriptions",
+      "imports": [
+        "Descriptions"
+      ],
+      "propsTypes": {
+        "DescriptionsProps": [
+          {
+            "name": "items",
+            "type": "DescriptionsItem[]",
+            "required": true
+          },
+          {
+            "name": "columns",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "bordered",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "size",
+            "type": "'sm' | 'md'",
+            "required": false
+          },
+          {
+            "name": "title",
+            "type": "ReactNode",
             "required": false
           }
         ]
@@ -2722,6 +2825,73 @@
       },
       "otherTypes": {}
     },
+    "FilePreview": {
+      "routeKey": "filepreview",
+      "cssFamily": "file-preview",
+      "imports": [
+        "FilePreview"
+      ],
+      "propsTypes": {
+        "FilePreviewProps": [
+          {
+            "name": "file",
+            "type": "FilePreviewFile",
+            "required": true
+          },
+          {
+            "name": "status",
+            "type": "FilePreviewStatus",
+            "required": false
+          },
+          {
+            "name": "progress",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "onRemove",
+            "type": "() => void",
+            "required": false
+          },
+          {
+            "name": "onRetry",
+            "type": "() => void",
+            "required": false
+          },
+          {
+            "name": "removeLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "retryLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "uploadingLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "uploadedLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "errorLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Flex": {
       "routeKey": "flex",
       "cssFamily": "flex",
@@ -2769,6 +2939,81 @@
             "name": "children",
             "type": "ReactNode",
             "required": true
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "FloatButton": {
+      "routeKey": "floatbutton",
+      "cssFamily": "float-button",
+      "imports": [
+        "FloatButton",
+        "FloatButtonGroup"
+      ],
+      "propsTypes": {
+        "FloatButtonGroupProps": [
+          {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "onOpenChange",
+            "type": "(open: boolean) => void",
+            "required": false
+          },
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "description",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "shape",
+            "type": "'circle' | 'square'",
+            "required": false
+          },
+          {
+            "name": "variant",
+            "type": "'solid' | 'outline' | 'ghost'",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "FloatButtonProps": [
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "description",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "shape",
+            "type": "'circle' | 'square'",
+            "required": false
+          },
+          {
+            "name": "variant",
+            "type": "'solid' | 'outline' | 'ghost'",
+            "required": false
+          },
+          {
+            "name": "href",
+            "type": "string",
+            "required": false
           }
         ]
       },
@@ -3014,6 +3259,78 @@
       },
       "otherTypes": {}
     },
+    "InlineCompletion": {
+      "routeKey": "inlinecompletion",
+      "cssFamily": "inline-completion",
+      "imports": [
+        "InlineCompletion"
+      ],
+      "propsTypes": {
+        "InlineCompletionProps": [
+          {
+            "name": "suggestion",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "value",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "onAccept",
+            "type": "() => void",
+            "required": false
+          },
+          {
+            "name": "onDismiss",
+            "type": "() => void",
+            "required": false
+          },
+          {
+            "name": "multiline",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "hint",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "rows",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "ChangeEventHandler<HTMLInputElement, HTMLInputElement> | undefined",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement | HTMLTextAreaElement>",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "InlineEdit": {
       "routeKey": "inlineedit",
       "cssFamily": "inline-edit",
@@ -3111,6 +3428,43 @@
       },
       "otherTypes": {}
     },
+    "JsonView": {
+      "routeKey": "jsonview",
+      "cssFamily": "json-view",
+      "imports": [
+        "JsonView"
+      ],
+      "propsTypes": {
+        "JsonViewProps": [
+          {
+            "name": "data",
+            "type": "unknown",
+            "required": true
+          },
+          {
+            "name": "defaultExpandedDepth",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "copyable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "copyLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "moreLabel",
+            "type": "MoreLabelFn",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Kbd": {
       "routeKey": "kbd",
       "cssFamily": "kbd",
@@ -3177,6 +3531,7 @@
         "defaultStrings",
         "enUS",
         "zhCN",
+        "jaJP",
         "createStrings"
       ],
       "propsTypes": {
@@ -3267,6 +3622,33 @@
             "name": "className",
             "type": "string",
             "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Masonry": {
+      "routeKey": "masonry",
+      "cssFamily": "masonry",
+      "imports": [
+        "Masonry"
+      ],
+      "propsTypes": {
+        "MasonryProps": [
+          {
+            "name": "columns",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "gap",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
           }
         ]
       },
@@ -4379,6 +4761,11 @@
             "required": false
           },
           {
+            "name": "onSearch",
+            "type": "(query: string) => void",
+            "required": false
+          },
+          {
             "name": "maxTagCount",
             "type": "number",
             "required": false
@@ -4456,6 +4843,11 @@
             "required": false
           },
           {
+            "name": "onSearch",
+            "type": "(query: string) => void",
+            "required": false
+          },
+          {
             "name": "maxTagCount",
             "type": "number",
             "required": false
@@ -4500,6 +4892,11 @@
           {
             "name": "loading",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onSearch",
+            "type": "(query: string) => void",
             "required": false
           },
           {
@@ -4645,6 +5042,68 @@
       },
       "otherTypes": {}
     },
+    "Signature": {
+      "routeKey": "signature",
+      "cssFamily": "signature",
+      "imports": [
+        "Signature"
+      ],
+      "propsTypes": {
+        "SignatureProps": [
+          {
+            "name": "value",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string) => void",
+            "required": false
+          },
+          {
+            "name": "clearLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "undoLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "unsupportedLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "width",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "height",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "penColor",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "penWidth",
+            "type": "number",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Skeleton": {
       "routeKey": "skeleton",
       "cssFamily": "skeleton",
@@ -4746,6 +5205,53 @@
           {
             "name": "ref",
             "type": "Ref<HTMLInputElement>",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "Sources": {
+      "routeKey": "sources",
+      "cssFamily": "sources",
+      "imports": [
+        "Sources"
+      ],
+      "propsTypes": {
+        "SourcesProps": [
+          {
+            "name": "items",
+            "type": "SourceItem[]",
+            "required": true
+          },
+          {
+            "name": "compact",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "expanded",
+            "type": "ControlOrValue<readonly string[]>",
+            "required": false
+          },
+          {
+            "name": "label",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "expandLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "collapseLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
             "required": false
           }
         ]
@@ -6185,6 +6691,16 @@
             "required": false
           },
           {
+            "name": "loadData",
+            "type": "(node: TreeNodeData) => Promise<TreeNodeData[]>",
+            "required": false
+          },
+          {
+            "name": "searchValue",
+            "type": "string",
+            "required": false
+          },
+          {
             "name": "expandedKeys",
             "type": "ControlOrValue<string[]>",
             "required": false
@@ -6446,6 +6962,21 @@
             "required": false
           },
           {
+            "name": "listType",
+            "type": "'text' | 'picture-card'",
+            "required": false
+          },
+          {
+            "name": "removeLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "directory",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "onStatusChange",
             "type": "(files: UploadFileStatus[]) => void",
             "required": false
@@ -6471,6 +7002,16 @@
             "name": "entries",
             "type": "UploadEntry[]",
             "required": true
+          },
+          {
+            "name": "listType",
+            "type": "'text' | 'picture-card'",
+            "required": false
+          },
+          {
+            "name": "removeLabel",
+            "type": "string",
+            "required": false
           },
           {
             "name": "itemRender",
@@ -6562,6 +7103,21 @@
           {
             "name": "showUploadList",
             "type": "boolean | { itemRender?: UploadListItemRender | undefined; }",
+            "required": false
+          },
+          {
+            "name": "listType",
+            "type": "'text' | 'picture-card'",
+            "required": false
+          },
+          {
+            "name": "removeLabel",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "directory",
+            "type": "boolean",
             "required": false
           },
           {

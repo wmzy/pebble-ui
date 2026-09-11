@@ -36,6 +36,18 @@ type SelectProps = {
    */
   loading?: boolean;
   /**
+   * Remote search (see SelectCoreProps.onSearch): with `onSearch` set,
+   * the floating panel stops filtering locally — options are entirely
+   * what the consumer passes as children — and every query transition
+   * of the panel's search input fires this callback (empty queries
+   * included, so the consumer can restore the full list; the reset on
+   * panel close reports `''` too). Pair with `loading` for the pending
+   * state; debouncing is the consumer's concern. Requires `searchable`
+   * (the only paths with a search input); the plain native single
+   * select has no query source and ignores it.
+   */
+  onSearch?: (query: string) => void;
+  /**
    * Multiple mode only (see SelectCoreProps.maxTagCount): cap the
    * rendered Chips; the overflow collapses into a `+N` badge whose
    * `title` lists the hidden labels.
@@ -80,6 +92,7 @@ export default function Select({
   searchable = false,
   clearable = false,
   loading = false,
+  onSearch,
   maxTagCount,
   virtualized,
   size,
@@ -108,6 +121,7 @@ export default function Select({
       searchable={searchable}
       clearable={clearable}
       loading={loading}
+      onSearch={onSearch}
       maxTagCount={maxTagCount}
       virtualized={virtualized}
       size={size}

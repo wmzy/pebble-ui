@@ -3,6 +3,8 @@ import type { ComponentPropsWithRef, ReactNode } from 'react';
 import { css } from '@linaria/core';
 import { useCallback, useEffect, useRef } from 'react';
 
+import { useStrings } from '../LocaleProvider';
+
 /**
  * Semantic slot classes (AntD v6 `classNames` shape) for the toast
  * family. Toasts are usually fired imperatively (`useToast()` /
@@ -164,6 +166,7 @@ export default function Toast({
   className,
   ...rest
 }: ToastProps) {
+  const strings = useStrings('toast');
   const remainingRef = useRef(duration);
   const startedAtRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -242,7 +245,7 @@ export default function Toast({
       <button
         type='button'
         x-class={[closeBtn, classNames?.close]}
-        aria-label='Close'
+        aria-label={strings.close}
         onClick={onClose}
       >
         ×

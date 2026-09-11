@@ -81,6 +81,16 @@ type ComboboxProps = {
   /** Fired with the created query when the creatable row is committed. */
   onCreate?: (query: string) => void;
   /**
+   * Remote search: while set, local query filtering is suspended — the
+   * list renders exactly the `options` the consumer passes — and every
+   * query transition fires this callback instead: each keystroke,
+   * clearing the input, and the resets that follow a selection (the
+   * empty query restores the full list). The consumer owns the options
+   * end to end; pair with `loading` for the pending state. Debouncing
+   * is the consumer's concern.
+   */
+  onSearch?: (query: string) => void;
+  /**
    * Async-search pending state: the combobox input carries
    * `aria-busy` and the panel shows a spinner row instead of the
    * (stale) option list.
@@ -340,6 +350,7 @@ export default function Combobox({
   onValuesChange,
   creatable = false,
   onCreate,
+  onSearch,
   loading = false,
   empty,
   highlightMatches = false,
@@ -398,9 +409,14 @@ export default function Combobox({
     return additions.length > 0 ? [...options, ...additions] : options;
   }, [options, created]);
 
-  const filtered = effectiveOptions.filter((o) =>
-    o.label.toLowerCase().includes(query.toLowerCase())
-  );
+  // Remote mode (onSearch set) never filters locally — the visible
+  // list is exactly the consumer's current options, refetched per
+  // query. Creatable's local layering still applies on top.
+  const filtered = onSearch
+    ? effectiveOptions
+    : effectiveOptions.filter((o) =>
+        o.label.toLowerCase().includes(query.toLowerCase())
+      );
 
   // Creatable row: offered only when nothing matches a non-blank query
   // (an exact label match is itself an `includes` match, so it suppresses
@@ -485,6 +501,24 @@ export default function Combobox({
       row.scrollIntoView({ block: 'nearest' });
     }
   }, [virtualized, floating.shown, highlightIndex]);
+
+  // Remote-search report (Toast's latest-ref pattern: an inline arrow
+  // has a fresh identity every parent render, so the callback rides a
+  // ref and the report effect keys on the query alone). Fires once per
+  // actual query transition — every keystroke, clearing the input, and
+  // the resets that follow a selection (query '' in multiple mode, the
+  // picked label in single mode) — including empty queries, which the
+  // consumer uses to restore the full list. Never fires on mount.
+  const onSearchRef = useRef(onSearch);
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+  const reportedQueryRef = useRef(query);
+  useEffect(() => {
+    if (reportedQueryRef.current === query) return;
+    reportedQueryRef.current = query;
+    onSearchRef.current?.(query);
+  }, [query]);
 
   // Typing a new query invalidates the highlight — adjust during render
   // (React-endorsed reset) so the first filtered frame already drops any

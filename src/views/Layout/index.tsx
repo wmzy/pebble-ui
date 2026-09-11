@@ -26,6 +26,7 @@ import { useTheme } from '@/contexts/theme';
 import { sourceUrl, shortCommit, versionInfo } from '@/views/version-info';
 
 import SidebarSearch, { MatchText } from './SidebarSearch';
+import CommandPalette from './CommandPalette';
 import { ALIASES, COMPONENT_GROUPS, type ComponentItem } from './component-groups';
 import { filterComponents } from './search-score';
 
@@ -307,6 +308,30 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
         </Link>
       </ListItem>
       <ListItem>
+        <Disclosure open={true} summary='Guides' className={disclosureNav}>
+          <List variant='none'>
+            <ListItem>
+              <Link
+                className={navLink}
+                to='/guides/dark-mode'
+                onClick={onNavigate}
+              >
+                Dark mode
+              </Link>
+            </ListItem>
+            <ListItem>
+              <Link
+                className={navLink}
+                to='/guides/migration'
+                onClick={onNavigate}
+              >
+                Migrating from AntD / shadcn
+              </Link>
+            </ListItem>
+          </List>
+        </Disclosure>
+      </ListItem>
+      <ListItem>
         <Disclosure
           open={true}
           summary='Components'
@@ -491,6 +516,7 @@ export default function Layout() {
           </Link>
         </Tooltip>
         <div className={headerSpacer} />
+        <CommandPalette />
         <a
           className={versionTag}
           href={sourceUrl}

@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/code-block.css';
 
 export { CodeBlock };
-export type { CodeBlockProps } from 'haze-ui';
+export type { CodeBlockProps, Highlighter } from 'haze-ui';

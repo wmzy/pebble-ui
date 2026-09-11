@@ -8,4 +8,6 @@ export type {
   DataTableSummaryCell,
   DataTableCellEditorProps,
 } from './DataTable';
+export { dataTableToCsv } from './csv';
+export type { DataTableCsvOptions } from './csv';
 export { dataTableSum, dataTableAvg, dataTableCount } from './summary';

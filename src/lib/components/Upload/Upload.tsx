@@ -43,6 +43,15 @@ type UploadProps = {
   /** Built-in file list with progress and per-state actions — see
    * `UploadCoreProps.showUploadList`. */
   showUploadList?: boolean | { itemRender?: UploadListItemRender };
+  /** Rendering style of the built-in list (`text` rows or a
+   * `picture-card` thumbnail grid) — see `UploadCoreProps.listType`. */
+  listType?: 'text' | 'picture-card';
+  /** Overrides the built-in remove-button label — see
+   * `UploadCoreProps.removeLabel`. */
+  removeLabel?: string;
+  /** Picks directories instead of files — see
+   * `UploadCoreProps.directory`. */
+  directory?: boolean;
   /** Status-machine snapshot callback — see
    * `UploadCoreProps.onStatusChange`. */
   onStatusChange?: (files: UploadFileStatus[]) => void;
@@ -70,6 +79,9 @@ export default function Upload({
   data,
   manual,
   showUploadList,
+  listType,
+  removeLabel,
+  directory,
   onStatusChange,
   onChange,
   className,
@@ -99,6 +111,9 @@ export default function Upload({
       data={data}
       manual={manual}
       showUploadList={showUploadList}
+      listType={listType}
+      removeLabel={removeLabel}
+      directory={directory}
       onStatusChange={onStatusChange}
       className={className}
       ref={ref}

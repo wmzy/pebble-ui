@@ -32,14 +32,21 @@ import { ChatMessage } from '../../src/lib/components/ChatMessage';
 import { Checkbox } from '../../src/lib/components/Checkbox';
 import { DataTable } from '../../src/lib/components/DataTable';
 import type { DataTableColumnDef } from '../../src/lib/components/DataTable';
+import { Descriptions } from '../../src/lib/components/Descriptions';
+import { FilePreview } from '../../src/lib/components/FilePreview';
+import { InlineCompletion } from '../../src/lib/components/InlineCompletion';
 import { Input } from '../../src/lib/components/Input';
+import { JsonView } from '../../src/lib/components/JsonView';
 import { MarkdownRenderer } from '../../src/lib/components/MarkdownRenderer';
+import { Masonry } from '../../src/lib/components/Masonry';
 import { Pagination } from '../../src/lib/components/Pagination';
 import { Progress } from '../../src/lib/components/Progress';
 import { Radio, RadioGroup } from '../../src/lib/components/Radio';
 import { Option, Select } from '../../src/lib/components/Select';
+import { Signature } from '../../src/lib/components/Signature';
 import { Skeleton } from '../../src/lib/components/Skeleton';
 import { Slider } from '../../src/lib/components/Slider';
+import { Sources } from '../../src/lib/components/Sources';
 import { Spinner } from '../../src/lib/components/Spinner';
 import { Switch } from '../../src/lib/components/Switch';
 import { Tab, TabList, TabPanel, Tabs } from '../../src/lib/components/Tabs';
@@ -79,6 +86,34 @@ const cardTitle = css`
 
 const cardWidth = css`
   width: 360px;
+`;
+
+const jsonViewWidth = css`
+  width: 420px;
+`;
+
+const masonryWidth = css`
+  width: 360px;
+`;
+
+const masonryBlock = css`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  background: var(--haze-color-primary-subtle);
+  color: var(--haze-color-text);
+  border-radius: var(--haze-radius-md);
+`;
+
+const masonryBlockTall = css`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 104px;
+  background: var(--haze-color-info-subtle);
+  color: var(--haze-color-text);
+  border-radius: var(--haze-radius-md);
 `;
 
 const progressWidth = css`
@@ -439,6 +474,100 @@ mountPage(
           getRowId={(row) => String(row.id)}
         />
       </div>
+    </section>
+
+    <section data-snap="descriptions" className={section}>
+      <Descriptions
+        title="Package"
+        columns={2}
+        items={[
+          { key: 'name', label: 'Name', children: 'haze-ui' },
+          { key: 'version', label: 'Version', children: '1.14.0' },
+          { key: 'license', label: 'License', children: 'MIT' },
+          { key: 'desc', label: 'Description', children: 'Controlled-state React UI library', span: 2 },
+        ]}
+      />
+      <Descriptions
+        bordered
+        columns={3}
+        items={[
+          { key: 'a', label: 'Style', children: 'Linaria' },
+          { key: 'b', label: 'Tokens', children: 'OKLCH' },
+          { key: 'c', label: 'React', children: '19' },
+        ]}
+      />
+    </section>
+
+    <section data-snap="jsonview" className={section}>
+      <div className={jsonViewWidth}>
+        <JsonView
+          defaultExpandedDepth={1}
+          data={{
+            name: 'haze-ui',
+            stars: 128,
+            features: ['controlled', 'zero-runtime'],
+            nested: { deep: { value: null, ok: true } },
+          }}
+        />
+      </div>
+    </section>
+
+    <section data-snap="sources" className={section}>
+      <div className={jsonViewWidth}>
+        <Sources
+          items={[
+            { id: 's1', title: 'Design tokens spec', snippet: 'Tokens are plain CSS custom properties…' },
+            { id: 's2', title: 'OKLCH primer', url: 'https://example.com/oklch' },
+          ]}
+        />
+        <Sources
+          compact
+          items={[
+            { id: 'c1', title: 'First source' },
+            { id: 'c2', title: 'Second source' },
+          ]}
+        />
+      </div>
+    </section>
+
+    <section data-snap="filepreview" className={section}>
+      <div className={row}>
+        <FilePreview file={{ name: 'report.pdf', size: 204800, type: 'application/pdf' }} />
+        <FilePreview
+          file={{ name: 'failed.png', size: 51200, type: 'image/png' }}
+          status="error"
+        />
+        <FilePreview
+          file={{ name: 'uploading.zip', size: 1048576, type: 'application/zip' }}
+          status="uploading"
+          progress={40}
+        />
+      </div>
+    </section>
+
+    <section data-snap="inlinecompletion" className={section}>
+      <InlineCompletion
+        value="The quick"
+        suggestion=" brown fox jumps over the lazy dog"
+        aria-label="Completion demo"
+      />
+    </section>
+
+    <section data-snap="masonry" className={section}>
+      <div className={masonryWidth}>
+        <Masonry columns={3} gap={2}>
+          <div className={masonryBlockTall}>1</div>
+          <div className={masonryBlock}>2</div>
+          <div className={masonryBlock}>3</div>
+          <div className={masonryBlock}>4</div>
+          <div className={masonryBlockTall}>5</div>
+          <div className={masonryBlock}>6</div>
+        </Masonry>
+      </div>
+    </section>
+
+    <section data-snap="signature" className={section}>
+      <Signature aria-label="Empty signature" />
     </section>
 
     <div className={`${darkPanel} ${darkTheme}`}>

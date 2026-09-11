@@ -16,6 +16,8 @@ export default function DatepickerDemo() {
   const [value] = useControl(valueCtrl);
   const [, , monthCtrl] = useControl(undefined, '2026-03');
   const [month] = useControl(monthCtrl);
+  const [, , dateTimeCtrl] = useControl(undefined, '');
+  const [dateTime] = useControl(dateTimeCtrl);
 
   return (
     <>
@@ -66,6 +68,36 @@ export default function DatepickerDemo() {
         <div className={fieldRow}>
           <Datepicker picker='year' placeholder='Pick a year' />
         </div>
+      </div>
+
+      <div className={section}>
+        <h2>Date and time</h2>
+        <p>
+          <code>showTime</code> adds an hour/minute input below the
+          calendar; the value serializes as{' '}
+          <code>&apos;YYYY-MM-DD HH:mm&apos;</code>. Picking a date keeps
+          the panel open so the time can be adjusted — outside click or
+          Escape closes it. Without <code>showTime</code> the value keeps
+          the plain <code>&apos;YYYY-MM-DD&apos;</code> format, and a
+          plain-date value stays accepted.
+        </p>
+        <div className={fieldRow}>
+          <Datepicker
+            showTime
+            value={dateTimeCtrl}
+            placeholder='Pick a date and time'
+          />
+        </div>
+        {dateTime && (
+          <p
+            style={{
+              fontSize: 'var(--haze-text-sm)',
+              color: 'var(--haze-color-text-secondary)',
+            }}
+          >
+            Selected: {dateTime}
+          </p>
+        )}
       </div>
 
       <div className={section}>

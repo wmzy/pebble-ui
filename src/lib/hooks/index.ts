@@ -2,6 +2,8 @@ export { useClipboard } from './useClipboard';
 export type { UseClipboardResult } from './useClipboard';
 export { useClickOutside } from './useClickOutside';
 export type { UseClickOutsideOptions } from './useClickOutside';
+export { useDarkMode } from './useDarkMode';
+export type { ColorMode, UseDarkModeOptions, UseDarkModeResult } from './useDarkMode';
 export { useDebouncedCallback } from './useDebouncedCallback';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useFullscreen } from './useFullscreen';

@@ -62,6 +62,15 @@ type SelectCoreProps = {
    */
   loading?: boolean;
   /**
+   * Remote search for the floating paths (see SelectFloatingProps.onSearch):
+   * while set, local query filtering is suspended — options are entirely
+   * whatever arrives through `children` — and every query transition of
+   * the panel's search input is reported here, empty queries included
+   * (the consumer restores the full list). The plain single-mode native
+   * `<select>` path has no query source and ignores it.
+   */
+  onSearch?: (query: string) => void;
+  /**
    * Multiple mode only: render at most this many value Chips in the
    * trigger; the rest collapse into a `+N` badge whose `title` tooltip
    * lists the overflow labels. Selection semantics are unchanged.
@@ -204,6 +213,7 @@ export default function SelectCore({
   searchable = false,
   clearable = false,
   loading = false,
+  onSearch,
   maxTagCount,
   size = 'md',
   virtualized,
@@ -234,6 +244,7 @@ export default function SelectCore({
         searchable={searchable}
         clearable={clearable}
         loading={loading}
+        onSearch={onSearch}
         maxTagCount={maxTagCount}
         size={size}
         virtualized={virtualized}

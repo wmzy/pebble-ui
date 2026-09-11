@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import type { ChartTooltipPayload } from './chart-elements';
+
 import { expect } from 'vitest';
 
 import { render } from '@testing-library/react';
@@ -13,13 +15,22 @@ import {
   Legend,
   Line,
   LineChart,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  YAxis,
 } from 'recharts';
 
 import Chart from './Chart';
-import { chartElement, resolveChartSeries, seriesElement } from './chart-elements';
+import {
+  buildTooltipContent,
+  chartElement,
+  pieRingRadii,
+  resolveChartSeries,
+  seriesElement,
+} from './chart-elements';
 
 type SalesDatum = { month: string; sales: number; costs: number };
 
@@ -27,6 +38,13 @@ const DATA: SalesDatum[] = [
   { month: 'Jan', sales: 12, costs: 8 },
   { month: 'Feb', sales: 18, costs: 10 },
   { month: 'Mar', sales: 9, costs: 7 },
+];
+
+/** The semantic palette cycle pie sectors repeat (mirrors cycleColor). */
+const CYCLED = [
+  'var(--haze-color-primary)',
+  'var(--haze-color-info)',
+  'var(--haze-color-success)',
 ];
 
 /* jsdom reports ResponsiveContainer's box as 0×0, so real recharts never
@@ -55,19 +73,55 @@ vi.mock('recharts', async () => {
       })
     );
 
+  /* Stand-in payload recharts would hand a custom tooltip content function
+   * — the mocked Tooltip invokes `content` with it so the bridge mapping
+   * and the rendered output stay observable. */
+  const tooltipPayloadItem = {
+    name: 'Revenue',
+    value: 12,
+    color: '#ff0000',
+    dataKey: 'sales',
+    payload: { month: 'Jan', sales: 12, costs: 8 },
+  };
+
   return {
     ResponsiveContainer: frame('responsive-container'),
     LineChart: frame('line-chart'),
     AreaChart: frame('area-chart'),
     BarChart: frame('bar-chart'),
+    PieChart: frame('pie-chart'),
     XAxis: frame('x-axis'),
     YAxis: frame('y-axis'),
     CartesianGrid: frame('grid'),
-    Tooltip: frame('tooltip'),
+    Tooltip: vi.fn((props: Record<string, unknown>) =>
+      createElement(
+        'div',
+        { 'data-tooltip': '' },
+        typeof props.content === 'function'
+          ? (props.content as (p: unknown) => ReactNode)({
+              payload: [tooltipPayloadItem],
+              label: 'Jan',
+            })
+          : (props.children as ReactNode)
+      )
+    ),
     Legend: frame('legend'),
     Line: plotted('line'),
     Area: plotted('area'),
     Bar: plotted('bar'),
+    Pie: vi.fn((props: Record<string, unknown>) =>
+      createElement(
+        'div',
+        {
+          'data-pie': '',
+          'data-key': props.dataKey as string,
+          'data-name-key': props.nameKey as string,
+          'data-inner-radius': String(props.innerRadius),
+          'data-outer-radius': String(props.outerRadius),
+        },
+        props.children as ReactNode
+      )
+    ),
   };
 });
 
@@ -76,31 +130,17 @@ beforeEach(() => {
 });
 
 describe('resolveChartSeries', () => {
-  it('falls label back to key and cycles the semantic color tokens', () => {
+  it('falls label back to key and keeps color explicit-only', () => {
     const resolved = resolveChartSeries([
       { key: 'a' },
       { key: 'b' },
       { key: 'c' },
-      { key: 'd' },
-      { key: 'e' },
-      { key: 'f' },
     ]);
 
-    expect(resolved.map(({ label }) => label)).toEqual([
-      'a',
-      'b',
-      'c',
-      'd',
-      'e',
-      'f',
-    ]);
-    expect(resolved.map(({ color }) => color)).toEqual([
-      'var(--haze-color-primary)',
-      'var(--haze-color-info)',
-      'var(--haze-color-success)',
-      'var(--haze-color-warning)',
-      'var(--haze-color-danger)',
-      'var(--haze-color-primary)',
+    expect(resolved).toEqual([
+      { key: 'a', label: 'a', color: undefined },
+      { key: 'b', label: 'b', color: undefined },
+      { key: 'c', label: 'c', color: undefined },
     ]);
   });
 
@@ -150,6 +190,113 @@ describe('seriesElement', () => {
       fill: 'var(--haze-color-primary)',
     });
   });
+
+  it('cycles the semantic tokens per series index when color is omitted', () => {
+    expect(seriesElement('line', { key: 'a', label: 'a' }, 1).props).toEqual(
+      expect.objectContaining({ stroke: 'var(--haze-color-info)' })
+    );
+    // sixth series wraps back around the five-token palette
+    expect(seriesElement('bar', { key: 'a', label: 'a' }, 5).props).toEqual(
+      expect.objectContaining({ fill: 'var(--haze-color-primary)' })
+    );
+  });
+});
+
+describe('pieRingRadii', () => {
+  it('spans a single ring from innerRadius to 80%', () => {
+    expect(pieRingRadii(0, 1, 0)).toEqual({
+      innerRadius: 0,
+      outerRadius: '80%',
+    });
+    expect(pieRingRadii(0, 1, 60)).toEqual({
+      innerRadius: 60,
+      outerRadius: '80%',
+    });
+  });
+
+  it('bands multiple rings evenly, series 0 innermost', () => {
+    expect(pieRingRadii(0, 2, 0)).toEqual({
+      innerRadius: '0%',
+      outerRadius: '40%',
+    });
+    expect(pieRingRadii(1, 2, 0)).toEqual({
+      innerRadius: '40%',
+      outerRadius: '80%',
+    });
+  });
+
+  it('offsets the innermost ring by a percentage innerRadius', () => {
+    expect(pieRingRadii(0, 2, '30%')).toEqual({
+      innerRadius: '30%',
+      outerRadius: '55%',
+    });
+    expect(pieRingRadii(1, 2, '30%')).toEqual({
+      innerRadius: '55%',
+      outerRadius: '80%',
+    });
+  });
+});
+
+describe('buildTooltipContent', () => {
+  it('maps recharts payload items onto tooltip entries', () => {
+    const seen: unknown[] = [];
+    const content = buildTooltipContent((payload) => {
+      seen.push(payload);
+      return 'custom tooltip';
+    });
+
+    const rendered = content({
+      label: 'Jan',
+      payload: [
+        {
+          name: 'Revenue',
+          value: 12,
+          color: '#ff0000',
+          dataKey: 'sales',
+          payload: DATA[0],
+        },
+        {
+          value: 8,
+          color: 'var(--haze-color-info)',
+          dataKey: 'costs',
+          payload: DATA[1],
+        },
+      ],
+    });
+
+    expect(rendered).toBe('custom tooltip');
+    expect(seen).toEqual([
+      {
+        label: 'Jan',
+        entries: [
+          { name: 'Revenue', value: 12, color: '#ff0000', dataEntry: DATA[0] },
+          {
+            name: 'costs',
+            value: 8,
+            color: 'var(--haze-color-info)',
+            dataEntry: DATA[1],
+          },
+        ],
+      },
+    ]);
+  });
+
+  it('defaults missing names, values and colors', () => {
+    const seen: unknown[] = [];
+    const content = buildTooltipContent((payload) => {
+      seen.push(payload);
+      return null;
+    });
+
+    void content({ payload: [{ value: 3 }] });
+
+    expect(seen).toEqual([
+      {
+        label: undefined,
+        entries: [{ name: '', value: 3, color: '', dataEntry: undefined }],
+      },
+    ]);
+  });
 });
 
 describe('chartElement', () => {
@@ -157,7 +304,14 @@ describe('chartElement', () => {
     expect(chartElement('line', DATA, null).type).toBe(LineChart);
     expect(chartElement('area', DATA, null).type).toBe(AreaChart);
     expect(chartElement('bar', DATA, null).props).toEqual(
-      expect.objectContaining({ data: DATA })
+      expect.objectContaining({ data: DATA, layout: 'horizontal' })
+    );
+    expect(chartElement('pie', DATA, null).type).toBe(PieChart);
+  });
+
+  it('passes layout through to cartesian containers', () => {
+    expect(chartElement('bar', DATA, null, 'vertical').props).toEqual(
+      expect.objectContaining({ layout: 'vertical' })
     );
   });
 });
@@ -305,6 +459,154 @@ describe('Chart', () => {
     expect(Legend).toHaveBeenCalledTimes(1);
   });
 
+  it('renders one pie sector per datum with cycled token colors', () => {
+    render(
+      <Chart type='pie' data={DATA} series={[{ key: 'sales' }]} xKey='month' />
+    );
+
+    expect(PieChart).toHaveBeenCalledWith(
+      expect.objectContaining({ data: DATA }),
+      undefined
+    );
+    expect(Pie).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // per-datum `fill` presentation props replace the deprecated <Cell>
+        data: DATA.map((datum, i) => ({
+          ...datum,
+          fill: CYCLED[i] ?? 'var(--haze-color-warning)',
+        })),
+        dataKey: 'sales',
+        nameKey: 'month',
+        innerRadius: 0,
+        outerRadius: '80%',
+      }),
+      undefined
+    );
+
+    // polar chart: no cartesian axes or grid
+    expect(XAxis).not.toHaveBeenCalled();
+    expect(YAxis).not.toHaveBeenCalled();
+    expect(CartesianGrid).not.toHaveBeenCalled();
+  });
+
+  it('passes innerRadius through to render a donut', () => {
+    render(
+      <Chart
+        type='pie'
+        data={DATA}
+        series={[{ key: 'sales' }]}
+        xKey='month'
+        innerRadius={60}
+      />
+    );
+    expect(Pie).toHaveBeenCalledWith(
+      expect.objectContaining({ innerRadius: 60, outerRadius: '80%' }),
+      undefined
+    );
+  });
+
+  it('bands one ring per pie series and honors an explicit ring color', () => {
+    render(
+      <Chart
+        type='pie'
+        data={DATA}
+        series={[
+          { key: 'sales' },
+          { key: 'costs', color: 'var(--haze-color-text)' },
+        ]}
+        xKey='month'
+      />
+    );
+
+    expect(Pie).toHaveBeenCalledTimes(2);
+    expect(Pie).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        dataKey: 'sales',
+        innerRadius: '0%',
+        outerRadius: '40%',
+      }),
+      undefined
+    );
+    expect(Pie).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        dataKey: 'costs',
+        innerRadius: '40%',
+        outerRadius: '80%',
+      }),
+      undefined
+    );
+
+    // ring 0 cycles per datum, ring 1 is pinned by its explicit series color
+    const ringData = (n: number) =>
+      vi.mocked(Pie).mock.calls[n - 1]?.[0] as { data: { fill?: string }[] };
+    expect(ringData(1).data.map((d) => d.fill)).toEqual([
+      'var(--haze-color-primary)',
+      'var(--haze-color-info)',
+      'var(--haze-color-success)',
+    ]);
+    expect(ringData(2).data.map((d) => d.fill)).toEqual(
+      DATA.map(() => 'var(--haze-color-text)')
+    );
+  });
+
+  it('renders custom tooltip content from the recharts payload', () => {
+    const renderTooltip = vi.fn(
+      (payload: ChartTooltipPayload<SalesDatum>) =>
+        `${String(payload.label)} / ${payload.entries
+          .map((entry) => `${entry.name}=${entry.value}@${entry.color}`)
+          .join('&')}`
+    );
+
+    const { container } = render(
+      <Chart
+        type='line'
+        data={DATA}
+        series={[{ key: 'sales', label: 'Revenue' }]}
+        xKey='month'
+        renderTooltip={renderTooltip}
+      />
+    );
+
+    expect(renderTooltip).toHaveBeenCalledTimes(1);
+    expect(renderTooltip).toHaveBeenCalledWith({
+      label: 'Jan',
+      entries: [
+        { name: 'Revenue', value: 12, color: '#ff0000', dataEntry: DATA[0] },
+      ],
+    });
+    expect(container.querySelector('[data-tooltip]')).toHaveTextContent(
+      'Jan / Revenue=12@#ff0000'
+    );
+  });
+
+  it('renders horizontal bars through layout=vertical', () => {
+    render(
+      <Chart
+        type='bar'
+        layout='vertical'
+        data={DATA}
+        series={[{ key: 'sales' }]}
+        xKey='month'
+      />
+    );
+
+    expect(BarChart).toHaveBeenCalledWith(
+      expect.objectContaining({ data: DATA, layout: 'vertical' }),
+      undefined
+    );
+    // the axes swap roles: X counts values, Y carries the xKey categories
+    expect(XAxis).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'number' }),
+      undefined
+    );
+    expect(YAxis).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'category', dataKey: 'month' }),
+      undefined
+    );
+  });
+
   it('has no axe violations', async () => {
     const { axe } = await import('jest-axe');
     render(
@@ -316,6 +618,16 @@ describe('Chart', () => {
           { key: 'costs', label: 'Costs' },
         ]}
         xKey='month'
+        showLegend
+      />
+    );
+    render(
+      <Chart
+        type='pie'
+        data={DATA}
+        series={[{ key: 'sales', label: 'Revenue' }]}
+        xKey='month'
+        innerRadius={40}
         showLegend
       />
     );

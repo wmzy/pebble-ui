@@ -1105,6 +1105,115 @@ describe('Select loading', () => {
   });
 });
 
+describe('Select remote search', () => {
+  it('reports every query transition through onSearch and suspends local filtering', async () => {
+    const user = userEvent.setup();
+    const onSearch = vi.fn();
+    render(
+      <Select searchable onSearch={onSearch} aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    const search = screen.getByRole('textbox', { name: 'Search options' });
+    await user.type(search, 'ban');
+    expect(onSearch).toHaveBeenLastCalledWith('ban');
+    // No local filtering: non-matching options stay visible — the
+    // consumer's options are the whole truth until they refetch.
+    expect(screen.getAllByRole('option')).toHaveLength(3);
+    expect(screen.getByRole('option', { name: 'Apple' })).toBeInTheDocument();
+
+    // Clearing reports the empty query so the consumer can restore
+    // the full list.
+    await user.clear(search);
+    expect(onSearch).toHaveBeenLastCalledWith('');
+  });
+
+  it('reports the empty query when the panel closes on a live query', async () => {
+    const user = userEvent.setup();
+    const onSearch = vi.fn();
+    render(
+      <Select searchable onSearch={onSearch} aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search options' }),
+      'ban'
+    );
+    await user.keyboard('{Escape}');
+    expect(onSearch).toHaveBeenLastCalledWith('');
+  });
+
+  it('pairs with loading — spinner while pending, refetched options after', async () => {
+    const user = userEvent.setup();
+    const onSearch = vi.fn();
+    const remoteFruits = [<Option key="kiwi" value="kiwi">Kiwi</Option>];
+    const { rerender } = render(
+      <Select searchable onSearch={onSearch} loading aria-label="fruit">
+        {remoteFruits}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    const search = screen.getByRole('textbox', { name: 'Search options' });
+    await user.type(search, 'kiwi');
+    expect(onSearch).toHaveBeenLastCalledWith('kiwi');
+    // Loading owns the options area: spinner, no stale filtering, no
+    // no-match lie — even though nothing matches the query locally.
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('option')).not.toBeInTheDocument();
+    expect(screen.queryByText('No matches')).not.toBeInTheDocument();
+    expect(document.querySelector('[aria-busy="true"]')).not.toBeNull();
+
+    // The fetch lands: loading clears and the consumer's options
+    // render exactly as received — still unfiltered.
+    rerender(
+      <Select searchable onSearch={onSearch} aria-label="fruit">
+        {remoteFruits}
+      </Select>
+    );
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(screen.getByRole('option', { name: 'Kiwi' })).toBeInTheDocument();
+  });
+
+  it('keeps local filtering when onSearch is absent', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select searchable aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search options' }),
+      'ban'
+    );
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(screen.getByRole('option', { name: 'Banana' })).toBeInTheDocument();
+  });
+
+  it('has no axe violations while remote searching', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(
+      <Select searchable onSearch={() => undefined} aria-label="fruit">
+        {FRUITS}
+      </Select>
+    );
+    await user.click(screen.getByRole('combobox'));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search options' }),
+      'ban'
+    );
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
 describe('Select ref forwarding', () => {
   it('forwards ref to the native select in single mode', () => {
     const ref = createRef<HTMLSelectElement>();

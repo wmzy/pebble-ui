@@ -91,6 +91,7 @@ type DialogProps = {
 
 const overlay = css`
   border: none;
+  box-sizing: border-box;
   border-radius: var(--haze-dialog-radius, var(--haze-radius-xl));
   padding: var(--haze-dialog-padding, var(--haze-space-6));
   background: var(--haze-color-bg);

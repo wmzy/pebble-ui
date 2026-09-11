@@ -426,3 +426,174 @@ describe('Datepicker presets', () => {
     expect(screen.queryByRole('button', { name: 'Start of May' })).not.toBeInTheDocument();
   });
 });
+
+describe('Datepicker showTime', () => {
+  it('serializes a pick as "YYYY-MM-DD HH:mm" and keeps the panel open', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker showTime value="2025-01-15" />);
+    const input = screen.getByPlaceholderText('Select date');
+    await user.click(input);
+    const panel = document.getElementById(input.getAttribute('aria-controls')!)!;
+    expect(panel).toHaveAttribute('data-state', 'open');
+    // Editing the time with a date already chosen re-serializes live.
+    fireEvent.change(screen.getByLabelText('Time'), {
+      target: { value: '09:30' },
+    });
+    expect(input).toHaveValue('2025-01-15 09:30');
+    // A day pick swaps the date part, keeping the time.
+    await user.click(screen.getAllByText('20')[0]!);
+    expect(input).toHaveValue('2025-01-20 09:30');
+    // The panel stays open so the time can still be adjusted.
+    expect(panel).toHaveAttribute('data-state', 'open');
+  });
+
+  it('round-trips: reopening parses the time and highlights the day', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker showTime value="2025-01-15 23:45" />);
+    const input = screen.getByPlaceholderText('Select date');
+    expect(input).toHaveValue('2025-01-15 23:45');
+    await user.click(input);
+    expect(screen.getByLabelText('Time')).toHaveValue('23:45');
+    // The calendar navigates by the date part alone.
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2025, 0) })
+    ).toBeInTheDocument();
+    expect(
+      document
+        .querySelector('[data-haze-day="2025-01-15"]')!
+        .closest('[role="gridcell"]')
+    ).toHaveAttribute('aria-selected', 'true');
+    // A pick without touching the time keeps the parsed time.
+    await user.click(screen.getAllByText('20')[0]!);
+    expect(input).toHaveValue('2025-01-20 23:45');
+  });
+
+  it('defaults the time to 00:00 when untouched', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker showTime value="2025-01-15" />);
+    const input = screen.getByPlaceholderText('Select date');
+    await user.click(input);
+    expect(screen.getByLabelText('Time')).toHaveValue('00:00');
+    await user.click(screen.getAllByText('20')[0]!);
+    expect(input).toHaveValue('2025-01-20 00:00');
+  });
+
+  it('combines a time typed before the first date pick', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker showTime />);
+    const input = screen.getByPlaceholderText('Select date');
+    await user.click(input);
+    fireEvent.change(screen.getByLabelText('Time'), {
+      target: { value: '08:15' },
+    });
+    // No date yet: the value stays empty while the time parks — the
+    // panel opens on the current month, so today's cell is in view.
+    expect(input).toHaveValue('');
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    await user.click(document.querySelector(`[data-haze-day="${today}"]`)!);
+    expect(input).toHaveValue(`${today} 08:15`);
+  });
+
+  it('keeps the pure-date format and renders no time row without showTime', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value="2025-01-15" />);
+    const input = screen.getByPlaceholderText('Select date');
+    await user.click(input);
+    expect(screen.queryByLabelText('Time')).not.toBeInTheDocument();
+    await user.click(screen.getAllByText('20')[0]!);
+    expect(input).toHaveValue('2025-01-20');
+  });
+
+  it('ignores showTime on coarser granularities', () => {
+    render(
+      <DatepickerCore
+        value="2026-03"
+        onChange={() => undefined}
+        open
+        onOpenChange={() => undefined}
+        picker="month"
+        showTime
+      />
+    );
+    expect(
+      screen.getByRole('grid', { name: 'Select month' })
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('Time')).not.toBeInTheDocument();
+  });
+
+  it('has no axe violations with the time footer open', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(<Datepicker showTime value="2025-01-15" />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Datepicker year quick jump', () => {
+  const shortMonth = (month: number) =>
+    new Date(2026, month, 15).toLocaleString('default', { month: 'short' });
+
+  it('jumps to a year from the panel header and lands back on the month view', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value="2025-01-15" />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    await user.click(
+      screen.getByRole('button', { name: getMonthLabel(2025, 0) })
+    );
+    expect(
+      screen.getByRole('grid', { name: 'Select month' })
+    ).toBeInTheDocument();
+    // The toolbar year drills into the decade grid.
+    await user.click(screen.getByRole('button', { name: '2025' }));
+    expect(
+      screen.getByRole('grid', { name: 'Select year' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('2020 – 2031')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '2028' }));
+    // Back on the month view, now anchored to the picked year.
+    expect(
+      screen.getByRole('grid', { name: 'Select month' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2028' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: shortMonth(2) }));
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2028, 2) })
+    ).toBeInTheDocument();
+    await user.click(screen.getAllByText('20')[0]!);
+    expect(screen.getByPlaceholderText('Select date')).toHaveValue(
+      '2028-03-20'
+    );
+  });
+
+  it('reaches the year grid by keyboard and roves its cells', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value="2025-01-15" />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    const title = screen.getByRole('button', {
+      name: getMonthLabel(2025, 0),
+    });
+    title.focus();
+    await user.keyboard('{Enter}');
+    // Tab back out to the toolbar year button (last toolbar button
+    // first, then the year toggle) and activate it.
+    await user.tab({ shift: true });
+    await user.tab({ shift: true });
+    await user.keyboard('{Enter}');
+    const yearGrid = screen.getByRole('grid', { name: 'Select year' });
+    expect(yearGrid).toBeInTheDocument();
+    // Opening focuses the quick year's cell.
+    expect(yearGrid.querySelector('[data-haze-year="2025"]')).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    expect(yearGrid.querySelector('[data-haze-year="2026"]')).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(
+      screen.getByRole('grid', { name: 'Select month' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2026' })).toBeInTheDocument();
+  });
+});

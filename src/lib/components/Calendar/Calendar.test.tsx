@@ -879,3 +879,107 @@ describe('Calendar', () => {
     });
   });
 });
+
+describe('Calendar year quick jump', () => {
+  const shortMonth = (month: number) =>
+    new Date(2025, month, 15).toLocaleString('default', { month: 'short' });
+
+  async function openYearGrid(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(
+      screen.getByRole('button', { name: getMonthLabel(2025, 0) })
+    );
+    await user.click(screen.getByRole('button', { name: '2025' }));
+    return screen.getByRole('grid', { name: 'Select year' });
+  }
+
+  it('drills from the toolbar year into a decade grid and back to months', async () => {
+    const user = userEvent.setup();
+    render(<Calendar value='2025-01-15' />);
+    const yearGrid = await openYearGrid(user);
+    expect(screen.getByText('2020 – 2031')).toBeInTheDocument();
+    expect(
+      yearGrid.querySelectorAll('[role="gridcell"]')
+    ).toHaveLength(12);
+    // The viewed year is highlighted and receives focus on open.
+    const viewed = yearGrid.querySelector('[data-haze-year="2025"]')!;
+    expect(viewed).toHaveFocus();
+    expect(viewed.closest('[role="gridcell"]')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    await user.click(screen.getByRole('button', { name: '2028' }));
+    // Back on the month view, anchored to the picked year.
+    expect(
+      screen.getByRole('grid', { name: 'Select month' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2028' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: shortMonth(2) }));
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2028, 2) })
+    ).toBeInTheDocument();
+  });
+
+  it('Escape steps back one level, to the month grid', async () => {
+    const user = userEvent.setup();
+    render(<Calendar value='2025-01-15' />);
+    await openYearGrid(user);
+    await user.keyboard('{Escape}');
+    // The grid node is reconciled in place, so query by role instead of
+    // holding the old element handle.
+    expect(
+      screen.queryByRole('grid', { name: 'Select year' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('grid', { name: 'Select month' })
+    ).toBeInTheDocument();
+    // Focus returns to the viewed month, not out of the quick select.
+    expect(
+      screen.getByRole('grid', { name: 'Select month' }).querySelector(
+        '[data-haze-month="0"]'
+      )
+    ).toHaveFocus();
+  });
+
+  it('steps decades with the toolbar and PageUp/Down keeping the focused cell', async () => {
+    const user = userEvent.setup();
+    render(<Calendar value='2025-01-15' />);
+    const yearGrid = await openYearGrid(user);
+    // A toolbar click resets focus to the decade's first cell (the
+    // month grid's toolbar behaves the same).
+    await user.click(screen.getByRole('button', { name: 'Next decade' }));
+    expect(screen.getByText('2030 – 2041')).toBeInTheDocument();
+    expect(yearGrid.querySelector('[data-haze-year="2030"]')).toHaveFocus();
+    // PageUp/Down hop decades keeping the focused cell index.
+    await user.keyboard('{ArrowRight}{ArrowRight}');
+    expect(yearGrid.querySelector('[data-haze-year="2032"]')).toHaveFocus();
+    await user.keyboard('{PageDown}');
+    expect(screen.getByText('2040 – 2051')).toBeInTheDocument();
+    expect(yearGrid.querySelector('[data-haze-year="2042"]')).toHaveFocus();
+    await user.keyboard('{PageUp}');
+    expect(screen.getByText('2030 – 2041')).toBeInTheDocument();
+    expect(yearGrid.querySelector('[data-haze-year="2032"]')).toHaveFocus();
+  });
+
+  it('disables years outside min/max in the quick year grid', async () => {
+    const user = userEvent.setup();
+    render(<Calendar value='2025-01-15' min='2024-06-01' max='2026-03-31' />);
+    const yearGrid = await openYearGrid(user);
+    const year = (y: number) =>
+      yearGrid.querySelector<HTMLButtonElement>(`[data-haze-year="${y}"]`);
+    expect(year(2023)).toBeDisabled();
+    expect(year(2024)).toBeEnabled();
+    expect(year(2026)).toBeEnabled();
+    expect(year(2027)).toBeDisabled();
+  });
+
+  it('has no axe violations with the year grid open', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(<Calendar value='2025-01-15' />);
+    await openYearGrid(user);
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});

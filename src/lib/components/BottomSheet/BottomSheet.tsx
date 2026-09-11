@@ -106,6 +106,7 @@ const overlay = css`
 `;
 
 const sheet = css`
+  box-sizing: border-box;
   background: var(--haze-color-bg);
   border-radius: var(--haze-radius-xl) var(--haze-radius-xl) 0 0;
   /* env(safe-area-inset-bottom) 是设备物理几何值（Home Indicator 等

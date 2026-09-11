@@ -139,3 +139,139 @@ export function getAllLeafKeys(data: TreeNodeData[]): string[] {
   walk(data);
   return keys;
 }
+
+/**
+ * Case-insensitive `[start, end)` ranges of every non-overlapping
+ * occurrence of `query` inside `text`, left to right. Empty when the
+ * query is empty or absent.
+ */
+export function matchRanges(
+  text: string,
+  query: string
+): [number, number][] {
+  if (!query) return [];
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const ranges: [number, number][] = [];
+  let index = lowerText.indexOf(lowerQuery);
+  while (index !== -1) {
+    ranges.push([index, index + lowerQuery.length]);
+    index = lowerText.indexOf(lowerQuery, index + lowerQuery.length);
+  }
+  return ranges;
+}
+
+/** Does the node's own title match? Only string titles can match —
+ *  ReactNode titles stay searchable through their descendants. */
+export function nodeTitleMatches(
+  node: TreeNodeData,
+  query: string
+): boolean {
+  return (
+    typeof node.title === 'string' && matchRanges(node.title, query).length > 0
+  );
+}
+
+/** Result of `filterTreeByQuery`. */
+export type FilteredTree = {
+  /** The pruned tree: matched nodes plus the ancestors leading to them. */
+  tree: TreeNodeData[];
+  /** Keys whose own title matched the query. */
+  matchedKeys: string[];
+  /** Keys of the strict ancestors of matches — auto-expanded while the
+   *  search is active so every hit stays visible. */
+  ancestorKeys: string[];
+};
+
+/**
+ * Filters the tree to the nodes whose own title matches `query`
+ * (case-insensitive) plus every ancestor on the path to them. Returns
+ * `null` when the query is empty (search inactive) so callers can keep
+ * the unfiltered data by reference.
+ */
+export function filterTreeByQuery(
+  data: TreeNodeData[],
+  query: string | undefined
+): FilteredTree | null {
+  if (!query) return null;
+
+  const matchedKeys: string[] = [];
+  const ancestorKeys: string[] = [];
+
+  const walk = (nodes: TreeNodeData[]): TreeNodeData[] => {
+    const kept: TreeNodeData[] = [];
+    for (const node of nodes) {
+      const keptChildren = node.children?.length
+        ? walk(node.children)
+        : [];
+      const selfMatch = nodeTitleMatches(node, query);
+      if (selfMatch) matchedKeys.push(node.key);
+      if (!selfMatch && keptChildren.length === 0) continue;
+      // A kept child only exists on a match path, so any node with kept
+      // children is an ancestor of at least one match.
+      if (keptChildren.length > 0) {
+        ancestorKeys.push(node.key);
+        kept.push({ ...node, children: keptChildren });
+      } else {
+        kept.push(node);
+      }
+    }
+    return kept;
+  };
+
+  return { tree: walk(data), matchedKeys, ancestorKeys };
+}
+
+/**
+ * Overlays lazy-loaded children onto the controlled data: a childless
+ * node with a cache entry adopts the loaded array; an empty load marks
+ * the node as a leaf (the server said "no children"). Returns `data`
+ * untouched (same reference) when nothing is cached, so memoized
+ * downstream work stays stable.
+ */
+export function mergeLoadedChildren(
+  data: TreeNodeData[],
+  loaded: Record<string, TreeNodeData[]>
+): TreeNodeData[] {
+  if (Object.keys(loaded).length === 0) return data;
+
+  const merge = (nodes: TreeNodeData[]): TreeNodeData[] =>
+    nodes.map((node) => {
+      if (node.children?.length) {
+        return { ...node, children: merge(node.children) };
+      }
+      const cached = loaded[node.key];
+      if (!cached) return node;
+      return cached.length
+        ? { ...node, children: cached }
+        : { ...node, isLeaf: true };
+    });
+
+  return merge(data);
+}
+
+/**
+ * Drops cache entries that no longer map onto the controlled data: keys
+ * that vanished, or nodes that now ship children of their own
+ * (controlled data wins over a stale load). Keeps the same reference
+ * when nothing is pruned.
+ */
+export function pruneLoadedChildren(
+  loaded: Record<string, TreeNodeData[]>,
+  data: TreeNodeData[]
+): Record<string, TreeNodeData[]> {
+  const entries = Object.entries(loaded);
+  if (entries.length === 0) return loaded;
+
+  const kept: Record<string, TreeNodeData[]> = {};
+  let pruned = false;
+  for (const [key, children] of entries) {
+    const node = findNodeByKey(data, key);
+    if (node && !node.children?.length) {
+      kept[key] = children;
+    } else {
+      pruned = true;
+    }
+  }
+  return pruned ? kept : loaded;
+}

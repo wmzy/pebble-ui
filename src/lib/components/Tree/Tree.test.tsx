@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useControl } from 'react-use-control';
 
 import Tree from './Tree';
 
@@ -565,6 +566,367 @@ describe('Tree virtualization', () => {
     render(<Tree treeData={flatData} virtualized checkable />);
     await user.tab();
     await user.keyboard('{Enter}');
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Tree lazy loading', () => {
+  const lazyData = [
+    { key: 'lazy', title: 'Lazy parent' },
+    { key: 'pinned', title: 'Pinned leaf', isLeaf: true },
+  ];
+
+  it('expands a childless node, shows the loading state, then renders loaded children', async () => {
+    const user = userEvent.setup();
+    let resolveLoad!: (children: { key: string; title: string }[]) => void;
+    const loadChildren = vi.fn().mockImplementation(
+      () =>
+        new Promise<{ key: string; title: string }[]>((resolve) => {
+          resolveLoad = resolve;
+        })
+    );
+    render(<Tree treeData={lazyData} loadData={loadChildren} />);
+
+    const parent = screen.getByRole('treeitem', { name: /lazy parent/i });
+    // loadData arms expansion: a childless node renders a switcher.
+    expect(parent).toHaveAttribute('aria-expanded', 'false');
+    await user.click(parent);
+
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+    expect(loadChildren.mock.calls[0]![0]).toMatchObject({ key: 'lazy' });
+    expect(parent).toHaveAttribute('aria-expanded', 'true');
+    expect(parent).toHaveAttribute('aria-busy', 'true');
+
+    resolveLoad([{ key: 'lazy-0', title: 'Loaded child' }]);
+    expect(await screen.findByText('Loaded child')).toBeInTheDocument();
+    expect(parent).not.toHaveAttribute('aria-busy');
+    expect(parent).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('caches loaded children — re-expanding never requests again', async () => {
+    const user = userEvent.setup();
+    const loadChildren = vi
+      .fn()
+      .mockResolvedValue([{ key: 'lazy-0', title: 'Loaded child' }]);
+    render(<Tree treeData={lazyData} loadData={loadChildren} />);
+
+    await user.click(screen.getByText('Lazy parent'));
+    expect(await screen.findByText('Loaded child')).toBeInTheDocument();
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+
+    // Collapse…
+    await user.click(screen.getByText('Lazy parent'));
+    expect(screen.queryByText('Loaded child')).not.toBeInTheDocument();
+    // …and re-expand: the cache serves the children.
+    await user.click(screen.getByText('Lazy parent'));
+    expect(await screen.findByText('Loaded child')).toBeInTheDocument();
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+  });
+
+  it('never loads nodes marked isLeaf', async () => {
+    const user = userEvent.setup();
+    const loadChildren = vi
+      .fn()
+      .mockResolvedValue([{ key: 'lazy-0', title: 'Loaded child' }]);
+    render(<Tree treeData={lazyData} loadData={loadChildren} />);
+
+    const pinned = screen.getByRole('treeitem', { name: 'Pinned leaf' });
+    expect(pinned).not.toHaveAttribute('aria-expanded');
+    await user.click(pinned);
+    expect(loadChildren).not.toHaveBeenCalled();
+
+    // The loadable sibling still loads — only for its own key.
+    await user.click(screen.getByText('Lazy parent'));
+    await screen.findByText('Loaded child');
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+    expect(loadChildren.mock.calls[0]![0]).toMatchObject({ key: 'lazy' });
+  });
+
+  it('treats an empty load as a leaf — no spinner trap, no re-request', async () => {
+    const user = userEvent.setup();
+    const loadChildren = vi.fn().mockResolvedValue([]);
+    render(<Tree treeData={lazyData} loadData={loadChildren} />);
+
+    const parent = screen.getByRole('treeitem', { name: /lazy parent/i });
+    await user.click(parent);
+    await screen.findByRole('treeitem', { name: /lazy parent/i });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+    expect(parent).not.toHaveAttribute('aria-busy');
+    // The server said "no children" — the node settles as a leaf.
+    expect(parent).not.toHaveAttribute('aria-expanded');
+  });
+
+  it('shows a retry affordance after a failed load and retries', async () => {
+    const user = userEvent.setup();
+    const children = [{ key: 'lazy-0', title: 'Loaded child' }];
+    let fail = true;
+    const loadChildren = vi.fn().mockImplementation(() =>
+      fail
+        ? ((fail = false), Promise.reject(new Error('server down')))
+        : Promise.resolve(children)
+    );
+    render(<Tree treeData={lazyData} loadData={loadChildren} />);
+
+    await user.click(screen.getByText('Lazy parent'));
+    const retry = await screen.findByRole('button', { name: /load failed/i });
+    expect(retry).toBeInTheDocument();
+
+    await user.click(retry);
+    expect(await screen.findByText('Loaded child')).toBeInTheDocument();
+    expect(loadChildren).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries through a plain re-expand after a failure', async () => {
+    const user = userEvent.setup();
+    const children = [{ key: 'lazy-0', title: 'Loaded child' }];
+    let fail = true;
+    const loadChildren = vi.fn().mockImplementation(() =>
+      fail
+        ? ((fail = false), Promise.reject(new Error('server down')))
+        : Promise.resolve(children)
+    );
+    render(<Tree treeData={lazyData} loadData={loadChildren} />);
+
+    await user.click(screen.getByText('Lazy parent'));
+    await screen.findByRole('button', { name: /load failed/i });
+    // Collapse the failed node, then expand again — a fresh request fires.
+    await user.click(screen.getByText('Lazy parent'));
+    await user.click(screen.getByText('Lazy parent'));
+    expect(await screen.findByText('Loaded child')).toBeInTheDocument();
+    expect(loadChildren).toHaveBeenCalledTimes(2);
+  });
+
+  it('re-arms loading when controlled data replaces the loaded node', async () => {
+    const user = userEvent.setup();
+    const loadChildren = vi
+      .fn()
+      .mockResolvedValue([{ key: 'lazy-0', title: 'Loaded child' }]);
+    const { rerender } = render(
+      <Tree treeData={lazyData} loadData={loadChildren} />
+    );
+
+    await user.click(screen.getByText('Lazy parent'));
+    await screen.findByText('Loaded child');
+
+    // Controlled swap: the loaded key disappears — its cache dies with it.
+    rerender(
+      <Tree
+        treeData={[{ key: 'fresh', title: 'Fresh parent' }]}
+        loadData={loadChildren}
+      />
+    );
+    expect(screen.queryByText('Loaded child')).not.toBeInTheDocument();
+
+    rerender(<Tree treeData={lazyData} loadData={loadChildren} />);
+    // expandedKeys persisted through the swap — the cleared cache re-arms
+    // the load for the returning key without any further interaction.
+    expect(await screen.findByText('Loaded child')).toBeInTheDocument();
+    expect(loadChildren).toHaveBeenCalledTimes(2);
+  });
+
+  it('loads through controlled expandedKeys (ControlOrValue)', async () => {
+    const user = userEvent.setup();
+    const loadChildren = vi
+      .fn()
+      .mockResolvedValue([{ key: 'lazy-0', title: 'Loaded child' }]);
+
+    function Harness() {
+      const [expanded, setExpanded, control] = useControl<string[]>(
+        undefined,
+        []
+      );
+      return (
+        <>
+          <Tree treeData={lazyData} loadData={loadChildren} expandedKeys={control} />
+          <button onClick={() => setExpanded([...expanded, 'lazy'])}>
+            expand-lazy
+          </button>
+        </>
+      );
+    }
+
+    render(<Harness />);
+    expect(loadChildren).not.toHaveBeenCalled();
+
+    await user.click(screen.getByText('expand-lazy'));
+    expect(await screen.findByText('Loaded child')).toBeInTheDocument();
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+  });
+
+  it('cascades checks over lazy-loaded children', async () => {
+    const user = userEvent.setup();
+    const loadChildren = vi.fn().mockResolvedValue([
+      { key: 'lazy-0', title: 'Loaded child 0' },
+      { key: 'lazy-1', title: 'Loaded child 1' },
+    ]);
+    render(<Tree treeData={lazyData} loadData={loadChildren} checkable />);
+
+    await user.click(screen.getByText('Lazy parent'));
+    await screen.findByText('Loaded child 0');
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    await user.click(checkboxes[0]!); // Lazy parent
+    expect(checkboxes[1]!).toHaveAttribute('aria-checked', 'true');
+    expect(checkboxes[2]!).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('has no axe violations while a lazy load is in flight', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    let resolveLoad!: (children: { key: string; title: string }[]) => void;
+    const loadChildren = vi.fn().mockImplementation(
+      () =>
+        new Promise<{ key: string; title: string }[]>((resolve) => {
+          resolveLoad = resolve;
+        })
+    );
+    render(<Tree treeData={lazyData} loadData={loadChildren} checkable />);
+    await user.click(screen.getByText('Lazy parent'));
+
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+
+    await act(async () => {
+      resolveLoad([]);
+      await Promise.resolve();
+    });
+  });
+});
+
+describe('Tree search filtering', () => {
+  const searchData = [
+    {
+      key: 'root',
+      title: 'Root',
+      children: [
+        {
+          key: 'alpha',
+          title: 'Alpha folder',
+          children: [{ key: 'alpha-target', title: 'Target file' }],
+        },
+        {
+          key: 'beta',
+          title: 'Beta folder',
+          children: [{ key: 'beta-other', title: 'Other file' }],
+        },
+      ],
+    },
+  ];
+
+  it('keeps only matches and their ancestor path, auto-expanded', () => {
+    render(<Tree treeData={searchData} searchValue='target' />);
+    expect(
+      screen.getByRole('treeitem', { name: /target file/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Alpha folder')).toBeInTheDocument();
+    expect(screen.getByText('Root')).toBeInTheDocument();
+    // Ancestors on the hit path are auto-expanded so the hit is visible.
+    expect(
+      screen.getByRole('treeitem', { name: /alpha folder/i })
+    ).toHaveAttribute('aria-expanded', 'true');
+    // Non-matching subtrees are pruned entirely.
+    expect(screen.queryByText('Beta folder')).not.toBeInTheDocument();
+    expect(screen.queryByText('Other file')).not.toBeInTheDocument();
+  });
+
+  it('highlights matched text with token-styled mark elements', () => {
+    render(<Tree treeData={searchData} searchValue='target' />);
+    const marks = document.querySelectorAll('mark');
+    expect(marks).toHaveLength(1);
+    expect(marks[0]!.textContent).toBe('Target'); // original casing kept
+    // The hit's title keeps its full text around the mark.
+    expect(marks[0]!.parentElement).toHaveTextContent('Target file');
+  });
+
+  it('highlights every occurrence, not just the first', () => {
+    render(
+      <Tree
+        treeData={[
+          { key: 'solo', title: 'zip zip zip' },
+          { key: 'other', title: 'nope' },
+        ]}
+        searchValue='zip'
+      />
+    );
+    const marks = document.querySelectorAll('mark');
+    expect(marks).toHaveLength(3);
+    expect(marks[0]!.nextSibling?.textContent).toBe(' ');
+  });
+
+  it('leaves titleRender output untouched by highlighting', () => {
+    render(
+      <Tree
+        treeData={searchData}
+        searchValue='target'
+        titleRender={(node) => <em data-testid='rendered'>{node.title}</em>}
+      />
+    );
+    expect(screen.getAllByTestId('rendered').length).toBeGreaterThan(0);
+    expect(document.querySelector('mark')).toBeNull();
+  });
+
+  it('renders the localized empty state when nothing matches', () => {
+    render(<Tree treeData={searchData} searchValue='zzz' />);
+    expect(screen.getByText('No matches')).toBeInTheDocument();
+    expect(screen.queryByText('Root')).not.toBeInTheDocument();
+  });
+
+  it('clears the filter when searchValue empties', async () => {
+    const { rerender } = render(
+      <Tree
+        treeData={searchData}
+        searchValue='target'
+        expandedKeys={['root', 'beta']}
+      />
+    );
+    expect(
+      screen.getByRole('treeitem', { name: /target file/i })
+    ).toBeInTheDocument();
+
+    rerender(
+      <Tree treeData={searchData} searchValue='' expandedKeys={['root', 'beta']} />
+    );
+    // The full tree returns — including subtrees the filter had pruned.
+    expect(screen.getByText('Beta folder')).toBeInTheDocument();
+    expect(screen.getByText('Other file')).toBeInTheDocument();
+    expect(document.querySelector('mark')).toBeNull();
+    await act(async () => {
+      await Promise.resolve();
+    });
+  });
+
+  it('filters the virtualized path the same way', () => {
+    const bigData = Array.from({ length: 100 }, (_, i) => ({
+      key: `g-${i}`,
+      title: `Group ${i}`,
+      children: [
+        { key: `g-${i}-needle`, title: `Needle in ${i}` },
+        { key: `g-${i}-plain`, title: `Plain ${i}` },
+      ],
+    }));
+    render(<Tree treeData={bigData} virtualized searchValue='needle' />);
+
+    // Only matched leaves + their ancestors land in the window.
+    expect(screen.getByRole('treeitem', { name: /needle in 0/i })).toBeInTheDocument();
+    expect(screen.getByRole('treeitem', { name: /group 0/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('treeitem', { name: /plain 0/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('has no axe violations while filtered with highlights', async () => {
+    const { axe } = await import('jest-axe');
+    const { rerender } = render(<Tree treeData={searchData} />);
+    rerender(<Tree treeData={searchData} searchValue='target' />);
     const results = await axe(document.body, {
       rules: { region: { enabled: false } },
     });

@@ -9,6 +9,8 @@ import {
   Legend,
   Line,
   LineChart,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -24,16 +26,43 @@ export type ChartSeries = {
   color?: string;
 };
 
-/** A series after Chart's defaults are applied — what reaches recharts. */
+/** A series after Chart's label default is applied — what reaches
+ * recharts. `color` is only present when the consumer set it; the plot
+ * elements apply the semantic cycle themselves (cartesian: per series
+ * index, pie: per datum index). */
 export type ResolvedChartSeries = {
   key: string;
   label: string;
-  color: string;
+  color?: string;
 };
 
-/** Supported chart shapes; each maps onto a recharts chart container and
+/** Cartesian chart shapes; each maps onto a recharts chart container and
  * its matching series element (see `chartElement` / `seriesElement`). */
-export type ChartType = 'line' | 'area' | 'bar';
+export type CartesianChartType = 'line' | 'area' | 'bar';
+
+/** Supported chart shapes — the cartesian families plus `pie`, where each
+ * datum is one sector named by the chart's `xKey`. */
+export type ChartType = CartesianChartType | 'pie';
+
+/** One hovered entry as handed to Chart's `renderTooltip` slot. */
+export type ChartTooltipEntry<T = unknown> = {
+  /** Series label (cartesian) or sector name (pie). */
+  name: string;
+  /** The plotted value. */
+  value: number | string;
+  /** The series/sector color as passed to recharts (any CSS color). */
+  color: string;
+  /** The source datum the entry was plotted from. */
+  dataEntry: T;
+};
+
+/** Payload handed to Chart's `renderTooltip` slot. */
+export type ChartTooltipPayload<T = unknown> = {
+  /** The hovered X value (cartesian) or sector name (pie). */
+  label?: unknown;
+  /** One entry per series (cartesian) or per sector (pie). */
+  entries: ChartTooltipEntry<T>[];
+};
 
 /** Default series palette: the five semantic status tokens. recharts takes
  * CSS variable strings for stroke/fill, so theme switches and consumer
@@ -59,15 +88,22 @@ export const TOOLTIP_STYLE = {
 } as const;
 export const LEGEND_STYLE = { fontSize: 'var(--haze-text-sm)' } as const;
 
-/** Applies the per-series defaults: `label` falls back to `key`, and a
- * missing color cycles through `SERIES_COLOR_CYCLE`. */
+/** The palette entry for `index`, cycling once sectors/series outnumber
+ * the five semantic tokens. */
+function cycleColor(index: number): string {
+  return SERIES_COLOR_CYCLE[index % SERIES_COLOR_CYCLE.length]!;
+}
+
+/** Applies the per-series default: `label` falls back to `key`. An
+ * explicit `color` passes through untouched — the plot elements cycle
+ * `SERIES_COLOR_CYCLE` when it is omitted. */
 export function resolveChartSeries(
   series: readonly ChartSeries[]
 ): ResolvedChartSeries[] {
-  return series.map((entry, index) => ({
+  return series.map((entry) => ({
     key: entry.key,
     label: entry.label ?? entry.key,
-    color: entry.color ?? SERIES_COLOR_CYCLE[index % SERIES_COLOR_CYCLE.length]!,
+    color: entry.color,
   }));
 }
 
@@ -75,10 +111,12 @@ export function resolveChartSeries(
  * the token color as `stroke` (Area also fills with it — recharts applies
  * its default 0.6 fill opacity), Bar carries it as `fill`. */
 export function seriesElement(
-  type: ChartType,
-  entry: ResolvedChartSeries
+  type: CartesianChartType,
+  entry: ResolvedChartSeries,
+  index = 0
 ): ReactElement {
-  const { key, label, color } = entry;
+  const { key, label } = entry;
+  const color = entry.color ?? cycleColor(index);
   switch (type) {
     case 'area':
       return (
@@ -91,22 +129,127 @@ export function seriesElement(
   }
 }
 
+/** Radial band for pie ring `index` of `ringCount`: a single ring spans
+ * [innerRadius, 80%]; multiple rings band the radial space evenly with
+ * series 0 innermost. A percentage `innerRadius` offsets the innermost
+ * ring — a pixel value only applies to single-ring charts. */
+export function pieRingRadii(
+  index: number,
+  ringCount: number,
+  innerRadius: number | string
+): { innerRadius: number | string; outerRadius: string } {
+  if (ringCount <= 1) {
+    return { innerRadius, outerRadius: '80%' };
+  }
+  const parsed =
+    typeof innerRadius === 'string' ? Number.parseFloat(innerRadius) : 0;
+  const base = Number.isFinite(parsed) ? Math.max(parsed, 0) : 0;
+  const band = (80 - base) / ringCount;
+  return {
+    innerRadius: `${base + index * band}%`,
+    outerRadius: `${base + (index + 1) * band}%`,
+  };
+}
+
+/** The recharts Pie for one resolved series: every datum is one sector
+ * named by `nameKey` and valued by the series `key`. Sector fills cycle
+ * the semantic tokens per datum unless the series pins an explicit
+ * `color`, which monochromes the whole ring. */
+export function pieElement(options: {
+  entry: ResolvedChartSeries;
+  data: readonly unknown[];
+  nameKey: string;
+  ringIndex: number;
+  ringCount: number;
+  innerRadius: number | string;
+}): ReactElement {
+  const { entry, data, nameKey, ringIndex, ringCount, innerRadius } = options;
+  const radii = pieRingRadii(ringIndex, ringCount, innerRadius);
+  // Recharts 3 deprecates <Cell> (removed in 4.0) in favor of presentation
+  // props on the data items: the datum object is spread into its sector, so
+  // a per-datum `fill` colors it. Copies only — consumer data is untouched.
+  const pieData = data.map((datum, datumIndex) => ({
+    ...(datum as Record<string, unknown>),
+    fill: entry.color ?? cycleColor(datumIndex),
+  }));
+  return (
+    <Pie
+      key={entry.key}
+      data={pieData}
+      dataKey={entry.key}
+      nameKey={nameKey}
+      innerRadius={radii.innerRadius}
+      outerRadius={radii.outerRadius}
+      stroke='var(--haze-color-bg)'
+    />
+  );
+}
+
 /** The recharts chart container for `type` (line → LineChart, area →
- * AreaChart, bar → BarChart) plotting `data` with the given axes, grid,
- * tooltip, legend and series children. */
+ * AreaChart, bar → BarChart, pie → PieChart) plotting `data` with the
+ * given series children; cartesian containers carry `layout`. */
 export function chartElement(
   type: ChartType,
   data: readonly unknown[],
-  children: ReactNode
+  children: ReactNode,
+  layout: 'horizontal' | 'vertical' = 'horizontal'
 ): ReactElement {
   switch (type) {
     case 'area':
-      return <AreaChart data={data}>{children}</AreaChart>;
+      return (
+        <AreaChart data={data} layout={layout}>
+          {children}
+        </AreaChart>
+      );
     case 'bar':
-      return <BarChart data={data}>{children}</BarChart>;
+      return (
+        <BarChart data={data} layout={layout}>
+          {children}
+        </BarChart>
+      );
     case 'line':
-      return <LineChart data={data}>{children}</LineChart>;
+      return (
+        <LineChart data={data} layout={layout}>
+          {children}
+        </LineChart>
+      );
+    case 'pie':
+      return <PieChart data={data}>{children}</PieChart>;
   }
+}
+
+/** The payload items recharts hands a custom Tooltip content function —
+ * kept loose (and cast at the boundary) because recharts types its
+ * payload against its own chart generics. */
+type RechartsTooltipItem = {
+  name?: string | number;
+  value?: number | string;
+  color?: string;
+  payload?: unknown;
+  dataKey?: string | number;
+};
+
+/** Wraps a `renderTooltip` slot into a recharts Tooltip `content`
+ * function, mapping recharts' payload items onto ChartTooltipEntry
+ * (name falling back to the dataKey, missing colors to ''). */
+export function buildTooltipContent(
+  render: (payload: ChartTooltipPayload) => ReactNode
+): (props: unknown) => ReactNode {
+  return (props) => {
+    const { payload, label } = props as {
+      payload?: readonly RechartsTooltipItem[];
+      label?: unknown;
+    };
+    return render({
+      label,
+      entries: (payload ?? []).map((item) => ({
+        name: String(item.name ?? item.dataKey ?? ''),
+        value: item.value ?? '',
+        color: item.color ?? '',
+        dataEntry: item.payload,
+      })),
+    });
+  };
 }
 
 /** The full token-styled chart tree Chart renders — kept beside the pure
@@ -119,9 +262,57 @@ export function chartTree(options: {
   showTooltip: boolean;
   showLegend: boolean;
   series: readonly ResolvedChartSeries[];
+  layout?: 'horizontal' | 'vertical';
+  innerRadius?: number | string;
+  renderTooltip?: (payload: ChartTooltipPayload) => ReactNode;
 }): ReactElement {
-  const { type, data, xKey, showGrid, showTooltip, showLegend, series } =
-    options;
+  const {
+    type,
+    data,
+    xKey,
+    showGrid,
+    showTooltip,
+    showLegend,
+    series,
+    layout = 'horizontal',
+    innerRadius = 0,
+    renderTooltip,
+  } = options;
+
+  const tooltipContent = renderTooltip
+    ? buildTooltipContent(renderTooltip)
+    : undefined;
+
+  /* Pie is polar: no cartesian axes or grid, cursor left to recharts'
+   * default sector outline, and each series one concentric ring. */
+  if (type === 'pie') {
+    return (
+      <ResponsiveContainer width='100%' height='100%'>
+        {chartElement(
+          type,
+          data,
+          <>
+            {showTooltip && (
+              <Tooltip contentStyle={TOOLTIP_STYLE} content={tooltipContent} />
+            )}
+            {showLegend && <Legend wrapperStyle={LEGEND_STYLE} />}
+            {series.map((entry, index) =>
+              pieElement({
+                entry,
+                data,
+                nameKey: xKey,
+                ringIndex: index,
+                ringCount: series.length,
+                innerRadius,
+              })
+            )}
+          </>
+        )}
+      </ResponsiveContainer>
+    );
+  }
+
+  const vertical = layout === 'vertical';
   return (
     <ResponsiveContainer width='100%' height='100%'>
       {chartElement(
@@ -131,15 +322,35 @@ export function chartTree(options: {
           {showGrid && <CartesianGrid stroke={AXIS_STROKE} />}
           {/* recharts types dataKey against its own datum generic; Chart's
            * bare <T> can't satisfy it, so widen to the string recharts
-           * indexes each datum with at runtime. */}
-          <XAxis dataKey={xKey} stroke={AXIS_STROKE} tick={AXIS_TICK} />
-          <YAxis stroke={AXIS_STROKE} tick={AXIS_TICK} />
+           * indexes each datum with at runtime. Vertical layout swaps the
+           * axes: X counts values, Y carries the xKey categories. */}
+          {vertical ? (
+            <>
+              <XAxis type='number' stroke={AXIS_STROKE} tick={AXIS_TICK} />
+              <YAxis
+                type='category'
+                dataKey={xKey}
+                stroke={AXIS_STROKE}
+                tick={AXIS_TICK}
+              />
+            </>
+          ) : (
+            <>
+              <XAxis dataKey={xKey} stroke={AXIS_STROKE} tick={AXIS_TICK} />
+              <YAxis stroke={AXIS_STROKE} tick={AXIS_TICK} />
+            </>
+          )}
           {showTooltip && (
-            <Tooltip cursor={{ stroke: AXIS_STROKE }} contentStyle={TOOLTIP_STYLE} />
+            <Tooltip
+              cursor={{ stroke: AXIS_STROKE }}
+              contentStyle={TOOLTIP_STYLE}
+              content={tooltipContent}
+            />
           )}
           {showLegend && <Legend wrapperStyle={LEGEND_STYLE} />}
-          {series.map((entry) => seriesElement(type, entry))}
-        </>
+          {series.map((entry, index) => seriesElement(type, entry, index))}
+        </>,
+        layout
       )}
     </ResponsiveContainer>
   );

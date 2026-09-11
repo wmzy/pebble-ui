@@ -26,6 +26,14 @@ export default function App() {
             component: () => import('./Recipes')
           },
           {
+            path: '/guides/dark-mode',
+            component: () => import('./Guides/DarkMode')
+          },
+          {
+            path: '/guides/migration',
+            component: () => import('./Guides/Migration')
+          },
+          {
             path: '/components',
             component: () => import('./ComponentDoc')
           },

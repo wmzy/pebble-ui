@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react';
 
+import LocaleProvider from '../LocaleProvider';
+
 import DiffViewer from './DiffViewer';
 
 describe('DiffViewer', () => {
@@ -26,6 +28,25 @@ describe('DiffViewer', () => {
   it('shows diff header', () => {
     render(<DiffViewer oldValue="a" newValue="b" />);
     expect(screen.getByText('Diff')).toBeInTheDocument();
+  });
+
+  it('renders the header from the active locale pack', () => {
+    render(
+      <LocaleProvider locale="ja-JP">
+        <DiffViewer oldValue="a" newValue="b" />
+      </LocaleProvider>
+    );
+    expect(screen.getByText('差分')).toBeInTheDocument();
+    expect(screen.queryByText('Diff')).not.toBeInTheDocument();
+  });
+
+  it('lets a strings override reword the header', () => {
+    render(
+      <LocaleProvider strings={{ diffViewer: { header: 'Changes' } }}>
+        <DiffViewer oldValue="a" newValue="b" />
+      </LocaleProvider>
+    );
+    expect(screen.getByText('Changes')).toBeInTheDocument();
   });
 
   it('handles multiline diff', () => {

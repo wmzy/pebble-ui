@@ -7,6 +7,14 @@ on:
       - "src/**"
       - "scripts/**"
       - "package.json"
+      - ".releaserc.json"
+      - ".github/workflows/release.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "package.json"
+      - ".releaserc.json"
       - ".github/workflows/release.yml"
   workflow_dispatch:
 
@@ -18,7 +26,12 @@ permissions:
 
 jobs:
   release:
+    if: github.event_name != 'pull_request'
+    outputs:
+      published: ${{ steps.release.outputs.published }}
+      version: ${{ steps.release.outputs.version }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,8 +56,142 @@ jobs:
         run: npm run test
 
       - name: Release
+        id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-        run: npx semantic-release
+        run: |
+          set -o pipefail
+          npx semantic-release 2>&1 | tee semantic-release.log
+          # semantic-release 对「无可发布变更」同样以 0 退出，无法凭退出码区分，
+          # 从日志提取结果：真实发布成功后固定打印
+          # "Published release <version> on <channel> channel"（semver 的 prerelease
+          # 段可含点号，捕获到下一个空格为止）。
+          version="$(sed -nE 's/.*Published release ([0-9][^ ]+) on .* channel.*/\1/p' semantic-release.log | tail -n 1)"
+          if [ -n "$version" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # PR 发布预演：对 PR 的合并结果完整跑一遍 semantic-release --dry-run——
+  # 校验 .releaserc 配置与 NPM_TOKEN 可用性，并预演下一版本号与变更日志；
+  # dry-run 不会创建 tag / GitHub Release / npm 包。
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # 降不下来：semantic-release 在分析前用 `git push --dry-run` 探测写权限
+    # （verifyAuth），read-only 的 GITHUB_TOKEN 会被 GitHub 拒绝，随即以
+    # 「local branch is behind」为由静默跳过预演。同仓库 PR 才能拿到
+    # contents:write（fork PR 恒为只读，对应分支已在下方 step 级 if 跳过）。
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # semantic-release 需要完整历史与 tag 计算上一版本。
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Release dry-run (preview next version)
+        # fork PR 拿不到 secrets（NPM_TOKEN），GITHUB_TOKEN 也是只读——
+        # 无法完成任何有意义的校验，跳过而非挂红。
+        if: github.event.pull_request.head.repo.fork == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # semantic-release 经 env-ci 识别 pull_request 事件后会直接短路
+          # （"This run was triggered by a pull request ..."）；且 PR 的
+          # GITHUB_REF 是 refs/pull/N/merge，随后的分支白名单校验也会提前
+          # 退出。把 env-ci 探测的这两个变量伪装成「推送到 base 分支」，
+          # 让它按合并结果的语义完整跑 commit 分析 / verifyConditions /
+          # generateNotes（tag 与 publish 仍被 --dry-run 跳过）。
+          GITHUB_EVENT_NAME: push
+          GITHUB_REF: refs/heads/${{ github.event.pull_request.base.ref }}
+        run: |
+          set -o pipefail
+          npx semantic-release --dry-run 2>&1 | tee semantic-release-dry-run.log
+          # 预演必须产出确定结论：要么算出下一版本，要么明确「无可发布变更」。
+          # 若伪装失效（semantic-release 升级改了行为/日志），宁可挂红也不
+          # 假绿。
+          grep -qE "The next release version is|There are no relevant changes" semantic-release-dry-run.log
+
+  # 发布后 smoke：npm registry 的 tarball 传播有延迟，轮询直到新版本可见，
+  # 再在临时目录安装该版本，验证 ESM 入口可导入 + styles.css 在包内。
+  smoke:
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Wait for haze-ui@${{ needs.release.outputs.version }} on npm
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          deadline=$((SECONDS + 300))
+          delay=5
+          while true; do
+            if url="$(npm view "haze-ui@$VERSION" dist.tarball 2>/dev/null)" && [ -n "$url" ]; then
+              echo "tarball visible: $url"
+              break
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "::error::haze-ui@$VERSION not visible on npm after 300s"
+              exit 1
+            fi
+            echo "not visible yet; retrying in ${delay}s"
+            sleep "$delay"
+            delay=$(( delay >= 60 ? 60 : delay * 2 ))
+          done
+
+      - name: Install and import the published package
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          dir="$(mktemp -d)"
+          cd "$dir"
+          # barrel 静态 import 全部 peer；npm 只会自动安装非可选 peer
+          # （react），可选 peer 与未声明的 react-dom 需显式装上。
+          npm install --no-audit --no-fund \
+            "haze-ui@$VERSION" react@^19 react-dom@^19 \
+            @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities \
+            @tanstack/react-table recharts
+          node --input-type=module -e "
+            import { existsSync } from 'node:fs';
+            import { fileURLToPath } from 'node:url';
+            const css = import.meta.resolve('haze-ui/styles.css');
+            if (!existsSync(fileURLToPath(css))) {
+              throw new Error('styles.css missing from package: ' + css);
+            }
+            const mod = await import('haze-ui');
+            for (const name of ['Button', 'Switch', 'FormItem', 'lightTheme', 'darkTheme']) {
+              if (!(name in mod)) throw new Error('missing export: ' + name);
+            }
+            console.log('smoke ok —', Object.keys(mod).length, 'exports; css:', css);
+          "

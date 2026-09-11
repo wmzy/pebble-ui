@@ -1,7 +1,7 @@
 # Haze UI — Full API Reference
 
-> Complete props reference for all 108 Haze UI components in one
-> file (198 type tables), generated from the library source. Do not
+> Complete props reference for all 116 Haze UI components in one
+> file (207 type tables), generated from the library source. Do not
 > edit by hand — regenerate with `node scripts/generate-llms-full.mjs`. For the
 > curated index with overviews, design tokens and architecture notes, see
 > [llms.txt](llms.txt).
@@ -404,6 +404,8 @@ import { Cascader } from 'haze-ui';
 | `placeholder` | `string` | — |  |
 | `changeOnSelect` | `boolean` | — |  |
 | `expandTrigger` | `'click' \| 'hover'` | — |  |
+| `onSearch` | `(query: string) => void` | — |  |
+| `loading` | `boolean` | — |  |
 | `virtualized` | `boolean \| CascaderVirtualizedConfig` | — | Window each cascading panel list with VirtualList for large option trees |
 | `className` | `string` | — |  |
 | `ref` | `Ref<HTMLButtonElement>` | — |  |
@@ -423,6 +425,9 @@ import { Chart } from 'haze-ui';
 | `series` | `ChartSeries[]` | — |  |
 | `xKey` | `keyof T & string` | — |  |
 | `height` | `number` | — |  |
+| `innerRadius` | `string \| number` | — |  |
+| `layout` | `'horizontal' \| 'vertical'` | — |  |
+| `renderTooltip` | `(payload: ChartTooltipPayload<T>) => ReactNode` | — |  |
 | `showLegend` | `boolean` | — |  |
 | `showGrid` | `boolean` | — |  |
 | `showTooltip` | `boolean` | — |  |
@@ -538,6 +543,7 @@ import { CodeBlock } from 'haze-ui';
 | --- | --- | --- | --- |
 | `children` | `ReactNode` | — | Code content |
 | `language` | `string` | — | Language label displayed in corner |
+| `highlight` | `Highlighter` | — |  |
 | `className` | `string` | — | Additional CSS class |
 
 ## Collapsible
@@ -636,6 +642,7 @@ import { Combobox, ComboboxOption, ComboboxGroup } from 'haze-ui';
 | `onValuesChange` | `(value: string \| string[]) => void` | — |  |
 | `creatable` | `boolean` | — |  |
 | `onCreate` | `(query: string) => void` | — |  |
+| `onSearch` | `(query: string) => void` | — |  |
 | `loading` | `boolean` | — |  |
 | `highlightMatches` | `boolean` | — |  |
 | `empty` | `ReactNode` | — |  |
@@ -823,7 +830,7 @@ import { ConversationList, ConversationItem } from 'haze-ui';
 ## DataTable
 
 ```jsx
-import { DataTable, dataTableSum, dataTableAvg, dataTableCount } from 'haze-ui';
+import { DataTable, dataTableToCsv, dataTableSum, dataTableAvg, dataTableCount } from 'haze-ui';
 ```
 
 ### CellEditorProps
@@ -858,6 +865,10 @@ import { DataTable, dataTableSum, dataTableAvg, dataTableCount } from 'haze-ui';
 | `sorting` | `ControlOrValue<SortingState>` | — |  |
 | `pageSize` | `number` | — |  |
 | `page` | `ControlOrValue<number>` | — |  |
+| `manual` | `boolean` | — |  |
+| `pageCount` | `number` | — |  |
+| `onPageChange` | `(page: number) => void` | — |  |
+| `onSortChange` | `(sorting: SortingState) => void` | — |  |
 | `loading` | `boolean` | — |  |
 | `stickyHeader` | `boolean` | — |  |
 | `virtualized` | `DataTableVirtualized` | — |  |
@@ -909,7 +920,7 @@ import { DateRangePicker, DateRangePickerCore } from 'haze-ui';
 | `separator` | `ReactNode` | `'–'` | Separator between inputs |
 | `months` | `1 \| 2` | `1` | Show a two-month inline panel for range picking |
 | `disabledDate` | `(date: Date) => boolean` | — |  |
-| `presets` | `DateRangePickerPreset[]` | — |  |
+| `presets` | `DateRangePickerPresets` | — |  |
 | `className` | `string` | — | Additional CSS class |
 
 ## Datepicker
@@ -931,6 +942,7 @@ import { Datepicker, DatepickerCore } from 'haze-ui';
 | `max` | `string` | — |  |
 | `disabledDate` | `(date: Date) => boolean` | — |  |
 | `presets` | `DatepickerPreset[]` | — |  |
+| `showTime` | `boolean` | — |  |
 | `locale` | `string` | — |  |
 | `weekStartsOn` | `0 \| 1` | — |  |
 | `placeholder` | `string` | — |  |
@@ -948,11 +960,28 @@ import { Datepicker, DatepickerCore } from 'haze-ui';
 | `max` | `string` | — | Maximum selectable date |
 | `disabledDate` | `(date: Date) => boolean` | — |  |
 | `presets` | `DatepickerPreset[]` | — |  |
+| `showTime` | `boolean` | — |  |
 | `locale` | `string` | — | BCP 47 locale for month and weekday formatting (e.g. "zh-CN") |
 | `weekStartsOn` | `0 \| 1` | — | First day of the week (0 = Sunday, 1 = Monday); defaults to the locale week info |
 | `placeholder` | `string` | `'Select date'` | Input placeholder |
 | `className` | `string` | — | Additional CSS class |
 | `ref` | `Ref<HTMLInputElement>` | — |  |
+
+## Descriptions
+
+```jsx
+import { Descriptions } from 'haze-ui';
+```
+
+### DescriptionsProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` | `DescriptionsItem[]` | — |  |
+| `columns` | `number` | — |  |
+| `bordered` | `boolean` | — |  |
+| `size` | `'sm' \| 'md'` | — |  |
+| `title` | `ReactNode` | — |  |
 
 ## Dialog
 
@@ -1134,6 +1163,28 @@ import { FileInput } from 'haze-ui';
 | `multiple` | `boolean` | `false` | Allow multiple files |
 | `className` | `string` | — | Additional CSS class |
 
+## FilePreview
+
+```jsx
+import { FilePreview } from 'haze-ui';
+```
+
+### FilePreviewProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `file` | `FilePreviewFile` | — |  |
+| `status` | `FilePreviewStatus` | — |  |
+| `progress` | `number` | — |  |
+| `onRemove` | `() => void` | — |  |
+| `onRetry` | `() => void` | — |  |
+| `removeLabel` | `string` | — |  |
+| `retryLabel` | `string` | — |  |
+| `uploadingLabel` | `string` | — |  |
+| `uploadedLabel` | `string` | — |  |
+| `errorLabel` | `string` | — |  |
+| `className` | `string` | — |  |
+
 ## Flex
 
 ```jsx
@@ -1152,6 +1203,34 @@ import { Flex } from 'haze-ui';
 | `className` | `string` | — | Additional CSS class |
 | `style` | `CSSProperties` | — |  |
 | `children` | `ReactNode` | — | Flex children |
+
+## FloatButton
+
+```jsx
+import { FloatButton, FloatButtonGroup } from 'haze-ui';
+```
+
+### FloatButtonGroupProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `ControlOrValue<boolean>` | — |  |
+| `onOpenChange` | `(open: boolean) => void` | — |  |
+| `icon` | `ReactNode` | — |  |
+| `description` | `ReactNode` | — |  |
+| `shape` | `'circle' \| 'square'` | — |  |
+| `variant` | `'solid' \| 'outline' \| 'ghost'` | — |  |
+| `children` | `ReactNode` | — |  |
+
+### FloatButtonProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` | `ReactNode` | — |  |
+| `description` | `ReactNode` | — |  |
+| `shape` | `'circle' \| 'square'` | — |  |
+| `variant` | `'solid' \| 'outline' \| 'ghost'` | — |  |
+| `href` | `string` | — |  |
 
 ## Fullscreen
 
@@ -1254,6 +1333,29 @@ import { Image } from 'haze-ui';
 | `preview` | `boolean \| ImagePreviewConfig` | — |  |
 | `className` | `string` | — | Additional CSS class |
 
+## InlineCompletion
+
+```jsx
+import { InlineCompletion } from 'haze-ui';
+```
+
+### InlineCompletionProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `suggestion` | `string` | — |  |
+| `value` | `ControlOrValue<string>` | — |  |
+| `onAccept` | `() => void` | — |  |
+| `onDismiss` | `() => void` | — |  |
+| `multiline` | `boolean` | — |  |
+| `placeholder` | `string` | — |  |
+| `disabled` | `boolean` | — |  |
+| `hint` | `string` | — |  |
+| `rows` | `number` | — |  |
+| `onChange` | `ChangeEventHandler<HTMLInputElement, HTMLInputElement> \| undefined` | — |  |
+| `className` | `string` | — |  |
+| `ref` | `Ref<HTMLInputElement \| HTMLTextAreaElement>` | — |  |
+
 ## InlineEdit
 
 ```jsx
@@ -1298,6 +1400,22 @@ import { Input, InputCore } from 'haze-ui';
 | `className` | `string` | — | Additional CSS class |
 | `...rest` | `InputHTMLAttributes` | — | All native input attributes |
 
+## JsonView
+
+```jsx
+import { JsonView } from 'haze-ui';
+```
+
+### JsonViewProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | `unknown` | — |  |
+| `defaultExpandedDepth` | `number` | — |  |
+| `copyable` | `boolean` | — |  |
+| `copyLabel` | `string` | — |  |
+| `moreLabel` | `MoreLabelFn` | — |  |
+
 ## Kbd
 
 ```jsx
@@ -1334,7 +1452,7 @@ import { List, ListItem } from 'haze-ui';
 ## LocaleProvider
 
 ```jsx
-import { default, useStrings, defaultStrings, enUS, zhCN, createStrings } from 'haze-ui';
+import { default, useStrings, defaultStrings, enUS, zhCN, jaJP, createStrings } from 'haze-ui';
 ```
 
 ### LocaleProviderProps
@@ -1380,6 +1498,20 @@ import { MarkdownRenderer } from 'haze-ui';
 | --- | --- | --- | --- |
 | `content` | `string` | — | Markdown source string |
 | `className` | `string` | — | Additional CSS class |
+
+## Masonry
+
+```jsx
+import { Masonry } from 'haze-ui';
+```
+
+### MasonryProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `columns` | `number` | — |  |
+| `gap` | `number` | — |  |
+| `children` | `ReactNode` | — |  |
 
 ## Mentions
 
@@ -1827,6 +1959,7 @@ import { Select, SelectCore, Option, OptionGroup } from 'haze-ui';
 | `searchable` | `boolean` | — |  |
 | `clearable` | `boolean` | — |  |
 | `loading` | `boolean` | — |  |
+| `onSearch` | `(query: string) => void` | — |  |
 | `maxTagCount` | `number` | — |  |
 | `size` | `'sm' \| 'md' \| 'lg'` | — |  |
 | `virtualized` | `boolean \| SelectVirtualizedConfig` | — |  |
@@ -1847,6 +1980,7 @@ import { Select, SelectCore, Option, OptionGroup } from 'haze-ui';
 | `searchable` | `boolean` | — |  |
 | `clearable` | `boolean` | — |  |
 | `loading` | `boolean` | — |  |
+| `onSearch` | `(query: string) => void` | — |  |
 | `maxTagCount` | `number` | — |  |
 | `virtualized` | `boolean \| SelectVirtualizedConfig` | — |  |
 | `className` | `string` | — |  |
@@ -1861,6 +1995,7 @@ import { Select, SelectCore, Option, OptionGroup } from 'haze-ui';
 | `searchable` | `boolean` | — |  |
 | `clearable` | `boolean` | — |  |
 | `loading` | `boolean` | — |  |
+| `onSearch` | `(query: string) => void` | — |  |
 | `maxTagCount` | `number` | — |  |
 | `virtualized` | `boolean \| SelectVirtualizedConfig` | — | Multiple mode: window the option listbox with VirtualList for large option sets (single mode is a native select and ignores this) |
 | `onValuesChange` | `(value: string \| string[]) => void` | — |  |
@@ -1918,6 +2053,27 @@ import { Sidebar, SidebarGroup, SidebarItem, SidebarFooter, SidebarToggle } from
 | `onClick` | `(event: MouseEvent<HTMLButtonElement, MouseEvent>) => void` | — |  |
 | `className` | `string` | — |  |
 
+## Signature
+
+```jsx
+import { Signature } from 'haze-ui';
+```
+
+### SignatureProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `ControlOrValue<string>` | — |  |
+| `onChange` | `(value: string) => void` | — |  |
+| `clearLabel` | `string` | — |  |
+| `undoLabel` | `string` | — |  |
+| `unsupportedLabel` | `string` | — |  |
+| `width` | `number` | — |  |
+| `height` | `number` | — |  |
+| `disabled` | `boolean` | — |  |
+| `penColor` | `string` | — |  |
+| `penWidth` | `number` | — |  |
+
 ## Skeleton
 
 ```jsx
@@ -1965,6 +2121,24 @@ import { Slider, SliderCore } from 'haze-ui';
 | `step` | `number` | `1` | Step increment |
 | `disabled` | `boolean` | `false` | Disable the slider |
 | `className` | `string` | — | Additional CSS class |
+
+## Sources
+
+```jsx
+import { Sources } from 'haze-ui';
+```
+
+### SourcesProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` | `SourceItem[]` | — |  |
+| `compact` | `boolean` | — |  |
+| `expanded` | `ControlOrValue<readonly string[]>` | — |  |
+| `label` | `string` | — |  |
+| `expandLabel` | `string` | — |  |
+| `collapseLabel` | `string` | — |  |
+| `className` | `string` | — |  |
 
 ## Spinner
 
@@ -2574,6 +2748,8 @@ import { Tree } from 'haze-ui';
 | `titleRender` | `(node: TreeNodeData) => ReactNode` | — | Custom title renderer |
 | `iconRender` | `(node: TreeNodeData) => ReactNode` | — | Custom icon renderer |
 | `virtualized` | `boolean \| TreeVirtualizedConfig` | — |  |
+| `loadData` | `(node: TreeNodeData) => Promise<TreeNodeData[]>` | — |  |
+| `searchValue` | `string` | — |  |
 | `expandedKeys` | `ControlOrValue<string[]>` | — | Controlled expanded node keys |
 | `selectedKeys` | `ControlOrValue<string[]>` | — | Controlled selected node keys |
 | `checkedKeys` | `ControlOrValue<string[]>` | — | Controlled checked node keys |
@@ -2661,6 +2837,9 @@ import { Upload, UploadCore } from 'haze-ui';
 | `data` | `Record<string, string \| Blob>` | — |  |
 | `manual` | `boolean` | — |  |
 | `showUploadList` | `boolean \| { itemRender?: UploadListItemRender \| undefined; }` | — |  |
+| `listType` | `'text' \| 'picture-card'` | — |  |
+| `removeLabel` | `string` | — |  |
+| `directory` | `boolean` | — |  |
 | `onStatusChange` | `(files: UploadFileStatus[]) => void` | — |  |
 | `className` | `string` | — |  |
 | `children` | `ReactNode` | — |  |
@@ -2671,6 +2850,8 @@ import { Upload, UploadCore } from 'haze-ui';
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `entries` | `UploadEntry[]` | — |  |
+| `listType` | `'text' \| 'picture-card'` | — |  |
+| `removeLabel` | `string` | — |  |
 | `itemRender` | `UploadListItemRender` | — |  |
 | `onRemove` | `(file: File) => void` | — |  |
 | `onRetry` | `(file: File) => void` | — |  |
@@ -2694,6 +2875,9 @@ import { Upload, UploadCore } from 'haze-ui';
 | `data` | `Record<string, string \| Blob>` | — |  |
 | `manual` | `boolean` | — |  |
 | `showUploadList` | `boolean \| { itemRender?: UploadListItemRender \| undefined; }` | — |  |
+| `listType` | `'text' \| 'picture-card'` | — |  |
+| `removeLabel` | `string` | — |  |
+| `directory` | `boolean` | — |  |
 | `onStatusChange` | `(files: UploadFileStatus[]) => void` | — |  |
 | `onChange` | `(files: File[]) => void` | — | Called when files are selected |
 | `className` | `string` | — | Additional CSS class |

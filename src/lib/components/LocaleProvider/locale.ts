@@ -104,12 +104,35 @@ const defaultStrings = {
   dateRangePicker: {
     startDate: 'Start date',
     endDate: 'End date',
+    presetToday: 'Today',
+    presetYesterday: 'Yesterday',
+    presetLast7Days: 'Last 7 days',
+    presetLast30Days: 'Last 30 days',
+    presetThisMonth: 'This month',
+    presetLastMonth: 'Last month',
+  },
+  datepicker: {
+    time: 'Time',
+  },
+  dataTable: {
+    selectAll: 'Select all rows',
+    filterPlaceholder: 'Filter',
+  },
+  diffViewer: {
+    header: 'Diff',
   },
   empty: {
     description: 'No data',
   },
   fileInput: {
     label: 'Choose file',
+  },
+  filePreview: {
+    remove: 'Remove',
+    retry: 'Retry',
+    uploading: 'Uploading',
+    uploaded: 'Uploaded',
+    error: 'Upload failed',
   },
   image: {
     zoomIn: 'Zoom in',
@@ -120,6 +143,13 @@ const defaultStrings = {
   },
   inlineEdit: {
     placeholder: 'Click to edit',
+  },
+  inlineCompletion: {
+    hint: 'Completion available. Press Tab to accept, Escape to dismiss.',
+  },
+  jsonView: {
+    copy: 'Copy',
+    more: '+{count} more',
   },
   logViewer: {
     all: 'All',
@@ -161,6 +191,11 @@ const defaultStrings = {
     star: '{count} star',
     stars: '{count} stars',
   },
+  signature: {
+    clear: 'Clear',
+    undo: 'Undo',
+    unsupported: 'Signature is not supported in this browser.',
+  },
   select: {
     placeholder: 'Select…',
     listboxLabel: 'Options',
@@ -173,6 +208,11 @@ const defaultStrings = {
   },
   spinner: {
     loading: 'Loading',
+  },
+  sources: {
+    label: 'Sources',
+    expand: 'Show excerpt',
+    collapse: 'Hide excerpt',
   },
   tag: {
     remove: 'Remove',
@@ -193,6 +233,7 @@ const defaultStrings = {
     loading: 'Loading…',
     success: 'Success',
     error: 'Something went wrong',
+    close: 'Close',
   },
   tokenCounter: {
     label: 'Tokens',
@@ -214,6 +255,9 @@ const defaultStrings = {
   tree: {
     expand: 'Expand',
     collapse: 'Collapse',
+    loadError: 'Load failed',
+    retry: 'Retry',
+    noMatch: 'No matches',
   },
   upload: {
     hint: 'Drag & drop files here, or click to upload',

@@ -588,6 +588,10 @@ export default function Calendar({
   // a prop, so useState (not useControl) is the right tool here.
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickYear, setQuickYear] = useState(0);
+  // Quick-select's drill-down level: the year grid (a decade of year
+  // cells, the picker="year" grid's layout) replaces the month grid
+  // until a year is picked or Esc steps back out.
+  const [quickYearOpen, setQuickYearOpen] = useState(false);
 
   // Civil parse: `new Date(value)` would read the value as UTC midnight
   // and land west-of-UTC users on the previous day — showing February
@@ -646,9 +650,10 @@ export default function Calendar({
       ?.focus();
   }, [viewYear, viewMonth, quickOpen]);
 
-  // Focus handover for the quick-select grid: the month buttons exist
-  // only after the selector mounts (open) or the year stepper commits
-  // (PageUp/Down year hop keeping the focused month).
+  // Focus handover for the quick-select grids: the month or year buttons
+  // exist only after the selector mounts (open), the year stepper
+  // commits (PageUp/Down year hop keeping the focused month) or the
+  // drill-down level swaps (year grid opened / closed).
   useEffect(() => {
     if (!quickOpen) return;
     const index = pendingQuickCellRef.current;
@@ -656,7 +661,7 @@ export default function Calendar({
     const buttons = dayButtons(quickGridRef.current);
     if (buttons.length === 0) return;
     (buttons[index ?? 0] ?? buttons[0])!.focus();
-  }, [quickOpen, quickYear]);
+  }, [quickOpen, quickYear, quickYearOpen]);
 
   // Focus handover for the picker-mode grids: PageUp/Down period hops
   // replace every cell (year or decade shift), so the pending index is
@@ -673,6 +678,7 @@ export default function Calendar({
   const openQuickSelect = () => {
     pendingQuickCellRef.current = viewMonth;
     setQuickYear(viewYear);
+    setQuickYearOpen(false);
     setQuickOpen(true);
   };
 
@@ -685,6 +691,27 @@ export default function Calendar({
     setQuickOpen(false);
     setView({ year: quickYear, month });
     pendingFocusRef.current = formatDate(quickYear, month, 1);
+  };
+
+  /* Year drill-down (the picker="year" grid reused inside the quick
+   * select): opening hands focus to the quick year's cell; picking (or
+   * Esc, see onQuickKeyDown) returns to the month grid with focus on
+   * the viewed month. */
+  const quickDecadeStart = Math.floor(quickYear / 10) * 10;
+
+  const openQuickYearGrid = () => {
+    pendingQuickCellRef.current = quickYear - quickDecadeStart;
+    setQuickYearOpen(true);
+  };
+
+  const closeQuickYearGrid = () => {
+    setQuickYearOpen(false);
+    pendingQuickCellRef.current = viewMonth;
+  };
+
+  const chooseQuickYear = (year: number) => {
+    setQuickYear(year);
+    closeQuickYearGrid();
   };
 
   const secondPane = addMonths(viewYear, viewMonth, months - 1);
@@ -705,6 +732,15 @@ export default function Calendar({
     quickGridRef,
     3,
     (delta) => setQuickYear((year) => year + delta),
+    pendingQuickCellRef
+  );
+
+  // Year drill-down grid: 3 columns like the month grid, PageUp/Down
+  // step a decade (matching the picker="year" mode's stepper).
+  const handleQuickYearGridKeyDown = useSelectorGridKeyboard(
+    quickGridRef,
+    3,
+    (delta) => setQuickYear((year) => year + delta * 10),
     pendingQuickCellRef
   );
 
@@ -867,66 +903,144 @@ export default function Calendar({
   const quickSelectView = (
     <div x-class={[quickSelect]} onKeyDown={onQuickKeyDown}>
       <div x-class={[quickToolbar]}>
-        <button
-          type='button'
-          x-class={[headerBtn]}
-          onClick={() => setQuickYear((year) => year - 1)}
-          aria-label={strings.previousYear}
-        >
-          ‹
-        </button>
-        <span x-class={[headerTitle]}>{quickYear}</span>
-        <button
-          type='button'
-          x-class={[headerBtn]}
-          onClick={() => setQuickYear((year) => year + 1)}
-          aria-label={strings.nextYear}
-        >
-          ›
-        </button>
+        {quickYearOpen ? (
+          <>
+            <button
+              type='button'
+              x-class={[headerBtn]}
+              onClick={() => setQuickYear((year) => year - 10)}
+              aria-label={strings.previousDecade}
+            >
+              ‹
+            </button>
+            <span x-class={[headerTitle]}>
+              {quickDecadeStart} – {quickDecadeStart + 11}
+            </span>
+            <button
+              type='button'
+              x-class={[headerBtn]}
+              onClick={() => setQuickYear((year) => year + 10)}
+              aria-label={strings.nextDecade}
+            >
+              ›
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type='button'
+              x-class={[headerBtn]}
+              onClick={() => setQuickYear((year) => year - 1)}
+              aria-label={strings.previousYear}
+            >
+              ‹
+            </button>
+            {/* The year drills into a decade grid (the picker="year"
+                layout); picking a year lands back on this month grid. */}
+            <button
+              type='button'
+              x-class={[titleBtn, headerTitle]}
+              aria-haspopup='grid'
+              onClick={openQuickYearGrid}
+            >
+              {quickYear}
+            </button>
+            <button
+              type='button'
+              x-class={[headerBtn]}
+              onClick={() => setQuickYear((year) => year + 1)}
+              aria-label={strings.nextYear}
+            >
+              ›
+            </button>
+          </>
+        )}
       </div>
-      <div
-        ref={quickGridRef}
-        x-class={[quickGrid]}
-        role='grid'
-        aria-label={strings.selectMonth}
-        onKeyDown={handleQuickGridKeyDown}
-      >
-        {[0, 1, 2, 3].map((rowIndex) => (
-          <div role='row' key={rowIndex} x-class={[rowContents]}>
-            {[0, 1, 2].map((column) => {
-              const month = rowIndex * 3 + column;
-              const current = quickYear === viewYear && month === viewMonth;
-              return (
-                <span
-                  role='gridcell'
-                  key={month}
-                  aria-selected={current}
-                  x-class={[cellContents]}
-                >
-                  <button
-                    type='button'
-                    data-haze-month={month}
-                    x-class={[dayBtn, current && daySelected]}
-                    onClick={() => chooseMonth(month)}
+      {quickYearOpen ? (
+        <div
+          ref={quickGridRef}
+          x-class={[quickGrid]}
+          role='grid'
+          aria-label={strings.selectYear}
+          onKeyDown={handleQuickYearGridKeyDown}
+        >
+          {[0, 1, 2, 3].map((rowIndex) => (
+            <div role='row' key={rowIndex} x-class={[rowContents]}>
+              {[0, 1, 2].map((column) => {
+                const year = quickDecadeStart + rowIndex * 3 + column;
+                const current = year === viewYear;
+                return (
+                  <span
+                    role='gridcell'
+                    key={year}
+                    aria-selected={current}
+                    x-class={[cellContents]}
                   >
-                    {monthNames[month]}
-                  </button>
-                </span>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+                    <button
+                      type='button'
+                      data-haze-year={year}
+                      x-class={[dayBtn, current && daySelected]}
+                      disabled={isYearCellDisabled(year)}
+                      onClick={() => chooseQuickYear(year)}
+                    >
+                      {year}
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          ref={quickGridRef}
+          x-class={[quickGrid]}
+          role='grid'
+          aria-label={strings.selectMonth}
+          onKeyDown={handleQuickGridKeyDown}
+        >
+          {[0, 1, 2, 3].map((rowIndex) => (
+            <div role='row' key={rowIndex} x-class={[rowContents]}>
+              {[0, 1, 2].map((column) => {
+                const month = rowIndex * 3 + column;
+                const current = quickYear === viewYear && month === viewMonth;
+                return (
+                  <span
+                    role='gridcell'
+                    key={month}
+                    aria-selected={current}
+                    x-class={[cellContents]}
+                  >
+                    <button
+                      type='button'
+                      data-haze-month={month}
+                      x-class={[dayBtn, current && daySelected]}
+                      onClick={() => chooseMonth(month)}
+                    >
+                      {monthNames[month]}
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
-  /** Esc anywhere inside the quick-select view (grid focus or the year
-   *  toolbar) cancels and returns focus to the header title button. */
+  /** Esc inside the quick-select view: from the year grid it steps back
+   *  out to the month grid (one drill-down level); from the month grid
+   *  it cancels the quick select and returns focus to the header title
+   *  button. */
   function onQuickKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') {
       event.preventDefault();
-      closeQuickSelect();
+      if (quickYearOpen) {
+        closeQuickYearGrid();
+      } else {
+        closeQuickSelect();
+      }
     }
   }
 

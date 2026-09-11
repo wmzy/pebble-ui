@@ -17,7 +17,7 @@ import type { DataTableCellEditorProps, DataTableColumnMeta } from './features';
 import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTable } from '@tanstack/react-table';
 import { css } from '@linaria/core';
-import { useControl } from 'react-use-control';
+import { useControl, useThru, watch, isControl } from 'react-use-control';
 
 import { getDirection, useDirection } from '../../utils/direction';
 
@@ -29,6 +29,7 @@ import {
 } from '../DropdownMenu';
 import { Empty } from '../Empty';
 import { Input } from '../Input';
+import { useStrings } from '../LocaleProvider';
 import { Pagination } from '../Pagination';
 import { Skeleton } from '../Skeleton';
 import { TableBody, TableCell, TableHead } from '../Table';
@@ -95,6 +96,41 @@ type DataTableProps<TData extends RowData> = {
   pageSize?: number;
   /** Current page, 1-based, when paginating. */
   page?: ControlOrValue<number>;
+  /**
+   * Server-driven mode: sorting and pagination stop being computed
+   * locally. TanStack's `manualSorting` / `manualPagination` under the
+   * hood — the table renders `data` exactly as received (no reordering,
+   * no page slicing), so the consumer fetches each page pre-sorted and
+   * pre-sliced. Sort-header clicks still toggle the `sorting` state (and
+   * `aria-sort`), and the footer still tracks the `page` state; the
+   * consumer observes both through the `onSortChange` / `onPageChange`
+   * callbacks (or the `sorting` / `page` controls) and refetches. Pass
+   * `pageCount` so the footer knows the server-side page total — without
+   * it the footer falls back to `data.length`, i.e. one full page.
+   * Composes with `rowSelection`, `loading`, `virtualized` and the
+   * skeleton exactly as in local mode.
+   */
+  manual?: boolean;
+  /**
+   * Total number of pages, overriding the footer's page math in `manual`
+   * mode (locally derived from `data.length` otherwise). Only meaningful
+   * together with `pageSize`.
+   */
+  pageCount?: number;
+  /**
+   * Fires with the next 1-based page whenever the page changes — footer
+   * clicks and programmatic updates alike, in local and `manual` mode.
+   * The `manual`-mode refetch trigger; pairs with `pageCount`.
+   */
+  onPageChange?: (page: number) => void;
+  /**
+   * Fires with the next TanStack `SortingState` whenever sorting changes
+   * — header clicks (including multi-sort) and programmatic updates
+   * alike, in local and `manual` mode. In `manual` mode this is the
+   * server refetch trigger; the table itself keeps rendering `data`
+   * untouched.
+   */
+  onSortChange?: (sorting: SortingState) => void;
   /** Render skeleton rows instead of data. */
   loading?: boolean;
   /** Keep the header visible while the table body scrolls. */
@@ -739,6 +775,10 @@ export default function DataTable<TData extends RowData>({
   sorting: sortingControl,
   pageSize,
   page: pageControl,
+  manual = false,
+  pageCount,
+  onPageChange,
+  onSortChange,
   loading = false,
   stickyHeader = false,
   virtualized,
@@ -760,12 +800,32 @@ export default function DataTable<TData extends RowData>({
   className,
   ...rest
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useControl<SortingState>(sortingControl, []);
+  // Sorting and page states are threaded through a `watch` layer so every
+  // mutation — header clicks (TanStack's onSortingChange), footer clicks
+  // (the Pagination control) and programmatic updates — reports through
+  // onSortChange / onPageChange exactly once, from outside the state
+  // updater. Controlled controls keep their Control semantics; the layer
+  // is inert while the callbacks are absent.
+  const sortingControlled = isControl(sortingControl);
+  const [sorting, setSorting] = useControl<SortingState>(
+    useThru(
+      sortingControlled ? sortingControl : undefined,
+      watch((next) => onSortChange?.(next))
+    ),
+    sortingControlled ? [] : sortingControl ?? []
+  );
   const [rowSelection, setRowSelection] = useControl<RowSelectionState>(
     rowSelectionControl,
     {}
   );
-  const [page, setPage, pageCtrl] = useControl<number>(pageControl, 1);
+  const pageControlled = isControl(pageControl);
+  const [page, setPage, pageCtrl] = useControl<number>(
+    useThru(
+      pageControlled ? pageControl : undefined,
+      watch((next) => onPageChange?.(next))
+    ),
+    pageControlled ? 1 : pageControl ?? 1
+  );
   const [expanded, setExpanded] = useControl<ExpandedState>(
     expandedControl,
     {}
@@ -784,6 +844,7 @@ export default function DataTable<TData extends RowData>({
   // the DOM direction at event time instead.
   const dir = useDirection();
   const instanceId = useId();
+  const strings = useStrings('dataTable');
 
   const virtual = virtualized === true || typeof virtualized === 'object';
   const rowHeight =
@@ -849,6 +910,13 @@ export default function DataTable<TData extends RowData>({
     onRowSelectionChange: setRowSelection,
     onExpandedChange: setExpanded,
     onColumnVisibilityChange: setColumnVisibility,
+    // Server-driven mode: TanStack skips the local sort and the local
+    // page slice — `data` renders exactly as received while the sorting
+    // and page state keep flowing (the consumer refetches off
+    // onSortChange / onPageChange). manualPagination also turns off
+    // TanStack's data-change auto page reset, as a server table expects.
+    manualSorting: manual,
+    manualPagination: manual,
     // `renderExpandedRow` alone means "every row expands"; `getRowCanExpand`
     // refines which ones. Neither given falls through to TanStack's default
     // — "rows with subRows" — which is what drives tree mode.
@@ -1037,7 +1105,7 @@ export default function DataTable<TData extends RowData>({
                 <CheckboxCore
                   checked={table.getIsAllRowsSelected()}
                   onChange={(checked) => table.toggleAllRowsSelected(checked)}
-                  aria-label='Select all rows'
+                  aria-label={strings.selectAll}
                 />
               </span>
             </TableCell>
@@ -1363,7 +1431,7 @@ export default function DataTable<TData extends RowData>({
               <Input
                 size='sm'
                 aria-label={`Filter ${columnLabel(header.column)}`}
-                placeholder='Filter'
+                placeholder={strings.filterPlaceholder}
                 value={(header.column.getFilterValue() as string | undefined) ?? ''}
                 onChange={(event) =>
                   header.column.setFilterValue(event.target.value)
@@ -1506,9 +1574,17 @@ export default function DataTable<TData extends RowData>({
       {pageSize !== undefined && (
         <div x-class={[footer]}>
           {columnMenu}
+          {/* Manual mode: the server owns the row total, so the footer's
+           * page math must come from `pageCount` (fed as
+           * pageCount × pageSize items — Pagination derives pages from
+           * `total`). Locally the total stays `data.length`. */}
           <Pagination
             page={pageCtrl}
-            total={data.length}
+            total={
+              manual && pageCount !== undefined
+                ? Math.max(0, pageCount) * pageSize
+                : data.length
+            }
             pageSize={pageSize}
             size='sm'
           />

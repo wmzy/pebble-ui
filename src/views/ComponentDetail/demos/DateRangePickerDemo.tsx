@@ -44,6 +44,19 @@ export default function DateRangePickerDemo() {
       </div>
 
       <div className={section}>
+        <h2>Built-in presets</h2>
+        <p>
+          <code>presets=&apos;common&apos;</code> enables the built-in
+          shortcut rows — today, yesterday, last 7 days, last 30 days,
+          this month and last month (localized by the LocaleProvider). A
+          custom array lists its own rows, and{' '}
+          <code>&#123;&apos;common&apos;&#125;</code> inside the array
+          prepends the built-ins so customs append after them.
+        </p>
+        <DateRangePicker months={2} presets='common' />
+      </div>
+
+      <div className={section}>
         <h2>Presets</h2>
         <p>
           <code>presets</code> renders shortcut rows at the top of the

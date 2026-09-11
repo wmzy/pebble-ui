@@ -24,6 +24,10 @@ type DatepickerProps = {
   /** Shortcut rows at the top of the panel; clicking applies the
    * preset's value and closes the panel. */
   presets?: DatepickerPreset[];
+  /** Adds a time input (hour/minute) below the calendar; `value`
+   * serializes as `"YYYY-MM-DD HH:mm"` instead of `"YYYY-MM-DD"`
+   * (plain-date values stay accepted). Date granularity only. */
+  showTime?: boolean;
   locale?: string;
   weekStartsOn?: 0 | 1;
   placeholder?: string;
@@ -41,6 +45,7 @@ export default function Datepicker({
   max,
   disabledDate,
   presets,
+  showTime,
   locale,
   weekStartsOn,
   placeholder,
@@ -62,6 +67,7 @@ export default function Datepicker({
       max={max}
       disabledDate={disabledDate}
       presets={presets}
+      showTime={showTime}
       locale={locale}
       weekStartsOn={weekStartsOn}
       placeholder={placeholder}

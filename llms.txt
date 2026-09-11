@@ -7,7 +7,7 @@
 - [Full API reference (llms-full.txt)](llms-full.txt): every component's props, types,
   defaults and descriptions in one generated file.
 
-107 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
+117 components in 9 groups (see below), styled with Linaria (zero-runtime CSS-in-JS)
 against `--haze-*` design tokens. ESM-only, `preserveModules` dist, tree-shakeable.
 `'use client'` is pre-injected on interactive modules; 36 static, hook-free modules
 (tokens + presentational components) ship without it and render as React Server
@@ -60,7 +60,7 @@ re-deriving file names.
 - **Button** — action button with `variant`/`size`/`square` options; native `<button>` under the hood.
 - **Divider** — content separator line, horizontal or vertical.
 - **Icon** — inline SVG icon wrapper with token-sized `sm`/`md`/`lg` boxes.
-- **Tag** — compact status label with variant color and optional close button.
+- **Tag** — compact status label with variant color and an optional close button.
 - **TagGroup** — flex-wrap container laying out Tag children with consistent gap; `sortable` + `onReorder(nextOrder)` for dnd-kit drag reordering.
 - **Typography** — text primitives: `Title`, `Text`, `Paragraph` on typography tokens.
 
@@ -71,29 +71,32 @@ re-deriving file names.
 - **Container** — centered max-width page container with horizontal padding.
 - **Flex** — flexbox layout primitive mapping props to flex CSS.
 - **Grid** — CSS grid layout primitive.
+- **Masonry** — pinboard layout: JS greedy column distribution balances children across `columns` (order-first, shortest-column-next).
 - **Resizable** — split-pane group with draggable dividers (`ResizableGroup`, horizontal or vertical); also exported as `SplitterGroup`/`SplitterPanel`/`SplitterHandle` (AntD-style naming).
 - **ScrollArea** — scrollable region with custom-styled thin scrollbars and `maxHeight`.
 - **Sidebar** — app sidebar shell with controllable collapsed state (`aside` + rail width tokens).
 
 ### Forms
 
-- **Cascader** — multi-level drill-down selector committing a path of option values.
+- **Cascader** — multi-level drill-down selector committing a path of option values; `onSearch` filters remotely while `loading` shows the pending state.
 - **Checkbox** — checkbox input with controllable `checked` state.
 - **ColorPicker** — color selector with controllable value and preset swatches.
-- **Combobox** — autocomplete text input with filterable option list.
-- **Datepicker** — date input with popup calendar (`YYYY-MM-DD` value).
-- **DateRangePicker** — picks a start/end date range.
+- **Combobox** — autocomplete text input with filterable option list; `onSearch` defers filtering to the host.
+- **Datepicker** — date input with popup calendar (`YYYY-MM-DD` value); `showTime` adds a time-of-day field.
+- **DateRangePicker** — picks a start/end date range, with built-in or custom `presets` (Today, Last 7 days, …).
 - **FileInput** — trigger element that opens a hidden native file input.
 - **Form (FormItem)** — react-f0rm field wrapper adding label, error and aria wiring to controlled cores.
 - **InlineEdit** — click-to-edit text value in place.
 - **Input** — text input with adornments; sugar over `InputCore`.
+- **Mentions** — mentions input with trigger-character suggestions picked from an option list.
 - **NumberInput** — numeric input with `min`/`max`/`step`.
 - **OTPInput** — one-time-password input of `length` segmented character boxes.
 - **PasswordInput** — text input with a visibility reveal toggle.
 - **Radio / RadioGroup** — radio option and group with controllable selection.
 - **Rating** — star rating with half-step support.
 - **Segmented** — segmented control selecting one option from a compact set.
-- **Select** — dropdown select over `SelectCore` with `<option>` children.
+- **Select** — dropdown select over `SelectCore` with `<option>` children; `onSearch` enables server-side filtering.
+- **Signature** — canvas signature pad committing a PNG data URL on every stroke, with undo, clear and a no-canvas fallback notice.
 - **Slider** — native range slider with controllable value.
 - **Switch** — toggle switch (`role="switch"`) with controllable `checked`.
 - **TagInput** — enter-to-commit token input over `TagInputCore`; `sortable` enables dnd-kit drag reordering (new order via `onChange`).
@@ -101,7 +104,7 @@ re-deriving file names.
 - **TimePicker** — time-of-day input with controllable value.
 - **Toggle** — two-state pressed button (`aria-pressed`) with sizes and `square` icon mode; `ToolbarToggle` variant rides toolbar roving focus.
 - **Transfer** — two-column shuttle moving options between source and target lists.
-- **Upload** — file picker with accumulating `File[]` value, `accept`/`multiple`.
+- **Upload** — file picker with accumulating `File[]` value, `accept`/`multiple`, `directory` picking and `listType` rendering.
 
 ### Overlays
 
@@ -122,18 +125,20 @@ re-deriving file names.
 - **Calendar** — month-grid date surface with `min`/`max`, locale and `weekStartsOn`.
 - **Card** — content card with `elevated`/`outlined`/`filled` variants.
 - **Carousel** — slideshow with controllable active index and autoplay.
-- **Chart** — line/area/bar charts over `recharts` (optional peer), colors and axes on haze tokens; series cycle the semantic palette.
+- **Chart** — line/area/bar/pie charts over `recharts` (optional peer), colors and axes on haze tokens; series cycle the semantic palette, `renderTooltip` customizes the tooltip.
 - **Chip** — rounded status chip with optional icon and close button.
-- **CodeBlock** — monospace code container with a language badge.
-- **DataTable** — feature table on `@tanstack/react-table` (sorting, pagination, row selection).
+- **CodeBlock** — monospace code container with a language badge; `highlight` plugs in an async syntax highlighter.
+- **DataTable** — feature table on `@tanstack/react-table` (sorting, row selection, client or `manual` pagination); `dataTableToCsv` exports the rows.
+- **Descriptions** — definition-list description groups (`dl`/`dt`/`dd` on CSS Grid): `items` pairs, `columns`, `bordered`, `size`.
 - **Image** — image with fallback and `aspectRatio`/`objectFit` control.
+- **JsonView** — collapsible JSON tree viewer with per-kind leaf colors, depth-based default expansion, truncation hints and an optional copy button.
 - **Kbd** — keyboard key-cap styling for shortcuts.
 - **List** — styled `ul`/`ol`/plain list variants.
 - **Progress** — progress bar or circle driven by a percentage `value`.
 - **Stat** — metric display with title, value and trend indicator.
 - **Table** — styled semantic table (`striped`, `bordered`).
 - **Timeline** — vertical timeline container for `TimelineItem` children.
-- **Tree** — hierarchical tree with expand, select and check state.
+- **Tree** — hierarchical tree with expand, select and check state, async `loadData` and `searchValue` filtering.
 - **VirtualList** — windowed list rendering only visible rows; fixed or measured dynamic heights.
 - **Watermark** — tiled canvas watermark layer over children (or `fullscreen`); theme-aware color, degrades gracefully without canvas 2d support.
 
@@ -144,6 +149,7 @@ re-deriving file names.
 - **BackToTop** — floating scroll-to-top button appearing past a scroll threshold.
 - **Breadcrumb** — breadcrumb trail nav with configurable separator.
 - **Command** — command palette surface: `CommandInput` plus filterable `CommandItem`s.
+- **FloatButton / FloatButtonGroup** — floating action button over the page; `FloatButtonGroup` stacks actions behind an expand trigger, with back-to-top and help glyphs built in.
 - **NavigationBar** — top nav bar with `brand` and `end` slots.
 - **Pagination** — page navigation with controllable `page` and ellipsis windows.
 - **Stepper** — step indicator driven by `activeStep` (`Step` children).
@@ -169,9 +175,13 @@ re-deriving file names.
 - **ChatMessage** — chat bubble with role-based layout (user / assistant / system), avatar, name, timestamp and delivery status.
 - **ConversationList** — selectable list of conversations for a chat-history sidebar.
 - **DiffViewer** — renders the line diff between old and new content for agent-proposed edits.
+- **FilePreview** — attachment card with image thumbnail or extension badge, upload progress and remove/retry actions.
+- **InlineCompletion** — ghost-text completion overlay for input/textarea; Tab accepts the suggestion, Escape dismisses it.
 - **LogViewer** — scrollable log stream with severity-level filtering.
 - **MarkdownRenderer** — renders markdown content (including code blocks) for assistant responses.
 - **ModelPicker** — controllable dropdown for selecting the active model.
+- **PromptInput** — AI prompt composer: auto-growing textarea with inline context tags, `@`-trigger suggestions and a configurable submit key.
+- **Sources** — numbered citation list for RAG answers; excerpts reveal on hover/focus with a controllable `expanded` set, `compact` renders inline `[1] [2]` badges.
 - **StepTimeline** — vertical timeline of agent execution steps with per-step status.
 - **StreamingText** — typewriter effect that reveals streaming text character by character, with an optional cursor.
 - **ThinkingIndicator** — animated bouncing-dots indicator that the agent is processing.
@@ -183,7 +193,7 @@ re-deriving file names.
 - **Collapsible** — unstyled open/close container with controllable `open` state.
 - **Disclosure** — summary-header disclosure panel (details/summary semantics).
 - **Fullscreen** — wrap-mode Fullscreen API binding around a single trigger child with controllable `fullscreen` state; `useFullscreen()` hook also exported.
-- **LocaleProvider** — supplies UI string packs (built-in English and zh-CN) to locale-aware components; `direction` (explicit or locale-derived) feeds `useDirection()`; `createStrings(base, overrides)` derives packs without forking the table. RTL locales (ar/he/fa/…) are derived automatically.
+- **LocaleProvider** — supplies UI string packs (built-in English, zh-CN and ja-JP) to locale-aware components; `direction` (explicit or locale-derived) feeds `useDirection()`; `createStrings(base, overrides)` derives packs without forking the table. RTL locales (ar/he/fa/…) are derived automatically.
 - **SwipeAction** — swipe-to-reveal row actions on left/right edges with a commit threshold.
 
 ## Design tokens
@@ -212,7 +222,7 @@ accept them, tier 2 mirrors in JS).
 
 Dialog, Drawer, BottomSheet, Popover and DropdownMenu accept a `ref` exposing
 `{ open(), close(), focusTrigger() }` — the same state outlet as user interaction,
-controlled-mode aware. Dialog, Drawer and BottomSheet also take `viewTransition?: boolean`:
+controlled-mode aware. Dialog, Drawer and BottomSheet also take a `viewTransition?: boolean`:
 open/close flips wrapped in the View Transitions API (`startViewTransition` + `flushSync`),
 auto-degrading without engine support or under reduced motion.
 
@@ -237,10 +247,11 @@ binding via `as`/`input` props. The sugar components (`Input`, `Select`, …) ke
 ## AI-friendly distribution
 
 - `haze-ui/registry.json` (npm artifact; also at <https://unpkg.com/haze-ui/registry.json>)
-  is a shadcn/ui-compatible registry covering the **agent components** (the AI & Chat
-  group plus AsyncSection). Its items are thin wrapper files that re-export the
-  published component and import its stylesheet — haze-ui stays an npm dependency
-  underneath, so wrappers are your customization layer, not vendored source.
+  is a shadcn/ui-compatible registry covering every component family (plus a `base`
+  meta item that installs the whole system in one command). Its items are thin wrapper
+  files that re-export the published component and import its stylesheet — haze-ui stays
+  an npm dependency underneath, so wrappers are your customization layer, not vendored
+  source.
 - `haze-ui/css-manifest.json` maps every export to its css file (see "CSS" above).
 
 ## For coding agents
@@ -275,7 +286,7 @@ A self-contained, machine-executable setup protocol — every step is copy-paste
    `noCss` list) — never hardcode or re-derive file names yourself.
 
 4. Stateful props are `ControlOrValue<T>`: pass a plain value for uncontrolled
-   use, or a `Control<T>` from `react-use-control` for controlled use — one
+   use, or a `Control<T>` from react-use-control for controlled use — one
    prop, no `defaultXxx` mirror API.
 
 5. Every component's full props table (name/type/default/description, types
@@ -291,6 +302,8 @@ Install via shadcn CLI.
 - GitHub: <https://github.com/wmzy/haze-ui>
 - npm: <https://www.npmjs.com/package/haze-ui>
 
-This file is maintained by hand — component lists and counts here are updated when the
-component set changes, and the authoritative groups live in the demo sidebar contract
-(`src/views/Layout/component-groups.ts`).
+The Components section above is generated from the demo sidebar contract
+(`src/views/Layout/component-groups.ts`) plus the blurb table in
+`scripts/generate-llms.mjs` — regenerate with `node scripts/generate-llms.mjs`
+when the component set changes. The preamble and the closing sections are
+maintained by hand.

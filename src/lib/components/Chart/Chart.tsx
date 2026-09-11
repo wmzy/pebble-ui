@@ -1,6 +1,11 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
-import type { ChartSeries, ChartType } from './chart-elements';
+import type {
+  ChartSeries,
+  ChartTooltipEntry,
+  ChartTooltipPayload,
+  ChartType,
+} from './chart-elements';
 
 import { useMemo } from 'react';
 
@@ -12,20 +17,34 @@ import {
 } from './chart-elements';
 
 type ChartProps<T> = {
-  /** Which recharts chart family to render. */
+  /** Which recharts chart family to render. `pie` maps each datum to one
+   * sector named by `xKey` and valued by each series `key`. */
   type: ChartType;
-  /** One datum per point; series values are read by `ChartSeries.key`. */
+  /** One datum per point (pie: per sector); series values are read by
+   * `ChartSeries.key`. */
   data: T[];
   /** The series to plot — colors cycle through the semantic status tokens
-   * when `color` is omitted. */
+   * when `color` is omitted. With `type='pie'` each series is one
+   * concentric ring. */
   series: ChartSeries[];
-  /** Datum field driving the X axis. */
+  /** Datum field driving the X axis (pie: naming each sector). */
   xKey: keyof T & string;
   /** Container height in px; the chart stretches to the full width. */
   height?: number;
+  /** Pie only: inner radius in px (or a % string) — above 0 renders a
+   * donut. Multiple pie series band the radial space evenly; a %
+   * `innerRadius` offsets the innermost ring. Default `0`. */
+  innerRadius?: number | string;
+  /** Cartesian charts only: `vertical` swaps the axes for horizontal
+   * bars/lines (ignored by `pie`). Default `'horizontal'`. */
+  layout?: 'horizontal' | 'vertical';
+  /** Replaces the default recharts tooltip. Receives the hovered label
+   * (X value / sector name) plus one entry per series or sector. */
+  renderTooltip?: (payload: ChartTooltipPayload<T>) => ReactNode;
   /** Renders a recharts Legend naming each series. Default `false`. */
   showLegend?: boolean;
-  /** Renders background grid lines. Default `true`. */
+  /** Renders background grid lines (cartesian charts only). Default
+   * `true`. */
   showGrid?: boolean;
   /** Renders a hover tooltip. Default `true`. */
   showTooltip?: boolean;
@@ -37,10 +56,10 @@ const root = css`
   width: 100%;
 `;
 
-/** Token-driven chart over recharts: line, area or bar series rendered
- * with haze semantic colors, axis/grid/tooltip/legend chrome toggles, and
- * the default-omittable `series`/`xKey` mapping. recharts is an optional
- * peer — this module's helpers import it statically, so under
+/** Token-driven chart over recharts: line, area, bar or pie series
+ * rendered with haze semantic colors, axis/grid/tooltip/legend chrome
+ * toggles, and the default-omittable `series`/`xKey` mapping. recharts is
+ * an optional peer — this module's helpers import it statically, so under
  * preserveModules only bundles that actually render Chart resolve the
  * dependency. */
 export default function Chart<T>({
@@ -49,6 +68,9 @@ export default function Chart<T>({
   series,
   xKey,
   height = 300,
+  innerRadius = 0,
+  layout = 'horizontal',
+  renderTooltip,
   showLegend = false,
   showGrid = true,
   showTooltip = true,
@@ -68,9 +90,20 @@ export default function Chart<T>({
         showTooltip,
         showLegend,
         series: resolvedSeries,
+        layout,
+        innerRadius,
+        renderTooltip: renderTooltip
+          ? (payload) => renderTooltip(payload as ChartTooltipPayload<T>)
+          : undefined,
       })}
     </div>
   );
 }
 
-export type { ChartProps, ChartSeries, ChartType };
+export type {
+  ChartProps,
+  ChartSeries,
+  ChartTooltipEntry,
+  ChartTooltipPayload,
+  ChartType,
+};

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useControl } from 'react-use-control';
 
 import { Button, Combobox } from '@/lib';
@@ -36,6 +36,16 @@ const PRODUCE = [
   { value: 'endive', label: 'Endive', group: 'Vegetables' },
 ];
 
+// Simulated remote corpus for the remote-search example — stands in
+// for a server-side query endpoint.
+const REMOTE_LIBRARY = [
+  ...FRUITS,
+  { value: 'kiwano', label: 'Kiwano' },
+  { value: 'kumquat', label: 'Kumquat' },
+  { value: 'lychee', label: 'Lychee' },
+  { value: 'persimmon', label: 'Persimmon' },
+];
+
 export default function ComboboxDemo() {
   // ControlOrValue contract: drive the component through a control,
   // never a bare value (a bare value is only the uncontrolled initial
@@ -43,6 +53,34 @@ export default function ComboboxDemo() {
   const [, , tagsCtrl] = useControl<string[]>(undefined, []);
   // Async-search stand-in for the loading example.
   const [loading, setLoading] = useState(false);
+  // Remote-search stand-in: the fake server owns the option list and
+  // answers each query after a delay. A pending timer is cancelled on
+  // unmount (and superseded by the next query).
+  const [remoteOptions, setRemoteOptions] = useState(REMOTE_LIBRARY);
+  const [remoteLoading, setRemoteLoading] = useState(false);
+  const remoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (remoteTimer.current !== null) clearTimeout(remoteTimer.current);
+    },
+    []
+  );
+  const handleRemoteSearch = (query: string) => {
+    setRemoteLoading(true);
+    if (remoteTimer.current !== null) clearTimeout(remoteTimer.current);
+    remoteTimer.current = setTimeout(() => {
+      setRemoteLoading(false);
+      // "Server-side" matching — the component does none of this.
+      const needle = query.trim().toLowerCase();
+      setRemoteOptions(
+        needle === ''
+          ? REMOTE_LIBRARY
+          : REMOTE_LIBRARY.filter((item) =>
+              item.label.toLowerCase().includes(needle)
+            )
+      );
+    }, 500);
+  };
 
   return (
     <>
@@ -162,6 +200,44 @@ export default function ComboboxDemo() {
           >
             {loading ? 'Stop' : 'Start'} loading
           </Button>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Remote search</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>onSearch</code> hands the query to you: every transition
+          fires the callback — each keystroke, clearing the input (the
+          empty query restores the full list), and the reset that follows
+          a selection — while the component stops filtering locally and
+          renders exactly the <code>options</code> you pass back. Pair
+          with <code>loading</code> for the pending state; debouncing is
+          the consumer&apos;s concern. This fake server matches on the
+          label after a half-second delay — try <code>ki</code>.
+        </p>
+        <div className={fieldRow}>
+          <Combobox
+            options={remoteOptions}
+            onSearch={handleRemoteSearch}
+            loading={remoteLoading}
+            placeholder="Async search…"
+          />{' '}
+          <span
+            style={{
+              fontSize: 'var(--haze-text-sm)',
+              color: 'var(--haze-color-text-secondary)',
+            }}
+          >
+            {remoteLoading
+              ? 'Searching…'
+              : `Server returned ${remoteOptions.length} options`}
+          </span>
         </div>
       </div>
 

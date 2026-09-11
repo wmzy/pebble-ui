@@ -1,19 +1,27 @@
-import type { ExpandedState, RowSelectionState } from '@tanstack/react-table';
+import type {
+  ExpandedState,
+  RowSelectionState,
+  SortingState,
+} from '@tanstack/react-table';
 
 import type { DataTableColumnDef } from '@/lib';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useControl } from 'react-use-control';
 
 import { Badge, DataTable } from '@/lib';
-import { dataTableAvg, dataTableSum } from '@/lib/components/DataTable';
+import {
+  dataTableAvg,
+  dataTableSum,
+  dataTableToCsv,
+} from '@/lib/components/DataTable';
 import { Option, SelectCore } from '@/lib/components/Select';
 
 import PropsTable from '../PropsTable';
 import A11yNote from '../A11yNote';
 
-import { intro, section, row } from '../styles';
+import { intro, section, row, codeBlock } from '../styles';
 
 import { CssVarsSection, dataTableNote } from './shared';
 
@@ -187,6 +195,124 @@ const editableColumns: DataTableColumnDef<EmployeeRow>[] = [
   { accessorKey: 'score', header: 'Score', meta: { editor: 'number', width: 100 } },
   { accessorKey: 'role', header: 'Role', meta: { editor: false } },
 ];
+
+// ─── Server mode (manual pagination & sorting) ─────────────────
+// The fake server: sort + slice of PEOPLE with a roundtrip delay, so the
+// demo exercises exactly what a real backend contract looks like.
+const SERVER_PAGE_SIZE = 4;
+
+function fetchServerPage(page: number, sorting: SortingState): EmployeeRow[] {
+  const first = sorting[0] ?? { id: 'id' as const, desc: false };
+  const key = first.id as keyof EmployeeRow;
+  const sorted = [...PEOPLE].sort((a, b) => {
+    const av = a[key];
+    const bv = b[key];
+    const cmp =
+      typeof av === 'number' && typeof bv === 'number'
+        ? av - bv
+        : String(av).localeCompare(String(bv));
+    return first.desc ? -cmp : cmp;
+  });
+  return sorted.slice((page - 1) * SERVER_PAGE_SIZE, page * SERVER_PAGE_SIZE);
+}
+
+function ServerModeTable() {
+  const [page, setPage] = useState(1);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  // The last fetched snapshot: while it lags the requested page/sorting
+  // the table shows the loading skeleton (derived, not stored — no
+  // synchronous state writes inside the effect).
+  const [snapshot, setSnapshot] = useState({
+    page: 1,
+    sorting: [] as SortingState,
+    rows: fetchServerPage(1, []),
+  });
+  const loading = snapshot.page !== page || snapshot.sorting !== sorting;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSnapshot({ page, sorting, rows: fetchServerPage(page, sorting) });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [page, sorting]);
+
+  return (
+    <DataTable
+      columns={baseColumns}
+      data={snapshot.rows}
+      manual
+      sortable
+      loading={loading}
+      pageSize={SERVER_PAGE_SIZE}
+      pageCount={Math.ceil(PEOPLE.length / SERVER_PAGE_SIZE)}
+      onPageChange={setPage}
+      onSortChange={setSorting}
+      getRowId={(employee) => String(employee.id)}
+    />
+  );
+}
+
+// ─── CSV export ────────────────────────────────────────────────
+type ShipmentRow = {
+  id: string;
+  customer: string;
+  city: string;
+  note: string;
+};
+
+// Values chosen to hit every CSV edge: a CJK cell (why the BOM exists),
+// embedded quotes and commas, and an embedded line break.
+const SHIPMENTS: ShipmentRow[] = [
+  { id: 'S-101', customer: '张伟', city: '上海', note: 'Fragile — keep upright' },
+  { id: 'S-102', customer: 'Ada Lovelace', city: 'London', note: 'Contains "spare cogwheels", crate 3' },
+  { id: 'S-103', customer: 'Grace Hopper', city: 'New York', note: 'Hand-carried\nleave elbow room' },
+];
+
+const shipmentColumns: DataTableColumnDef<ShipmentRow>[] = [
+  { accessorKey: 'id', header: 'Shipment' },
+  { accessorKey: 'customer', header: 'Customer' },
+  { accessorKey: 'city', header: 'City' },
+  { accessorKey: 'note', header: 'Note' },
+  {
+    // Presentation-only: rendered in the table, excluded from the export.
+    id: 'track',
+    header: 'Track',
+    cell: () => <button type="button">Track</button>,
+    meta: { excludeFromExport: true },
+  },
+];
+
+function downloadCsv(text: string) {
+  const url = URL.createObjectURL(
+    new Blob([text], { type: 'text/csv;charset=utf-8' })
+  );
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'shipments.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function CsvExportTable() {
+  const [csv, setCsv] = useState<string | null>(null);
+
+  return (
+    <>
+      <div className={row}>
+        <button onClick={() => setCsv(dataTableToCsv(SHIPMENTS, shipmentColumns))}>
+          Export CSV
+        </button>
+        {csv !== null && <button onClick={() => downloadCsv(csv)}>Download .csv</button>}
+      </div>
+      <DataTable
+        columns={shipmentColumns}
+        data={SHIPMENTS}
+        getRowId={(shipment) => shipment.id}
+      />
+      {csv !== null && <pre className={codeBlock}>{csv}</pre>}
+    </>
+  );
+}
 
 export default function DataTableDemo() {
   const [loading, setLoading] = useState(false);
@@ -398,6 +524,42 @@ export default function DataTableDemo() {
           editable
           onCellEdit={handleCellEdit}
         />
+      </div>
+
+      <div className={section}>
+        <h2>Server mode (manual pagination &amp; sorting)</h2>
+        <p className={dataTableNote}>
+          <code>manual</code> hands pagination and sorting to the server:
+          the table renders <code>data</code> exactly as fetched — no local
+          reordering, no page slicing — while sort-header clicks still
+          toggle <code>sorting</code> and the footer still tracks{' '}
+          <code>page</code>. The <code>onSortChange</code> /{' '}
+          <code>onPageChange</code> callbacks carry the next TanStack{' '}
+          <code>SortingState</code> and the 1-based page out to your fetch
+          effect, and <code>pageCount</code> feeds the footer the
+          server-side page total (below: 8 employees, 4 per page, a fake
+          350&nbsp;ms roundtrip — watch the skeleton between pages).
+          Selection, <code>loading</code>, the empty state and{' '}
+          <code>virtualized</code> compose unchanged.
+        </p>
+        <ServerModeTable />
+      </div>
+
+      <div className={section}>
+        <h2>CSV export</h2>
+        <p className={dataTableNote}>
+          <code>dataTableToCsv(rows, columns, options?)</code> serializes
+          the same rows and column defs the table renders — RFC 4180
+          escaping (commas, doubled quotes, embedded line breaks), CRLF
+          rows, and a UTF-8 BOM by default so Excel decodes CJK text
+          correctly (<code>bom: false</code> drops it). Only exporting
+          columns contribute: display-only columns and{' '}
+          <code>meta.excludeFromExport</code> columns are skipped (like{' '}
+          <em>Track</em> below), and <code>options.columnVisibility</code>{' '}
+          mirrors hidden columns. Pass <code>options</code> with{' '}
+          <code>columnVisibility</code> straight from your control value.
+        </p>
+        <CsvExportTable />
       </div>
 
       <div className={section}>

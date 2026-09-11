@@ -5,7 +5,23 @@ import type { DateRangePickerPreset } from './DateRangePickerCore';
 
 import { useControl } from 'react-use-control';
 
+import { useStrings } from '../LocaleProvider';
+
 import DateRangePickerCore from './DateRangePickerCore';
+
+import { commonRangePresets } from './presets';
+
+/**
+ * Shortcut rows for the range panel: `'common'` selects the built-in
+ * set (today / yesterday / last 7 days / last 30 days / this month /
+ * last month, localized by the LocaleProvider), plain objects are
+ * custom rows, and an array may mix both — `'common'` inside an array
+ * splices the built-ins in at that position, so customs append after
+ * them as `['common', { label, range }]`.
+ */
+type DateRangePickerPresets =
+  | 'common'
+  | readonly ('common' | DateRangePickerPreset)[];
 
 type DateRangePickerProps = {
   startDate?: ControlOrValue<string>;
@@ -24,10 +40,45 @@ type DateRangePickerProps = {
    * `disabledDate`). */
   disabledDate?: (date: Date) => boolean;
   /** Shortcut rows at the top of the panel; clicking applies the
-   * preset's range to the start/end pair. */
-  presets?: DateRangePickerPreset[];
+   * preset's range to the start/end pair. `'common'` enables the
+   * built-in set; a custom array lists its own rows and may include
+   * `'common'` to prepend the built-ins (see
+   * {@link DateRangePickerPresets}). */
+  presets?: DateRangePickerPresets;
   className?: string;
 };
+
+/** Localized built-in labels pulled from the `dateRangePicker` strings
+ * section, reshaped for {@link commonRangePresets}. */
+type CommonPresetLabelsView = {
+  today: string;
+  yesterday: string;
+  last7Days: string;
+  last30Days: string;
+  thisMonth: string;
+  lastMonth: string;
+};
+
+/** Expand the `presets` prop into the concrete row list the Core
+ * renders — built-ins resolved from the localized labels, custom rows
+ * kept as given. */
+function resolvePresets(
+  presets: DateRangePickerPresets | undefined,
+  labels: CommonPresetLabelsView
+): DateRangePickerPreset[] | undefined {
+  if (presets === undefined) return undefined;
+  const specs: readonly ('common' | DateRangePickerPreset)[] =
+    presets === 'common' ? ['common'] : presets;
+  const rows: DateRangePickerPreset[] = [];
+  for (const spec of specs) {
+    if (spec === 'common') {
+      rows.push(...commonRangePresets(labels));
+    } else {
+      rows.push(spec);
+    }
+  }
+  return rows;
+}
 
 export default function DateRangePicker({
   startDate: startDateControl,
@@ -48,6 +99,7 @@ export default function DateRangePicker({
     endDateControl,
     ''
   );
+  const strings = useStrings('dateRangePicker');
 
   return (
     <DateRangePickerCore
@@ -64,10 +116,17 @@ export default function DateRangePicker({
       separator={separator}
       months={months}
       disabledDate={disabledDate}
-      presets={presets}
+      presets={resolvePresets(presets, {
+        today: strings.presetToday,
+        yesterday: strings.presetYesterday,
+        last7Days: strings.presetLast7Days,
+        last30Days: strings.presetLast30Days,
+        thisMonth: strings.presetThisMonth,
+        lastMonth: strings.presetLastMonth,
+      })}
       className={className}
     />
   );
 }
 
-export type { DateRangePickerProps };
+export type { DateRangePickerProps, DateRangePickerPresets };
