@@ -46,8 +46,8 @@ export default function ChartDemo() {
       <h1>Chart</h1>
       <p className={intro}>
         Line, area, bar, pie, donut, radar and scatter charts over{' '}
-        <a href='https://recharts.com'>recharts</a> (an optional peer —
-        install it only if you render charts), with every color, font and
+        <a href='https://recharts.com'>recharts</a> (a haze-ui dependency,
+        bundled only when you render charts), with every color, font and
         grid line resolved from haze tokens. Series colors cycle through
         the semantic palette; pass your own as any CSS color string.
       </p>

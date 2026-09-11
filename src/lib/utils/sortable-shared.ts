@@ -17,10 +17,10 @@ import { CSS } from '@dnd-kit/utilities';
  * consumers needing custom sortable surfaces should compose @dnd-kit
  * directly.
  *
- * The @dnd-kit packages are optional peers following the Chart/recharts
- * contract: these helpers import them statically, so under preserveModules
- * only bundles that actually reach a Sortable* variant resolve the
- * dependency.
+ * The @dnd-kit packages are haze-ui dependencies following the
+ * Chart/recharts contract: these helpers import them statically, so under
+ * preserveModules only bundles that actually reach a Sortable* variant
+ * include the dependency.
  *
  * Base components (TagGroup, TagGroupItem, TagInputCore) must NOT import
  * this module or utils/sortable — either would drag the @dnd-kit runtime

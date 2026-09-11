@@ -49,13 +49,11 @@ export default function TagGroupDemo() {
       <h1>TagGroup</h1>
       <p className={intro}>
         Group of tags with optional close buttons, plus a sortable variant
-        built on <a href='https://dndkit.com'>dnd-kit</a> (optional peers —
-        install <code>@dnd-kit/core</code>,{' '}
-        <code>@dnd-kit/sortable</code> and <code>@dnd-kit/utilities</code>{' '}
-        only if you use <code>SortableTagGroup</code>/{' '}
-        <code>SortableTagInput</code>). Reordering is parent-driven:
-        <code>onReorder</code> reports the new index order and you re-render
-        the children accordingly.
+        built on <a href='https://dndkit.com'>dnd-kit</a> (a haze-ui
+        dependency, bundled only when you import{' '}
+        <code>SortableTagGroup</code>/<code>SortableTagInput</code>).
+        Reordering is parent-driven: <code>onReorder</code> reports the
+        new index order and you re-render the children accordingly.
       </p>
 
       <div className={section}>

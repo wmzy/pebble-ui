@@ -29,9 +29,8 @@ type SortableTagInputProps = {
 
 /**
  * Controllable-state sugar over `SortableTagInputCore`: drag-and-drop tag
- * reordering built on the @dnd-kit optional peers — install
- * `@dnd-kit/core`, `@dnd-kit/sortable` and `@dnd-kit/utilities` to use
- * it (the plain `TagInput` never touches them). Reorders leave through
+ * reordering built on the @dnd-kit dependency (the plain `TagInput` never
+ * touches it). Reorders leave through
  * `onChange` with the new array — the same single exit as add/remove.
  * Keyboard: focus a tag's label, Space lifts, arrows move, Space drops,
  * Escape cancels.

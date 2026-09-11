@@ -107,8 +107,6 @@ const buildConfig = (() => {
           'react/jsx-runtime',
           '@linaria/core',
           'react-use-control',
-          '@native-router/react',
-          '@for-fun/event-emitter',
           // regular dependency (haze-ui's form engine, same-author library)
           // — external so its CJS interop never leaks a `require()` call
           // into the pure-ESM dist; the resolver subpaths are re-exported
@@ -117,16 +115,16 @@ const buildConfig = (() => {
           'react-f0rm/resolvers/standard-schema',
           'react-f0rm/resolvers/zod',
           'react-f0rm/resolvers/yup',
-          // optional peer dependency (DataTable's engine) — kept external so
+          // regular dependency (DataTable's engine) — kept external so
           // its CJS interop never leaks a `require()` call into the
           // pure-ESM dist (the Node ESM contract test imports dist/index.js
           // in bare node)
           '@tanstack/react-table',
-          // optional peer dependency (Chart's engine) — same rule
+          // regular dependency (Chart's engine) — same rule
           'recharts',
-          // optional peer dependency (QRCode's engine) — same rule
+          // regular dependency (QRCode's engine) — same rule
           'qrcode',
-          // optional peer dependencies (drag-and-drop for the sortable
+          // regular dependencies (drag-and-drop for the sortable
           // TagInput/TagGroup modes) — same rule
           '@dnd-kit/core',
           '@dnd-kit/sortable',

@@ -129,30 +129,30 @@ checklist:
 
 ### Dependencies
 
-haze-ui ships two runtime dependencies — `react-use-control`, the engine
-behind `ControlOrValue<T>`, and `react-f0rm` (^1.3), the form engine
-behind `FormItem`/`FormList` (the same author's headless form store).
-Five integrations remain optional peers, installed only when you use the
-components that need them:
+haze-ui declares only the host environment as peers: `react` and
+`react-dom` (^19). Everything else is a regular dependency — one
+`npm i haze-ui` and every component works:
 
-```sh
-npm i @tanstack/react-table               # DataTable (peer range ^9.2.4)
-npm i recharts                            # Chart (peer range ^3.10.1)
-npm i @dnd-kit/core @dnd-kit/sortable \
-      @dnd-kit/utilities                  # TagInput/TagGroup sortable
-                                           # (^6.3.1 / ^10.0.0 / ^3.2.2)
-```
+- `react-use-control` — the engine behind `ControlOrValue<T>`
+- `react-f0rm` (^1.3) — the form engine behind `FormItem`/`FormList`
+  (the same author's headless form store)
+- `@tanstack/react-table` — DataTable
+- `recharts` — Chart
+- `@dnd-kit/core` / `@dnd-kit/sortable` / `@dnd-kit/utilities` — the
+  sortable TagInput/TagGroup variants
+- `qrcode` — QRCode
 
-Everything else — `Button`, `Input`, `Dialog`, `Select`, … — runs with
-nothing beyond `react` and the two runtime dependencies. The dist is ESM
-with `preserveModules` and side-effect-free JS, so bundlers (Next.js,
-Vite, webpack, Turbopack, Rollup) tree-shake the unused re-export chains
-and never resolve peers you haven't installed: `import { Button } from
-'haze-ui'` works without `@tanstack/react-table`. Only bundler-less
-consumers (bare Node ESM importing the barrel, which links the module
-graph eagerly) must install the optional peers; the
-`haze-ui/components/DataTable` and `haze-ui/components/Chart` subpaths
-bypass the barrel entirely.
+Swapping any of these engines for another library is invisible to your
+code (the one deliberate exception: DataTable's column API exposes
+TanStack's `ColumnDef` types). The dist is ESM with `preserveModules`
+and side-effect-free JS, and engines are imported only by the components
+that need them, so bundlers (Next.js, Vite, webpack, Turbopack, Rollup)
+tree-shake the unused re-export chains: `import { Button } from
+'haze-ui'` never pulls `@tanstack/react-table` into the bundle. Engines
+install as regular dependencies, so even bundler-less consumers (bare
+Node ESM importing the barrel, which links the module graph eagerly)
+work with zero manual installs; the `haze-ui/components/DataTable` and
+`haze-ui/components/Chart` subpaths bypass the barrel entirely.
 
 ### Browser support
 
@@ -393,16 +393,18 @@ user-controllable, SSR/jsdom-safe when the underlying API is missing.
 | `useTitle(title)` | — | Document title while mounted |
 | `useToast()` | toast API | Requires a `ToastContainer` ancestor |
 
-## Sortable tags and chips (optional dnd-kit peers)
+## Sortable tags and chips
 
-`TagInput` and `TagGroup` accept `sortable?: boolean` — opt-in drag
-reordering powered by `@dnd-kit/core` / `@dnd-kit/sortable` /
-`@dnd-kit/utilities` (optional peers, same tree-shaking contract as
-recharts and TanStack Table). `TagInput` writes the new array through
-`onChange`; `TagGroup` reports `onReorder(nextOrder)` (the new
-arrangement of original child indexes) and leaves re-rendering to the
-parent. Sorting is keyboard-complete: focus a tag, `Space` to lift,
-arrows to move, `Space` to drop, `Escape` to cancel.
+Drag reordering is an opt-in variant: `SortableTagInput` /
+`SortableTagInputCore` and `SortableTagGroup` statically import
+`@dnd-kit/core` / `@dnd-kit/sortable` / `@dnd-kit/utilities` (regular
+dependencies — the plain `TagInput`/`TagGroup` never touch them, so they
+stay out of every bundle that doesn't import a Sortable variant).
+`SortableTagInput` writes the new array through `onChange`;
+`SortableTagGroup` reports `onReorder(nextOrder)` (the new arrangement of
+original child indexes) and leaves re-rendering to the parent. Sorting is
+keyboard-complete: focus a tag, `Space` to lift, arrows to move, `Space`
+to drop, `Escape` to cancel.
 
 ## Imperative overlay handles
 
@@ -554,7 +556,7 @@ agent never guesses a prop name or a stylesheet path again:
 
 | Tool | What it returns |
 | --- | --- |
-| `haze_list_components` | Every component with its css family and optional peer dependencies |
+| `haze_list_components` | Every component with its css family |
 | `haze_get_component` | One component's full reference — props tables, import statement, CSS imports. Name matching is case-insensitive and accepts kebab-case (`data-table`) or PascalCase (`DataTable`) |
 | `haze_get_tokens` | The `--haze-*` token registry with light and dark values, optionally filtered by category (`color`, `typography`, `spacing`, `radius`, `shadow`) |
 | `haze_search_docs` | Top-10 ranked matches across component names, css families, prop names and descriptions |

@@ -10,8 +10,9 @@ import { group } from './tag-group-styles';
 
 /**
  * Drag-and-drop reorderable variant of TagGroup — built on @dnd-kit
- * (optional peers), so this module statically imports the dnd runtime;
- * the plain TagGroup stays free of it. Each chip becomes draggable;
+ * (a haze-ui dependency), so this module statically imports the dnd
+ * runtime; the plain TagGroup stays free of it. Each chip becomes
+ * draggable;
  * keyboard: focus a chip, Space lifts, arrows move, Space drops, Escape
  * cancels.
  */

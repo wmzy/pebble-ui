@@ -63,9 +63,9 @@ const root = css`
 /** Token-driven chart over recharts: line, area, bar, pie, radar or
  * scatter series rendered with haze semantic colors, axis/grid/tooltip/legend chrome
  * toggles, and the default-omittable `series`/`xKey` mapping. recharts is
- * an optional peer — this module's helpers import it statically, so under
- * preserveModules only bundles that actually render Chart resolve the
- * dependency. */
+ * a haze-ui dependency — this module's helpers import it statically, so
+ * under preserveModules only bundles that actually render Chart include
+ * the dependency. */
 export default function Chart<T>({
   type,
   data,

@@ -132,13 +132,6 @@ for (const m of readFileSync(barrelPath, 'utf8').matchAll(
 }
 if (modules.size === 0) fail('main barrel parsed empty — barrel shape changed?');
 
-// Optional peers (package.json peerDependenciesMeta) scanned for in family
-// sources; `react` is assumed present in any shadcn CLI consumer project.
-const pkg = JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
-const optionalPeers = Object.keys(pkg.peerDependenciesMeta ?? {})
-  .filter((name) => pkg.peerDependenciesMeta[name].optional === true && name !== 'react')
-  .sort();
-
 // ---- group barrel exports into css-family items, collecting skips ----
 
 // family -> { exports: [], types: [], modules: Set<spec> }
@@ -185,12 +178,6 @@ const staleFamilies = Object.keys(manifest.families).filter((name) => !barrelVal
 if (staleFamilies.length > 0) {
   fail(`css-manifest families not exported by the main barrel: ${staleFamilies.join(', ')} — rerun pnpm build`);
 }
-
-// ---- optional-peer detection from family sources ----------------------
-
-const escapeRe = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const peerImportPattern = (peer) =>
-  new RegExp(`(?:from\\s+|import\\(\\s*)['"]${escapeRe(peer)}(?:/[^'"]*)?['"]`);
 
 const listSourceFiles = (dir) => {
   const files = [];
@@ -255,21 +242,6 @@ const localImportClosure = (rootFiles, { valueOnly = false } = {}) => {
     }
   }
   return seen;
-};
-
-const extraDependencies = (entry) => {
-  const found = new Set();
-  for (const spec of entry.modules) {
-    const dir = moduleSourceDir(spec);
-    if (!existsSync(dir)) fail(`cannot resolve module '${spec}' to a source directory under src/lib`);
-    for (const file of localImportClosure(listSourceFiles(dir))) {
-      const content = readFileSync(file, 'utf8');
-      for (const peer of optionalPeers) {
-        if (peerImportPattern(peer).test(content)) found.add(peer);
-      }
-    }
-  }
-  return [...found].sort();
 };
 
 // ---- transitive css closure (wrapper stylesheet imports) ----------------
@@ -686,7 +658,7 @@ for (const [family, entry] of [...families].sort(([a], [b]) => a.localeCompare(b
     author: AUTHOR,
     docs: componentDocs(family, entry.exports),
     categories: [categoryOf(family)],
-    dependencies: ['haze-ui', ...extraDependencies(entry)],
+    dependencies: ['haze-ui'],
     files: [
       {
         path: `registry/${family}.tsx`,

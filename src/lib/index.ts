@@ -235,7 +235,7 @@ export type {
   DataTableCsvOptions,
 } from './components/DataTable';
 
-// chart (recharts optional peer + haze tokens)
+// chart (recharts dependency + haze tokens)
 export { Chart } from './components/Chart';
 export type { ChartProps, ChartSeries, ChartType, ChartTooltipPayload, ChartTooltipEntry } from './components/Chart';
 

@@ -118,12 +118,13 @@ distContract('dist 发布契约：Node ESM / vitest 可直接 import', () => {
       expect([...new Set(offenders)].sort()).toEqual([]);
     });
 
-    it('optional peer 引用面收口：静态引入仅限各 peer 的 allowlist 模块', () => {
-      // @dnd-kit 三件套与 qrcode 都是 optional peers（Chart/recharts 同款
-      // 契约）：基础组件不得引用它们，否则每个消费者都被迫安装对应运行时。
-      // 只有显式 opt-in 模块（Sortable* 变体、utils 原语、QRCode）允许静态
-      // 引入。名单与产物双向对齐（镜像 RSC-safe 用例的两侧校验）：名单外出
-      // 现该 peer 的导入违规；名单内已存在的模块却没有引用（陈旧名单）同样
+    it('引擎依赖引用面收口：静态引入仅限各引擎的 allowlist 模块', () => {
+      // @dnd-kit 三件套与 qrcode 都是 haze-ui 的普通依赖（Chart/recharts、
+      // DataTable/@tanstack 同款契约）：依赖会随包自动安装，但只允许进入
+      // 显式 opt-in 模块（Sortable* 变体、utils 原语、QRCode）的静态
+      // import 图——否则 preserveModules 下基础组件的 bundle 也会捎上引擎
+      // 运行时。名单与产物双向对齐（镜像 RSC-safe 用例的两侧校验）：名单外
+      // 出现该引擎的导入违规；名单内已存在的模块却没有引用（陈旧名单）同样
       // 违规。utils/sortable-handle 的 @dnd-kit 导入是 type-only，转译后擦
       // 除，故不在名单内。按导入说明符匹配而非裸字符串，避免产物里保留的
       // JSDoc 文字误报。

@@ -7,7 +7,7 @@
  *                                     (missing = fatal: run generate-props.mjs)
  *   - src/generated/props-docs.json  optional — handwritten description/default
  *                                     overrides, merged with PropsTable parity
- *   - dist/registry.json             optional — peer deps + one-line descriptions
+ *   - dist/registry.json             optional — one-line descriptions
  *                                     (join key: css family ↔ registry item name)
  *   - dist/tokens/registry.js        optional — TOKEN_REGISTRY (dynamic import)
  *
@@ -36,7 +36,7 @@ function loadRegistry() {
   const registry = readJson('dist/registry.json', { required: false });
   if (!registry) {
     console.error(
-      'generate-mcp-docs: dist/registry.json missing — components ship without peerDeps/description (run a lib build to include them).'
+      'generate-mcp-docs: dist/registry.json missing — components ship without descriptions (run a lib build to include them).'
     );
     return new Map();
   }

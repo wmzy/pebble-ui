@@ -52,10 +52,10 @@ function modulesToPath(modules: { size: number; get(row: number, col: number): n
 }
 
 /**
- * QR code rendered as a single crisp SVG path over the `qrcode` optional
- * peer (statically imported, SortableTagGroup-style: installing the peer
- * is required to use this component — the dist contract test pins the
- * reference surface). The svg is the semantic image: `role="img"` with
+ * QR code rendered as a single crisp SVG path over the `qrcode`
+ * dependency (statically imported, SortableTagGroup-style: the dist
+ * contract test pins the reference surface so qrcode only enters this
+ * module's import graph). The svg is the semantic image: `role="img"` with
  * the encoded `value` as its accessible name, so screen readers announce
  * what the code contains; the wrapper div receives the native `...rest`
  * (e.g. `aria-hidden` on it silences the whole graphic).

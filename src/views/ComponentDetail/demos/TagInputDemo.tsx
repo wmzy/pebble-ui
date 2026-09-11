@@ -37,9 +37,9 @@ export default function TagInputDemo() {
         Input field for adding and removing tags. Drag-and-drop reordering
         lives in the sibling <code>SortableTagInput</code> (and{' '}
         <code>SortableTagGroup</code>) built on{' '}
-        <a href='https://dndkit.com'>dnd-kit</a> optional peers — install{' '}
-        <code>@dnd-kit/core</code>, <code>@dnd-kit/sortable</code> and{' '}
-        <code>@dnd-kit/utilities</code> only if you use them.
+        <a href='https://dndkit.com'>dnd-kit</a> — a haze-ui dependency,
+        installed with the package and bundled only when you import a
+        Sortable variant.
       </p>
 
       <div className={section}>

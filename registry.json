@@ -579,8 +579,7 @@
         "data-display"
       ],
       "dependencies": [
-        "haze-ui",
-        "recharts"
+        "haze-ui"
       ],
       "files": [
         {
@@ -916,8 +915,7 @@
         "data-display"
       ],
       "dependencies": [
-        "haze-ui",
-        "@tanstack/react-table"
+        "haze-ui"
       ],
       "files": [
         {
@@ -1799,8 +1797,7 @@
         "data-display"
       ],
       "dependencies": [
-        "haze-ui",
-        "qrcode"
+        "haze-ui"
       ],
       "files": [
         {
@@ -2283,10 +2280,7 @@
         "general"
       ],
       "dependencies": [
-        "haze-ui",
-        "@dnd-kit/core",
-        "@dnd-kit/sortable",
-        "@dnd-kit/utilities"
+        "haze-ui"
       ],
       "files": [
         {
@@ -2307,10 +2301,7 @@
         "form"
       ],
       "dependencies": [
-        "haze-ui",
-        "@dnd-kit/core",
-        "@dnd-kit/sortable",
-        "@dnd-kit/utilities"
+        "haze-ui"
       ],
       "files": [
         {

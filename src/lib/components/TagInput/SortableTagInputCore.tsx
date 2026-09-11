@@ -61,10 +61,10 @@ function SortableTag({ id, label, removeLabel, onRemove }: SortableTagProps) {
 }
 
 /**
- * Drag-and-drop tag reordering over the @dnd-kit optional peers. This
+ * Drag-and-drop tag reordering over the @dnd-kit dependency. This
  * component statically imports `@dnd-kit/core`, `@dnd-kit/sortable` and
- * `@dnd-kit/utilities` — install the trio to use it (the plain
- * `TagInputCore` never touches them). Reorders leave through `onChange`
+ * `@dnd-kit/utilities` (the plain `TagInputCore` never touches them).
+ * Reorders leave through `onChange`
  * with the new array — the same single exit as add/remove. Keyboard:
  * focus a tag's label, Space lifts, arrows move, Space drops, Escape
  * cancels.

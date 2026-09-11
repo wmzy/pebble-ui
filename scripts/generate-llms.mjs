@@ -143,7 +143,7 @@ const DESCRIPTIONS = {
   Card: 'content card with `elevated`/`outlined`/`filled` variants.',
   Carousel: 'slideshow with controllable active index and autoplay.',
   Chart:
-    'line/area/bar/pie charts over `recharts` (optional peer), colors and axes on haze tokens; series cycle the semantic palette, `renderTooltip` customizes the tooltip.',
+    'line/area/bar/pie charts over `recharts` (a haze-ui dependency), colors and axes on haze tokens; series cycle the semantic palette, `renderTooltip` customizes the tooltip.',
   Chip: 'rounded status chip with optional icon and close button.',
   CodeBlock:
     'monospace code container with a language badge; `highlight` plugs in an async syntax highlighter.',
@@ -322,13 +322,12 @@ semantics and mirrored floating placements under \`dir="rtl"\`. Peer range
 
 \`\`\`sh
 npm i haze-ui
-# optional peers, only for the components that need them:
-npm i react-f0rm                            # FormItem
-npm i @tanstack/react-table                 # DataTable
-npm i recharts                              # Chart
-npm i @dnd-kit/core @dnd-kit/sortable \\
-      @dnd-kit/utilities                    # TagInput/TagGroup sortable
 \`\`\`
+
+Only \`react\` and \`react-dom\` are peers. Every engine — \`react-f0rm\` (forms),
+\`@tanstack/react-table\` (DataTable), \`recharts\` (Chart), the \`@dnd-kit\` trio
+(sortable tags), \`qrcode\` (QRCode) — is a regular dependency installed with
+haze-ui, and bundlers still tree-shake the ones your imports never reach.
 
 shadcn CLI users can instead \`pnpm dlx shadcn@latest add wmzy/haze-ui/<item>\`
 — this repo is a GitHub registry (root \`registry.json\`); each item installs a
@@ -394,7 +393,7 @@ the styled library; stable public API with the same semver commitment.
 
 ## Forms: react-f0rm integration
 
-Form state belongs to [react-f0rm](https://github.com/wmzy/react-f0rm) (optional peer).
+Form state belongs to [react-f0rm](https://github.com/wmzy/react-f0rm) (a haze-ui dependency).
 haze-ui ships controlled cores — \`InputCore\`, \`SelectCore\`, \`SwitchCore\`, \`TextareaCore\`,
 \`TagInputCore\`, \`TransferCore\`, \`UploadCore\`, \`CheckboxCore\`, … — that speak the plain
 \`{value, onChange}\` pair its headless \`useField\` hook emits, with zero adapters.
@@ -416,15 +415,15 @@ binding via \`as\`/\`input\` props. The sugar components (\`Input\`, \`Select\`,
 
 A self-contained, machine-executable setup protocol — every step is copy-paste safe.
 
-1. Install the library, then only the optional peers the components you use need:
+1. Install the library:
 
    \`\`\`sh
    npm i haze-ui
-   npm i react-f0rm                 # FormItem only
-   npm i @tanstack/react-table      # DataTable only
-   npm i recharts                   # Chart only
-   npm i @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities  # sortable TagGroup/TagInput only
    \`\`\`
+
+   \`react\` and \`react-dom\` are the only peers; all engine packages (form,
+   table, chart, dnd, qr) arrive as regular dependencies and never enter
+   the bundle for components you don't import.
 
    Peer range is \`react: ^19.0.0\`; there is no React 18 compatibility layer.
 

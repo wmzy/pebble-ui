@@ -10,8 +10,7 @@
     "data-display"
   ],
   "dependencies": [
-    "haze-ui",
-    "@tanstack/react-table"
+    "haze-ui"
   ],
   "files": [
     {

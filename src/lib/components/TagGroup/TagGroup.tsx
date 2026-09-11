@@ -8,7 +8,7 @@ type TagGroupProps = {
 };
 
 /** Plain non-draggable tag row. For drag-and-drop reordering use
- * SortableTagGroup (which statically imports the dnd-kit optional peers);
+ * SortableTagGroup (which statically imports the @dnd-kit runtime);
  * this base component stays free of the dnd runtime. */
 export default function TagGroup({ children, className }: TagGroupProps) {
   return (

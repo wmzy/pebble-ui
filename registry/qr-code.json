@@ -10,8 +10,7 @@
     "data-display"
   ],
   "dependencies": [
-    "haze-ui",
-    "qrcode"
+    "haze-ui"
   ],
   "files": [
     {
