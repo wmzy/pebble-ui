@@ -108,6 +108,11 @@ function buildCorpus() {
   return { full, prefixes, chunkCount };
 }
 
+// The two corpus-driven streaming tests rerender a 20KB document 200
+// times through jsdom's innerHTML pipeline (~2s on a dev machine, 2-3x
+// that on a shared CI runner) — well over the 5s default test timeout.
+// The assertions are structural counters, not wall-clock, so a generous
+// timeout only absorbs runner speed, never a perf regression.
 describe('MarkdownRenderer incremental streaming', () => {
   it('re-parses only the active tail block per chunk, not the whole document', () => {
     const { full, prefixes, chunkCount } = buildCorpus();
@@ -149,7 +154,7 @@ describe('MarkdownRenderer incremental streaming', () => {
     expect(container.querySelectorAll('h2')).toHaveLength(40);
     expect(container.textContent).toContain('value39_7');
     expect(container.textContent).toContain('Closing paragraph 39');
-  });
+  }, 30_000);
 
   it('streamed final output is identical to a one-shot render', () => {
     const { full, prefixes } = buildCorpus();
@@ -159,7 +164,7 @@ describe('MarkdownRenderer incremental streaming', () => {
     }
     const oneShot = render(<MarkdownRenderer content={full} />);
     expect(container.innerHTML).toBe(oneShot.container.innerHTML);
-  });
+  }, 30_000);
 
   it('keeps unpaired-backtick regions fused (bug-for-bug parity while streaming)', () => {
     // An inline code span crossing a blank line must not become a block

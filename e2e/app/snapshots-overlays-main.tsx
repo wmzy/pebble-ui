@@ -23,6 +23,8 @@
  * native <dialog> stays in the DOM subtree, so the top-layer panel and
  * its ::backdrop inherit the dark tokens).
  */
+import type { CSSProperties } from 'react';
+
 import { css } from '@linaria/core';
 import { createRoot } from 'react-dom/client';
 import { useControl } from 'react-use-control';
@@ -49,6 +51,15 @@ import { darkTheme, lightTheme } from '../../src/lib/tokens/colors';
 import { motion } from '../../src/lib/tokens/motion';
 import { spacing } from '../../src/lib/tokens/spacing';
 import { typography } from '../../src/lib/tokens/typography';
+
+import './e2e-fonts.css';
+
+// Inline style: beats the typography class's own --haze-font-mono
+// declaration on this element regardless of stylesheet emission order
+// (see e2e-fonts.css for why the harness pins the font).
+const pinnedMono = {
+  '--haze-font-mono': "'Haze E2E Mono', monospace",
+} as CSSProperties;
 
 const shell = css`
   min-height: 100vh;
@@ -123,7 +134,10 @@ function App() {
   const [, setDarkDialogOpen, darkDialogControl] = useControl(undefined, false);
 
   return (
-    <div className={`${shell} ${lightTheme} ${spacing} ${typography} ${motion}`}>
+    <div
+      className={`${shell} ${lightTheme} ${spacing} ${typography} ${motion}`}
+      style={pinnedMono}
+    >
       <section data-snap="tooltip" className={tooltipRoom}>
         <Tooltip content="Keyboard shortcut: Ctrl K">
           <Button variant="outline">Hover for help</Button>

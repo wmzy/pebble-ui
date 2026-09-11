@@ -1,0 +1,35 @@
+/*
+ * Deterministic font for the E2E visual baselines.
+ *
+ * The library's `--haze-font-mono` stack ends in the `ui-monospace` /
+ * `monospace` system fallbacks, and every host resolves those through its
+ * own fontconfig: the dev machine that captured the baselines picked a
+ * 0.5em-advance CJK mono, while CI's ubuntu image picks a 0.6em one —
+ * enough to change auto-sized section geometry (inline-completion input
+ * width, markdown max-content width) and line boxes, which no pixel
+ * tolerance absorbs. The baselines are only reproducible when every host
+ * renders the exact same font FILE, so the E2E harness pins a vendored
+ * webfont (Source Code Pro, SIL OFL 1.1 — see ./fonts/LICENSE.md) and the
+ * harness roots override the token to use it (inline style, so the
+ * override beats the typography class's own declaration regardless of
+ * stylesheet emission order).
+ *
+ * `font-display: block` guarantees no fallback-font paint: Playwright
+ * screenshots wait for document.fonts.ready, and the dev server serves
+ * the file same-origin, so the swap never races the capture.
+ */
+@font-face {
+  font-family: 'Haze E2E Mono';
+  src: url('./fonts/SourceCodePro-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Haze E2E Mono';
+  src: url('./fonts/SourceCodePro-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
