@@ -17,7 +17,14 @@ import {
   LineChart,
   Pie,
   PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
   ResponsiveContainer,
+  Scatter,
+  ScatterChart,
   Tooltip,
   XAxis,
   YAxis,
@@ -90,9 +97,14 @@ vi.mock('recharts', async () => {
     AreaChart: frame('area-chart'),
     BarChart: frame('bar-chart'),
     PieChart: frame('pie-chart'),
+    RadarChart: frame('radar-chart'),
+    ScatterChart: frame('scatter-chart'),
     XAxis: frame('x-axis'),
     YAxis: frame('y-axis'),
     CartesianGrid: frame('grid'),
+    PolarGrid: frame('polar-grid'),
+    PolarAngleAxis: frame('polar-angle-axis'),
+    PolarRadiusAxis: frame('polar-radius-axis'),
     Tooltip: vi.fn((props: Record<string, unknown>) =>
       createElement(
         'div',
@@ -109,6 +121,8 @@ vi.mock('recharts', async () => {
     Line: plotted('line'),
     Area: plotted('area'),
     Bar: plotted('bar'),
+    Radar: plotted('radar'),
+    Scatter: plotted('scatter'),
     Pie: vi.fn((props: Record<string, unknown>) =>
       createElement(
         'div',
@@ -199,6 +213,23 @@ describe('seriesElement', () => {
     expect(seriesElement('bar', { key: 'a', label: 'a' }, 5).props).toEqual(
       expect.objectContaining({ fill: 'var(--haze-color-primary)' })
     );
+  });
+
+  it('strokes radar polygons with a translucent fill and fills scatter points', () => {
+    expect(seriesElement('radar', entry).type).toBe(Radar);
+    expect(seriesElement('radar', entry).props).toEqual({
+      dataKey: 'sales',
+      name: 'Revenue',
+      stroke: 'var(--haze-color-primary)',
+      fill: 'var(--haze-color-primary)',
+      fillOpacity: 0.3,
+    });
+    expect(seriesElement('scatter', entry).type).toBe(Scatter);
+    expect(seriesElement('scatter', entry).props).toEqual({
+      dataKey: 'sales',
+      name: 'Revenue',
+      fill: 'var(--haze-color-primary)',
+    });
   });
 });
 
@@ -313,6 +344,17 @@ describe('chartElement', () => {
     expect(chartElement('bar', DATA, null, 'vertical').props).toEqual(
       expect.objectContaining({ layout: 'vertical' })
     );
+  });
+
+  it('maps radar and scatter onto their containers without a layout prop', () => {
+    const radar = chartElement('radar', DATA, null);
+    expect(radar.type).toBe(RadarChart);
+    expect(radar.props).toEqual(expect.objectContaining({ data: DATA }));
+    expect(radar.props).not.toHaveProperty('layout');
+    const scatter = chartElement('scatter', DATA, null);
+    expect(scatter.type).toBe(ScatterChart);
+    expect(scatter.props).toEqual(expect.objectContaining({ data: DATA }));
+    expect(scatter.props).not.toHaveProperty('layout');
   });
 });
 
@@ -607,6 +649,128 @@ describe('Chart', () => {
     );
   });
 
+  it('renders one radar polygon per series over polar axes', () => {
+    const { container } = render(
+      <Chart
+        type='radar'
+        data={DATA}
+        series={[{ key: 'sales', label: 'Revenue' }, { key: 'costs' }]}
+        xKey='month'
+        showLegend
+      />
+    );
+    expect(RadarChart).toHaveBeenCalledWith(
+      expect.objectContaining({ data: DATA }),
+      undefined
+    );
+    expect(PolarGrid).toHaveBeenCalledTimes(1);
+    expect(PolarAngleAxis).toHaveBeenCalledWith(
+      expect.objectContaining({ dataKey: 'month' }),
+      undefined
+    );
+    expect(PolarRadiusAxis).toHaveBeenCalledTimes(1);
+    const polygons = container.querySelectorAll('[data-radar]');
+    expect(polygons).toHaveLength(2);
+    expect(polygons[0]).toHaveAttribute('data-name', 'Revenue');
+    expect(polygons[0]).toHaveAttribute(
+      'data-color',
+      'var(--haze-color-primary)'
+    );
+    expect(polygons[1]).toHaveAttribute(
+      'data-color',
+      'var(--haze-color-info)'
+    );
+    // polar chart: no cartesian grid or X/Y axes
+    expect(CartesianGrid).not.toHaveBeenCalled();
+    expect(XAxis).not.toHaveBeenCalled();
+    expect(YAxis).not.toHaveBeenCalled();
+  });
+
+  it('drops the polar grid when showGrid is false', () => {
+    render(
+      <Chart
+        type='radar'
+        data={DATA}
+        series={[{ key: 'sales' }]}
+        xKey='month'
+        showGrid={false}
+      />
+    );
+    expect(PolarGrid).not.toHaveBeenCalled();
+  });
+
+  it('renders scatter on numeric axes, one point set per series', () => {
+    const { container } = render(
+      <Chart
+        type='scatter'
+        data={DATA}
+        series={[{ key: 'sales', label: 'Revenue' }, { key: 'costs' }]}
+        xKey='month'
+      />
+    );
+    expect(ScatterChart).toHaveBeenCalledWith(
+      expect.objectContaining({ data: DATA }),
+      undefined
+    );
+    expect(CartesianGrid).toHaveBeenCalledTimes(1);
+    expect(XAxis).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'number', dataKey: 'month' }),
+      undefined
+    );
+    expect(YAxis).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'number' }),
+      undefined
+    );
+    // YAxis carries no dataKey: each Scatter resolves its own series key
+    // as the Y column (recharts falls back to the item dataKey)
+    const yAxisProps = vi.mocked(YAxis).mock.calls[0]?.[0] as Record<
+      string,
+      unknown
+    >;
+    expect(yAxisProps).not.toHaveProperty('dataKey');
+    const points = container.querySelectorAll('[data-scatter]');
+    expect(points).toHaveLength(2);
+    expect(points[0]).toHaveAttribute('data-name', 'Revenue');
+    expect(points[0]).toHaveAttribute(
+      'data-color',
+      'var(--haze-color-primary)'
+    );
+    expect(points[1]).toHaveAttribute(
+      'data-color',
+      'var(--haze-color-info)'
+    );
+  });
+
+  it('hands the radar tooltip payload through renderTooltip', () => {
+    const renderTooltip = vi.fn(
+      (payload: ChartTooltipPayload<SalesDatum>) =>
+        `${String(payload.label)} / ${payload.entries
+          .map((entry) => `${entry.name}=${entry.value}`)
+          .join('&')}`
+    );
+
+    const { container } = render(
+      <Chart
+        type='radar'
+        data={DATA}
+        series={[{ key: 'sales', label: 'Revenue' }]}
+        xKey='month'
+        renderTooltip={renderTooltip}
+      />
+    );
+
+    expect(renderTooltip).toHaveBeenCalledTimes(1);
+    expect(renderTooltip).toHaveBeenCalledWith({
+      label: 'Jan',
+      entries: [
+        { name: 'Revenue', value: 12, color: '#ff0000', dataEntry: DATA[0] },
+      ],
+    });
+    expect(container.querySelector('[data-tooltip]')).toHaveTextContent(
+      'Jan / Revenue=12'
+    );
+  });
+
   it('has no axe violations', async () => {
     const { axe } = await import('jest-axe');
     render(
@@ -628,6 +792,27 @@ describe('Chart', () => {
         series={[{ key: 'sales', label: 'Revenue' }]}
         xKey='month'
         innerRadius={40}
+        showLegend
+      />
+    );
+    render(
+      <Chart
+        type='radar'
+        data={DATA}
+        series={[{ key: 'sales', label: 'Revenue' }]}
+        xKey='month'
+        showLegend
+      />
+    );
+    render(
+      <Chart
+        type='scatter'
+        data={DATA}
+        series={[
+          { key: 'sales', label: 'Revenue' },
+          { key: 'costs', label: 'Costs' },
+        ]}
+        xKey='month'
         showLegend
       />
     );

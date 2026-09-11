@@ -22,13 +22,30 @@ const productMix = [
   { product: 'Training', revenue: 10 },
 ];
 
+const skills = [
+  { skill: 'Syntax', you: 8, team: 6 },
+  { skill: 'Types', you: 7, team: 7 },
+  { skill: 'Runtime', you: 6, team: 5 },
+  { skill: 'Tooling', you: 9, team: 6 },
+  { skill: 'Testing', you: 7, team: 8 },
+];
+
+const cohort = [
+  { height: 150, runners: 48, lifters: 55 },
+  { height: 158, runners: 52, lifters: 60 },
+  { height: 166, runners: 55, lifters: 68 },
+  { height: 174, runners: 59, lifters: 75 },
+  { height: 182, runners: 63, lifters: 82 },
+  { height: 190, runners: 66, lifters: 90 },
+];
+
 // ─── Chart ─────────────────────────────────────────────────────
 export default function ChartDemo() {
   return (
     <>
       <h1>Chart</h1>
       <p className={intro}>
-        Line, area, bar, pie and donut charts over{' '}
+        Line, area, bar, pie, donut, radar and scatter charts over{' '}
         <a href='https://recharts.com'>recharts</a> (an optional peer —
         install it only if you render charts), with every color, font and
         grid line resolved from haze tokens. Series colors cycle through
@@ -240,6 +257,66 @@ export default function ChartDemo() {
   xKey='month'
   series={[{ key: 'saas' }]}
   height={240}
+/>`}
+        </pre>
+      </div>
+
+      <div className={section}>
+        <h2>Radar chart</h2>
+        <p className={row}>
+          Each datum is one spoke named by <code>xKey</code>; every series is
+          one translucent polygon over the spokes, so overlapping series stay
+          readable.
+        </p>
+        <div className={row}>
+          <Chart
+            type='radar'
+            data={skills}
+            xKey='skill'
+            series={[
+              { key: 'you', label: 'You' },
+              { key: 'team', label: 'Team average' },
+            ]}
+            showLegend
+          />
+        </div>
+        <pre className={codeBlock}>
+          {`<Chart
+  type='radar'
+  data={skills}
+  xKey='skill'
+  series={[{ key: 'you', label: 'You' }, { key: 'team', label: 'Team average' }]}
+  showLegend
+/>`}
+        </pre>
+      </div>
+
+      <div className={section}>
+        <h2>Scatter chart</h2>
+        <p className={row}>
+          Both axes are numeric: <code>xKey</code> picks the X column and each
+          series <code>key</code> the Y column — one point per datum, one
+          point set per series.
+        </p>
+        <div className={row}>
+          <Chart
+            type='scatter'
+            data={cohort}
+            xKey='height'
+            series={[
+              { key: 'runners', label: 'Runners' },
+              { key: 'lifters', label: 'Lifters' },
+            ]}
+            showLegend
+          />
+        </div>
+        <pre className={codeBlock}>
+          {`<Chart
+  type='scatter'
+  data={cohort}
+  xKey='height'
+  series={[{ key: 'runners', label: 'Runners' }, { key: 'lifters', label: 'Lifters' }]}
+  showLegend
 />`}
         </pre>
       </div>

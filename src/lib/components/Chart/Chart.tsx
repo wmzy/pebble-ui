@@ -18,16 +18,20 @@ import {
 
 type ChartProps<T> = {
   /** Which recharts chart family to render. `pie` maps each datum to one
-   * sector named by `xKey` and valued by each series `key`. */
+   * sector named by `xKey` and valued by each series `key`; `radar` maps
+   * each datum to one spoke named by `xKey`; `scatter` plots the numeric
+   * `xKey` column against each series `key`. */
   type: ChartType;
-  /** One datum per point (pie: per sector); series values are read by
-   * `ChartSeries.key`. */
+  /** One datum per point (pie: per sector; radar: per spoke); series
+   * values are read by `ChartSeries.key`. */
   data: T[];
   /** The series to plot — colors cycle through the semantic status tokens
    * when `color` is omitted. With `type='pie'` each series is one
    * concentric ring. */
   series: ChartSeries[];
-  /** Datum field driving the X axis (pie: naming each sector). */
+  /** Datum field driving the X axis — the cartesian categories, the pie
+   * sector names, the radar spoke names, or the numeric scatter X
+   * column. */
   xKey: keyof T & string;
   /** Container height in px; the chart stretches to the full width. */
   height?: number;
@@ -43,8 +47,8 @@ type ChartProps<T> = {
   renderTooltip?: (payload: ChartTooltipPayload<T>) => ReactNode;
   /** Renders a recharts Legend naming each series. Default `false`. */
   showLegend?: boolean;
-  /** Renders background grid lines (cartesian charts only). Default
-   * `true`. */
+  /** Renders background grid lines (cartesian and radar charts; ignored
+   * by `pie`). Default `true`. */
   showGrid?: boolean;
   /** Renders a hover tooltip. Default `true`. */
   showTooltip?: boolean;
@@ -56,8 +60,8 @@ const root = css`
   width: 100%;
 `;
 
-/** Token-driven chart over recharts: line, area, bar or pie series
- * rendered with haze semantic colors, axis/grid/tooltip/legend chrome
+/** Token-driven chart over recharts: line, area, bar, pie, radar or
+ * scatter series rendered with haze semantic colors, axis/grid/tooltip/legend chrome
  * toggles, and the default-omittable `series`/`xKey` mapping. recharts is
  * an optional peer — this module's helpers import it statically, so under
  * preserveModules only bundles that actually render Chart resolve the

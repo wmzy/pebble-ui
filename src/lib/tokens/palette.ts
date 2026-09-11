@@ -17,6 +17,9 @@ import {clampChroma, formatOklch, parseHex, parseOklch} from './oklch';
 export type Mode = 'light' | 'dark';
 export type Family = 'gray' | 'blue' | 'green' | 'amber' | 'red';
 
+/** Brand families available as preset themes — see BRAND_SEEDS / brands.ts. */
+export type BrandFamily = 'violet' | 'teal' | 'cyan' | 'orange' | 'rose';
+
 export type PrimitiveScales = Record<Mode, Record<Family, readonly string[]>>;
 
 export type SemanticColorToken = {
@@ -87,6 +90,24 @@ const SEEDS: Record<Mode, Record<Family, ScaleSeed>> = {
     amber: {8: '#fbbf24'},
     red: {8: '#ef4444'},
   },
+};
+
+/**
+ * Brand preset seeds. Anchors sit near Tailwind's 600/700 steps (light) and
+ * one step brighter (dark), mirroring how blue's dark anchors sit one step
+ * above their light counterparts. Where a floor could not be cleared at the
+ * nearest Tailwind step, the seed is darkened — the same policy as green-9
+ * (#16a34a → #15803d): teal/cyan/orange light anchors move a full step to
+ * 700 for white-on-primary 4.5:1, and rose-600 is nudged ΔE 0.011 darker so
+ * primary-on-primary-subtle clears the 4.0 ratchet. Anchored steps 9/10
+ * (light) and 8/9 (dark) match the primary/info STATUS_STEP slots.
+ */
+const BRAND_SEEDS: Record<BrandFamily, Record<Mode, ScaleSeed>> = {
+  violet: {light: {9: '#7c3aed', 10: '#6d28d9'}, dark: {8: '#9b76fa', 9: '#a78bfa'}},
+  teal: {light: {9: '#0f766e', 10: '#134e4a'}, dark: {8: '#14b8a6', 9: '#2dd4bf'}},
+  cyan: {light: {9: '#0e7490', 10: '#155e75'}, dark: {8: '#06b6d4', 9: '#22d3ee'}},
+  orange: {light: {9: '#c2410c', 10: '#9a3412'}, dark: {8: '#f97316', 9: '#fb923c'}},
+  rose: {light: {9: '#dd1645', 10: '#be123c'}, dark: {8: '#f43f5e', 9: '#fb7185'}},
 };
 
 /** Endpoints of chromatic scales: light runs near-white → near-black, dark the inverse. */
@@ -173,15 +194,32 @@ const PRIMITIVES: PrimitiveScales = {
   },
 };
 
-function primitiveAt(mode: Mode, family: Family, step: number): string {
-  const value = PRIMITIVES[mode][family][step - 1];
+/**
+ * Primitive scales for one theme: family name → 12 formatted steps, per
+ * mode. Default themes carry gray/blue/green/amber/red; brand themes carry
+ * gray/{brand}/green/amber/red with the brand scale in blue's slot.
+ */
+type ThemeScales = Readonly<Record<Mode, Readonly<Record<string, readonly string[]>>>>;
+
+function stepAt(scales: ThemeScales, mode: Mode, family: string, step: number): string {
+  const value = scales[mode][family]?.[step - 1];
   if (value === undefined) {
     throw new Error(`Missing primitive ${family}-${step} in ${mode} mode`);
   }
   return value;
 }
 
-const STATUS_FAMILY: Record<StatusKey, Family> = {primary: 'blue', success: 'green', warning: 'amber', danger: 'red', info: 'blue'};
+/**
+ * Semantic-token generation context: which primitive scales to alias into
+ * and which family each status color routes to. The default theme routes
+ * primary/info to blue; brand themes reroute both to the brand family.
+ */
+type ThemeContext = {
+  scales: ThemeScales;
+  statusFamily: Readonly<Record<StatusKey, string>>;
+};
+
+const DEFAULT_STATUS_FAMILY: Readonly<Record<StatusKey, string>> = {primary: 'blue', success: 'green', warning: 'amber', danger: 'red', info: 'blue'};
 
 /** Steps are fitted to lightness order: light scales darken toward 12, dark scales lighten. */
 const STATUS_STEP: Record<Mode, Record<StatusKey, number>> = {
@@ -203,9 +241,7 @@ type StatusKey = 'primary' | 'success' | 'warning' | 'danger' | 'info';
 type NeutralKey = 'bg' | 'bg-subtle' | 'bg-muted' | 'text' | 'text-secondary' | 'text-muted' | 'border';
 type DerivedKind = 'hover' | 'active' | 'subtle' | 'border-hover' | 'focus-ring';
 
-const primitiveVar = (family: Family, step: number): string => `var(--haze-${family}-${step})`;
-
-const primitiveResolved = (mode: Mode, family: Family, step: number): Oklch => parseOklch(primitiveAt(mode, family, step));
+const primitiveVar = (family: string, step: number): string => `var(--haze-${family}-${step})`;
 
 const lightnessCalc = (delta: number): string => `calc(l ${delta < 0 ? '-' : '+'} ${Math.abs(delta)})`;
 
@@ -243,12 +279,15 @@ function derivedResolved(mode: Mode, base: Oklch, kind: DerivedKind): Oklch {
   }
 }
 
-function aliasToken(name: string, label: string, family: Family, step: Record<Mode, number>): SemanticColorToken {
+function aliasToken(ctx: ThemeContext, name: string, label: string, family: string, step: Record<Mode, number>): SemanticColorToken {
   return {
     name,
     label,
     css: {light: primitiveVar(family, step.light), dark: primitiveVar(family, step.dark)},
-    resolved: {light: primitiveResolved('light', family, step.light), dark: primitiveResolved('dark', family, step.dark)},
+    resolved: {
+      light: parseOklch(stepAt(ctx.scales, 'light', family, step.light)),
+      dark: parseOklch(stepAt(ctx.scales, 'dark', family, step.dark)),
+    },
   };
 }
 
@@ -262,8 +301,8 @@ function derivedToken(name: string, label: string, baseName: string, base: Recor
   };
 }
 
-function statusGroup(key: StatusKey): readonly SemanticColorToken[] {
-  const base = aliasToken(`--haze-color-${key}`, key[0]!.toUpperCase() + key.slice(1), STATUS_FAMILY[key], {
+function statusGroup(ctx: ThemeContext, key: StatusKey): readonly SemanticColorToken[] {
+  const base = aliasToken(ctx, `--haze-color-${key}`, key[0]!.toUpperCase() + key.slice(1), ctx.statusFamily[key], {
     light: STATUS_STEP.light[key],
     dark: STATUS_STEP.dark[key],
   });
@@ -275,43 +314,123 @@ function statusGroup(key: StatusKey): readonly SemanticColorToken[] {
   ];
 }
 
-function neutralToken(key: NeutralKey, label: string): SemanticColorToken {
-  return aliasToken(`--haze-color-${key}`, label, 'gray', {light: NEUTRAL_STEP[key], dark: NEUTRAL_STEP[key]});
+function neutralToken(ctx: ThemeContext, key: NeutralKey, label: string): SemanticColorToken {
+  return aliasToken(ctx, `--haze-color-${key}`, label, 'gray', {light: NEUTRAL_STEP[key], dark: NEUTRAL_STEP[key]});
 }
-
-const primaryTokens = statusGroup('primary');
-const primaryBase = primaryTokens[0]!;
 
 /**
  * Text inverse sits on saturated fills, not on the theme background: light
  * mode is pure white, dark mode reuses the light scale's darkest gray (the
  * previous #1a1a1a) rather than any dark-mode step.
  */
-const textInverse: SemanticColorToken = {
+const textInverseToken = (ctx: ThemeContext): SemanticColorToken => ({
   name: '--haze-color-text-inverse',
   label: 'Text Inverse',
-  css: {light: 'oklch(1 0 0)', dark: primitiveAt('light', 'gray', 12)},
-  resolved: {light: {l: 1, c: 0, h: 0}, dark: primitiveResolved('light', 'gray', 12)},
+  css: {light: 'oklch(1 0 0)', dark: stepAt(ctx.scales, 'light', 'gray', 12)},
+  resolved: {light: {l: 1, c: 0, h: 0}, dark: parseOklch(stepAt(ctx.scales, 'light', 'gray', 12))},
+});
+
+/**
+ * Full semantic token set for one theme context: the primary group, the
+ * neutral aliases, border + border-hover, the success/warning/danger/info
+ * groups, and the primary-derived focus ring.
+ */
+function buildSemanticTokens(ctx: ThemeContext): readonly SemanticColorToken[] {
+  const primaryTokens = statusGroup(ctx, 'primary');
+  const primaryBase = primaryTokens[0]!;
+  const borderToken = neutralToken(ctx, 'border', 'Border');
+  return [
+    ...primaryTokens,
+    neutralToken(ctx, 'bg', 'Background'),
+    neutralToken(ctx, 'bg-subtle', 'Background Subtle'),
+    neutralToken(ctx, 'bg-muted', 'Background Muted'),
+    neutralToken(ctx, 'text', 'Text'),
+    neutralToken(ctx, 'text-secondary', 'Text Secondary'),
+    neutralToken(ctx, 'text-muted', 'Text Muted'),
+    textInverseToken(ctx),
+    borderToken,
+    derivedToken('--haze-color-border-hover', 'Border Hover', borderToken.name, borderToken.resolved, 'border-hover'),
+    ...statusGroup(ctx, 'success'),
+    ...statusGroup(ctx, 'warning'),
+    ...statusGroup(ctx, 'danger'),
+    ...statusGroup(ctx, 'info'),
+    derivedToken('--haze-color-focus-ring', 'Focus Ring', primaryBase.name, primaryBase.resolved, 'focus-ring'),
+  ];
+}
+
+const SEMANTIC_COLOR_TOKENS: readonly SemanticColorToken[] = buildSemanticTokens({
+  scales: PRIMITIVES,
+  statusFamily: DEFAULT_STATUS_FAMILY,
+});
+
+/** Brand families shipped as preset theme classes (see tokens/brands.ts). */
+const BRAND_FAMILIES: readonly BrandFamily[] = ['violet', 'teal', 'cyan', 'orange', 'rose'];
+
+export type BrandThemeDef = {
+  /** The brand family taking blue's slot (primary/info/focus-ring route here). */
+  family: BrandFamily;
+  /** The theme's primitive scales: gray/{family}/green/amber/red per mode. */
+  primitives: ThemeScales;
+  /** The full semantic token set with primary/info rerouted to the brand. */
+  semanticTokens: readonly SemanticColorToken[];
+  /** Class-ready declarations per mode — the exact shape colors.ts emits. */
+  declarations: Record<Mode, string>;
 };
 
-const borderToken = neutralToken('border', 'Border');
+/** One brand family's scale set: the brand takes blue's slot in the family order. */
+function brandScales(family: BrandFamily): ThemeScales {
+  const withBrand = (mode: Mode): Record<string, readonly string[]> =>
+    Object.fromEntries<readonly string[]>([
+      ['gray', PRIMITIVES[mode].gray],
+      [family, buildChromaticScale(BRAND_SEEDS[family][mode], mode)],
+      ['green', PRIMITIVES[mode].green],
+      ['amber', PRIMITIVES[mode].amber],
+      ['red', PRIMITIVES[mode].red],
+    ]);
+  return {light: withBrand('light'), dark: withBrand('dark')};
+}
 
-const SEMANTIC_COLOR_TOKENS: readonly SemanticColorToken[] = [
-  ...primaryTokens,
-  neutralToken('bg', 'Background'),
-  neutralToken('bg-subtle', 'Background Subtle'),
-  neutralToken('bg-muted', 'Background Muted'),
-  neutralToken('text', 'Text'),
-  neutralToken('text-secondary', 'Text Secondary'),
-  neutralToken('text-muted', 'Text Muted'),
-  textInverse,
-  borderToken,
-  derivedToken('--haze-color-border-hover', 'Border Hover', borderToken.name, borderToken.resolved, 'border-hover'),
-  ...statusGroup('success'),
-  ...statusGroup('warning'),
-  ...statusGroup('danger'),
-  ...statusGroup('info'),
-  derivedToken('--haze-color-focus-ring', 'Focus Ring', primaryBase.name, primaryBase.resolved, 'focus-ring'),
-];
+/**
+ * Build a complete brand preset theme: the brand's primitive scale in
+ * blue's slot plus the full semantic set with primary/info rerouted to it
+ * (focus-ring follows primary transitively through its relative-color
+ * formula). Neutrals and success/warning/danger stay on the default
+ * scales, so only the primary/info groups and focus-ring differ.
+ */
+function buildBrandTheme(family: BrandFamily): BrandThemeDef {
+  const primitives = brandScales(family);
+  const semanticTokens = buildSemanticTokens({
+    scales: primitives,
+    statusFamily: {...DEFAULT_STATUS_FAMILY, primary: family, info: family},
+  });
+  return {
+    family,
+    primitives,
+    semanticTokens,
+    declarations: {
+      light: themeDeclarations('light', primitives, semanticTokens),
+      dark: themeDeclarations('dark', primitives, semanticTokens),
+    },
+  };
+}
 
-export {PRIMITIVES, SEMANTIC_COLOR_TOKENS};
+/**
+ * The declarations a theme class carries: primitive scales first, then
+ * semantic aliases with their relative-color formulas. colors.ts emits the
+ * same shape for the default themes; brands.ts emits it per preset.
+ */
+function themeDeclarations(mode: Mode, scales: ThemeScales, semanticTokens: readonly SemanticColorToken[]): string {
+  const primitives = Object.entries(scales[mode])
+    .flatMap(([family, steps]) => steps.map((value, index) => `--haze-${family}-${index + 1}: ${value};`))
+    .join('\n');
+  const semantic = semanticTokens.map((token) => `${token.name}: ${token.css[mode]};`).join('\n');
+  return `${primitives}\n\n${semantic}`;
+}
+
+/** Class-ready declarations for one brand preset theme — what brands.ts interpolates. */
+function brandDeclarations(family: BrandFamily, mode: Mode): string {
+  return buildBrandTheme(family).declarations[mode];
+}
+
+export {PRIMITIVES, SEMANTIC_COLOR_TOKENS, BRAND_FAMILIES, buildBrandTheme, brandDeclarations, themeDeclarations};
+export type {ThemeScales};

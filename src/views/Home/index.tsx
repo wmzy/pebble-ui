@@ -2,8 +2,27 @@ import {useState} from 'react';
 import {css} from '@linaria/core';
 import {Link} from '@native-router/react';
 
-import {Button, Flex, Badge, Card} from '@/lib';
+import {
+  Avatar,
+  AvatarGroup,
+  Badge,
+  Button,
+  Card,
+  Chip,
+  Flex,
+  Input,
+  Pagination,
+  Progress,
+  Rating,
+  Segmented,
+  Slider,
+  Switch,
+  Tag,
+  useClipboard,
+  useControl,
+} from '@/lib';
 
+import propsJson from '@/generated/props.json';
 import sizeReportJson from '@/generated/size-report.json';
 
 const wrapper = css`
@@ -43,19 +62,70 @@ const linkReset = css`
   text-decoration: none;
 `;
 
+/* Terminal-style install snippet. Primitive gray steps keep it a dark
+   block on the light theme and flip to an inverted block on dark, so the
+   command reads in both themes. */
 const installBox = css`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--haze-space-3);
-  background: var(--haze-color-bg-muted);
-  border: 1px solid var(--haze-color-border);
+  background: var(--haze-gray-12);
+  border: 1px solid var(--haze-gray-11);
   border-radius: var(--haze-radius-md);
-  padding: var(--haze-space-2) var(--haze-space-4);
+  padding: var(--haze-space-2) var(--haze-space-2) var(--haze-space-2) var(--haze-space-4);
   font-family: var(--haze-font-mono);
   font-size: var(--haze-text-sm);
-  color: var(--haze-color-text-secondary);
   margin-top: var(--haze-space-6);
-  user-select: all;
+  min-width: min(320px, 100%);
+`;
+
+const installCommand = css`
+  display: flex;
+  align-items: baseline;
+  gap: var(--haze-space-2);
+  color: var(--haze-gray-1);
+  white-space: nowrap;
+  overflow-x: auto;
+`;
+
+const installPrompt = css`
+  color: var(--haze-color-success);
+  user-select: none;
+`;
+
+const installCmd = css`
+  color: var(--haze-color-info);
+  font-weight: var(--haze-weight-medium);
+`;
+
+const installArg = css`
+  color: var(--haze-gray-1);
+`;
+
+const installCopyBtn = css`
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-xs);
+  line-height: var(--haze-leading-normal);
+  color: var(--haze-gray-1);
+  background: transparent;
+  border: 1px solid var(--haze-gray-8);
+  border-radius: var(--haze-radius-sm);
+  padding: var(--haze-space-1) var(--haze-space-3);
+  cursor: pointer;
+  transition: background var(--haze-duration-fast) var(--haze-ease);
+
+  &:hover {
+    background: var(--haze-gray-11);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--haze-color-focus-ring);
+    outline-offset: 2px;
+  }
 `;
 
 const sectionTitle = css`
@@ -251,10 +321,13 @@ const statsSection = css`
 
 const statsGrid = css`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--haze-space-4);
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
+`;
+
+const statCard = css`
   text-align: center;
 `;
 
@@ -264,6 +337,7 @@ const statNumber = css`
   font-weight: var(--haze-weight-bold);
   color: var(--haze-color-primary);
   margin: 0;
+  white-space: nowrap;
 `;
 
 const statLabel = css`
@@ -271,6 +345,52 @@ const statLabel = css`
   font-size: var(--haze-text-sm);
   color: var(--haze-color-text-muted);
   margin: var(--haze-space-1) 0 0;
+`;
+
+const wallSection = css`
+  padding: var(--haze-space-8) var(--haze-space-4);
+  max-width: 960px;
+  margin: 0 auto;
+`;
+
+const wallGrid = css`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--haze-space-4);
+`;
+
+const wallCard = css`
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-3);
+  min-height: 128px;
+`;
+
+const wallCaption = css`
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-xs);
+  font-weight: var(--haze-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--haze-color-text-muted);
+  margin: 0;
+`;
+
+const wallDemo = css`
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  gap: var(--haze-space-3);
+`;
+
+const wallValue = css`
+  font-family: var(--haze-font-mono);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-text-secondary);
+  min-width: 2ch;
+  text-align: center;
 `;
 
 const codeSection = css`
@@ -350,8 +470,28 @@ type SizeReport = {
 
 const sizeReport = sizeReportJson as SizeReport;
 
+/** Live component count from the docgen pipeline — never hardcode this. */
+const componentCount = Object.keys(propsJson.components).length;
+
 const formatBytes = (bytes: number) =>
   bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} kB`;
+
+/** Aggregate CSS numbers from the latest local build (size-report.json). */
+const aggregateCss = sizeReport.aggregate;
+const cssStatNumber = aggregateCss ? formatBytes(aggregateCss.cssGzipBytes) : '\u2014';
+const cssStatLabel = aggregateCss
+  ? `CSS full bundle \u00b7 ${formatBytes(aggregateCss.cssBytes)} raw`
+  : 'CSS \u2014 run pnpm build';
+
+const shippedCssCell = aggregateCss
+  ? `~${formatBytes(aggregateCss.cssGzipBytes)} gzipped`
+  : 'per-component CSS';
+
+const lightweightDesc = aggregateCss
+  ? `Full CSS bundle is ${formatBytes(aggregateCss.cssBytes)} (${formatBytes(aggregateCss.cssGzipBytes)} gzipped). Per-component imports ship even less.`
+  : 'Tiny CSS footprint, no heavy dependencies. Designed for performance.';
+
+const INSTALL_COMMAND = 'pnpm add haze-ui';
 
 const FEATURES = [
   {
@@ -366,7 +506,7 @@ const FEATURES = [
   },
   {
     icon: '\ud83e\udde9',
-    title: '33+ Components',
+    title: `${componentCount}+ Components`,
     desc: 'From buttons to datepickers, all following Open UI standards for consistency.',
   },
   {
@@ -392,14 +532,14 @@ const FEATURES = [
   {
     icon: '\ud83c\udf1f',
     title: 'Lightweight',
-    desc: 'Under 32KB CSS, no heavy dependencies. Designed for performance.',
+    desc: lightweightDesc,
   },
   {
     icon: '\ud83c\udfaf',
     title: 'Customizable',
     desc: 'Override any design token with CSS variables. className passthrough on all components.',
   },
-] as const;
+];
 
 const COMPARE_COLUMNS = ['haze-ui', 'shadcn + Base UI', 'Radix', 'Mantine', 'MUI'] as const;
 
@@ -432,13 +572,15 @@ const COMPARE_ROWS = [
   },
   {
     label: 'Shipped CSS',
-    cells: ['~19 kB gzipped', 'varies', '\u2014', '\u2014', '\u2014'],
+    cells: [shippedCssCell, 'varies', '\u2014', '\u2014', '\u2014'],
   },
 ] as const;
 
 export default function Home() {
   // Bundle-size table ordering: gzip descending by default, toggleable.
   const [sizeSortDesc, setSizeSortDesc] = useState(true);
+  // Hero install snippet: copy feedback flashes for ~1.5s.
+  const { copied, copy } = useClipboard(1500);
   const sizeRows = [...sizeReport.families].sort((a, b) =>
     sizeSortDesc ? b.cssGzipBytes - a.cssGzipBytes : a.cssGzipBytes - b.cssGzipBytes
   );
@@ -450,7 +592,7 @@ export default function Home() {
         <h1 className={title}>Build faster with Haze UI</h1>
         <p className={subtitle}>
           A lightweight, accessible React component library with zero-runtime
-          CSS-in-JS, design tokens, and 33+ production-ready components.
+          CSS-in-JS, design tokens, and {componentCount} production-ready components.
         </p>
         <Flex gap="var(--haze-space-3)">
           <Link className={linkReset} to="/getting-started">
@@ -461,30 +603,46 @@ export default function Home() {
           </Link>
         </Flex>
         <div className={installBox}>
-          <span>$</span> npm install haze-ui
+          <code className={installCommand}>
+            <span className={installPrompt}>$</span>
+            <span className={installCmd}>pnpm</span>
+            <span className={installArg}>add haze-ui</span>
+          </code>
+          <button
+            type="button"
+            className={installCopyBtn}
+            aria-label="Copy install command"
+            onClick={() => {
+              void copy(INSTALL_COMMAND);
+            }}
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </button>
         </div>
       </section>
 
       <section className={statsSection}>
         <div className={statsGrid}>
-          <div>
-            <p className={statNumber}>33+</p>
+          <Card variant="outlined" className={statCard}>
+            <p className={statNumber}>{componentCount}</p>
             <p className={statLabel}>Components</p>
-          </div>
-          <div>
-            <p className={statNumber}>32KB</p>
-            <p className={statLabel}>CSS (gzip: 5.5KB)</p>
-          </div>
-          <div>
+          </Card>
+          <Card variant="outlined" className={statCard}>
+            <p className={statNumber}>{cssStatNumber}</p>
+            <p className={statLabel}>{cssStatLabel}</p>
+          </Card>
+          <Card variant="outlined" className={statCard}>
             <p className={statNumber}>0</p>
             <p className={statLabel}>Runtime JS for styles</p>
-          </div>
-          <div>
+          </Card>
+          <Card variant="outlined" className={statCard}>
             <p className={statNumber}>2</p>
             <p className={statLabel}>Built-in themes</p>
-          </div>
+          </Card>
         </div>
       </section>
+
+      <ComponentWall />
 
       <section className={featuresSection}>
         <h2 className={sectionTitle}>Why Haze UI?</h2>
@@ -622,5 +780,139 @@ export default function App() {
         </a>
       </footer>
     </div>
+  );
+}
+
+/**
+ * Live component wall: every card renders a real, interactive haze-ui
+ * component — not a screenshot. Controllable components follow the repo
+ * demo contract (`const [v, setV, ctrl] = useControl(undefined, initial)`
+ * + pass the `Control` handle); drive buttons flip state through `setV`.
+ */
+function ComponentWall() {
+  const [switchOn, setSwitchOn, switchCtrl] = useControl(undefined, false);
+  const [, , segmentCtrl] = useControl(undefined, 'week');
+  const [sliderValue, , sliderCtrl] = useControl(undefined, 40);
+  const [, setRating, ratingCtrl] = useControl(undefined, 3);
+  const [, , emailCtrl] = useControl(undefined, '');
+  const [, , pageCtrl] = useControl(undefined, 2);
+
+  return (
+    <section className={wallSection}>
+      <h2 className={sectionTitle}>Real components, not screenshots</h2>
+      <p className={sectionSubtitle}>
+        Every control below is live — click, drag, and type your way through
+        the actual library.
+      </p>
+      <div className={wallGrid}>
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Button</h3>
+          <div className={wallDemo}>
+            <Button size="sm">Primary</Button>
+            <Button size="sm" variant="outline">Outline</Button>
+            <Button size="sm" variant="ghost">Ghost</Button>
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Switch</h3>
+          <div className={wallDemo}>
+            <Switch checked={switchCtrl} aria-label="Notifications" />
+            <span className={wallValue}>{switchOn ? 'On' : 'Off'}</span>
+            <Button size="sm" variant="ghost" onClick={() => setSwitchOn((v) => !v)}>
+              Toggle
+            </Button>
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Slider</h3>
+          <div className={wallDemo}>
+            <Slider value={sliderCtrl} aria-label="Opacity" />
+            <span className={wallValue}>{sliderValue}%</span>
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Segmented</h3>
+          <div className={wallDemo}>
+            <Segmented options={['Day', 'Week', 'Month']} value={segmentCtrl} />
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Badge</h3>
+          <div className={wallDemo}>
+            <Badge>Default</Badge>
+            <Badge variant="success">Success</Badge>
+            <Badge variant="warning">Warning</Badge>
+            <Badge variant="danger">Danger</Badge>
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Avatar Group</h3>
+          <div className={wallDemo}>
+            <AvatarGroup max={3} total={5}>
+              <Avatar alt="Ada Lovelace" />
+              <Avatar alt="Grace Hopper" />
+              <Avatar alt="Alan Turing" />
+              <Avatar alt="Katherine Johnson" />
+              <Avatar alt="Margaret Hamilton" />
+            </AvatarGroup>
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Rating</h3>
+          <div className={wallDemo}>
+            <Rating value={ratingCtrl} />
+            <Button size="sm" variant="ghost" onClick={() => setRating(3)}>
+              Reset
+            </Button>
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Progress</h3>
+          <div className={wallDemo}>
+            <Progress value={72} />
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Chip</h3>
+          <div className={wallDemo}>
+            <Chip>Design</Chip>
+            <Chip variant="outline" color="primary">React</Chip>
+            <Chip color="success">Shipped</Chip>
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Tag</h3>
+          <div className={wallDemo}>
+            <Tag>Default</Tag>
+            <Tag variant="primary">New</Tag>
+            <Tag variant="success">Stable</Tag>
+            <Tag variant="danger" closable>Deprecated</Tag>
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Input</h3>
+          <div className={wallDemo}>
+            <Input value={emailCtrl} placeholder="you@example.com" aria-label="Email address" />
+          </div>
+        </Card>
+
+        <Card variant="outlined" className={wallCard}>
+          <h3 className={wallCaption}>Pagination</h3>
+          <div className={wallDemo}>
+            <Pagination page={pageCtrl} total={50} aria-label="Demo pages" />
+          </div>
+        </Card>
+      </div>
+    </section>
   );
 }

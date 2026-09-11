@@ -322,6 +322,24 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
             <ListItem>
               <Link
                 className={navLink}
+                to='/guides/density'
+                onClick={onNavigate}
+              >
+                Density (compact)
+              </Link>
+            </ListItem>
+            <ListItem>
+              <Link
+                className={navLink}
+                to='/guides/a11y'
+                onClick={onNavigate}
+              >
+                Accessibility
+              </Link>
+            </ListItem>
+            <ListItem>
+              <Link
+                className={navLink}
                 to='/guides/migration'
                 onClick={onNavigate}
               >

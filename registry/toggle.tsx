@@ -20,6 +20,7 @@ import { Toggle, ToggleCore } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/toggle.css';
+import 'haze-ui/css/button.css';
 
 export { Toggle, ToggleCore };
 export type { ToggleProps, ToggleCoreProps } from 'haze-ui';

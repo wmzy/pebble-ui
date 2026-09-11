@@ -10,6 +10,14 @@ import LocaleProvider from './LocaleProvider';
 import { defaultStrings, enUS } from './locale';
 import { jaJP } from './ja-jp';
 import { zhCN } from './zh-cn';
+import { deDE } from './de-de';
+import { frFR } from './fr-fr';
+import { esES } from './es-es';
+import { itIT } from './it-it';
+import { ptBR } from './pt-br';
+import { ruRU } from './ru-ru';
+import { koKR } from './ko-kr';
+import { arSA } from './ar-sa';
 
 /** Renders the useDirection() resolution for provider-chain assertions. */
 function DirectionProbe() {
@@ -124,6 +132,14 @@ describe('LocaleProvider', () => {
     };
     assertSameShape(defaultStrings, zhCN, 'zh-CN');
     assertSameShape(defaultStrings, jaJP, 'ja-JP');
+    assertSameShape(defaultStrings, deDE, 'de-DE');
+    assertSameShape(defaultStrings, frFR, 'fr-FR');
+    assertSameShape(defaultStrings, esES, 'es-ES');
+    assertSameShape(defaultStrings, itIT, 'it-IT');
+    assertSameShape(defaultStrings, ptBR, 'pt-BR');
+    assertSameShape(defaultStrings, ruRU, 'ru-RU');
+    assertSameShape(defaultStrings, koKR, 'ko-KR');
+    assertSameShape(defaultStrings, arSA, 'ar-SA');
   });
 
   it('keeps enUS as an alias of the default pack', () => {

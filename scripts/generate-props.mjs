@@ -49,8 +49,9 @@ const kebab = (name) =>
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
     .toLowerCase();
 
-/** Demo route segment (`/components/:name`) — the sidebar's flat lowercase keys. */
-const routeKeyOf = (dirName) => dirName.toLowerCase();
+/** Demo route segment (`/components/:name`) is the kebab-cased directory
+ * name — same rule as the sidebar routes in component-groups.ts, so the
+ * two sets reconcile without a translation table. */
 
 const listSourceFiles = (dir) =>
   readdirSync(dir, { withFileTypes: true })
@@ -213,7 +214,7 @@ export function generateProps(rootDir = defaultRoot()) {
     }
 
     components[dirName] = {
-      routeKey: routeKeyOf(dirName),
+      routeKey: kebab(dirName),
       cssFamily: kebab(dirName),
       imports: collectValueExports(barrel),
       propsTypes: sortedValues(propsTypes),

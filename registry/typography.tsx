@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/typography.css';
 
 export { Title, Text, Paragraph };
-export type { TitleProps, TextProps, ParagraphProps } from 'haze-ui';
+export type { TitleProps, TextProps, ParagraphProps, TextEllipsis } from 'haze-ui';

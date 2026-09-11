@@ -24,13 +24,9 @@ const GROUP_NAMES = [
 ];
 
 /*
- * props.json 的 routeKey 与 demo 路由的已知分歧（见 component-groups.ts
- * ROUTE_FOR_ROUTE_KEY）：DataTable 的 routeKey 'datatable' 对应路由
- * 'data-table'。测试独立复刻这层换算，避免与守卫实现互为镜像。
+ * props.json 的 routeKey 与 demo 路由同源（均 kebab 化，见
+ * component-groups.ts 头注释），对账直接比对 routeKey，无需换算。
  */
-function routeForRouteKey(routeKey: string): string {
-  return routeKey === 'datatable' ? 'data-table' : routeKey;
-}
 
 describe('component groups', () => {
   it('passes the module-load coverage guard', () => {
@@ -50,8 +46,7 @@ describe('component groups', () => {
 
     const entries = Object.values(generatedProps.components);
     for (const entry of entries) {
-      const route = routeForRouteKey(entry.routeKey);
-      expect(counts.get(route) ?? 0).toBe(1);
+      expect(counts.get(entry.routeKey) ?? 0).toBe(1);
     }
   });
 
@@ -67,13 +62,23 @@ describe('component groups', () => {
     }
   });
 
-  it('renders PascalCase display names for lowercase-concatenated routes', () => {
+  it('uses kebab-case routes everywhere (no lowercase-concat slugs)', () => {
+    // 旧形态（'numberinput'）与小写连写残留都不得回归
+    expect(ROUTES.length).toBeGreaterThan(0);
+    for (const route of ROUTES) {
+      expect(route).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+    }
+  });
+
+  it('renders PascalCase display names for kebab routes', () => {
     const byRoute = new Map<string, ComponentItem>(
       COMPONENT_GROUPS.flatMap((g) => g.items).map((i) => [i.route, i])
     );
-    expect(byRoute.get('numberinput')?.name).toBe('NumberInput');
+    expect(byRoute.get('number-input')?.name).toBe('NumberInput');
     expect(byRoute.get('data-table')?.name).toBe('DataTable');
-    expect(byRoute.get('daterangepicker')?.name).toBe('DateRangePicker');
+    expect(byRoute.get('date-range-picker')?.name).toBe('DateRangePicker');
+    expect(byRoute.get('otp-input')?.name).toBe('OTPInput');
+    expect(byRoute.get('qr-code')?.name).toBe('QRCode');
   });
 
   it('keys every alias entry by an existing route', () => {

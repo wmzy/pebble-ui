@@ -20,6 +20,9 @@ import { Combobox, ComboboxOption, ComboboxGroup } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/combobox.css';
+import 'haze-ui/css/chip.css';
+import 'haze-ui/css/spinner.css';
+import 'haze-ui/css/virtual-list.css';
 
 export { Combobox, ComboboxOption, ComboboxGroup };
 export type { ComboboxProps, ComboboxOptionProps, ComboboxGroupProps, ComboboxOptionData, ComboboxVirtualizedConfig } from 'haze-ui';

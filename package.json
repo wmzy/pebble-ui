@@ -32,14 +32,21 @@
       "import": "./dist/tokens/index.js",
       "default": "./dist/tokens/index.js"
     },
+    "./design-tokens/light.json": "./dist/design-tokens/light.json",
+    "./design-tokens/dark.json": "./dist/design-tokens/dark.json",
+    "./mcp-docs.json": "./dist/mcp-docs.json",
     "./styles.css": "./dist/haze-ui.css",
     "./css/*": "./dist/css/*",
     "./css-manifest.json": "./dist/css-manifest.json",
     "./registry.json": "./dist/registry.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "mcp"
   ],
+  "bin": {
+    "haze-ui-mcp": "./mcp/index.mjs"
+  },
   "engines": {
     "node": ">=20"
   },
@@ -54,7 +61,7 @@
   ],
   "scripts": {
     "start": "vite",
-    "build": "BUILD_LIB=true vite build && node scripts/split-css.mjs && node scripts/generate-registry.mjs && tsc -p tsconfig.lib.json && tsc-alias -p tsconfig.lib.json",
+    "build": "BUILD_LIB=true vite build && node scripts/split-css.mjs && node scripts/generate-registry.mjs && node scripts/generate-design-tokens.mjs && node scripts/generate-mcp-docs.mjs && tsc -p tsconfig.lib.json && tsc-alias -p tsconfig.lib.json",
     "build:demo": "node scripts/write-version.mjs && node scripts/generate-llms.mjs && BABEL_ENV=development BUILD_DEMO=true vite build && cp dist/index.html dist/404.html && cp llms.txt dist/ && cp llms-full.txt dist/",
     "commit": "lint-staged && git-cz -n",
     "coverage": "vitest run --coverage",
@@ -97,7 +104,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@tanstack/react-table": "^9.2.4",
     "react": "^19.0.0",
-    "recharts": "^3.10.1"
+    "recharts": "^3.10.1",
+    "qrcode": "^1.5.4"
   },
   "peerDependenciesMeta": {
     "@dnd-kit/core": {
@@ -113,6 +121,9 @@
       "optional": true
     },
     "recharts": {
+      "optional": true
+    },
+    "qrcode": {
       "optional": true
     }
   },
@@ -143,6 +154,7 @@
     "@types/culori": "^4.0.1",
     "@types/jest-axe": "^3.5.9",
     "@types/node": "^26.5.0",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
@@ -163,6 +175,7 @@
     "lint-staged": "^17.5.0",
     "lucide-react": "^1.42.0",
     "prettier": "^3.9.6",
+    "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-icons": "^5.7.0",
@@ -205,11 +218,41 @@
     {
       "name": "CSS aggregate (dist/haze-ui.css, brotli)",
       "path": "dist/haze-ui.css",
-      "limit": "19.5 KB"
+      "limit": "21 KB"
     },
     {
       "path": "dist/haze-ui.css",
-      "limit": "24 KB",
+      "limit": "26 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: tree-select",
+      "path": "dist/css/tree-select.css",
+      "limit": "2 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: ellipsis",
+      "path": "dist/css/ellipsis.css",
+      "limit": "0.5 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: count-up",
+      "path": "dist/css/count-up.css",
+      "limit": "0.3 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: result",
+      "path": "dist/css/result.css",
+      "limit": "0.5 KB",
+      "gzip": true
+    },
+    {
+      "name": "CSS family ratchet: qr-code",
+      "path": "dist/css/qr-code.css",
+      "limit": "0.3 KB",
       "gzip": true
     },
     {

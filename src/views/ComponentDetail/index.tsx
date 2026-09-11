@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 
 import { useEffect, useRef, useState } from 'react';
 
-import { useMatched } from '@native-router/react';
+import { commitReplace, resolveTo, toLocation } from '@native-router/core';
+import { Link, useMatched, useRouter } from '@native-router/react';
 
 import { css } from '@linaria/core';
 
@@ -11,6 +12,8 @@ import { Button } from '@/lib';
 import FormDemo from '@/components/FormDemo';
 
 import generatedProps from '@/generated/props.json';
+
+import { LEGACY_REDIRECTS, suggestComponents } from './legacy-routes';
 
 import KbdDemo from './demos/KbdDemo';
 
@@ -23,6 +26,9 @@ import HoverCardDemo from './demos/HoverCardDemo';
 import ToolbarDemo from './demos/ToolbarDemo';
 
 import CascaderDemo from './demos/CascaderDemo';
+import TreeSelectDemo from './demos/TreeSelectDemo';
+import ResultDemo from './demos/ResultDemo';
+import QRCodeDemo from './demos/QRCodeDemo';
 
 import SidebarDemo from './demos/SidebarDemo';
 
@@ -38,6 +44,7 @@ import ChartDemo from './demos/ChartDemo';
 
 
 import { page } from './styles';
+
 
 import DemoPreview from './DemoPreview';
 import DemoSource from './DemoSource';
@@ -173,6 +180,8 @@ import RatingDemo from './demos/RatingDemo';
 import TimelineDemo from './demos/TimelineDemo';
 
 import TypographyDemo from './demos/TypographyDemo';
+import EllipsisDemo from './demos/EllipsisDemo';
+import CountUpDemo from './demos/CountUpDemo';
 
 import StatDemo from './demos/StatDemo';
 
@@ -271,8 +280,8 @@ const demos: Record<string, () => ReactNode> = {
   breadcrumb: BreadcrumbDemo,
   disclosure: DisclosureDemo,
   menu: MenuDemo,
-  numberinput: NumberInputDemo,
-  fileinput: FileInputDemo,
+  'number-input': NumberInputDemo,
+  'file-input': FileInputDemo,
   toast: ToastDemo,
   list: ListDemo,
   combobox: ComboboxDemo,
@@ -284,83 +293,88 @@ const demos: Record<string, () => ReactNode> = {
   divider: DividerDemo,
   spinner: SpinnerDemo,
   empty: EmptyDemo,
+  result: ResultDemo,
   progress: ProgressDemo,
   pagination: PaginationDemo,
   grid: GridDemo,
   drawer: DrawerDemo,
   stepper: StepperDemo,
-  chatmessage: ChatMessageDemo,
-  chatcontainer: ChatContainerDemo,
-  chatinput: ChatInputDemo,
-  streamingtext: StreamingTextDemo,
-  markdownrenderer: MarkdownRendererDemo,
-  toolcallcard: ToolCallCardDemo,
-  thinkingindicator: ThinkingIndicatorDemo,
-  steptimeline: StepTimelineDemo,
-  approvalcard: ApprovalCardDemo,
-  tokencounter: TokenCounterDemo,
-  modelpicker: ModelPickerDemo,
-  conversationlist: ConversationListDemo,
-  diffviewer: DiffViewerDemo,
-  logviewer: LogViewerDemo,
-  asyncsection: AsyncSectionDemo,
+  'chat-message': ChatMessageDemo,
+  'chat-container': ChatContainerDemo,
+  'chat-input': ChatInputDemo,
+  'streaming-text': StreamingTextDemo,
+  'markdown-renderer': MarkdownRendererDemo,
+  'tool-call-card': ToolCallCardDemo,
+  'thinking-indicator': ThinkingIndicatorDemo,
+  'step-timeline': StepTimelineDemo,
+  'approval-card': ApprovalCardDemo,
+  'token-counter': TokenCounterDemo,
+  'model-picker': ModelPickerDemo,
+  'conversation-list': ConversationListDemo,
+  'diff-viewer': DiffViewerDemo,
+  'log-viewer': LogViewerDemo,
+  'async-section': AsyncSectionDemo,
   command: CommandDemo,
   resizable: ResizableDemo,
   collapsible: CollapsibleDemo,
   transfer: TransferDemo,
   upload: UploadDemo,
-  colorpicker: ColorPickerDemo,
+  'color-picker': ColorPickerDemo,
   rating: RatingDemo,
   timeline: TimelineDemo,
   typography: TypographyDemo,
+  ellipsis: EllipsisDemo,
+  'count-up': CountUpDemo,
   stat: StatDemo,
   segmented: SegmentedDemo,
   chip: ChipDemo,
-  scrollarea: ScrollAreaDemo,
-  timepicker: TimePickerDemo,
-  daterangepicker: DateRangePickerDemo,
-  otpinput: OTPInputDemo,
-  passwordinput: PasswordInputDemo,
-  taginput: TagInputDemo,
+  'scroll-area': ScrollAreaDemo,
+  'time-picker': TimePickerDemo,
+  'date-range-picker': DateRangePickerDemo,
+  'otp-input': OTPInputDemo,
+  'password-input': PasswordInputDemo,
+  'tag-input': TagInputDemo,
   mentions: MentionsDemo,
-  promptinput: PromptInputDemo,
-  inlineedit: InlineEditDemo,
-  dropdownmenu: DropdownMenuDemo,
-  contextmenu: ContextMenuDemo,
-  navigationbar: NavigationBarDemo,
-  backtotop: BackToTopDemo,
+  'prompt-input': PromptInputDemo,
+  'inline-edit': InlineEditDemo,
+  'dropdown-menu': DropdownMenuDemo,
+  'context-menu': ContextMenuDemo,
+  'navigation-bar': NavigationBarDemo,
+  'back-to-top': BackToTopDemo,
   affix: AffixDemo,
   container: ContainerDemo,
   banner: BannerDemo,
-  confirmdialog: ConfirmDialogDemo,
-  codeblock: CodeBlockDemo,
-  aspectratio: AspectRatioDemo,
-  virtuallist: VirtualListDemo,
-  taggroup: TagGroupDemo,
-  bottomsheet: BottomSheetDemo,
-  swipeaction: SwipeActionDemo,
+  'confirm-dialog': ConfirmDialogDemo,
+  'code-block': CodeBlockDemo,
+  'aspect-ratio': AspectRatioDemo,
+  'virtual-list': VirtualListDemo,
+  'tag-group': TagGroupDemo,
+  'bottom-sheet': BottomSheetDemo,
+  'swipe-action': SwipeActionDemo,
   descriptions: DescriptionsDemo,
-  jsonview: JsonViewDemo,
+  'json-view': JsonViewDemo,
+  'qr-code': QRCodeDemo,
   sources: SourcesDemo,
-  filepreview: FilePreviewDemo,
-  inlinecompletion: InlineCompletionDemo,
-  floatbutton: FloatButtonDemo,
+  'file-preview': FilePreviewDemo,
+  'inline-completion': InlineCompletionDemo,
+  'float-button': FloatButtonDemo,
   masonry: MasonryDemo,
   signature: SignatureDemo,
   kbd: KbdDemo,
-  avatargroup: AvatarGroupDemo,
+  'avatar-group': AvatarGroupDemo,
   calendar: CalendarDemo,
-  hovercard: HoverCardDemo,
+  'hover-card': HoverCardDemo,
   toolbar: ToolbarDemo,
   cascader: CascaderDemo,
+  'tree-select': TreeSelectDemo,
   sidebar: SidebarDemo,
   tour: TourDemo,
   anchor: AnchorDemo,
   watermark: WatermarkDemo,
   fullscreen: FullscreenDemo,
-  localeprovider: LocaleProviderDemo,
+  'locale-provider': LocaleProviderDemo,
   toggle: ToggleDemo,
-  appshell: AppShellDemo,
+  'app-shell': AppShellDemo,
   chart: ChartDemo,
   form: FormDemo,
 };
@@ -372,13 +386,73 @@ const copyBar = css`
   margin-bottom: var(--haze-space-3);
 `;
 
-/** route param (`:name`, e.g. 'numberinput') → generated component entry. */
+/** route param (`:name`, e.g. 'number-input') → generated component entry. */
 const propsByRoute = new Map(
   Object.values(generatedProps.components).map((entry) => [
     entry.routeKey,
     entry,
   ])
 );
+
+const notFound = css`
+  h1 {
+    margin-bottom: var(--haze-space-2);
+  }
+`;
+
+const notFoundHint = css`
+  margin: 0 0 var(--haze-space-3);
+  color: var(--haze-color-text-secondary);
+`;
+
+const suggestionList = css`
+  margin: 0 0 var(--haze-space-4);
+  padding: 0;
+  list-style: none;
+`;
+
+const suggestionItem = css`
+  & + & {
+    margin-top: var(--haze-space-1);
+  }
+`;
+
+const suggestionLink = css`
+  font-family: var(--haze-font-mono);
+  font-size: var(--haze-text-sm);
+  color: var(--haze-color-primary);
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+/** 404 兜底：标题 + 最近匹配建议（≤3 条）+ 返回组件列表。 */
+function NotFound({ name }: { name: string }) {
+  const suggestions = suggestComponents(name);
+  return (
+    <section className={notFound}>
+      <h1>Component not found: {name}</h1>
+      <p className={notFoundHint}>
+        {suggestions.length > 0
+          ? 'No component lives at this URL. Did you mean:'
+          : 'No component lives at this URL.'}
+      </p>
+      {suggestions.length > 0 && (
+        <ul className={suggestionList}>
+          {suggestions.map((s) => (
+            <li key={s.route} className={suggestionItem}>
+              <Link className={suggestionLink} to={`/components/${s.route}`}>
+                {s.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link to='/components'>Back to all components</Link>
+    </section>
+  );
+}
 
 /**
  * Small wrapper-level action: copies the `import { … } from 'haze-ui'` lines
@@ -426,12 +500,26 @@ function CopyImportButton({ name }: { name: string }) {
 
 export default function ComponentDetail() {
   const { params } = useMatched();
+  const router = useRouter();
   const name = params.name ?? '';
   const Demo = demos[name];
+  const redirectTo = LEGACY_REDIRECTS[name];
+
+  // 旧 slug 命中：replace 改写当前历史条目（后退键不落回旧地址），
+  // 跳转解析期间不渲染 404，避免闪现。
+  useEffect(() => {
+    if (!redirectTo) return;
+    const to = `/components/${redirectTo}`;
+    void commitReplace(
+      router,
+      resolveTo(router, to),
+      toLocation(router, to)
+    );
+  }, [redirectTo, router]);
 
   return (
     <div className={page}>
-      {Demo ? (
+      {redirectTo ? null : Demo ? (
         <>
           <CopyImportButton name={name} />
           <DemoPreview>
@@ -440,7 +528,7 @@ export default function ComponentDetail() {
           <DemoSource name={name} />
         </>
       ) : (
-        <h1>Component not found: {name}</h1>
+        <NotFound name={name} />
       )}
     </div>
   );

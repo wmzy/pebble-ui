@@ -169,6 +169,21 @@ function LoginForm() {
           All tokens are prefixed with <code className={inlineCode}>--haze-</code> to avoid
           conflicts with other libraries. See the full list of tokens in the source code.
         </div>
+        <p className={paragraph}>
+          All tokens are also published in the W3C Design Tokens Format (DTF) —
+          every token becomes a <code className={inlineCode}>$value</code> /{' '}
+          <code className={inlineCode}>$type</code> group entry — so design-tool
+          pipelines can consume them without knowing haze-ui&apos;s CSS naming:
+        </p>
+        <pre className={codeBlock}>{`import lightTokens from 'haze-ui/design-tokens/light.json';
+
+// lightTokens.haze.color.primary.$value -> 'oklch(0.563 0.241 260.8)'
+// lightTokens.haze.radius.md.$value -> '6px'
+// dark mode: 'haze-ui/design-tokens/dark.json'`}</pre>
+        <div className={note}>
+          The same JSON drops straight into Style Dictionary or Tokens Studio to
+          keep Figma variables and platform token output in sync with the library.
+        </div>
       </div>
 
       <div className={section}>

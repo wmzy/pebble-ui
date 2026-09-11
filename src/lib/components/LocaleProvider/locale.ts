@@ -124,6 +124,10 @@ const defaultStrings = {
   empty: {
     description: 'No data',
   },
+  ellipsis: {
+    expand: 'Expand',
+    collapse: 'Collapse',
+  },
   fileInput: {
     label: 'Choose file',
   },
@@ -258,6 +262,13 @@ const defaultStrings = {
     loadError: 'Load failed',
     retry: 'Retry',
     noMatch: 'No matches',
+  },
+  treeSelect: {
+    placeholder: 'Select…',
+    searchLabel: 'Search nodes',
+    searchPlaceholder: 'Search…',
+    clear: 'Clear',
+    moreTags: '+{count}',
   },
   upload: {
     hint: 'Drag & drop files here, or click to upload',

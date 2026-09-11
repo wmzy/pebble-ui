@@ -73,6 +73,7 @@ const sharedLayers = {
     'menu',
     'popover',
     'select',
+    'tree-select',
     'tooltip',
   ],
   // Sortable css layers: utils/sortable-handle (the drag-handle class

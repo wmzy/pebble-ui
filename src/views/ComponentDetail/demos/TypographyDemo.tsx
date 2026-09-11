@@ -1,3 +1,5 @@
+import { css } from '@linaria/core';
+
 import { Title, Text, Paragraph } from '@/lib';
 
 import PropsTable from '../PropsTable';
@@ -5,6 +7,14 @@ import PropsTable from '../PropsTable';
 import A11yNote from '../A11yNote';
 
 import { intro, section, row } from '../styles';
+
+// Constrained width so the truncation demos actually have something to clip.
+const narrow = css`
+  max-width: 18rem;
+  padding: var(--haze-space-3);
+  border: 1px dashed var(--haze-color-border);
+  border-radius: var(--haze-radius-md);
+`;
 
 // ─── Typography ─────────────────────────────────────────────────
 export default function TypographyDemo() {
@@ -38,6 +48,24 @@ export default function TypographyDemo() {
         <h2>Paragraph</h2>
         <Paragraph>This is a paragraph component with relaxed line height and bottom margin.</Paragraph>
         <Paragraph>Another paragraph follows naturally.</Paragraph>
+      </div>
+
+      <div className={section}>
+        <h2>Ellipsis</h2>
+        <div className={row}>
+          <div className={narrow}>
+            <Text ellipsis>Single-line truncation; the full text rides along in the native title attribute.</Text>
+          </div>
+          <div className={narrow}>
+            <Text ellipsis type='secondary'>Secondary clamped text uses the same pure-CSS truncation.</Text>
+          </div>
+        </div>
+        <div className={narrow} style={{ marginTop: 'var(--haze-space-3)' }}>
+          <Paragraph ellipsis={{ lines: 2 }}>
+            Multi-line truncation clamps this paragraph to two lines via line-clamp;
+            hover reveals the full content through the title fallback.
+          </Paragraph>
+        </div>
       </div>
 
       <div className={section}>

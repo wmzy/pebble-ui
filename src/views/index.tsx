@@ -30,6 +30,14 @@ export default function App() {
             component: () => import('./Guides/DarkMode')
           },
           {
+            path: '/guides/density',
+            component: () => import('./Guides/Density')
+          },
+          {
+            path: '/guides/a11y',
+            component: () => import('./Guides/A11y')
+          },
+          {
             path: '/guides/migration',
             component: () => import('./Guides/Migration')
           },

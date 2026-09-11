@@ -57,6 +57,54 @@ describe('Text', () => {
   });
 });
 
+describe('Text ellipsis', () => {
+  it('single line adds exactly the truncation class plus a title fallback', () => {
+    const { container: plainWrap } = render(<Text>hello world</Text>);
+    const { container } = render(<Text ellipsis>hello world</Text>);
+    const plain = plainWrap.firstElementChild as HTMLElement;
+    const clamped = container.firstElementChild as HTMLElement;
+    // x-class 经 classnames 过滤 falsy 项：ellipsis 只多出截断类
+    expect(clamped.classList.length).toBe(plain.classList.length + 1);
+    expect(clamped).toHaveAttribute('title', 'hello world');
+  });
+
+  it('multi-line applies the line-clamp box style', () => {
+    render(<Text ellipsis={{ lines: 2 }}>hello world</Text>);
+    const el = screen.getByText('hello world');
+    expect(el.getAttribute('style')).toContain('-webkit-line-clamp: 2');
+    expect(el.getAttribute('style')).toContain('-webkit-box');
+    expect(el.getAttribute('style')).toContain('overflow: hidden');
+    expect(el).toHaveAttribute('title', 'hello world');
+  });
+
+  it('keeps single-line semantics for {lines: 1}', () => {
+    const { container: plainWrap } = render(<Text>hello world</Text>);
+    const { container } = render(<Text ellipsis={{ lines: 1 }}>hello world</Text>);
+    const plain = plainWrap.firstElementChild as HTMLElement;
+    const clamped = container.firstElementChild as HTMLElement;
+    expect(clamped.classList.length).toBe(plain.classList.length + 1);
+    expect(clamped.getAttribute('style')).toBeNull();
+  });
+
+  it('omits the title for non-string children', () => {
+    render(
+      <Text ellipsis>
+        <em>emphasized</em>
+      </Text>,
+    );
+    expect(screen.getByText('emphasized')).not.toHaveAttribute('title');
+  });
+
+  it('ellipsis={false} renders unclamped without a title', () => {
+    const { container: plainWrap } = render(<Text>hello world</Text>);
+    const { container } = render(<Text ellipsis={false}>hello world</Text>);
+    const plain = plainWrap.firstElementChild as HTMLElement;
+    const off = container.firstElementChild as HTMLElement;
+    expect(off.classList.length).toBe(plain.classList.length);
+    expect(off).not.toHaveAttribute('title');
+  });
+});
+
 describe('Paragraph', () => {
   it('renders a p element', () => {
     render(<Paragraph>text</Paragraph>);
@@ -68,13 +116,31 @@ describe('Paragraph', () => {
     expect(screen.getByText('x')).toHaveClass('custom');
   });
 
+  it('single-line ellipsis adds the truncation class and title', () => {
+    const { container: plainWrap } = render(<Paragraph>body copy</Paragraph>);
+    const { container } = render(<Paragraph ellipsis>body copy</Paragraph>);
+    const plain = plainWrap.firstElementChild as HTMLElement;
+    const clamped = container.firstElementChild as HTMLElement;
+    expect(clamped.classList.length).toBe(plain.classList.length + 1);
+    expect(clamped).toHaveAttribute('title', 'body copy');
+  });
+
+  it('multi-line ellipsis applies the line-clamp style', () => {
+    render(<Paragraph ellipsis={{ lines: 3 }}>body copy</Paragraph>);
+    const el = screen.getByText('body copy');
+    expect(el.getAttribute('style')).toContain('-webkit-line-clamp: 3');
+    expect(el).toHaveAttribute('title', 'body copy');
+  });
+
   it('has no axe violations', async () => {
     const { axe } = await import('jest-axe');
     render(
       <>
         <Title>Hello</Title>
         <Text type="secondary">secondary text</Text>
+        <Text ellipsis>clamped single line</Text>
         <Paragraph>paragraph body</Paragraph>
+        <Paragraph ellipsis={{ lines: 2 }}>clamped paragraph body</Paragraph>
       </>,
     );
     const results = await axe(document.body, {

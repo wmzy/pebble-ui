@@ -20,6 +20,7 @@ import { DateRangePicker, DateRangePickerCore } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/date-range-picker.css';
+import 'haze-ui/css/calendar.css';
 
 export { DateRangePicker, DateRangePickerCore };
 export type { DateRangePickerProps, DateRangePickerCoreProps, DateRangePickerPreset, DateRangePickerPresets } from 'haze-ui';

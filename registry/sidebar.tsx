@@ -20,6 +20,7 @@ import { Sidebar, SidebarGroup, SidebarItem, SidebarFooter, SidebarToggle } from
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/sidebar.css';
+import 'haze-ui/css/tooltip.css';
 
 export { Sidebar, SidebarGroup, SidebarItem, SidebarFooter, SidebarToggle };
 export type { SidebarProps, SidebarGroupProps, SidebarItemProps, SidebarFooterProps, SidebarToggleProps } from 'haze-ui';

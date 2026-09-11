@@ -1,4 +1,4 @@
-import type { ReactNode, JSX } from 'react';
+import type { CSSProperties, ReactNode, JSX } from 'react';
 
 import { css } from '@linaria/core';
 
@@ -39,6 +39,9 @@ type TextProps = {
   strong?: boolean;
   code?: boolean;
   mark?: boolean;
+  /** Pure-CSS truncation: `true`/single-line → nowrap ellipsis,
+   * `{ lines: N }` (N ≥ 2) → line clamp. */
+  ellipsis?: TextEllipsis;
   className?: string;
   children: ReactNode;
 };
@@ -72,17 +75,64 @@ const textMark = css`
   padding: 0 var(--haze-space-1);
 `;
 
+/*
+ * Pure-CSS truncation — no hooks, so Typography stays in the RSC-safe
+ * set (scripts/rsc-safe.mjs). Single line is a static class; the
+ * multi-line `-webkit-line-clamp` box model carries an arbitrary
+ * runtime line count, so it ships as an inline style instead of a
+ * Linaria class per value. Supported by all three modern engines
+ * (Blink / Gecko / WebKit).
+ */
+
+/** `ellipsis` prop shape shared by Text and Paragraph. */
+type TextEllipsis = boolean | { lines?: number };
+
+const ellipsisSingle = css`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+/** Resolved line budget; `{}` and `true` both mean a single line. */
+function ellipsisLines(ellipsis: TextEllipsis | undefined): number {
+  const lines = typeof ellipsis === 'object' ? ellipsis.lines : undefined;
+  return Math.max(1, lines ?? 1);
+}
+
+/** Inline style for the N-line clamp (N ≥ 2). */
+function lineClampStyle(lines: number): CSSProperties {
+  return {
+    display: '-webkit-box',
+    WebkitBoxOrient: 'vertical',
+    WebkitLineClamp: lines,
+    overflow: 'hidden',
+  };
+}
+
+/** String children get a native `title` fallback so clamped text
+ * stays reachable for pointer users and AT that exposes it. */
+function ellipsisTitle(
+  ellipsis: TextEllipsis | undefined,
+  children: ReactNode
+): string | undefined {
+  return ellipsis && typeof children === 'string' ? children : undefined;
+}
+
 export function Text({
   type = 'default',
   strong,
   code,
   mark,
+  ellipsis,
   className,
   children,
 }: TextProps) {
   let Tag: keyof JSX.IntrinsicElements = 'span';
   if (strong) Tag = 'strong';
   else if (code) Tag = 'code';
+
+  const clamped = Boolean(ellipsis);
+  const lines = ellipsisLines(ellipsis);
 
   return (
     <Tag
@@ -92,8 +142,11 @@ export function Text({
         strong && !code && textStrong,
         code && textCode,
         mark && textMark,
+        clamped && lines === 1 && ellipsisSingle,
         className,
       ]}
+      style={clamped && lines > 1 ? lineClampStyle(lines) : undefined}
+      title={ellipsisTitle(ellipsis, children)}
     >
       {children}
     </Tag>
@@ -102,6 +155,8 @@ export function Text({
 
 // Paragraph
 type ParagraphProps = {
+  /** Same truncation contract as `Text.ellipsis`. */
+  ellipsis?: TextEllipsis;
   className?: string;
   children: ReactNode;
 };
@@ -114,12 +169,23 @@ const paragraphBase = css`
   margin: 0 0 var(--haze-space-4);
 `;
 
-export function Paragraph({ className, children }: ParagraphProps) {
+export function Paragraph({ ellipsis, className, children }: ParagraphProps) {
+  const clamped = Boolean(ellipsis);
+  const lines = ellipsisLines(ellipsis);
+
   return (
-    <p x-class={[paragraphBase, className]}>
+    <p
+      x-class={[
+        paragraphBase,
+        clamped && lines === 1 && ellipsisSingle,
+        className,
+      ]}
+      style={clamped && lines > 1 ? lineClampStyle(lines) : undefined}
+      title={ellipsisTitle(ellipsis, children)}
+    >
       {children}
     </p>
   );
 }
 
-export type { TitleProps, TextProps, ParagraphProps };
+export type { TitleProps, TextProps, ParagraphProps, TextEllipsis };

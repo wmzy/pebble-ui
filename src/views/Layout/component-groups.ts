@@ -18,27 +18,29 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
     group: 'General',
     items: [
       { name: 'Avatar', route: 'avatar' },
-      { name: 'AvatarGroup', route: 'avatargroup' },
+      { name: 'AvatarGroup', route: 'avatar-group' },
       { name: 'Badge', route: 'badge' },
       { name: 'Button', route: 'button' },
       { name: 'Divider', route: 'divider' },
       { name: 'Icon', route: 'icon' },
       { name: 'Tag', route: 'tag' },
-      { name: 'TagGroup', route: 'taggroup' },
+      { name: 'TagGroup', route: 'tag-group' },
       { name: 'Typography', route: 'typography' },
+      { name: 'Ellipsis', route: 'ellipsis' },
+      { name: 'CountUp', route: 'count-up' },
     ],
   },
   {
     group: 'Layout',
     items: [
-      { name: 'AspectRatio', route: 'aspectratio' },
-      { name: 'AppShell', route: 'appshell' },
+      { name: 'AspectRatio', route: 'aspect-ratio' },
+      { name: 'AppShell', route: 'app-shell' },
       { name: 'Container', route: 'container' },
       { name: 'Flex', route: 'flex' },
       { name: 'Grid', route: 'grid' },
       { name: 'Masonry', route: 'masonry' },
       { name: 'Resizable', route: 'resizable' },
-      { name: 'ScrollArea', route: 'scrollarea' },
+      { name: 'ScrollArea', route: 'scroll-area' },
       { name: 'Sidebar', route: 'sidebar' },
     ],
   },
@@ -47,18 +49,18 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
     items: [
       { name: 'Cascader', route: 'cascader' },
       { name: 'Checkbox', route: 'checkbox' },
-      { name: 'ColorPicker', route: 'colorpicker' },
+      { name: 'ColorPicker', route: 'color-picker' },
       { name: 'Combobox', route: 'combobox' },
       { name: 'Datepicker', route: 'datepicker' },
-      { name: 'DateRangePicker', route: 'daterangepicker' },
-      { name: 'FileInput', route: 'fileinput' },
+      { name: 'DateRangePicker', route: 'date-range-picker' },
+      { name: 'FileInput', route: 'file-input' },
       { name: 'Form', route: 'form' },
-      { name: 'InlineEdit', route: 'inlineedit' },
+      { name: 'InlineEdit', route: 'inline-edit' },
       { name: 'Input', route: 'input' },
       { name: 'Mentions', route: 'mentions' },
-      { name: 'NumberInput', route: 'numberinput' },
-      { name: 'OTPInput', route: 'otpinput' },
-      { name: 'PasswordInput', route: 'passwordinput' },
+      { name: 'NumberInput', route: 'number-input' },
+      { name: 'OTPInput', route: 'otp-input' },
+      { name: 'PasswordInput', route: 'password-input' },
       { name: 'Radio', route: 'radio' },
       { name: 'Rating', route: 'rating' },
       { name: 'Segmented', route: 'segmented' },
@@ -66,24 +68,25 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
       { name: 'Signature', route: 'signature' },
       { name: 'Slider', route: 'slider' },
       { name: 'Switch', route: 'switch' },
-      { name: 'TagInput', route: 'taginput' },
+      { name: 'TagInput', route: 'tag-input' },
       { name: 'Textarea', route: 'textarea' },
-      { name: 'TimePicker', route: 'timepicker' },
+      { name: 'TimePicker', route: 'time-picker' },
       { name: 'Toggle', route: 'toggle' },
       { name: 'Transfer', route: 'transfer' },
+      { name: 'TreeSelect', route: 'tree-select' },
       { name: 'Upload', route: 'upload' },
     ],
   },
   {
     group: 'Overlays',
     items: [
-      { name: 'BottomSheet', route: 'bottomsheet' },
-      { name: 'ConfirmDialog', route: 'confirmdialog' },
-      { name: 'ContextMenu', route: 'contextmenu' },
+      { name: 'BottomSheet', route: 'bottom-sheet' },
+      { name: 'ConfirmDialog', route: 'confirm-dialog' },
+      { name: 'ContextMenu', route: 'context-menu' },
       { name: 'Dialog', route: 'dialog' },
       { name: 'Drawer', route: 'drawer' },
-      { name: 'DropdownMenu', route: 'dropdownmenu' },
-      { name: 'HoverCard', route: 'hovercard' },
+      { name: 'DropdownMenu', route: 'dropdown-menu' },
+      { name: 'HoverCard', route: 'hover-card' },
       { name: 'Menu', route: 'menu' },
       { name: 'Popover', route: 'popover' },
       { name: 'Tooltip', route: 'tooltip' },
@@ -98,19 +101,20 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
       { name: 'Carousel', route: 'carousel' },
       { name: 'Chart', route: 'chart' },
       { name: 'Chip', route: 'chip' },
-      { name: 'CodeBlock', route: 'codeblock' },
+      { name: 'CodeBlock', route: 'code-block' },
       { name: 'DataTable', route: 'data-table' },
       { name: 'Descriptions', route: 'descriptions' },
       { name: 'Image', route: 'image' },
-      { name: 'JsonView', route: 'jsonview' },
+      { name: 'JsonView', route: 'json-view' },
       { name: 'Kbd', route: 'kbd' },
       { name: 'List', route: 'list' },
       { name: 'Progress', route: 'progress' },
+      { name: 'QRCode', route: 'qr-code' },
       { name: 'Stat', route: 'stat' },
       { name: 'Table', route: 'table' },
       { name: 'Timeline', route: 'timeline' },
       { name: 'Tree', route: 'tree' },
-      { name: 'VirtualList', route: 'virtuallist' },
+      { name: 'VirtualList', route: 'virtual-list' },
       { name: 'Watermark', route: 'watermark' },
     ],
   },
@@ -119,11 +123,11 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
     items: [
       { name: 'Affix', route: 'affix' },
       { name: 'Anchor', route: 'anchor' },
-      { name: 'BackToTop', route: 'backtotop' },
+      { name: 'BackToTop', route: 'back-to-top' },
       { name: 'Breadcrumb', route: 'breadcrumb' },
       { name: 'Command', route: 'command' },
-      { name: 'FloatButton', route: 'floatbutton' },
-      { name: 'NavigationBar', route: 'navigationbar' },
+      { name: 'FloatButton', route: 'float-button' },
+      { name: 'NavigationBar', route: 'navigation-bar' },
       { name: 'Pagination', route: 'pagination' },
       { name: 'Stepper', route: 'stepper' },
       { name: 'Tabs', route: 'tabs' },
@@ -135,9 +139,10 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
     group: 'Feedback',
     items: [
       { name: 'Alert', route: 'alert' },
-      { name: 'AsyncSection', route: 'asyncsection' },
+      { name: 'AsyncSection', route: 'async-section' },
       { name: 'Banner', route: 'banner' },
       { name: 'Empty', route: 'empty' },
+      { name: 'Result', route: 'result' },
       { name: 'Skeleton', route: 'skeleton' },
       { name: 'Spinner', route: 'spinner' },
       { name: 'Toast', route: 'toast' },
@@ -146,24 +151,24 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
   {
     group: 'AI & Chat',
     items: [
-      { name: 'ApprovalCard', route: 'approvalcard' },
-      { name: 'ChatContainer', route: 'chatcontainer' },
-      { name: 'ChatInput', route: 'chatinput' },
-      { name: 'ChatMessage', route: 'chatmessage' },
-      { name: 'ConversationList', route: 'conversationlist' },
-      { name: 'DiffViewer', route: 'diffviewer' },
-      { name: 'FilePreview', route: 'filepreview' },
-      { name: 'InlineCompletion', route: 'inlinecompletion' },
-      { name: 'LogViewer', route: 'logviewer' },
-      { name: 'MarkdownRenderer', route: 'markdownrenderer' },
-      { name: 'ModelPicker', route: 'modelpicker' },
-      { name: 'PromptInput', route: 'promptinput' },
+      { name: 'ApprovalCard', route: 'approval-card' },
+      { name: 'ChatContainer', route: 'chat-container' },
+      { name: 'ChatInput', route: 'chat-input' },
+      { name: 'ChatMessage', route: 'chat-message' },
+      { name: 'ConversationList', route: 'conversation-list' },
+      { name: 'DiffViewer', route: 'diff-viewer' },
+      { name: 'FilePreview', route: 'file-preview' },
+      { name: 'InlineCompletion', route: 'inline-completion' },
+      { name: 'LogViewer', route: 'log-viewer' },
+      { name: 'MarkdownRenderer', route: 'markdown-renderer' },
+      { name: 'ModelPicker', route: 'model-picker' },
+      { name: 'PromptInput', route: 'prompt-input' },
       { name: 'Sources', route: 'sources' },
-      { name: 'StepTimeline', route: 'steptimeline' },
-      { name: 'StreamingText', route: 'streamingtext' },
-      { name: 'ThinkingIndicator', route: 'thinkingindicator' },
-      { name: 'TokenCounter', route: 'tokencounter' },
-      { name: 'ToolCallCard', route: 'toolcallcard' },
+      { name: 'StepTimeline', route: 'step-timeline' },
+      { name: 'StreamingText', route: 'streaming-text' },
+      { name: 'ThinkingIndicator', route: 'thinking-indicator' },
+      { name: 'TokenCounter', route: 'token-counter' },
+      { name: 'ToolCallCard', route: 'tool-call-card' },
     ],
   },
   {
@@ -172,8 +177,8 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
       { name: 'Collapsible', route: 'collapsible' },
       { name: 'Disclosure', route: 'disclosure' },
       { name: 'Fullscreen', route: 'fullscreen' },
-      { name: 'LocaleProvider', route: 'localeprovider' },
-      { name: 'SwipeAction', route: 'swipeaction' },
+      { name: 'LocaleProvider', route: 'locale-provider' },
+      { name: 'SwipeAction', route: 'swipe-action' },
     ],
   },
 ];
@@ -189,19 +194,19 @@ export const ALIASES: Record<string, string[]> = {
   combobox: ['autocomplete', 'search'],
   'data-table': ['tanstack'],
   drawer: ['panel'],
-  bottomsheet: ['sheet', 'mobile'],
+  'bottom-sheet': ['sheet', 'mobile'],
   tour: ['onboarding', 'guide'],
   toast: ['notification', 'snackbar'],
   banner: ['callout'],
   alert: ['message'],
   kbd: ['shortcut', 'hotkey'],
-  otpinput: ['pin', 'verification'],
+  'otp-input': ['pin', 'verification'],
   upload: ['drag', 'drop'],
   transfer: ['shuttle'],
-  virtuallist: ['virtual', 'windowing'],
-  jsonview: ['json', 'tree'],
+  'virtual-list': ['virtual', 'windowing'],
+  'json-view': ['json', 'tree'],
   masonry: ['columns', 'waterfall'],
-  floatbutton: ['fab'],
+  'float-button': ['fab'],
   signature: ['handwriting', 'pad'],
   sources: ['citations', 'rag'],
   anchor: ['toc', 'scrollspy'],
@@ -210,17 +215,16 @@ export const ALIASES: Record<string, string[]> = {
 };
 
 /*
- * props.json 的 routeKey 与 demo 路由的已知分歧：DataTable 的 routeKey 是
- * 'datatable'（小写连写），而 ComponentDetail 的 demos 注册表与侧边栏链接
- * 用 'data-table'（kebab）。对账时按此表换算。
+ * routeKey 与 demo 路由同源：props.json 的 routeKey 由
+ * scripts/generate-props.mjs 以 kebab(dirName) 生成，与本表的 route
+ * （kebab(name)）天然一致，无需换算表——旧版「小写连写 vs kebab」分歧
+ * （如 datatable vs data-table）已随 kebab 统一消除。
  */
-const ROUTE_FOR_ROUTE_KEY: Record<string, string> = {
-  datatable: 'data-table',
-};
 
 /**
  * 运行时守卫：props.json 里每个 component 恰好归入一组（不重不漏）、
- * 所有 route 全局唯一、ALIASES 的键都能对上某个 route。违反即 throw。
+ * 所有 route 全局唯一且为 kebab-case、ALIASES 的键都能对上某个 route。
+ * 违反即 throw。
  */
 export function assertGroupCoverage(): void {
   const counts = new Map<string, number>();
@@ -236,14 +240,18 @@ export function assertGroupCoverage(): void {
         `component-groups: route "${route}" appears ${count} times across groups`
       );
     }
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(route)) {
+      throw new Error(
+        `component-groups: route "${route}" is not kebab-case`
+      );
+    }
   }
 
   for (const entry of Object.values(generatedProps.components)) {
-    const route = ROUTE_FOR_ROUTE_KEY[entry.routeKey] ?? entry.routeKey;
-    const count = counts.get(route) ?? 0;
+    const count = counts.get(entry.routeKey) ?? 0;
     if (count !== 1) {
       throw new Error(
-        `component-groups: props.json component "${entry.routeKey}" (route "${route}") is covered ${count} times, expected exactly 1`
+        `component-groups: props.json component "${entry.routeKey}" is covered ${count} times, expected exactly 1`
       );
     }
   }

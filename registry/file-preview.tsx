@@ -20,6 +20,7 @@ import { FilePreview } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/file-preview.css';
+import 'haze-ui/css/progress.css';
 
 export { FilePreview };
 export type { FilePreviewProps, FilePreviewFile, FilePreviewStatus } from 'haze-ui';

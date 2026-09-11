@@ -1,6 +1,9 @@
 // tokens
 export { lightTheme, darkTheme } from './tokens/colors';
+export { violetTheme, tealTheme, cyanTheme, orangeTheme, roseTheme } from './tokens/brands';
+export type { BrandTheme } from './tokens/brands';
 export { spacing } from './tokens/spacing';
+export { compact } from './tokens/density';
 export { typography } from './tokens/typography';
 export { TOKEN_REGISTRY, COMPONENT_TOKENS } from './tokens/registry';
 export type { TokenDef } from './tokens/registry';
@@ -100,6 +103,8 @@ export { Datepicker, DatepickerCore } from './components/Datepicker';
 export type { DatepickerProps, DatepickerCoreProps, DatepickerPreset } from './components/Datepicker';
 export { Tree } from './components/Tree';
 export type { TreeProps, TreeNodeData } from './components/Tree';
+export { TreeSelect } from './components/TreeSelect';
+export type { TreeSelectProps } from './components/TreeSelect';
 
 export { Divider } from './components/Divider';
 export type { DividerProps } from './components/Divider';
@@ -107,6 +112,8 @@ export { Spinner } from './components/Spinner';
 export type { SpinnerProps } from './components/Spinner';
 export { Empty } from './components/Empty';
 export type { EmptyProps } from './components/Empty';
+export { Result } from './components/Result';
+export type { ResultProps, ResultStatus } from './components/Result';
 export { Progress } from './components/Progress';
 export type { ProgressProps } from './components/Progress';
 export { Pagination } from './components/Pagination';
@@ -146,8 +153,12 @@ export { Timeline, TimelineItem } from './components/Timeline';
 export type { TimelineProps, TimelineItemProps } from './components/Timeline';
 
 export { Title, Text, Paragraph } from './components/Typography';
-export type { TitleProps, TextProps, ParagraphProps } from './components/Typography';
+export type { TitleProps, TextProps, ParagraphProps, TextEllipsis } from './components/Typography';
 export { Stat, StatGroup } from './components/Stat';
+export { Ellipsis } from './components/Ellipsis';
+export type { EllipsisProps } from './components/Ellipsis';
+export { CountUp } from './components/CountUp';
+export type { CountUpProps } from './components/CountUp';
 export type { StatProps, StatGroupProps } from './components/Stat';
 export { Segmented, SegmentedCore } from './components/Segmented';
 export type { SegmentedProps, SegmentedCoreProps } from './components/Segmented';
@@ -202,7 +213,7 @@ export type { SwipeActionProps } from './components/SwipeAction';
 
 // i18n
 export { default as LocaleProvider, useStrings } from './components/LocaleProvider';
-export { defaultStrings, enUS, zhCN, jaJP, createStrings } from './components/LocaleProvider';
+export { defaultStrings, enUS, zhCN, jaJP, deDE, frFR, esES, itIT, ptBR, ruRU, koKR, arSA, createStrings } from './components/LocaleProvider';
 export type { LocaleProviderProps, HazeStrings } from './components/LocaleProvider';
 export type { DeepPartial } from './components/LocaleProvider';
 
@@ -297,6 +308,8 @@ export { Descriptions } from './components/Descriptions';
 export type { DescriptionsProps, DescriptionsItem } from './components/Descriptions';
 export { JsonView } from './components/JsonView';
 export type { JsonViewProps, MoreLabelFn } from './components/JsonView';
+export { QRCode } from './components/QRCode';
+export type { QRCodeProps, QRCodeLevel } from './components/QRCode';
 export { Sources } from './components/Sources';
 export type { SourcesProps, SourceItem } from './components/Sources';
 export { FilePreview } from './components/FilePreview';

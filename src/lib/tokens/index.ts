@@ -1,5 +1,6 @@
 export {lightTheme, darkTheme} from './colors';
 export {spacing} from './spacing';
+export {compact} from './density';
 export {motion} from './motion';
 export {typography} from './typography';
 export {PRIMITIVES, SEMANTIC_COLOR_TOKENS} from './palette';

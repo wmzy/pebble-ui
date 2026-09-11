@@ -20,6 +20,7 @@ import { Toolbar, ToolbarButton, ToolbarSeparator, ToolbarToggle } from 'haze-ui
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/toolbar.css';
+import 'haze-ui/css/button.css';
 
 export { Toolbar, ToolbarButton, ToolbarSeparator, ToolbarToggle };
 export type { ToolbarProps, ToolbarButtonProps, ToolbarSeparatorProps, ToolbarToggleProps } from 'haze-ui';

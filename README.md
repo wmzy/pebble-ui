@@ -544,6 +544,52 @@ own css manifest. The same items are also installable straight from this
 GitHub repository — see
 [Install via shadcn CLI (GitHub registry)](#install-via-shadcn-cli-github-registry).
 
+## AI / MCP
+
+**`haze-ui-mcp`** — an [MCP server](https://modelcontextprotocol.io) that puts the
+whole component reference in your AI coding agent's tool belt. It serves the
+same docs the site renders (props tables with types/defaults/descriptions,
+import statements, CSS paths, peer deps, the full token registry), so the
+agent never guesses a prop name or a stylesheet path again:
+
+| Tool | What it returns |
+| --- | --- |
+| `haze_list_components` | Every component with its css family and optional peer dependencies |
+| `haze_get_component` | One component's full reference — props tables, import statement, CSS imports. Name matching is case-insensitive and accepts kebab-case (`data-table`) or PascalCase (`DataTable`) |
+| `haze_get_tokens` | The `--haze-*` token registry with light and dark values, optionally filtered by category (`color`, `typography`, `spacing`, `radius`, `shadow`) |
+| `haze_search_docs` | Top-10 ranked matches across component names, css families, prop names and descriptions |
+
+**Claude Code**:
+
+```sh
+claude mcp add haze-ui -- npx haze-ui-mcp
+```
+
+**Cursor** (`.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "haze-ui": {
+      "command": "npx",
+      "args": ["haze-ui-mcp"]
+    }
+  }
+}
+```
+
+The server speaks stdio JSON-RPC and ships its own docs snapshot
+(`dist/mcp-docs.json`, regenerated on every build by
+`scripts/generate-mcp-docs.mjs`) — no project access, no indexing on startup.
+In this repository you can run it directly against the local snapshot:
+
+```sh
+node scripts/generate-mcp-docs.mjs
+node mcp/index.mjs
+```
+
+Point it at a custom snapshot with `HAZE_UI_MCP_DOCS=/path/to/mcp-docs.json`.
+
 ## AI runtime integration (Vercel AI SDK `useChat`)
 
 haze-ui ships the agent chat surface as **presentational** components —

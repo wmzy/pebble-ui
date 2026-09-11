@@ -20,6 +20,8 @@ import { Cascader } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/cascader.css';
+import 'haze-ui/css/spinner.css';
+import 'haze-ui/css/virtual-list.css';
 
 export { Cascader };
 export type { CascaderProps, CascaderOption } from 'haze-ui';

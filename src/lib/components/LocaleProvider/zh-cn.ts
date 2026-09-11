@@ -125,6 +125,10 @@ const zhCN: HazeStrings = {
   empty: {
     description: '暂无数据',
   },
+  ellipsis: {
+    expand: '展开',
+    collapse: '收起',
+  },
   fileInput: {
     label: '选择文件',
   },
@@ -259,6 +263,13 @@ const zhCN: HazeStrings = {
     loadError: '加载失败',
     retry: '重试',
     noMatch: '无匹配项',
+  },
+  treeSelect: {
+    placeholder: '请选择',
+    searchLabel: '搜索节点',
+    searchPlaceholder: '搜索…',
+    clear: '清除',
+    moreTags: '+{count}',
   },
   upload: {
     hint: '将文件拖拽到此处，或点击上传',

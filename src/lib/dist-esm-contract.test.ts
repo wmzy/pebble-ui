@@ -3,6 +3,10 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+// vitest's expect — jest-axe's @types pollution narrows the global one
+// (no message-argument overload); explicit import restores it.
+import { expect } from 'vitest';
+
 import { rscSafeDistPaths } from '../../scripts/rsc-safe.mjs';
 
 // 发布契约：dist 产物必须能被 Node 原生 ESM（以及 vitest 的外置依赖
@@ -114,35 +118,46 @@ distContract('dist 发布契约：Node ESM / vitest 可直接 import', () => {
       expect([...new Set(offenders)].sort()).toEqual([]);
     });
 
-    it('基础 Tag 组件族保持 dnd-free：仅 Sortable* 变体与 utils 原语可触 @dnd-kit', () => {
-      // @dnd-kit 三件套是 optional peers（Chart/recharts 同款契约）：
-      // 基础 TagGroup/TagGroupItem/TagInput/TagInputCore 不得引用它们，
-      // 否则每个消费者都被迫安装 dnd 运行时。只有 Sortable* 变体和
-      // utils/sortable、utils/sortable-shared 两个原语模块允许静态引入。
-      // 名单与产物双向对齐（镜像 RSC-safe 用例的两侧校验）：名单外出现
-      // @dnd-kit 导入违规；名单内已存在的模块却没有引用（陈旧名单）
-      // 同样违规。utils/sortable-handle 的 @dnd-kit 导入是 type-only，
-      // 转译后擦除，故不在名单内。按导入说明符匹配而非裸字符串，避免
-      // 产物里保留的 JSDoc 文字误报。
-      const dndImport = /(?:from|import)\s*["']@dnd-kit[^"']*["']/;
-      const allowlist = new Set([
-        'components/TagGroup/SortableTagGroup.js',
-        'components/TagInput/SortableTagInputCore.js',
-        'utils/sortable.js',
-        'utils/sortable-shared.js',
-      ]);
-      const offenders = jsFiles.filter(
-        (rel) =>
-          !allowlist.has(rel) &&
-          dndImport.test(readFileSync(path.join(distDir, rel), 'utf8'))
-      );
-      expect(offenders).toEqual([]);
-      const stale = [...allowlist].filter(
-        (rel) =>
-          existsSync(path.join(distDir, rel)) &&
-          !dndImport.test(readFileSync(path.join(distDir, rel), 'utf8'))
-      );
-      expect(stale).toEqual([]);
+    it('optional peer 引用面收口：静态引入仅限各 peer 的 allowlist 模块', () => {
+      // @dnd-kit 三件套与 qrcode 都是 optional peers（Chart/recharts 同款
+      // 契约）：基础组件不得引用它们，否则每个消费者都被迫安装对应运行时。
+      // 只有显式 opt-in 模块（Sortable* 变体、utils 原语、QRCode）允许静态
+      // 引入。名单与产物双向对齐（镜像 RSC-safe 用例的两侧校验）：名单外出
+      // 现该 peer 的导入违规；名单内已存在的模块却没有引用（陈旧名单）同样
+      // 违规。utils/sortable-handle 的 @dnd-kit 导入是 type-only，转译后擦
+      // 除，故不在名单内。按导入说明符匹配而非裸字符串，避免产物里保留的
+      // JSDoc 文字误报。
+      const peerImportRules = [
+        {
+          peer: '@dnd-kit',
+          importRe: /(?:from|import)\s*["']@dnd-kit[^"']*["']/,
+          allowlist: new Set([
+            'components/TagGroup/SortableTagGroup.js',
+            'components/TagInput/SortableTagInputCore.js',
+            'utils/sortable.js',
+            'utils/sortable-shared.js',
+          ]),
+        },
+        {
+          peer: 'qrcode',
+          importRe: /(?:from|import)\s*["']qrcode(?:\/[^"']*)?["']/,
+          allowlist: new Set(['components/QRCode/QRCode.js']),
+        },
+      ];
+      for (const { peer, importRe, allowlist } of peerImportRules) {
+        const offenders = jsFiles.filter(
+          (rel) =>
+            !allowlist.has(rel) &&
+            importRe.test(readFileSync(path.join(distDir, rel), 'utf8'))
+        );
+        expect(offenders, `${peer}: imports outside its allowlist`).toEqual([]);
+        const stale = [...allowlist].filter(
+          (rel) =>
+            existsSync(path.join(distDir, rel)) &&
+            !importRe.test(readFileSync(path.join(distDir, rel), 'utf8'))
+        );
+        expect(stale, `${peer}: stale allowlist entries`).toEqual([]);
+      }
     });
 
     it('barrel / form / headless / 有状态组件 / 浮层原语仍注入 use client', () => {

@@ -20,6 +20,9 @@ import { Select, Option, SelectCore, OptionGroup } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/select.css';
+import 'haze-ui/css/chip.css';
+import 'haze-ui/css/spinner.css';
+import 'haze-ui/css/virtual-list.css';
 
 export { Select, Option, SelectCore, OptionGroup };
 export type { SelectProps, OptionProps, SelectCoreProps, OptionGroupProps } from 'haze-ui';

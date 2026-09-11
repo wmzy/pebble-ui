@@ -11,7 +11,14 @@ import {
   LineChart,
   Pie,
   PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
   ResponsiveContainer,
+  Scatter,
+  ScatterChart,
   Tooltip,
   XAxis,
   YAxis,
@@ -40,9 +47,15 @@ export type ResolvedChartSeries = {
  * its matching series element (see `chartElement` / `seriesElement`). */
 export type CartesianChartType = 'line' | 'area' | 'bar';
 
-/** Supported chart shapes — the cartesian families plus `pie`, where each
- * datum is one sector named by the chart's `xKey`. */
-export type ChartType = CartesianChartType | 'pie';
+/** Series-bearing chart shapes: every `ChartSeries` maps onto one recharts
+ * graphical element via `seriesElement`. */
+export type SeriesChartType = CartesianChartType | 'radar' | 'scatter';
+
+/** Supported chart shapes — the cartesian families plus `pie` (each datum
+ * is one sector named by the chart's `xKey`), `radar` (each datum is one
+ * spoke named by `xKey`) and `scatter` (numeric `xKey` vs each series
+ * `key`). */
+export type ChartType = CartesianChartType | 'radar' | 'scatter' | 'pie';
 
 /** One hovered entry as handed to Chart's `renderTooltip` slot. */
 export type ChartTooltipEntry<T = unknown> = {
@@ -109,9 +122,11 @@ export function resolveChartSeries(
 
 /** The recharts series element for one resolved entry. Line and Area carry
  * the token color as `stroke` (Area also fills with it — recharts applies
- * its default 0.6 fill opacity), Bar carries it as `fill`. */
+ * its default 0.6 fill opacity), Bar carries it as `fill`. Radar strokes
+ * and fills its polygon — translucent, so overlapping polygons stay
+ * readable — and Scatter fills its points. */
 export function seriesElement(
-  type: CartesianChartType,
+  type: SeriesChartType,
   entry: ResolvedChartSeries,
   index = 0
 ): ReactElement {
@@ -126,6 +141,19 @@ export function seriesElement(
       return <Bar key={key} dataKey={key} name={label} fill={color} />;
     case 'line':
       return <Line key={key} dataKey={key} name={label} stroke={color} />;
+    case 'radar':
+      return (
+        <Radar
+          key={key}
+          dataKey={key}
+          name={label}
+          stroke={color}
+          fill={color}
+          fillOpacity={0.3}
+        />
+      );
+    case 'scatter':
+      return <Scatter key={key} dataKey={key} name={label} fill={color} />;
   }
 }
 
@@ -186,8 +214,9 @@ export function pieElement(options: {
 }
 
 /** The recharts chart container for `type` (line → LineChart, area →
- * AreaChart, bar → BarChart, pie → PieChart) plotting `data` with the
- * given series children; cartesian containers carry `layout`. */
+ * AreaChart, bar → BarChart, pie → PieChart, radar → RadarChart, scatter
+ * → ScatterChart) plotting `data` with the given series children; cartesian
+ * containers carry `layout`. */
 export function chartElement(
   type: ChartType,
   data: readonly unknown[],
@@ -215,6 +244,10 @@ export function chartElement(
       );
     case 'pie':
       return <PieChart data={data}>{children}</PieChart>;
+    case 'radar':
+      return <RadarChart data={data}>{children}</RadarChart>;
+    case 'scatter':
+      return <ScatterChart data={data}>{children}</ScatterChart>;
   }
 }
 
@@ -305,6 +338,70 @@ export function chartTree(options: {
                 ringCount: series.length,
                 innerRadius,
               })
+            )}
+          </>
+        )}
+      </ResponsiveContainer>
+    );
+  }
+
+  /* Radar is polar: spokes named by xKey, one translucent polygon per
+   * series, and token-styled polar grid/axis chrome instead of the
+   * cartesian grid and X/Y axes. */
+  if (type === 'radar') {
+    return (
+      <ResponsiveContainer width='100%' height='100%'>
+        {chartElement(
+          type,
+          data,
+          <>
+            {showGrid && <PolarGrid stroke={AXIS_STROKE} />}
+            <PolarAngleAxis dataKey={xKey} tick={AXIS_TICK} />
+            <PolarRadiusAxis tick={AXIS_TICK} />
+            {showTooltip && (
+              <Tooltip
+                contentStyle={TOOLTIP_STYLE}
+                content={tooltipContent}
+              />
+            )}
+            {showLegend && <Legend wrapperStyle={LEGEND_STYLE} />}
+            {series.map((entry, index) => seriesElement('radar', entry, index))}
+          </>
+        )}
+      </ResponsiveContainer>
+    );
+  }
+
+  /* Scatter is numeric on both axes: X reads the shared xKey column and
+   * the YAxis stays dataKey-less — recharts resolves a nullish axis
+   * dataKey against each graphical item's own dataKey, so every Scatter
+   * picks up its series key as the Y column while sharing the chart's
+   * single datum-per-point dataset. */
+  if (type === 'scatter') {
+    return (
+      <ResponsiveContainer width='100%' height='100%'>
+        {chartElement(
+          type,
+          data,
+          <>
+            {showGrid && <CartesianGrid stroke={AXIS_STROKE} />}
+            <XAxis
+              type='number'
+              dataKey={xKey}
+              stroke={AXIS_STROKE}
+              tick={AXIS_TICK}
+            />
+            <YAxis type='number' stroke={AXIS_STROKE} tick={AXIS_TICK} />
+            {showTooltip && (
+              <Tooltip
+                cursor={{ stroke: AXIS_STROKE }}
+                contentStyle={TOOLTIP_STYLE}
+                content={tooltipContent}
+              />
+            )}
+            {showLegend && <Legend wrapperStyle={LEGEND_STYLE} />}
+            {series.map((entry, index) =>
+              seriesElement('scatter', entry, index)
             )}
           </>
         )}

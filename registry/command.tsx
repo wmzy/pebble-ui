@@ -20,6 +20,8 @@ import { Command, CommandInput, CommandList, CommandItem, CommandGroup, CommandD
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/command.css';
+import 'haze-ui/css/dialog.css';
+import 'haze-ui/css/kbd.css';
 
 export { Command, CommandInput, CommandList, CommandItem, CommandGroup, CommandDialog };
 export type { CommandProps, CommandInputProps, CommandListProps, CommandItemProps, CommandGroupProps, CommandDialogProps } from 'haze-ui';

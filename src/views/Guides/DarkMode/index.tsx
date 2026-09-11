@@ -257,6 +257,48 @@ export default function DarkModeGuide() {
       </div>
 
       <div className={section}>
+        <h2>Brand presets</h2>
+        <p className={paragraph}>
+          Five preset brand themes ship alongside the default blue:{' '}
+          <code className={inlineCode}>violetTheme</code>,{' '}
+          <code className={inlineCode}>tealTheme</code>,{' '}
+          <code className={inlineCode}>cyanTheme</code>,{' '}
+          <code className={inlineCode}>orangeTheme</code> and{' '}
+          <code className={inlineCode}>roseTheme</code>, each exposing a{' '}
+          <code className={inlineCode}>light</code> and a{' '}
+          <code className={inlineCode}>dark</code> class. A brand class is a{' '}
+          <strong>complete replacement</strong> for{' '}
+          <code className={inlineCode}>lightTheme</code>/
+          <code className={inlineCode}>darkTheme</code> — never stack the two
+          on the same element. Primary, info and focus-ring re-resolve to the
+          brand&apos;s scale; neutrals and success/warning/danger stay put:
+        </p>
+        <CodeBlock language='tsx' className={codeMargin}>
+          {`import { violetTheme, spacing, typography } from 'haze-ui';
+
+// violetTheme.light REPLACES lightTheme — it carries the full token set
+// (primitive scales + semantic aliases + interaction states)
+<div className={\`\${violetTheme.light} \${spacing} \${typography}\`}>
+  <App />
+</div>
+
+// dark works the same way against darkTheme
+<div className={\`\${violetTheme.dark} \${spacing} \${typography}\`}>
+  <App />
+</div>`}
+        </CodeBlock>
+        <div className={note}>
+          Why replacement instead of an overlay: a brand class and{' '}
+          <code className={inlineCode}>lightTheme</code> would declare the
+          same custom properties at the same specificity, leaving the winner
+          to stylesheet emission order. Custom-property overrides must land
+          on the very element that declares them — so the brand classes
+          restate the entire theme (every token the default themes carry)
+          rather than shipping a diff that only works when stacked.
+        </div>
+      </div>
+
+      <div className={section}>
         <h2>useDarkMode — persistence &amp; system following</h2>
         <p className={paragraph}>
           <code className={inlineCode}>useDarkMode</code> is the stateful

@@ -124,6 +124,8 @@ const buildConfig = (() => {
           '@tanstack/react-table',
           // optional peer dependency (Chart's engine) — same rule
           'recharts',
+          // optional peer dependency (QRCode's engine) — same rule
+          'qrcode',
           // optional peer dependencies (drag-and-drop for the sortable
           // TagInput/TagGroup modes) — same rule
           '@dnd-kit/core',
@@ -203,7 +205,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'mcp/**/*.test.mjs'],
     setupFiles: ['./src/test-setup.ts'],
     css: false,
     coverage: {

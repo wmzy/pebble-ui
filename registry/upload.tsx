@@ -20,6 +20,7 @@ import { Upload, UploadCore } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/upload.css';
+import 'haze-ui/css/progress.css';
 
 export { Upload, UploadCore };
 export type { UploadProps, UploadCoreProps, UploadHandle, UploadStatus, UploadFileStatus, UploadRequest, UploadRequestOptions, UploadListItemActions, UploadListItemRender } from 'haze-ui';

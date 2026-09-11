@@ -31,9 +31,12 @@ export const RSC_SAFE_MODULES = new Set([
   // component's dist output imports it.
   'utils/classnames.ts',
   // Design tokens: pure constants plus OKLCH math. In-package imports stay
-  // within the group (palette -> oklch, registry -> oklch + palette).
+  // within the group (palette -> oklch, registry -> oklch + palette,
+  // brands -> palette, density -> spacing types only, erased at emit).
   'tokens/colors.ts',
+  'tokens/brands.ts',
   'tokens/spacing.ts',
+  'tokens/density.ts',
   'tokens/typography.ts',
   'tokens/motion.ts',
   'tokens/palette.ts',

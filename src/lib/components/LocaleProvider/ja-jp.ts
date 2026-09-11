@@ -125,6 +125,10 @@ const jaJP: HazeStrings = {
   empty: {
     description: 'データがありません',
   },
+  ellipsis: {
+    expand: '展開',
+    collapse: '折りたたむ',
+  },
   fileInput: {
     label: 'ファイルを選択',
   },
@@ -259,6 +263,13 @@ const jaJP: HazeStrings = {
     loadError: '読み込みに失敗しました',
     retry: '再試行',
     noMatch: '該当なし',
+  },
+  treeSelect: {
+    placeholder: '選択してください',
+    searchLabel: 'ノードを検索',
+    searchPlaceholder: '検索…',
+    clear: 'クリア',
+    moreTags: '+{count}',
   },
   upload: {
     hint: 'ここにファイルをドラッグ＆ドロップ、またはクリックしてアップロード',

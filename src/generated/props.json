@@ -172,7 +172,7 @@
       "otherTypes": {}
     },
     "AppShell": {
-      "routeKey": "appshell",
+      "routeKey": "app-shell",
       "cssFamily": "app-shell",
       "imports": [
         "AppShell"
@@ -214,7 +214,7 @@
       "otherTypes": {}
     },
     "ApprovalCard": {
-      "routeKey": "approvalcard",
+      "routeKey": "approval-card",
       "cssFamily": "approval-card",
       "imports": [
         "ApprovalCard"
@@ -266,7 +266,7 @@
       "otherTypes": {}
     },
     "AspectRatio": {
-      "routeKey": "aspectratio",
+      "routeKey": "aspect-ratio",
       "cssFamily": "aspect-ratio",
       "imports": [
         "AspectRatio"
@@ -293,7 +293,7 @@
       "otherTypes": {}
     },
     "AsyncSection": {
-      "routeKey": "asyncsection",
+      "routeKey": "async-section",
       "cssFamily": "async-section",
       "imports": [
         "AsyncSection"
@@ -382,7 +382,7 @@
       "otherTypes": {}
     },
     "AvatarGroup": {
-      "routeKey": "avatargroup",
+      "routeKey": "avatar-group",
       "cssFamily": "avatar-group",
       "imports": [
         "AvatarGroup"
@@ -404,7 +404,7 @@
       "otherTypes": {}
     },
     "BackToTop": {
-      "routeKey": "backtotop",
+      "routeKey": "back-to-top",
       "cssFamily": "back-to-top",
       "imports": [
         "BackToTop"
@@ -507,7 +507,7 @@
       "otherTypes": {}
     },
     "BottomSheet": {
-      "routeKey": "bottomsheet",
+      "routeKey": "bottom-sheet",
       "cssFamily": "bottom-sheet",
       "imports": [
         "BottomSheet"
@@ -934,7 +934,7 @@
       "otherTypes": {}
     },
     "ChatContainer": {
-      "routeKey": "chatcontainer",
+      "routeKey": "chat-container",
       "cssFamily": "chat-container",
       "imports": [
         "ChatContainer"
@@ -966,7 +966,7 @@
       "otherTypes": {}
     },
     "ChatInput": {
-      "routeKey": "chatinput",
+      "routeKey": "chat-input",
       "cssFamily": "chat-input",
       "imports": [
         "ChatInput"
@@ -1018,7 +1018,7 @@
       "otherTypes": {}
     },
     "ChatMessage": {
-      "routeKey": "chatmessage",
+      "routeKey": "chat-message",
       "cssFamily": "chat-message",
       "imports": [
         "ChatMessage"
@@ -1177,7 +1177,7 @@
       "otherTypes": {}
     },
     "CodeBlock": {
-      "routeKey": "codeblock",
+      "routeKey": "code-block",
       "cssFamily": "code-block",
       "imports": [
         "CodeBlock"
@@ -1272,7 +1272,7 @@
       "otherTypes": {}
     },
     "ColorPicker": {
-      "routeKey": "colorpicker",
+      "routeKey": "color-picker",
       "cssFamily": "color-picker",
       "imports": [
         "ColorPicker",
@@ -1684,7 +1684,7 @@
       "otherTypes": {}
     },
     "ConfirmDialog": {
-      "routeKey": "confirmdialog",
+      "routeKey": "confirm-dialog",
       "cssFamily": "confirm-dialog",
       "imports": [
         "ConfirmDialog"
@@ -1773,7 +1773,7 @@
       "otherTypes": {}
     },
     "ContextMenu": {
-      "routeKey": "contextmenu",
+      "routeKey": "context-menu",
       "cssFamily": "context-menu",
       "imports": [
         "ContextMenu",
@@ -1862,7 +1862,7 @@
       "otherTypes": {}
     },
     "ConversationList": {
-      "routeKey": "conversationlist",
+      "routeKey": "conversation-list",
       "cssFamily": "conversation-list",
       "imports": [
         "ConversationList",
@@ -1916,8 +1916,55 @@
       },
       "otherTypes": {}
     },
+    "CountUp": {
+      "routeKey": "count-up",
+      "cssFamily": "count-up",
+      "imports": [
+        "CountUp"
+      ],
+      "propsTypes": {
+        "CountUpProps": [
+          {
+            "name": "to",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "from",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "duration",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "decimals",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "format",
+            "type": "(value: number) => string",
+            "required": false
+          },
+          {
+            "name": "autostart",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "DataTable": {
-      "routeKey": "datatable",
+      "routeKey": "data-table",
       "cssFamily": "data-table",
       "imports": [
         "DataTable",
@@ -2142,7 +2189,7 @@
       "otherTypes": {}
     },
     "DateRangePicker": {
-      "routeKey": "daterangepicker",
+      "routeKey": "date-range-picker",
       "cssFamily": "date-range-picker",
       "imports": [
         "DateRangePicker",
@@ -2491,7 +2538,7 @@
       "otherTypes": {}
     },
     "DiffViewer": {
-      "routeKey": "diffviewer",
+      "routeKey": "diff-viewer",
       "cssFamily": "diff-viewer",
       "imports": [
         "DiffViewer"
@@ -2619,7 +2666,7 @@
       "otherTypes": {}
     },
     "DropdownMenu": {
-      "routeKey": "dropdownmenu",
+      "routeKey": "dropdown-menu",
       "cssFamily": "dropdown-menu",
       "imports": [
         "DropdownMenu",
@@ -2776,6 +2823,53 @@
       },
       "otherTypes": {}
     },
+    "Ellipsis": {
+      "routeKey": "ellipsis",
+      "cssFamily": "ellipsis",
+      "imports": [
+        "Ellipsis"
+      ],
+      "propsTypes": {
+        "EllipsisProps": [
+          {
+            "name": "children",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "lines",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "tooltip",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "expandable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "expanded",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "onExpandChange",
+            "type": "(expanded: boolean) => void",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Empty": {
       "routeKey": "empty",
       "cssFamily": "empty",
@@ -2809,7 +2903,7 @@
       "otherTypes": {}
     },
     "FileInput": {
-      "routeKey": "fileinput",
+      "routeKey": "file-input",
       "cssFamily": "file-input",
       "imports": [
         "FileInput"
@@ -2826,7 +2920,7 @@
       "otherTypes": {}
     },
     "FilePreview": {
-      "routeKey": "filepreview",
+      "routeKey": "file-preview",
       "cssFamily": "file-preview",
       "imports": [
         "FilePreview"
@@ -2945,7 +3039,7 @@
       "otherTypes": {}
     },
     "FloatButton": {
-      "routeKey": "floatbutton",
+      "routeKey": "float-button",
       "cssFamily": "float-button",
       "imports": [
         "FloatButton",
@@ -3107,7 +3201,7 @@
       "otherTypes": {}
     },
     "HoverCard": {
-      "routeKey": "hovercard",
+      "routeKey": "hover-card",
       "cssFamily": "hover-card",
       "imports": [
         "HoverCard"
@@ -3260,7 +3354,7 @@
       "otherTypes": {}
     },
     "InlineCompletion": {
-      "routeKey": "inlinecompletion",
+      "routeKey": "inline-completion",
       "cssFamily": "inline-completion",
       "imports": [
         "InlineCompletion"
@@ -3332,7 +3426,7 @@
       "otherTypes": {}
     },
     "InlineEdit": {
-      "routeKey": "inlineedit",
+      "routeKey": "inline-edit",
       "cssFamily": "inline-edit",
       "imports": [
         "InlineEdit"
@@ -3429,7 +3523,7 @@
       "otherTypes": {}
     },
     "JsonView": {
-      "routeKey": "jsonview",
+      "routeKey": "json-view",
       "cssFamily": "json-view",
       "imports": [
         "JsonView"
@@ -3523,7 +3617,7 @@
       "otherTypes": {}
     },
     "LocaleProvider": {
-      "routeKey": "localeprovider",
+      "routeKey": "locale-provider",
       "cssFamily": "locale-provider",
       "imports": [
         "default",
@@ -3532,6 +3626,14 @@
         "enUS",
         "zhCN",
         "jaJP",
+        "deDE",
+        "frFR",
+        "esES",
+        "itIT",
+        "ptBR",
+        "ruRU",
+        "koKR",
+        "arSA",
         "createStrings"
       ],
       "propsTypes": {
@@ -3561,7 +3663,7 @@
       "otherTypes": {}
     },
     "LogViewer": {
-      "routeKey": "logviewer",
+      "routeKey": "log-viewer",
       "cssFamily": "log-viewer",
       "imports": [
         "LogViewer"
@@ -3606,7 +3708,7 @@
       }
     },
     "MarkdownRenderer": {
-      "routeKey": "markdownrenderer",
+      "routeKey": "markdown-renderer",
       "cssFamily": "markdown-renderer",
       "imports": [
         "MarkdownRenderer"
@@ -3850,7 +3952,7 @@
       "otherTypes": {}
     },
     "ModelPicker": {
-      "routeKey": "modelpicker",
+      "routeKey": "model-picker",
       "cssFamily": "model-picker",
       "imports": [
         "ModelPicker"
@@ -3887,7 +3989,7 @@
       "otherTypes": {}
     },
     "NavigationBar": {
-      "routeKey": "navigationbar",
+      "routeKey": "navigation-bar",
       "cssFamily": "navigation-bar",
       "imports": [
         "NavigationBar",
@@ -3947,7 +4049,7 @@
       "otherTypes": {}
     },
     "NumberInput": {
-      "routeKey": "numberinput",
+      "routeKey": "number-input",
       "cssFamily": "number-input",
       "imports": [
         "NumberInput",
@@ -4037,7 +4139,7 @@
       "otherTypes": {}
     },
     "OTPInput": {
-      "routeKey": "otpinput",
+      "routeKey": "otp-input",
       "cssFamily": "otp-input",
       "imports": [
         "OTPInput",
@@ -4139,7 +4241,7 @@
       "otherTypes": {}
     },
     "PasswordInput": {
-      "routeKey": "passwordinput",
+      "routeKey": "password-input",
       "cssFamily": "password-input",
       "imports": [
         "PasswordInput",
@@ -4298,7 +4400,7 @@
       "otherTypes": {}
     },
     "PromptInput": {
-      "routeKey": "promptinput",
+      "routeKey": "prompt-input",
       "cssFamily": "prompt-input",
       "imports": [
         "PromptInput"
@@ -4362,6 +4464,48 @@
           },
           {
             "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "QRCode": {
+      "routeKey": "qr-code",
+      "cssFamily": "qr-code",
+      "imports": [
+        "QRCode"
+      ],
+      "propsTypes": {
+        "QRCodeProps": [
+          {
+            "name": "value",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "size",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "level",
+            "type": "QRCodeLevel",
+            "required": false
+          },
+          {
+            "name": "bordered",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "modulesColor",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "bgColor",
             "type": "string",
             "required": false
           }
@@ -4583,8 +4727,45 @@
       },
       "otherTypes": {}
     },
+    "Result": {
+      "routeKey": "result",
+      "cssFamily": "result",
+      "imports": [
+        "Result"
+      ],
+      "propsTypes": {
+        "ResultProps": [
+          {
+            "name": "status",
+            "type": "ResultStatus",
+            "required": false
+          },
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "title",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "subTitle",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "extra",
+            "type": "ReactNode",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "ScrollArea": {
-      "routeKey": "scrollarea",
+      "routeKey": "scroll-area",
       "cssFamily": "scroll-area",
       "imports": [
         "ScrollArea"
@@ -5346,7 +5527,7 @@
       "otherTypes": {}
     },
     "StepTimeline": {
-      "routeKey": "steptimeline",
+      "routeKey": "step-timeline",
       "cssFamily": "step-timeline",
       "imports": [
         "StepTimeline",
@@ -5441,7 +5622,7 @@
       "otherTypes": {}
     },
     "StreamingText": {
-      "routeKey": "streamingtext",
+      "routeKey": "streaming-text",
       "cssFamily": "streaming-text",
       "imports": [
         "StreamingText"
@@ -5478,7 +5659,7 @@
       "otherTypes": {}
     },
     "SwipeAction": {
-      "routeKey": "swipeaction",
+      "routeKey": "swipe-action",
       "cssFamily": "swipe-action",
       "imports": [
         "SwipeAction"
@@ -5797,13 +5978,31 @@
       "otherTypes": {}
     },
     "TagGroup": {
-      "routeKey": "taggroup",
+      "routeKey": "tag-group",
       "cssFamily": "tag-group",
       "imports": [
         "TagGroup",
-        "TagGroupItem"
+        "TagGroupItem",
+        "SortableTagGroup"
       ],
       "propsTypes": {
+        "SortableTagGroupProps": [
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "onReorder",
+            "type": "(nextOrder: number[]) => void",
+            "required": false
+          }
+        ],
         "TagGroupItemProps": [
           {
             "name": "children",
@@ -5831,29 +6030,125 @@
             "name": "className",
             "type": "string",
             "required": false
-          },
-          {
-            "name": "sortable",
-            "type": "boolean",
-            "required": false
-          },
-          {
-            "name": "onReorder",
-            "type": "(nextOrder: number[]) => void",
-            "required": false
           }
         ]
       },
       "otherTypes": {}
     },
     "TagInput": {
-      "routeKey": "taginput",
+      "routeKey": "tag-input",
       "cssFamily": "tag-input",
       "imports": [
         "TagInput",
-        "TagInputCore"
+        "TagInputCore",
+        "SortableTagInput",
+        "SortableTagInputCore"
       ],
       "propsTypes": {
+        "SortableTagInputCoreProps": [
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "id",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "aria-describedby",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "aria-invalid",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string[]) => void",
+            "required": true
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "value",
+            "type": "string[]",
+            "required": true
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "maxTags",
+            "type": "number",
+            "required": false
+          }
+        ],
+        "SortableTagInputProps": [
+          {
+            "name": "value",
+            "type": "ControlOrValue<string[]>",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string[]) => void",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "maxTags",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "id",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "aria-invalid",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "aria-describedby",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLInputElement>",
+            "required": false
+          }
+        ],
         "TagInputCoreProps": [
           {
             "name": "value",
@@ -5881,8 +6176,13 @@
             "required": false
           },
           {
-            "name": "sortable",
-            "type": "boolean",
+            "name": "renderTag",
+            "type": "(slot: TagSlot) => ReactNode",
+            "required": false
+          },
+          {
+            "name": "wrapTagList",
+            "type": "(list: ReactNode, slot: TagListSlot) => ReactNode",
             "required": false
           },
           {
@@ -5934,11 +6234,6 @@
           },
           {
             "name": "disabled",
-            "type": "boolean",
-            "required": false
-          },
-          {
-            "name": "sortable",
             "type": "boolean",
             "required": false
           },
@@ -6032,7 +6327,7 @@
       "otherTypes": {}
     },
     "ThinkingIndicator": {
-      "routeKey": "thinkingindicator",
+      "routeKey": "thinking-indicator",
       "cssFamily": "thinking-indicator",
       "imports": [
         "ThinkingIndicator"
@@ -6054,7 +6349,7 @@
       "otherTypes": {}
     },
     "TimePicker": {
-      "routeKey": "timepicker",
+      "routeKey": "time-picker",
       "cssFamily": "time-picker",
       "imports": [
         "TimePicker",
@@ -6301,7 +6596,7 @@
       "otherTypes": {}
     },
     "TokenCounter": {
-      "routeKey": "tokencounter",
+      "routeKey": "token-counter",
       "cssFamily": "token-counter",
       "imports": [
         "TokenCounter"
@@ -6333,7 +6628,7 @@
       "otherTypes": {}
     },
     "ToolCallCard": {
-      "routeKey": "toolcallcard",
+      "routeKey": "tool-call-card",
       "cssFamily": "tool-call-card",
       "imports": [
         "ToolCallCard"
@@ -6804,6 +7099,103 @@
         ]
       }
     },
+    "TreeSelect": {
+      "routeKey": "tree-select",
+      "cssFamily": "tree-select",
+      "imports": [
+        "TreeSelect"
+      ],
+      "propsTypes": {
+        "TreeSelectProps": [
+          {
+            "name": "treeData",
+            "type": "TreeNodeData[]",
+            "required": true
+          },
+          {
+            "name": "value",
+            "type": "ControlOrValue<string | string[]>",
+            "required": false
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string | string[]) => void",
+            "required": false
+          },
+          {
+            "name": "placeholder",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "multiple",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "checkStrictly",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "allowClear",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showSearch",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "treeDefaultExpandAll",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "treeExpandedKeys",
+            "type": "ControlOrValue<string[]>",
+            "required": false
+          },
+          {
+            "name": "onTreeExpand",
+            "type": "(expandedKeys: string[], info: { expanded: boolean; node: TreeNodeData; }) => void",
+            "required": false
+          },
+          {
+            "name": "maxTagCount",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "virtualized",
+            "type": "boolean | TreeVirtualizedConfig",
+            "required": false
+          },
+          {
+            "name": "loadData",
+            "type": "(node: TreeNodeData) => Promise<TreeNodeData[]>",
+            "required": false
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement>",
+            "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
     "Typography": {
       "routeKey": "typography",
       "cssFamily": "typography",
@@ -6814,6 +7206,11 @@
       ],
       "propsTypes": {
         "ParagraphProps": [
+          {
+            "name": "ellipsis",
+            "type": "TextEllipsis",
+            "required": false
+          },
           {
             "name": "className",
             "type": "string",
@@ -6844,6 +7241,11 @@
           {
             "name": "mark",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "ellipsis",
+            "type": "TextEllipsis",
             "required": false
           },
           {
@@ -7150,7 +7552,7 @@
       "otherTypes": {}
     },
     "VirtualList": {
-      "routeKey": "virtuallist",
+      "routeKey": "virtual-list",
       "cssFamily": "virtual-list",
       "imports": [
         "VirtualList"
