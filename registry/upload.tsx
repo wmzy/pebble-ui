@@ -23,4 +23,4 @@ import 'haze-ui/css/upload.css';
 import 'haze-ui/css/progress.css';
 
 export { Upload, UploadCore };
-export type { UploadProps, UploadCoreProps, UploadHandle, UploadStatus, UploadFileStatus, UploadRequest, UploadRequestOptions, UploadListItemActions, UploadListItemRender } from 'haze-ui';
+export type { UploadProps, UploadCoreProps, UploadHandle, UploadStatus, UploadFile, UploadValueItem, UploadFileStatus, UploadRequest, UploadRequestOptions, UploadListItemActions, UploadListItemRender } from 'haze-ui';

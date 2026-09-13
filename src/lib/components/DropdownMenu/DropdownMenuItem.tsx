@@ -4,10 +4,22 @@ import { css } from '@linaria/core';
 
 import { useDropdownMenuContext } from './DropdownMenuContext';
 
+import {
+  dropdownMenuItemDanger,
+  dropdownMenuItemIcon,
+  dropdownMenuItemKbd,
+} from './dropdown-menu-item-styles';
+
 type DropdownMenuItemProps = {
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  /** Danger skin for destructive actions: danger-colored text and interaction states. */
+  danger?: boolean;
+  /** Inline-start icon slot; bare `svg` children are sized to 1em by the slot. */
+  icon?: ReactNode;
+  /** Inline-end shortcut hint (e.g. '⌘C'), muted and pushed to the item's end. */
+  kbdLabel?: ReactNode;
   className?: string;
 };
 
@@ -40,7 +52,15 @@ const item = css`
   }
 `;
 
-export default function DropdownMenuItem({ children, onClick, disabled, className }: DropdownMenuItemProps) {
+export default function DropdownMenuItem({
+  children,
+  onClick,
+  disabled,
+  danger = false,
+  icon,
+  kbdLabel,
+  className,
+}: DropdownMenuItemProps) {
   const { setOpen, triggerRef } = useDropdownMenuContext();
 
   const handleClick = () => {
@@ -54,14 +74,18 @@ export default function DropdownMenuItem({ children, onClick, disabled, classNam
 
   return (
     <button
-      x-class={[item, className]}
+      x-class={[item, danger && dropdownMenuItemDanger, className]}
       type="button"
       role="menuitem"
       tabIndex={-1}
       onClick={handleClick}
       disabled={disabled}
     >
+      {icon !== undefined && <span x-class={dropdownMenuItemIcon}>{icon}</span>}
       {children}
+      {kbdLabel !== undefined && (
+        <span x-class={dropdownMenuItemKbd} aria-hidden="true">{kbdLabel}</span>
+      )}
     </button>
   );
 }

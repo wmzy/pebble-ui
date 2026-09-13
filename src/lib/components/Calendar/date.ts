@@ -108,6 +108,13 @@ export function buildMonthCells(
   return cells;
 }
 
+/** ISO 8601 week identity of a civil date: the week number together with
+ * the ISO week-numbering **year** it belongs to. Days at the calendar
+ * year's edges borrow the neighbor year's numbering, so `year` here is
+ * not necessarily the civil date's own year (2025-12-31 is week 1 of
+ * 2026; 2027-01-01 is week 53 of 2026). */
+export type ISOWeek = { year: number; week: number };
+
 /**
  * ISO 8601 week number of a civil date. ISO weeks run Monday–Sunday and
  * week 1 is the week containing the year's first Thursday, so days at the
@@ -124,12 +131,55 @@ export function getISOWeekNumber(
   month: number,
   day: number
 ): number {
+  return getISOWeek(year, month, day).week;
+}
+
+/**
+ * Full ISO 8601 week identity of a civil date (`{@link getISOWeekNumber}`
+ * plus the ISO week-numbering year the week belongs to). Same Thursday
+ * anchoring: the Thursday of a date's Monday–Sunday week carries the ISO
+ * year, which is what `"YYYY-Www"` values (see
+ * {@link formatWeekValue}) number weeks against.
+ */
+export function getISOWeek(
+  year: number,
+  month: number,
+  day: number
+): ISOWeek {
   const weekday = new Date(year, month, day).getDay();
   const isoWeekday = weekday === 0 ? 7 : weekday;
   const thursdayMs = Date.UTC(year, month, day + 4 - isoWeekday);
   const isoYear = new Date(thursdayMs).getUTCFullYear();
   const days = (thursdayMs - Date.UTC(isoYear, 0, 1)) / 86400000;
-  return Math.floor(days / 7) + 1;
+  return { year: isoYear, week: Math.floor(days / 7) + 1 };
+}
+
+/**
+ * Monday of an ISO week as a civil date — the anchor
+ * `picker="week"` derives its month view and row highlight from. January
+ * 4 always sits in week 1 (the first-Thursday rule), so Monday of week 1
+ * is `Jan 4 − (Jan 4's ISO weekday − 1)`; every later week adds whole
+ * seven-day spans. All arithmetic rides UTC milliseconds (whole days, no
+ * DST drift); the result is read back as a civil triple. Weeks beyond the
+ * year's last (52 or 53 per the ISO calendar) resolve into the neighbor
+ * year — callers validate with a `getISOWeek` round-trip (see
+ * {@link parseWeekValue}).
+ */
+export function getISOWeekStartDate(
+  isoYear: number,
+  week: number
+): { year: number; month: number; day: number } {
+  const jan4Weekday = new Date(Date.UTC(isoYear, 0, 4)).getUTCDay();
+  const jan4IsoWeekday = jan4Weekday === 0 ? 7 : jan4Weekday;
+  const mondayMs =
+    Date.UTC(isoYear, 0, 4 - (jan4IsoWeekday - 1)) +
+    (week - 1) * 7 * 86400000;
+  const monday = new Date(mondayMs);
+  return {
+    year: monday.getUTCFullYear(),
+    month: monday.getUTCMonth(),
+    day: monday.getUTCDate(),
+  };
 }
 
 /**
@@ -208,6 +258,38 @@ export function parseYearValue(value: string): { year: number } | null {
   const match = /^(\d{4})$/.exec(value);
   if (!match) return null;
   return { year: Number(match[1]) };
+}
+
+/**
+ * Format an ISO week as the `"YYYY-Www"` string Calendar's
+ * `picker="week"` mode uses as its value (`isoYear` is the ISO
+ * week-numbering year — not necessarily the civil year of every day in
+ * the week — and `week` is 1-based, zero-padded: 2026 week 37 →
+ * `"2026-W37"`). Pure string math; no Date construction.
+ */
+export function formatWeekValue(isoYear: number, week: number): string {
+  return `${isoYear}-W${String(week).padStart(2, '0')}`;
+}
+
+/**
+ * Parse a `"YYYY-Www"` week-picker value (`{@link formatWeekValue}`'s
+ * inverse). Accepts weeks `01`…`53` shape-wise, then rejects the ones
+ * that do not exist in the given ISO year via a round-trip: 2025 is a
+ * 52-week year, so `"2025-W53"` resolves to a Monday that belongs to
+ * 2026 week 1 and is rejected. Anything with another shape
+ * (`"2026-W1"`, `"2026-w05"`, a date/month/quarter serialization) is
+ * rejected outright.
+ */
+export function parseWeekValue(value: string): ISOWeek | null {
+  const match = /^(\d{4})-W(\d{2})$/.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const week = Number(match[2]);
+  if (week < 1 || week > 53) return null;
+  const monday = getISOWeekStartDate(year, week);
+  const identity = getISOWeek(monday.year, monday.month, monday.day);
+  if (identity.year !== year || identity.week !== week) return null;
+  return { year, week };
 }
 
 /**

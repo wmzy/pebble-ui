@@ -153,6 +153,77 @@ test.describe('prefers-reduced-motion', () => {
       await dialog.evaluate((el) => getComputedStyle(el).animationDuration)
     ).toBe('0.2s');
   });
+
+  // Infinite loops (Spinner spin / Skeleton shimmer) run literal periods
+  // outside the motion-token scale, so reduced-motion compliance is a
+  // per-class media block that collapses them to a single 0.01ms
+  // iteration — parked at a recognizable static frame (spinner ring /
+  // muted placeholder block) instead of removed from the DOM.
+  test('spinner loop collapses to one instant iteration under reduce', async ({
+    page,
+  }) => {
+    await gotoAt(page, 'reduce');
+    const computed = await page
+      .locator('#spinner-demo [role="status"]')
+      .evaluate((el) => {
+        const style = getComputedStyle(el);
+        return {
+          duration: style.animationDuration,
+          iterations: style.animationIterationCount,
+        };
+      });
+    expect(parseFloat(computed.duration)).toBeLessThan(0.001);
+    expect(computed.iterations).toBe('1');
+  });
+
+  test('spinner loop keeps its full cycle without reduce', async ({ page }) => {
+    await gotoAt(page, 'no-preference');
+    const computed = await page
+      .locator('#spinner-demo [role="status"]')
+      .evaluate((el) => {
+        const style = getComputedStyle(el);
+        return {
+          duration: style.animationDuration,
+          iterations: style.animationIterationCount,
+        };
+      });
+    expect(computed.duration).toBe('0.8s');
+    expect(computed.iterations).toBe('infinite');
+  });
+
+  test('skeleton shimmer collapses to one instant iteration under reduce', async ({
+    page,
+  }) => {
+    await gotoAt(page, 'reduce');
+    const computed = await page
+      .locator('#skeleton-demo span')
+      .evaluate((el) => {
+        const style = getComputedStyle(el);
+        return {
+          duration: style.animationDuration,
+          iterations: style.animationIterationCount,
+        };
+      });
+    expect(parseFloat(computed.duration)).toBeLessThan(0.001);
+    expect(computed.iterations).toBe('1');
+  });
+
+  test('skeleton shimmer keeps its full cycle without reduce', async ({
+    page,
+  }) => {
+    await gotoAt(page, 'no-preference');
+    const computed = await page
+      .locator('#skeleton-demo span')
+      .evaluate((el) => {
+        const style = getComputedStyle(el);
+        return {
+          duration: style.animationDuration,
+          iterations: style.animationIterationCount,
+        };
+      });
+    expect(computed.duration).toBe('1.5s');
+    expect(computed.iterations).toBe('infinite');
+  });
 });
 
 /**

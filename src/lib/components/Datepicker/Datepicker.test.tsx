@@ -12,6 +12,14 @@ function getMonthLabel(year: number, month: number) {
   });
 }
 
+/* The date-mode header splits the old "Month Year" title into two
+   drill-down buttons — the long month name and the bare year. */
+function getMonthTitleName(month: number) {
+  return new Date(2025, month, 15).toLocaleString('default', {
+    month: 'long',
+  });
+}
+
 function getLocalizedMonthLabel(year: number, month: number, locale: string) {
   return new Intl.DateTimeFormat(locale, {
     month: 'long',
@@ -74,11 +82,13 @@ describe('Datepicker', () => {
     const user = userEvent.setup();
     render(<Datepicker value="2025-01-15" />);
     await user.click(screen.getByPlaceholderText('Select date'));
-    const label = getMonthLabel(2025, 0);
-    expect(screen.getByText(label)).toBeInTheDocument();
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2025, 0) })
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Next month' }));
-    const nextLabel = getMonthLabel(2025, 1);
-    expect(screen.getByText(nextLabel)).toBeInTheDocument();
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2025, 1) })
+    ).toBeInTheDocument();
   });
 
   it('navigates to previous month', async () => {
@@ -86,8 +96,9 @@ describe('Datepicker', () => {
     render(<Datepicker value="2025-02-15" />);
     await user.click(screen.getByPlaceholderText('Select date'));
     await user.click(screen.getByRole('button', { name: 'Previous month' }));
-    const prevLabel = getMonthLabel(2025, 0);
-    expect(screen.getByText(prevLabel)).toBeInTheDocument();
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2025, 0) })
+    ).toBeInTheDocument();
   });
 
   it('disables dates outside min/max range', async () => {
@@ -121,8 +132,9 @@ describe('Datepicker', () => {
     render(<Datepicker value="2025-12-15" />);
     await user.click(screen.getByPlaceholderText('Select date'));
     await user.click(screen.getByRole('button', { name: 'Next month' }));
-    const janLabel = getMonthLabel(2026, 0);
-    expect(screen.getByText(janLabel)).toBeInTheDocument();
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2026, 0) })
+    ).toBeInTheDocument();
   });
 
   it('navigates Jan -> Dec across year boundary', async () => {
@@ -130,8 +142,9 @@ describe('Datepicker', () => {
     render(<Datepicker value="2025-01-15" />);
     await user.click(screen.getByPlaceholderText('Select date'));
     await user.click(screen.getByRole('button', { name: 'Previous month' }));
-    const decLabel = getMonthLabel(2024, 11);
-    expect(screen.getByText(decLabel)).toBeInTheDocument();
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2024, 11) })
+    ).toBeInTheDocument();
   });
 
   it('renders legacy weekday headers in Sunday-first order by default', async () => {
@@ -174,7 +187,9 @@ describe('Datepicker', () => {
     render(<Datepicker value="2025-01-15" locale="zh-CN" />);
     await user.click(screen.getByPlaceholderText('Select date'));
     expect(
-      screen.getByText(getLocalizedMonthLabel(2025, 0, 'zh-CN'))
+      screen.getByRole('grid', {
+        name: getLocalizedMonthLabel(2025, 0, 'zh-CN'),
+      })
     ).toBeInTheDocument();
     expect(getWeekdayHeaders()).toEqual(
       getLocalizedWeekdays('zh-CN', getLocaleWeekStart('zh-CN'))
@@ -286,7 +301,9 @@ describe('DatepickerCore', () => {
       />
     );
     expect(
-      screen.getByText(getLocalizedMonthLabel(2025, 0, 'zh-CN'))
+      screen.getByRole('grid', {
+        name: getLocalizedMonthLabel(2025, 0, 'zh-CN'),
+      })
     ).toBeInTheDocument();
     expect(getWeekdayHeaders()).toEqual(getLocalizedWeekdays('zh-CN', 0));
   });
@@ -543,13 +560,14 @@ describe('Datepicker year quick jump', () => {
     render(<Datepicker value="2025-01-15" />);
     await user.click(screen.getByPlaceholderText('Select date'));
     await user.click(
-      screen.getByRole('button', { name: getMonthLabel(2025, 0) })
+      screen.getByRole('button', { name: getMonthTitleName(0) })
     );
     expect(
       screen.getByRole('grid', { name: 'Select month' })
     ).toBeInTheDocument();
-    // The toolbar year drills into the decade grid.
-    await user.click(screen.getByRole('button', { name: '2025' }));
+    // The toolbar year drills into the decade grid (the header's own
+    // year title matches the same name — take the last match).
+    await user.click(screen.getAllByRole('button', { name: '2025' }).at(-1)!);
     expect(
       screen.getByRole('grid', { name: 'Select year' })
     ).toBeInTheDocument();
@@ -575,7 +593,7 @@ describe('Datepicker year quick jump', () => {
     render(<Datepicker value="2025-01-15" />);
     await user.click(screen.getByPlaceholderText('Select date'));
     const title = screen.getByRole('button', {
-      name: getMonthLabel(2025, 0),
+      name: getMonthTitleName(0),
     });
     title.focus();
     await user.keyboard('{Enter}');
@@ -595,5 +613,313 @@ describe('Datepicker year quick jump', () => {
       screen.getByRole('grid', { name: 'Select month' })
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '2026' })).toBeInTheDocument();
+  });
+});
+
+describe('Datepicker week mode', () => {
+  it('opens the week panel and commits "YYYY-Www" to the trigger', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker picker='week' value='2026-W03' />);
+    const input = screen.getByPlaceholderText('Select date');
+    expect(input).toHaveValue('2026-W03');
+    await user.click(input);
+    // Monday-first grid with the week column, anchored on January 2026.
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2026, 0) })
+    ).toBeInTheDocument();
+    expect(getWeekdayHeaders()).toEqual([
+      'Wk',
+      'Mo',
+      'Tu',
+      'We',
+      'Th',
+      'Fr',
+      'Sa',
+      'Su',
+    ]);
+    await user.click(document.querySelector('[data-haze-day="2026-01-20"]')!);
+    expect(input).toHaveValue('2026-W04');
+  });
+
+  it('has no axe violations in the week mode', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(<Datepicker picker='week' value='2026-W03' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Datepicker header year drill', () => {
+  it('year title opens the year grid; picking returns to the day grid', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker value='2025-01-15' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    await user.click(screen.getByRole('button', { name: '2025' }));
+    expect(
+      screen.getByRole('grid', { name: 'Select year' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('2020 – 2031')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '2028' }));
+    // Back on the day grid of January 2028; committing needs a day pick.
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2028, 0) })
+    ).toBeInTheDocument();
+    const input = screen.getByPlaceholderText('Select date');
+    expect(input).toHaveValue('2025-01-15');
+    await user.click(screen.getAllByText('20')[0]!);
+    expect(input).toHaveValue('2028-01-20');
+  });
+
+  it('month panel: year title drills and a month pick commits "YYYY-MM"', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker picker='month' value='2026-03' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    await user.click(screen.getByRole('button', { name: '2026' }));
+    expect(
+      screen.getByRole('grid', { name: 'Select year' })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '2027' }));
+    expect(
+      screen.getByRole('grid', { name: 'Select month' })
+    ).toBeInTheDocument();
+    const shortMonths = Array.from({ length: 12 }, (_, month) =>
+      new Date(2026, month, 15).toLocaleString('default', {
+        month: 'short',
+      })
+    );
+    await user.click(
+      screen.getByRole('button', { name: shortMonths[5]! })
+    );
+    expect(screen.getByPlaceholderText('Select date')).toHaveValue('2027-06');
+  });
+});
+
+describe('Datepicker showTime seconds', () => {
+  it('serializes picks with seconds when { seconds: true }', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker showTime={{ seconds: true }} value='2025-01-15' />);
+    const input = screen.getByPlaceholderText('Select date');
+    await user.click(input);
+    const time = screen.getByLabelText('Time');
+    // Second precision on the input; a minute-only value pads to :00.
+    expect(time).toHaveAttribute('step', '1');
+    expect(time).toHaveValue('00:00:00');
+    fireEvent.change(time, { target: { value: '09:30:15' } });
+    expect(input).toHaveValue('2025-01-15 09:30:15');
+    await user.click(screen.getAllByText('20')[0]!);
+    expect(input).toHaveValue('2025-01-20 09:30:15');
+  });
+
+  it('round-trips a seconds value back into the time input and highlight', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker showTime={{ seconds: true }} value='2025-01-15 23:45:09' />);
+    const input = screen.getByPlaceholderText('Select date');
+    expect(input).toHaveValue('2025-01-15 23:45:09');
+    await user.click(input);
+    expect(screen.getByLabelText('Time')).toHaveValue('23:45:09');
+    expect(
+      document
+        .querySelector('[data-haze-day="2025-01-15"]')!
+        .closest('[role="gridcell"]')
+    ).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('pads a minute-only value to :00 seconds and drops seconds in minute mode', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(
+      <Datepicker showTime={{ seconds: true }} value='2025-01-15 09:30' />
+    );
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(screen.getByLabelText('Time')).toHaveValue('09:30:00');
+    unmount();
+    render(<Datepicker showTime value='2025-01-15 09:30:45' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    // Minute precision: stray seconds are truncated, no step attribute.
+    expect(screen.getByLabelText('Time')).toHaveValue('09:30');
+    expect(screen.getByLabelText('Time')).not.toHaveAttribute('step');
+  });
+
+  it('parks seconds typed before the first pick', async () => {
+    const user = userEvent.setup();
+    render(<Datepicker showTime={{ seconds: true }} />);
+    const input = screen.getByPlaceholderText('Select date');
+    await user.click(input);
+    fireEvent.change(screen.getByLabelText('Time'), {
+      target: { value: '08:15:42' },
+    });
+    expect(input).toHaveValue('');
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    await user.click(document.querySelector(`[data-haze-day="${today}"]`)!);
+    expect(input).toHaveValue(`${today} 08:15:42`);
+  });
+
+  it('has no axe violations with the seconds time footer', async () => {
+    const { axe } = await import('jest-axe');
+    const user = userEvent.setup();
+    render(<Datepicker showTime={{ seconds: true }} value='2025-01-15' />);
+    await user.click(screen.getByPlaceholderText('Select date'));
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Datepicker custom format/parse', () => {
+  const fmt = (date: Date) =>
+    `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+  const parseCustom = (text: string) => {
+    const match = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(text);
+    if (!match) return null;
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  };
+
+  it('anchors the calendar through parse and serializes picks through format', async () => {
+    const user = userEvent.setup();
+    render(
+      <Datepicker value='2026/3/9' format={fmt} parse={parseCustom} />
+    );
+    const input = screen.getByPlaceholderText('Select date');
+    // The custom-formatted value displays verbatim.
+    expect(input).toHaveValue('2026/3/9');
+    await user.click(input);
+    expect(
+      screen.getByRole('grid', { name: getMonthLabel(2026, 2) })
+    ).toBeInTheDocument();
+    expect(
+      document
+        .querySelector('[data-haze-day="2026-03-09"]')!
+        .closest('[role="gridcell"]')
+    ).toHaveAttribute('aria-selected', 'true');
+    await user.click(document.querySelector('[data-haze-day="2026-03-20"]')!);
+    expect(input).toHaveValue('2026/3/20');
+  });
+
+  it('opens unanchored when parse rejects the value', async () => {
+    const user = userEvent.setup();
+    render(
+      <Datepicker value='not a date' format={fmt} parse={parseCustom} />
+    );
+    await user.click(screen.getByPlaceholderText('Select date'));
+    // No day highlighted; a pick still serializes through format.
+    expect(
+      document.querySelectorAll('[aria-selected="true"]')
+    ).toHaveLength(0);
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    await user.click(document.querySelector(`[data-haze-day="${today}"]`)!);
+    expect(screen.getByPlaceholderText('Select date')).toHaveValue(
+      `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`
+    );
+  });
+
+  it('round-trips the week mode through the format pair', async () => {
+    const user = userEvent.setup();
+    // Custom week label: "Www of YYYY" derived from the week's Monday.
+    const fmtWeek = (date: Date) => {
+      const weekday = date.getDay();
+      const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate() - (weekday === 0 ? 6 : weekday - 1));
+      const thursday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 3);
+      const isoYear = thursday.getFullYear();
+      const days = Math.floor(
+        (Date.UTC(thursday.getFullYear(), thursday.getMonth(), thursday.getDate()) -
+          Date.UTC(isoYear, 0, 1)) / 86400000
+      );
+      return `W${String(Math.floor(days / 7) + 1).padStart(2, '0')} of ${isoYear}`;
+    };
+    const parseWeekCustom = (text: string) => {
+      const match = /^W(\d{2}) of (\d{4})$/.exec(text);
+      if (!match) return null;
+      const jan4 = new Date(Number(match[2]), 0, 4);
+      const jan4Iso = jan4.getDay() === 0 ? 7 : jan4.getDay();
+      return new Date(
+        jan4.getFullYear(),
+        0,
+        4 - (jan4Iso - 1) + (Number(match[1]) - 1) * 7
+      );
+    };
+    render(
+      <Datepicker
+        picker='week'
+        value='W03 of 2026'
+        format={fmtWeek}
+        parse={parseWeekCustom}
+      />
+    );
+    const input = screen.getByPlaceholderText('Select date');
+    expect(input).toHaveValue('W03 of 2026');
+    await user.click(input);
+    // 2026-W03 is Jan 12–18: the Monday's row is selected.
+    expect(
+      document
+        .querySelector('[data-haze-day="2026-01-12"]')!
+        .closest('[role="gridcell"]')
+    ).toHaveAttribute('aria-selected', 'true');
+    await user.click(document.querySelector('[data-haze-day="2026-01-20"]')!);
+    expect(input).toHaveValue('W04 of 2026');
+  });
+
+  it('re-serializes time edits through the format hook', async () => {
+    const user = userEvent.setup();
+    const fmtTime = (date: Date) =>
+      `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    const parseTime = (text: string) => {
+      const match = /^(\d{4})\/(\d{1,2})\/(\d{1,2}) (\d{2}):(\d{2})$/.exec(text);
+      if (!match) return null;
+      return new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4]),
+        Number(match[5])
+      );
+    };
+    render(
+      <Datepicker
+        showTime
+        value='2025/1/15 09:30'
+        format={fmtTime}
+        parse={parseTime}
+      />
+    );
+    const input = screen.getByPlaceholderText('Select date');
+    await user.click(input);
+    expect(screen.getByLabelText('Time')).toHaveValue('09:30');
+    fireEvent.change(screen.getByLabelText('Time'), {
+      target: { value: '10:45' },
+    });
+    expect(input).toHaveValue('2025/1/15 10:45');
+    await user.click(screen.getAllByText('20')[0]!);
+    expect(input).toHaveValue('2025/1/20 10:45');
+  });
+});
+
+describe('Datepicker cellRender', () => {
+  it('forwards cellRender into the panel calendar', async () => {
+    const user = userEvent.setup();
+    render(
+      <Datepicker
+        value='2025-01-15'
+        cellRender={(date) =>
+          date.day === 15 ? <span data-testid='dot'>•</span> : undefined
+        }
+      />
+    );
+    await user.click(screen.getByPlaceholderText('Select date'));
+    expect(
+      document
+        .querySelector('[data-haze-day="2025-01-15"]')!
+        .querySelector('[data-testid="dot"]')
+    ).toBeInTheDocument();
+    expect(
+      document
+        .querySelector('[data-haze-day="2025-01-16"]')!
+        .querySelector('[data-testid="dot"]')
+    ).not.toBeInTheDocument();
   });
 });

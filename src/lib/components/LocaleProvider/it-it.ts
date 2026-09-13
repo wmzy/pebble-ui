@@ -99,6 +99,11 @@ const itIT: HazeStrings = {
   colorPicker: {
     pickColor: 'Scegli colore',
     hexColor: 'Colore esadecimale',
+    saturationBrightness: 'Saturazione e luminosità',
+    hue: 'Tonalità',
+    alpha: 'Opacità',
+    presetsLabel: 'Colori predefiniti',
+    recentColors: 'Colori recenti',
   },
   confirmDialog: {
     confirm: 'Conferma',
@@ -179,6 +184,13 @@ const itIT: HazeStrings = {
   pagination: {
     previous: 'Precedente',
     next: 'Successivo',
+    sizeLabel: 'Elementi per pagina',
+    sizeOption: '{count} per pagina',
+    jumperLabel: 'Vai alla pagina',
+    jumperPrefix: 'Vai alla',
+    jumperSuffix: 'pagina',
+    ellipsisBackward: 'Torna indietro di {count} pagine',
+    ellipsisForward: 'Avanti di {count} pagine',
   },
   passwordInput: {
     label: 'Password',
@@ -235,6 +247,15 @@ const itIT: HazeStrings = {
   },
   thinkingIndicator: {
     text: 'Sto pensando',
+  },
+  timePicker: {
+    now: 'Adesso',
+    hour: 'Ora',
+    minute: 'Minuto',
+    second: 'Secondo',
+    period: 'AM/PM',
+    am: 'AM',
+    pm: 'PM',
   },
   toast: {
     loading: 'Caricamento…',

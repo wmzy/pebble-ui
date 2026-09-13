@@ -12,6 +12,16 @@ const base = css`
   background: var(--haze-color-bg-muted);
   animation: shimmer 1.5s ease-in-out infinite;
 
+  /* WCAG 2.3.3: the shimmer loop period is a literal on purpose (the
+     motion tokens model transition durations, not multi-second cycles),
+     so reduced-motion needs this explicit collapse. A single 0.01ms
+     iteration settles the block at its base opacity: a static muted
+     placeholder, still unmistakably a skeleton. */
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+
   @keyframes shimmer {
     0% {
       opacity: 1;

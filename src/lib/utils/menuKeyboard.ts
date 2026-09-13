@@ -7,8 +7,17 @@ import { getDirection } from './direction';
 /** How long typed characters keep accumulating before the buffer resets. */
 const TYPEAHEAD_WINDOW_MS = 500;
 
-/** Default item selector: enabled menu items inside a menu container. */
-const MENU_ITEM_SELECTOR = '[role="menuitem"]:not([disabled])';
+/**
+ * Default item selector: enabled menu items inside a menu container.
+ * The prefix match includes the checkable variants (`menuitemcheckbox`,
+ * `menuitemradio`) — they are full keyboard citizens: arrows, Home/End,
+ * typeahead and the roving tabindex treat them exactly like plain
+ * `menuitem`s.
+ */
+const MENU_ITEM_SELECTOR = '[role^="menuitem"]:not([disabled])';
+
+/** Item roles whose Space keypress must activate the item natively. */
+const CHECKABLE_MENU_ROLES = new Set(['menuitemcheckbox', 'menuitemradio']);
 
 /** Enabled items inside a container, in DOM order. */
 export function getEnabledMenuItems(
@@ -154,6 +163,18 @@ export function useMenuKeyboard({
             event.ctrlKey ||
             event.metaKey ||
             event.altKey
+          ) {
+            return;
+          }
+          // Space on a checkbox/radio item must reach the native button
+          // activation (the click that toggles it) — treating it as a
+          // typeahead character would swallow the toggle. Plain items
+          // keep the typeahead reading (textContent never starts with a
+          // space, so focus stays put, as before).
+          if (
+            event.key === ' ' &&
+            event.target instanceof Element &&
+            CHECKABLE_MENU_ROLES.has(event.target.getAttribute('role') ?? '')
           ) {
             return;
           }

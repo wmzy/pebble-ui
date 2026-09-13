@@ -1,5 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react';
 
+import { useConfigDefaults } from '../ConfigProvider/useConfigDefaults';
+
 import { base, sizes, squareSizes, variants } from './styles';
 
 /**
@@ -17,11 +19,16 @@ type ButtonProps = {
 
 export default function Button({
   variant = 'solid',
-  size = 'md',
+  size: sizeProp,
   square = false,
   className,
   ...rest
 }: ButtonProps) {
+  // Three tiers: explicit prop → ConfigProvider default → built-in 'md'.
+  // The built-in stays last so a missing provider renders exactly what
+  // Button rendered before the wiring (byte-identical).
+  const config = useConfigDefaults('Button');
+  const size = sizeProp ?? config.size ?? 'md';
   const sizeClass = square ? squareSizes[size] : sizes[size];
   return (
     <button

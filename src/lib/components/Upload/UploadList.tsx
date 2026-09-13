@@ -1,7 +1,9 @@
+import type { ReactNode } from 'react';
 import type {
   UploadEntry,
   UploadListItemActions,
   UploadListItemRender,
+  UploadValueItem,
 } from './types';
 
 import { css } from '@linaria/core';
@@ -13,17 +15,20 @@ import { Progress } from '../Progress';
 type UploadListProps = {
   /** Tracked rows, in value order. */
   entries: UploadEntry[];
-  /** Rendering style of the built-in list: `text` rows (default) or a
+  /** Rendering style of the built-in list: `text` rows (default), a
+   * `picture` text row with a 32px inline thumbnail, or a
    * `picture-card` grid of square thumbnail cards. */
-  listType?: 'text' | 'picture-card';
+  listType?: 'text' | 'picture' | 'picture-card';
   /** Overrides the remove-button label (text rows and picture-card
    * corners alike); defaults to the locale string. */
   removeLabel?: string;
   /** Replaces the default row/cell rendering entirely. */
   itemRender?: UploadListItemRender;
-  onRemove: (file: File) => void;
-  onRetry: (file: File) => void;
-  onCancel: (file: File) => void;
+  /** Click handler for `picture` / `picture-card` thumbnails. */
+  onPreview?: (file: UploadValueItem) => void;
+  onRemove: (file: UploadValueItem) => void;
+  onRetry: (file: UploadValueItem) => void;
+  onCancel: (file: UploadValueItem) => void;
 };
 
 const listBase = css`
@@ -240,11 +245,56 @@ const cardErrorOverlay = css`
   text-align: center;
 `;
 
+// ─── picture (inline thumbnail rows) ────────────────────────────
+
+const picThumb = css`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--haze-space-8);
+  height: var(--haze-space-8);
+  padding: var(--haze-space-1);
+  box-sizing: border-box;
+  border: 1px solid var(--haze-color-border);
+  border-radius: var(--haze-radius-sm);
+  background: var(--haze-color-bg-subtle);
+  color: var(--haze-color-text-muted);
+  overflow: hidden;
+`;
+
+const picThumbImg = css`
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+// ─── thumbnail preview hit area (picture + picture-card) ────────
+
+const previewHit = css`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  cursor: zoom-in;
+
+  &:focus-visible {
+    outline: 2px solid var(--haze-color-focus-ring);
+    outline-offset: 1px;
+  }
+`;
+
 function actionsFor(
   entry: UploadEntry,
-  onRemove: (file: File) => void,
-  onRetry: (file: File) => void,
-  onCancel: (file: File) => void
+  onRemove: (file: UploadValueItem) => void,
+  onRetry: (file: UploadValueItem) => void,
+  onCancel: (file: UploadValueItem) => void
 ): UploadListItemActions {
   return {
     remove: () => onRemove(entry.file),
@@ -253,22 +303,46 @@ function actionsFor(
   };
 }
 
-/** The default row: status icon + name + state text + per-state
- * actions, with the progress bar underneath while uploading/errored. */
+/** Resolves the thumbnail source for one value item: the remote `url`
+ * for `UploadFile` echoes, an object URL for image `File`s (created
+ * once, revoked when the item swaps or the row unmounts), `null` for
+ * everything else (the type-icon fallback). */
+function useThumbSource(file: UploadValueItem): string | null {
+  const isLocalImage = file instanceof File && file.type.startsWith('image/');
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isLocalImage) return;
+    const url = URL.createObjectURL(file);
+    setObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file, isLocalImage]);
+  if (!(file instanceof File)) return file.url ?? null;
+  return objectUrl;
+}
+
+/** The default row: an optional leading thumbnail (the `picture` list
+ * type), status icon + name + state text + per-state actions, with
+ * the progress bar underneath while uploading/errored. Echo entries
+ * (`UploadFile`) sit at a terminal status: they remove but never
+ * retry — there is no local `File` to send again. */
 function DefaultRow({
   entry,
   actions,
   removeLabel,
+  thumb,
 }: {
   entry: UploadEntry;
   actions: UploadListItemActions;
   removeLabel?: string;
+  thumb?: ReactNode;
 }) {
   const strings = useStrings('upload');
   const { file, status, percent } = entry;
+  const isFile = file instanceof File;
   return (
     <>
       <div x-class={[rowBase]}>
+        {thumb}
         {status === 'success' && (
           <span x-class={[statusIcon, successIcon]} role="img" aria-label={strings.success}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -308,7 +382,7 @@ function DefaultRow({
           </button>
         ) : (
           <>
-            {status === 'error' && (
+            {status === 'error' && isFile && (
               <button
                 type="button"
                 x-class={[actionButton]}
@@ -337,7 +411,7 @@ function DefaultRow({
           </>
         )}
       </div>
-      {(status === 'uploading' || status === 'error') && (
+      {(status === 'uploading' || (status === 'error' && isFile)) && (
         <Progress
           value={percent}
           size="sm"
@@ -348,48 +422,107 @@ function DefaultRow({
   );
 }
 
-/** One picture-card cell: an object-URL thumbnail for image files, a
- * type-icon fallback for everything else; the upload mask with live
- * percent, the danger error overlay with retry, and the corner remove
- * button layered on top. */
+/** The 32px inline thumbnail heading a `picture` row: an image when a
+ * source resolves (echo `url` or an object URL), a type icon
+ * otherwise; the whole box turns into the preview hit area when
+ * `onPreview` is wired. */
+function PictureThumb({
+  file,
+  onPreview,
+}: {
+  file: UploadValueItem;
+  onPreview?: (file: UploadValueItem) => void;
+}) {
+  const thumbSrc = useThumbSource(file);
+  const media = thumbSrc ? (
+    <img
+      x-class={[picThumbImg]}
+      src={thumbSrc}
+      alt={onPreview ? '' : file.name}
+    />
+  ) : (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+    </svg>
+  );
+  return (
+    <span x-class={[picThumb]} data-thumb>
+      {onPreview ? (
+        <button
+          type="button"
+          x-class={[previewHit]}
+          aria-label={file.name}
+          data-action="preview"
+          onClick={() => onPreview(file)}
+        >
+          {media}
+        </button>
+      ) : (
+        media
+      )}
+    </span>
+  );
+}
+
+/** One picture-card cell: an image thumbnail (an object URL for image
+ * files, the `url` for echo entries), a type-icon fallback for
+ * everything else; the upload mask with live percent, the danger error
+ * overlay with retry (local files only — echoes carry no `File` to
+ * resend), and the corner remove button layered on top. The media
+ * area doubles as the preview hit area when `onPreview` is wired. */
 function PictureCard({
   entry,
   actions,
   removeLabel,
+  onPreview,
 }: {
   entry: UploadEntry;
   actions: UploadListItemActions;
   removeLabel?: string;
+  onPreview?: (file: UploadValueItem) => void;
 }) {
   const strings = useStrings('upload');
   const { file, status, percent } = entry;
-  const isImage = file.type.startsWith('image/');
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+  const isFile = file instanceof File;
+  const thumbSrc = useThumbSource(file);
 
-  // Blob URL lifecycle: one createObjectURL per file, revoked when the
-  // file swaps or the card unmounts (entry removed / list torn down /
-  // component unmounted) — never leaked.
-  useEffect(() => {
-    if (!isImage) return;
-    const objectUrl = URL.createObjectURL(file);
-    setThumbUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file, isImage]);
+  const media = thumbSrc ? (
+    <img
+      x-class={[cardImage]}
+      src={thumbSrc}
+      alt={onPreview ? '' : file.name}
+    />
+  ) : (
+    <span
+      x-class={[cardFallback]}
+      role={onPreview ? undefined : 'img'}
+      aria-label={onPreview ? undefined : file.name}
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+      </svg>
+      <span x-class={[cardFallbackName]} title={file.name}>
+        {file.name}
+      </span>
+    </span>
+  );
 
   return (
     <>
-      {thumbUrl ? (
-        <img x-class={[cardImage]} src={thumbUrl} alt={file.name} />
+      {onPreview ? (
+        <button
+          type="button"
+          x-class={[previewHit]}
+          aria-label={file.name}
+          data-action="preview"
+          onClick={() => onPreview(file)}
+        >
+          {media}
+        </button>
       ) : (
-        <span x-class={[cardFallback]} role="img" aria-label={file.name}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-          </svg>
-          <span x-class={[cardFallbackName]} title={file.name}>
-            {file.name}
-          </span>
-        </span>
+        media
       )}
       {status === 'uploading' && (
         <div x-class={[cardMask]}>
@@ -405,18 +538,20 @@ function PictureCard({
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <span>{strings.error}</span>
-          <button
-            type="button"
-            x-class={[actionButton]}
-            aria-label={strings.retry}
-            data-action="retry"
-            onClick={actions.retry}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="23 4 23 10 17 10" />
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-            </svg>
-          </button>
+          {isFile && (
+            <button
+              type="button"
+              x-class={[actionButton]}
+              aria-label={strings.retry}
+              data-action="retry"
+              onClick={actions.retry}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            </button>
+          )}
         </div>
       )}
       <button
@@ -441,34 +576,42 @@ export default function UploadList({
   listType = 'text',
   removeLabel,
   itemRender,
+  onPreview,
   onRemove,
   onRetry,
   onCancel,
 }: UploadListProps) {
-  const picture = listType === 'picture-card';
+  const pictureCard = listType === 'picture-card';
+  const pictureRow = listType === 'picture';
   return (
-    <ul x-class={[picture ? cardGrid : listBase]}>
+    <ul x-class={[pictureCard ? cardGrid : listBase]}>
       {entries.map((entry) => {
         const actions = actionsFor(entry, onRemove, onRetry, onCancel);
         return (
           <li
             key={entry.uid}
-            x-class={[picture ? cardBase : itemBase]}
+            x-class={[pictureCard ? cardBase : itemBase]}
             data-status={entry.status}
           >
             {itemRender ? (
               itemRender(entry.file, entry.status, entry.percent, actions)
-            ) : picture ? (
+            ) : pictureCard ? (
               <PictureCard
                 entry={entry}
                 actions={actions}
                 removeLabel={removeLabel}
+                onPreview={onPreview}
               />
             ) : (
               <DefaultRow
                 entry={entry}
                 actions={actions}
                 removeLabel={removeLabel}
+                thumb={
+                  pictureRow ? (
+                    <PictureThumb file={entry.file} onPreview={onPreview} />
+                  ) : undefined
+                }
               />
             )}
           </li>

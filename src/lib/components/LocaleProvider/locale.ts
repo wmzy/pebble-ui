@@ -96,6 +96,11 @@ const defaultStrings = {
   colorPicker: {
     pickColor: 'Pick color',
     hexColor: 'Hex color',
+    saturationBrightness: 'Saturation and brightness',
+    hue: 'Hue',
+    alpha: 'Opacity',
+    presetsLabel: 'Presets',
+    recentColors: 'Recent colors',
   },
   confirmDialog: {
     confirm: 'Confirm',
@@ -176,6 +181,13 @@ const defaultStrings = {
   pagination: {
     previous: 'Previous',
     next: 'Next',
+    sizeLabel: 'Items per page',
+    sizeOption: '{count} / page',
+    jumperLabel: 'Jump to page',
+    jumperPrefix: 'Go to',
+    jumperSuffix: 'page',
+    ellipsisBackward: 'Jump back {count} pages',
+    ellipsisForward: 'Jump forward {count} pages',
   },
   passwordInput: {
     label: 'Password',
@@ -232,6 +244,15 @@ const defaultStrings = {
   },
   thinkingIndicator: {
     text: 'Thinking',
+  },
+  timePicker: {
+    now: 'Now',
+    hour: 'Hour',
+    minute: 'Minute',
+    second: 'Second',
+    period: 'AM/PM',
+    am: 'AM',
+    pm: 'PM',
   },
   toast: {
     loading: 'Loading…',

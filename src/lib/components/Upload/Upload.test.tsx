@@ -1,8 +1,14 @@
-import type { UploadFileStatus, UploadHandle, UploadRequest } from '.';
+import type {
+  UploadFile,
+  UploadFileStatus,
+  UploadHandle,
+  UploadRequest,
+  UploadValueItem,
+} from '.';
 
 import { createRef } from 'react';
 
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import Upload from './Upload';
@@ -1084,6 +1090,470 @@ describe('Upload — picture-card list', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Upload — server file echo (UploadFile)', () => {
+  it('renders echo entries by name with a terminal status and remove action', () => {
+    render(
+      <UploadCore
+        value={[{ name: 'remote.png', url: 'https://cdn.test/remote.png' }]}
+        onChange={() => undefined}
+        showUploadList
+      />
+    );
+    const item = document.querySelector('li[data-status]')!;
+    expect(item).toHaveAttribute('data-status', 'success');
+    expect(screen.getByTitle('remote.png')).toBeInTheDocument();
+    // echo rows never re-enter the pipeline: no retry, no progress bar
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove file' })).toBeInTheDocument();
+  });
+
+  it('renders an explicit error status and still omits the retry button', () => {
+    render(
+      <UploadCore
+        value={[{ name: 'lost.pdf', status: 'error' }]}
+        onChange={() => undefined}
+        showUploadList
+      />
+    );
+    expect(document.querySelector('li[data-status]')!).toHaveAttribute(
+      'data-status',
+      'error'
+    );
+    // no local File to resend — retry is a File-only action
+    expect(screen.queryByRole('button', { name: 'Retry upload' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove file' })).toBeInTheDocument();
+  });
+
+  it('removes an echo through the value channel, returning the remaining list', async () => {
+    const onChange = vi.fn();
+    const echo: UploadFile = { uid: 'srv-1', name: 'remote.png', url: 'https://cdn.test/remote.png' };
+    const local = new File(['1'], 'local.txt', { type: 'text/plain' });
+    const { rerender } = render(
+      <UploadCore value={[echo, local]} onChange={onChange} multiple showUploadList />
+    );
+    // echo row first in value order
+    const rows = Array.from(
+      document.querySelectorAll<HTMLElement>('li[data-status]')
+    );
+    expect(rows).toHaveLength(2);
+    await userEvent.click(
+      within(rows[0]!).getByRole('button', { name: 'Remove file' })
+    );
+    // the echo object comes back out by reference; the local file stays
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenLastCalledWith([local]);
+    rerender(
+      <UploadCore value={[local]} onChange={onChange} multiple showUploadList />
+    );
+    expect(screen.queryByTitle('remote.png')).not.toBeInTheDocument();
+    expect(screen.getByTitle('local.txt')).toBeInTheDocument();
+  });
+
+  it('keeps picks appending after echo entries, preserving them verbatim', async () => {
+    const onChange = vi.fn<(files: UploadValueItem[]) => void>();
+    const echo: UploadFile = { name: 'remote.png', url: 'https://cdn.test/remote.png' };
+    render(
+      <UploadCore value={[echo]} onChange={onChange} multiple showUploadList />
+    );
+    const fresh = new File(['2'], 'fresh.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), fresh);
+    const emitted = onChange.mock.calls.at(-1)![0];
+    expect(emitted).toHaveLength(2);
+    expect(emitted[0]).toBe(echo);
+    expect(emitted[1]).toBe(fresh);
+  });
+
+  it('keeps the list key stable for uid-less echoes across re-renders', () => {
+    const echoA: UploadFile = { name: 'a.png' };
+    const echoB: UploadFile = { name: 'b.png' };
+    const { rerender } = render(
+      <UploadCore value={[echoA, echoB]} onChange={() => undefined} showUploadList />
+    );
+    const liA = screen.getByTitle('a.png').closest('li');
+    const liB = screen.getByTitle('b.png').closest('li');
+    expect(liA).not.toBe(liB);
+
+    // same objects in a fresh array: entries keep their identity, so
+    // React reuses the DOM nodes (an unstable key would remount them)
+    rerender(
+      <UploadCore value={[echoA, echoB]} onChange={() => undefined} showUploadList />
+    );
+    expect(screen.getByTitle('a.png').closest('li')).toBe(liA);
+    expect(screen.getByTitle('b.png').closest('li')).toBe(liB);
+
+    // reordering follows the items, not the position
+    rerender(
+      <UploadCore value={[echoB, echoA]} onChange={() => undefined} showUploadList />
+    );
+    expect(screen.getByTitle('a.png').closest('li')).toBe(liA);
+    expect(screen.getByTitle('b.png').closest('li')).toBe(liB);
+  });
+
+  it('never runs the executor for echo entries (auto mode, upload, uploadAll)', async () => {
+    const ref = createRef<UploadHandle>();
+    const { calls, request } = makeDeferredRequest();
+    const echoError: UploadFile = { name: 'broken.png', status: 'error' };
+    render(
+      <UploadCore
+        ref={ref}
+        value={[echoError]}
+        onChange={() => undefined}
+        request={request}
+        showUploadList
+      />
+    );
+    await flushUploads();
+    // auto mode: terminal status ≠ idle, nothing started
+    expect(calls).toHaveLength(0);
+
+    act(() => ref.current!.upload());
+    await flushUploads();
+    act(() => ref.current!.uploadAll());
+    await flushUploads();
+    // error echoes are skipped by every entry point — there is no File
+    expect(calls).toHaveLength(0);
+  });
+
+  it('uploadAll starts only the local Files of a mixed list in manual mode', async () => {
+    const ref = createRef<UploadHandle>();
+    const { calls, request } = makeDeferredRequest();
+    const echo: UploadFile = { name: 'remote.png', url: 'https://cdn.test/remote.png' };
+    const local = new File(['1'], 'local.txt', { type: 'text/plain' });
+    render(
+      <UploadCore
+        ref={ref}
+        value={[echo, local]}
+        onChange={() => undefined}
+        request={request}
+        manual
+        multiple
+        showUploadList
+      />
+    );
+    await flushUploads();
+    expect(calls).toHaveLength(0);
+
+    act(() => ref.current!.uploadAll());
+    await flushUploads();
+    expect(calls.map((c) => c.file)).toEqual([local]);
+  });
+
+  it('reports echo entries through onStatusChange in value order', () => {
+    const onStatusChange = vi.fn<(files: UploadFileStatus[]) => void>();
+    const echo: UploadFile = { name: 'remote.png', percent: 100 };
+    render(
+      <UploadCore
+        value={[echo]}
+        onChange={() => undefined}
+        showUploadList
+        onStatusChange={onStatusChange}
+      />
+    );
+    expect(onStatusChange.mock.calls.at(-1)![0]).toEqual([
+      { file: echo, status: 'success', percent: 100 },
+    ]);
+  });
+
+  it('echoes reach an itemRender like any local file', () => {
+    const echo: UploadFile = { name: 'remote.png' };
+    render(
+      <UploadCore
+        value={[echo]}
+        onChange={() => undefined}
+        showUploadList={{
+          itemRender: (file, status, percent, actions) => (
+            <div>
+              <span>{`custom:${file.name}:${status}:${percent}`}</span>
+              <button type="button" onClick={actions.remove}>
+                drop
+              </button>
+            </div>
+          ),
+        }}
+      />
+    );
+    expect(screen.getByText('custom:remote.png:success:0')).toBeInTheDocument();
+  });
+
+  it('sugar: uncontrolled Upload renders and removes an echo-only initial value', async () => {
+    render(
+      <Upload
+        value={[{ uid: 'srv-9', name: 'avatar.png', url: 'https://cdn.test/avatar.png' }]}
+        showUploadList
+      />
+    );
+    expect(screen.getByTitle('avatar.png')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Remove file' }));
+    expect(screen.queryByTitle('avatar.png')).not.toBeInTheDocument();
+    expect(document.querySelector('ul')).toBeNull();
+  });
+
+  it('sugar: onChange still reports only the freshly picked Files around echoes', async () => {
+    const onPick = vi.fn();
+    render(
+      <Upload
+        value={[{ name: 'remote.png' }]}
+        multiple
+        showUploadList
+        onChange={onPick}
+      />
+    );
+    const fresh = new File(['1'], 'fresh.txt', { type: 'text/plain' });
+    await userEvent.upload(getFileInput(), fresh);
+    expect(onPick).toHaveBeenCalledTimes(1);
+    expect(onPick).toHaveBeenCalledWith([fresh]);
+  });
+
+  it('has no axe violations for mixed echo and local rows', async () => {
+    const { axe } = await import('jest-axe');
+    const { calls, request } = makeDeferredRequest();
+    // bare value = uncontrolled initial list: the echo rides along while
+    // the fresh pick enters the internal state and uploads
+    render(
+      <Upload
+        value={[{ name: 'remote.png', status: 'error' }]}
+        request={request}
+        multiple
+        showUploadList
+      />
+    );
+    await userEvent.upload(
+      getFileInput(),
+      new File(['1'], 'local.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+    expect(calls).toHaveLength(1);
+    calls[0]!.resolve();
+    await flushUploads();
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Upload — picture list type', () => {
+  // same jsdom gap as the picture-card suite: no Blob URL support
+  const createObjectURL = vi.fn(() => 'blob:row-thumb');
+  const revokeObjectURL = vi.fn();
+
+  beforeEach(() => {
+    createObjectURL.mockClear();
+    revokeObjectURL.mockClear();
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: createObjectURL,
+      configurable: true,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: revokeObjectURL,
+      configurable: true,
+    });
+  });
+  afterEach(() => {
+    delete (URL as { createObjectURL?: unknown }).createObjectURL;
+    delete (URL as { revokeObjectURL?: unknown }).revokeObjectURL;
+  });
+
+  it('renders a text row with a 32px inline thumbnail before the name', async () => {
+    const { request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList listType="picture" />);
+    const image = new File(['img'], 'photo.png', { type: 'image/png' });
+    await userEvent.upload(getFileInput(), image);
+    await flushUploads();
+
+    // inline row (list), not a grid card: same li/item structure as text
+    const item = document.querySelector('li[data-status]')!;
+    const thumb = item.querySelector<HTMLElement>('[data-thumb]')!;
+    expect(thumb.querySelector('img')).not.toBeNull();
+    expect(thumb.querySelector('img')).toHaveAttribute('src', 'blob:row-thumb');
+    expect(createObjectURL).toHaveBeenCalledWith(image);
+    // row keeps the text-list affordances: live percent + cancel
+    expect(screen.getByText('Uploading 0%')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel upload' })).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  it('renders echo url thumbnails and stays on the text-list layout', () => {
+    render(
+      <UploadCore
+        value={[{ name: 'remote.png', url: 'https://cdn.test/remote.png' }]}
+        onChange={() => undefined}
+        showUploadList
+        listType="picture"
+      />
+    );
+    const thumb = document.querySelector<HTMLElement>('[data-thumb]')!;
+    expect(thumb.querySelector('img')).toHaveAttribute(
+      'src',
+      'https://cdn.test/remote.png'
+    );
+    expect(createObjectURL).not.toHaveBeenCalled();
+    expect(screen.getByTitle('remote.png')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove file' })).toBeInTheDocument();
+  });
+
+  it('falls back to a type icon inside the thumb box for non-images', async () => {
+    const { request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList listType="picture" />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['hi'], 'notes.txt', { type: 'text/plain' })
+    );
+    await flushUploads();
+    const thumb = document.querySelector<HTMLElement>('[data-thumb]')!;
+    expect(thumb.querySelector('img')).toBeNull();
+    expect(thumb.querySelector('svg')).not.toBeNull();
+    expect(createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it('revokes the object URL when the row leaves', async () => {
+    const onChange = vi.fn();
+    const { request } = makeDeferredRequest();
+    const image = new File(['img'], 'photo.png', { type: 'image/png' });
+    // manual keeps the row at idle, where the text-row action is remove
+    const { rerender } = render(
+      <UploadCore
+        value={[image]}
+        onChange={onChange}
+        request={request}
+        manual
+        showUploadList
+        listType="picture"
+      />
+    );
+    await flushUploads();
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Remove file' }));
+    rerender(
+      <UploadCore value={[]} onChange={onChange} request={request} showUploadList listType="picture" />
+    );
+    await flushUploads();
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:row-thumb');
+  });
+
+  it('has no axe violations across mixed picture rows', async () => {
+    const { axe } = await import('jest-axe');
+    const { request } = makeDeferredRequest();
+    render(
+      <UploadCore
+        value={[
+          { name: 'remote.png', url: 'https://cdn.test/remote.png' },
+          { name: 'broken.pdf', status: 'error' },
+        ]}
+        onChange={() => undefined}
+        request={request}
+        showUploadList
+        listType="picture"
+        onPreview={() => undefined}
+      />
+    );
+    await flushUploads();
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('Upload — onPreview', () => {
+  const createObjectURL = vi.fn(() => 'blob:preview-thumb');
+  const revokeObjectURL = vi.fn();
+
+  beforeEach(() => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: createObjectURL,
+      configurable: true,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: revokeObjectURL,
+      configurable: true,
+    });
+  });
+  afterEach(() => {
+    delete (URL as { createObjectURL?: unknown }).createObjectURL;
+    delete (URL as { revokeObjectURL?: unknown }).revokeObjectURL;
+  });
+
+  it('picture: fires for the echo item and keeps remove working', async () => {
+    const onChange = vi.fn();
+    const echo: UploadFile = { name: 'remote.png', url: 'https://cdn.test/remote.png' };
+    const onPreview = vi.fn();
+    render(
+      <UploadCore
+        value={[echo]}
+        onChange={onChange}
+        showUploadList
+        listType="picture"
+        onPreview={onPreview}
+      />
+    );
+    const hit = screen.getByRole('button', { name: 'remote.png' });
+    expect(hit).toHaveAttribute('data-action', 'preview');
+    // the media is named by the button — no double announcement
+    expect(hit.querySelector('img')).toHaveAttribute('alt', '');
+
+    await userEvent.click(hit);
+    expect(onPreview).toHaveBeenCalledTimes(1);
+    expect(onPreview).toHaveBeenCalledWith(echo);
+
+    // removing stays an independent action on the same row
+    await userEvent.click(screen.getByRole('button', { name: 'Remove file' }));
+    expect(onChange).toHaveBeenLastCalledWith([]);
+    expect(onPreview).toHaveBeenCalledTimes(1);
+  });
+
+  it('picture-card: the media area previews, the corner remove still removes', async () => {
+    const onChange = vi.fn();
+    const echo: UploadFile = { name: 'remote.png', url: 'https://cdn.test/remote.png' };
+    const onPreview = vi.fn();
+    render(
+      <UploadCore
+        value={[echo]}
+        onChange={onChange}
+        showUploadList
+        listType="picture-card"
+        onPreview={onPreview}
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'remote.png' }));
+    expect(onPreview).toHaveBeenCalledWith(echo);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove file' }));
+    expect(onChange).toHaveBeenLastCalledWith([]);
+  });
+
+  it('does not render a preview hit area without onPreview', async () => {
+    const { request } = makeDeferredRequest();
+    render(<Upload request={request} showUploadList listType="picture-card" />);
+    await userEvent.upload(
+      getFileInput(),
+      new File(['img'], 'a.png', { type: 'image/png' })
+    );
+    await flushUploads();
+    expect(document.querySelector('[data-action="preview"]')).toBeNull();
+    // the plain img keeps its own name
+    expect(document.querySelector('li[data-status] img')).toHaveAttribute('alt', 'a.png');
+  });
+
+  it('preview clicks report local image Files too', async () => {
+    const onPreview = vi.fn();
+    const { request } = makeDeferredRequest();
+    render(
+      <Upload
+        request={request}
+        showUploadList
+        listType="picture"
+        onPreview={onPreview}
+      />
+    );
+    const image = new File(['img'], 'photo.png', { type: 'image/png' });
+    await userEvent.upload(getFileInput(), image);
+    await flushUploads();
+    await userEvent.click(screen.getByRole('button', { name: 'photo.png' }));
+    expect(onPreview).toHaveBeenCalledWith(image);
   });
 });
 

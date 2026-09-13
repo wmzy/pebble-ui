@@ -158,8 +158,8 @@ const input = css`
   padding: var(--haze-space-2) var(--haze-space-3);
   line-height: var(--haze-leading-normal);
   transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+    border-color var(--haze-duration-fast),
+    box-shadow var(--haze-duration-fast);
   box-sizing: border-box;
 
   &:focus {

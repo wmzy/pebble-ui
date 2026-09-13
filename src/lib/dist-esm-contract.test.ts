@@ -135,6 +135,7 @@ distContract('dist 发布契约：Node ESM / vitest 可直接 import', () => {
           allowlist: new Set([
             'components/TagGroup/SortableTagGroup.js',
             'components/TagInput/SortableTagInputCore.js',
+            'components/Tree/SortableTree.js',
             'utils/sortable.js',
             'utils/sortable-shared.js',
           ]),

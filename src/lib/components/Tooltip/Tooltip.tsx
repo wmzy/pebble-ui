@@ -6,6 +6,8 @@ import { css } from '@linaria/core';
 import { useEffect, useId, useMemo, useRef } from 'react';
 import { useControl } from 'react-use-control';
 
+import { useConfigDefaults } from '../ConfigProvider/useConfigDefaults';
+
 import {
   floatingPlacementClasses,
   useFloating,
@@ -53,12 +55,16 @@ const placements = {
 export default function Tooltip({
   content,
   position = 'top',
-  delay = 150,
+  delay: delayProp,
   open: openControl,
   collisionPadding,
   className,
   children,
 }: TooltipProps) {
+  // Three tiers: explicit prop → ConfigProvider default → built-in 150ms
+  // (a missing provider keeps the pre-wiring behavior byte-identical).
+  const config = useConfigDefaults('Tooltip');
+  const delay = delayProp ?? config.delay ?? 150;
   const [open, setOpen] = useControl(openControl, false);
   const id = useId();
   const triggerRef = useRef<HTMLSpanElement>(null);

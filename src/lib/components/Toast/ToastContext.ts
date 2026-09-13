@@ -2,13 +2,30 @@ import type {ReactNode} from 'react';
 
 import {createContext, useContext} from 'react';
 
-type ToastVariant = 'info' | 'success' | 'warning' | 'danger';
+type ToastVariant = 'info' | 'success' | 'warning' | 'danger' | 'loading';
+
+/**
+ * Action button carried by a toast: rendered right of the content and
+ * left of the dismiss ×, as a real focusable `<button>`.
+ */
+type ToastAction = {
+  /** Button label. */
+  label: ReactNode;
+  /** Runs when the action button is activated. */
+  onClick: () => void;
+  /** Dismiss the toast right after `onClick` runs. Default `true`. */
+  close?: boolean;
+};
 
 type ToastItem = {
   id: number;
   variant: ToastVariant;
   content: ReactNode;
   duration: number;
+  /** Action button — omitted renders no button. */
+  action?: ToastAction;
+  /** Bold first line rendered above the content. */
+  title?: ReactNode;
 };
 
 /**
@@ -24,6 +41,10 @@ type ToastUpdateOptions = {
   /** New auto-dismiss budget in ms. Changing it re-arms the countdown
    * from the full value; leaving it out keeps the running countdown. */
   duration?: number;
+  /** Replacement (or first) action button. */
+  action?: ToastAction;
+  /** Replacement (or first) title line. */
+  title?: ReactNode;
 };
 
 /** The `toast.promise` phases whose default copy lives in the locale pack. */
@@ -76,6 +97,8 @@ function applyToastPatch(item: ToastItem, patch: ToastUpdateOptions): ToastItem 
     ...(patch.content !== undefined && {content: patch.content}),
     ...(patch.variant !== undefined && {variant: patch.variant}),
     ...(patch.duration !== undefined && {duration: patch.duration}),
+    ...(patch.action !== undefined && {action: patch.action}),
+    ...(patch.title !== undefined && {title: patch.title}),
   };
 }
 
@@ -104,6 +127,7 @@ export {
   deferredToastCopy,
 };
 export type {
+  ToastAction,
   ToastDeferredCopy,
   ToastDeferredCopyKey,
   ToastItem,

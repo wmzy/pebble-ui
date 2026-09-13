@@ -36,6 +36,7 @@ import TourDemo from './demos/TourDemo';
 import AnchorDemo from './demos/AnchorDemo';
 import WatermarkDemo from './demos/WatermarkDemo';
 import FullscreenDemo from './demos/FullscreenDemo';
+import ConfigProviderDemo from './demos/ConfigProviderDemo';
 import LocaleProviderDemo from './demos/LocaleProviderDemo';
 import ToggleDemo from './demos/ToggleDemo';
 import AppShellDemo from './demos/AppShellDemo';
@@ -373,6 +374,7 @@ const demos: Record<string, () => ReactNode> = {
   watermark: WatermarkDemo,
   fullscreen: FullscreenDemo,
   'locale-provider': LocaleProviderDemo,
+  'config-provider': ConfigProviderDemo,
   toggle: ToggleDemo,
   'app-shell': AppShellDemo,
   chart: ChartDemo,

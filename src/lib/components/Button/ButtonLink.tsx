@@ -4,6 +4,8 @@ import { forwardRef } from 'react';
 
 import { css } from '@linaria/core';
 
+import { useConfigDefaults } from '../ConfigProvider/useConfigDefaults';
+
 import { base, sizes, squareSizes, variants } from './styles';
 
 /**
@@ -49,9 +51,13 @@ const link = css`
 
 export default forwardRef<HTMLAnchorElement, ButtonLinkProps>(
   function ButtonLink(
-    { variant = 'solid', size = 'md', square = false, className, ...rest },
+    { variant = 'solid', size: sizeProp, square = false, className, ...rest },
     ref
   ) {
+    // Same three tiers as Button: prop → ConfigProvider default → 'md'
+    // (missing provider keeps the pre-wiring behavior byte-identical).
+    const config = useConfigDefaults('ButtonLink');
+    const size = sizeProp ?? config.size ?? 'md';
     const sizeClass = square ? squareSizes[size] : sizes[size];
     return (
       <a

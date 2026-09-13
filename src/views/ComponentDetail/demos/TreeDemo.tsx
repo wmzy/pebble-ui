@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import { Tree, type TreeNodeData } from '@/lib';
+import { SortableTree, Tree, type TreeNodeData } from '@/lib';
 
 import PropsTable from '../PropsTable';
 
@@ -9,6 +9,88 @@ import A11yNote from '../A11yNote';
 import { intro, section } from '../styles';
 
 import { CssVarsSection } from './shared';
+
+// ─── SortableTree ───────────────────────────────────────────────
+
+const sortableTreeData: TreeNodeData[] = [
+  {
+    key: 'folder-1',
+    title: 'Folder 1',
+    children: [
+      { key: 'doc-1-1', title: 'Doc 1-1' },
+      { key: 'doc-1-2', title: 'Doc 1-2' },
+    ],
+  },
+  {
+    key: 'folder-2',
+    title: 'Folder 2',
+    children: [
+      { key: 'doc-2-1', title: 'Doc 2-1' },
+      { key: 'doc-2-2', title: 'Doc 2-2' },
+    ],
+  },
+  { key: 'standalone', title: 'Standalone file' },
+];
+
+function findTreeNode(
+  nodes: TreeNodeData[],
+  key: string
+): TreeNodeData | null {
+  for (const node of nodes) {
+    if (node.key === key) return node;
+    if (node.children) {
+      const hit = findTreeNode(node.children, key);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
+/** The onMove contract as a treeData update: detach the node with its
+ *  whole subtree, then splice it into the new parent at `index`. */
+function applyMove(
+  data: TreeNodeData[],
+  info: { key: string; parentKey: string | null; index: number }
+): TreeNodeData[] {
+  const next = data.map((node) => ({
+    ...node,
+    children: node.children ? node.children.slice() : undefined,
+  }));
+  let moved: TreeNodeData | undefined;
+  const detach = (nodes: TreeNodeData[]): boolean => {
+    const at = nodes.findIndex((node) => node.key === info.key);
+    if (at >= 0) {
+      moved = nodes[at];
+      nodes.splice(at, 1);
+      return true;
+    }
+    return nodes.some((node) => {
+      if (!node.children) return false;
+      node.children = node.children.slice();
+      return detach(node.children);
+    });
+  };
+  if (!detach(next) || !moved) return data;
+  const parent =
+    info.parentKey === null ? null : findTreeNode(next, info.parentKey);
+  const target = parent ? (parent.children ??= []) : next;
+  target.splice(Math.min(info.index, target.length), 0, moved);
+  return next;
+}
+
+function SortableTreeExample({ dragHandle }: { dragHandle?: boolean }) {
+  const [data, setData] = useState(sortableTreeData);
+  const [expanded, setExpanded] = useState<string[]>(['folder-1']);
+  return (
+    <SortableTree
+      treeData={data}
+      expandedKeys={expanded}
+      onExpand={setExpanded}
+      dragHandle={dragHandle}
+      onMove={(info) => setData((prev) => applyMove(prev, info))}
+    />
+  );
+}
 
 // ─── Tree ───────────────────────────────────────────────────────
 
@@ -230,6 +312,40 @@ export default function TreeDemo() {
       </div>
 
       <div className={section}>
+        <h2>Sortable (SortableTree)</h2>
+        <p>
+          <code>SortableTree</code> wraps the same tree with drag and drop
+          (backed by the <code>@dnd-kit</code> dependency — the plain{' '}
+          <code>Tree</code> stays free of it). Dropping a row onto another
+          inserts it <strong>right after the target</strong>: a drop on a
+          same-level row reorders, a drop on a child of another folder
+          reparents. The dragged node travels with its <strong>whole
+          subtree</strong>, and a node never drops into its own subtree.
+          State stays controlled and one-way: <code>onMove</code> reports{' '}
+          <code>{'{ key, parentKey, index }'}</code> and you update{' '}
+          <code>treeData</code> — without a handler a drop animates back to
+          the source position. The second example sets{' '}
+          <code>dragHandle</code>: pointer drags start on the leading grip
+          only, while the default whole-row mode keeps clicks, expands and
+          checks untouched through an 8px drag threshold.
+        </p>
+        <div style={{ maxWidth: 320, marginBottom: 16 }}>
+          <SortableTreeExample />
+        </div>
+        <div style={{ maxWidth: 320 }}>
+          <SortableTreeExample dragHandle />
+        </div>
+        <ul>
+          <li>
+            Keyboard sortable on either mode: focus a row, <kbd>Space</kbd>{' '}
+            lifts, <kbd>↑</kbd> / <kbd>↓</kbd> move (rows inside the dragged
+            subtree read as “over itself” — walk past them),{' '}
+            <kbd>Space</kbd> drops, <kbd>Escape</kbd> cancels
+          </li>
+        </ul>
+      </div>
+
+      <div className={section}>
         <h2>Tree Props</h2>
         <PropsTable of='TreeProps' />
       </div>
@@ -237,6 +353,11 @@ export default function TreeDemo() {
       <div className={section}>
         <h2>TreeNodeData</h2>
         <PropsTable of='TreeNodeData' />
+      </div>
+
+      <div className={section}>
+        <h2>SortableTree Props</h2>
+        <PropsTable of='SortableTreeProps' />
       </div>
 
       <div className={section}>
@@ -256,6 +377,12 @@ export default function TreeDemo() {
             <li>
               Roving tabindex: one tab stop per tree, full keyboard operation
               (see Keyboard Navigation above)
+            </li>
+            <li>
+              SortableTree keeps the tree semantics — keyboard drags run on
+              the focused row (<kbd>Space</kbd> lift/drop), the{' '}
+              <code>dragHandle</code> grip is a pointer-only affordance
+              hidden from assistive tech
             </li>
           </ul>
         </A11yNote>

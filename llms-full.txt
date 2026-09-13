@@ -1,7 +1,7 @@
 # Haze UI — Full API Reference
 
 > Complete props reference for all 121 Haze UI components in one
-> file (215 type tables), generated from the library source. Do not
+> file (224 type tables), generated from the library source. Do not
 > edit by hand — regenerate with `node scripts/generate-llms-full.mjs`. For the
 > curated index with overviews, design tokens and architecture notes, see
 > [llms.txt](llms.txt).
@@ -350,6 +350,7 @@ import { Calendar } from 'haze-ui';
 | `rangeStart` | `string` | — | Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting |
 | `rangeEnd` | `string` | — | Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting |
 | `onSelect` | `(date: string) => void` | — |  |
+| `cellRender` | `CalendarCellRender` | — |  |
 
 ## Card
 
@@ -378,6 +379,8 @@ import { Carousel, CarouselSlide } from 'haze-ui';
 | `value` | `ControlOrValue<number>` | — | Active slide index |
 | `autoPlay` | `boolean` | `false` | Auto-advance slides |
 | `interval` | `number` | `5000` | Auto-play interval in ms |
+| `effect` | `'slide' \| 'fade'` | `'slide'` | Transition effect: slide (scroll-snap track) or fade (stacked cross-fade) |
+| `pauseOnHover` | `boolean` | `false` | Pause auto-play while hovered or focused; resume with the remaining time budget |
 | `className` | `string` | — | Additional CSS class |
 | `children` | `ReactNode` | — | CarouselSlide elements |
 
@@ -592,15 +595,34 @@ import { ColorPicker, ColorPickerCore } from 'haze-ui';
 | `className` | `string` | — |  |
 | `ref` | `Ref<HTMLInputElement>` | — |  |
 
+### ColorPickerPanelProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string` | — |  |
+| `onChange` | `(value: string) => void` | — |  |
+| `onCommit` | `(value: string) => void` | — |  |
+| `format` | `ColorFormat` | — |  |
+| `allowAlpha` | `boolean` | — |  |
+| `presets` | `string[]` | — |  |
+| `recentColors` | `string[]` | — |  |
+| `className` | `string` | — |  |
+
 ### ColorPickerProps
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `value` | `ControlOrValue<string>` | — | Controlled color value (hex) |
-| `presets` | `string[]` | — | Array of preset color hex values |
-| `onChange` | `(color: string) => void` | — | Called when color changes |
-| `className` | `string` | — | Additional CSS class |
-| `ref` | `Ref<HTMLInputElement>` | — |  |
+| `value` | `ControlOrValue<string>` | — | Color value in any supported format (hex / rgb / hsl); a bare value is the uncontrolled initial color |
+| `onChange` | `(color: string) => void` | — | Value callback — streams continuously while a drag runs (Slider precedent), serialized in format |
+| `open` | `ControlOrValue<boolean>` | — | Floating panel visibility (controllable; floating mode only) |
+| `inline` | `boolean` | — | Always-visible panel card instead of trigger + floating panel |
+| `format` | `ColorFormat` | — | Serialization format of the text field and emitted values; switching it does not re-emit the current value |
+| `allowAlpha` | `boolean` | — | Adds the alpha rail; opacity below 1 serializes into the value (#rrggbbaa / rgba() / hsla()) |
+| `presets` | `string[]` | — | Preset swatch row above the recent row; any parsable format |
+| `recent` | `boolean` | — | Tracks recently used colors (last 10, newest first) as internal state |
+| `className` | `string` | — | Additional CSS class (the panel card) |
+| `aria-label` | `string` | — | Accessible name of the trigger and the panel; defaults to the locale's "Pick color". Set it when more than one picker is on a page |
+| `ref` | `Ref<HTMLDivElement \| HTMLButtonElement>` | — |  |
 
 ## Combobox
 
@@ -1083,8 +1105,21 @@ import { Drawer } from 'haze-ui';
 ## DropdownMenu
 
 ```jsx
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from 'haze-ui';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuGroup, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from 'haze-ui';
 ```
+
+### DropdownMenuCheckboxItemProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `ControlOrValue<boolean>` | — |  |
+| `onCheckedChange` | `(checked: boolean) => void` | — |  |
+| `disabled` | `boolean` | — |  |
+| `danger` | `boolean` | — |  |
+| `icon` | `ReactNode` | — |  |
+| `kbdLabel` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `children` | `ReactNode` | — |  |
 
 ### DropdownMenuContentProps
 
@@ -1094,6 +1129,14 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 | `align` | `'center' \| 'start' \| 'end'` | `'start'` | Content alignment |
 | `className` | `string` | — | Additional CSS class |
 
+### DropdownMenuGroupProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `children` | `ReactNode` | — |  |
+
 ### DropdownMenuItemProps
 
 | Prop | Type | Default | Description |
@@ -1101,6 +1144,9 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 | `children` | `ReactNode` | — | Item content |
 | `onClick` | `() => void` | — | Called when item is clicked |
 | `disabled` | `boolean` | `false` | Disable the item |
+| `danger` | `boolean` | — |  |
+| `icon` | `ReactNode` | — |  |
+| `kbdLabel` | `ReactNode` | — |  |
 | `className` | `string` | — | Additional CSS class |
 
 ### DropdownMenuProps
@@ -1110,9 +1156,32 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 | `open` | `ControlOrValue<boolean>` | — | Controlled open state |
 | `onOpenChange` | `(open: boolean) => void` | — | Called when open state changes |
 | `collisionPadding` | `CollisionPadding` | — |  |
+| `items` | `MenuDataItem[]` | — |  |
 | `children` | `ReactNode` | — | Trigger and Content elements |
 | `className` | `string` | — | Additional CSS class |
 | `ref` | `Ref<DropdownMenuHandle>` | — |  |
+
+### DropdownMenuRadioGroupProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `ControlOrValue<string>` | — |  |
+| `onValueChange` | `(value: string) => void` | — |  |
+| `label` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `children` | `ReactNode` | — |  |
+
+### DropdownMenuRadioItemProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string` | — |  |
+| `disabled` | `boolean` | — |  |
+| `danger` | `boolean` | — |  |
+| `icon` | `ReactNode` | — |  |
+| `kbdLabel` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `children` | `ReactNode` | — |  |
 
 ### DropdownMenuSeparatorProps
 
@@ -1582,8 +1651,29 @@ import { Mentions, MentionsCore } from 'haze-ui';
 ## Menu
 
 ```jsx
-import { Menu, MenuItem, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } from 'haze-ui';
+import { Menu, MenuItem, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuGroup, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } from 'haze-ui';
 ```
+
+### MenuCheckboxItemProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `ControlOrValue<boolean>` | — |  |
+| `onCheckedChange` | `(checked: boolean) => void` | — |  |
+| `disabled` | `boolean` | — |  |
+| `danger` | `boolean` | — |  |
+| `icon` | `ReactNode` | — |  |
+| `kbdLabel` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `children` | `ReactNode` | — |  |
+
+### MenuGroupProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `children` | `ReactNode` | — |  |
 
 ### MenuItemProps
 
@@ -1591,6 +1681,9 @@ import { Menu, MenuItem, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } 
 | --- | --- | --- | --- |
 | `onSelect` | `() => void` | — | Called when item is selected |
 | `disabled` | `boolean` | `false` | Disable the item |
+| `danger` | `boolean` | — |  |
+| `icon` | `ReactNode` | — |  |
+| `kbdLabel` | `ReactNode` | — |  |
 | `className` | `string` | — | Additional CSS class |
 | `children` | `ReactNode` | — | Item content |
 
@@ -1600,8 +1693,31 @@ import { Menu, MenuItem, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } 
 | --- | --- | --- | --- |
 | `open` | `ControlOrValue<boolean>` | `false` | Whether the menu is open |
 | `trigger` | `ReactNode` | — | Trigger element |
+| `items` | `MenuDataItem[]` | — |  |
 | `className` | `string` | — | Additional CSS class |
 | `children` | `ReactNode` | — | MenuItem and MenuDivider elements |
+
+### MenuRadioGroupProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `ControlOrValue<string>` | — |  |
+| `onValueChange` | `(value: string) => void` | — |  |
+| `label` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `children` | `ReactNode` | — |  |
+
+### MenuRadioItemProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string` | — |  |
+| `disabled` | `boolean` | — |  |
+| `danger` | `boolean` | — |  |
+| `icon` | `ReactNode` | — |  |
+| `kbdLabel` | `ReactNode` | — |  |
+| `className` | `string` | — |  |
+| `children` | `ReactNode` | — |  |
 
 ### MenuSubContentProps
 
@@ -1738,7 +1854,14 @@ import { Pagination } from 'haze-ui';
 | --- | --- | --- | --- |
 | `page` | `ControlOrValue<number>` | — | Current page number (controlled) |
 | `total` | `number` | — | Total number of items |
-| `pageSize` | `number` | `10` | Items per page |
+| `pageSize` | `ControlOrValue<number>` | `10` | Items per page (controlled) |
+| `pageSizeOptions` | `number[]` | — | Page sizes offered by the size changer (showSizeChanger); defaults to [10, 20, 50, 100]. The current pageSize is folded in if missing. |
+| `showSizeChanger` | `boolean` | `false` | Renders a page-size select; changing it resets to page 1 |
+| `showQuickJumper` | `boolean` | `false` | Renders a jump-to-page input that navigates on Enter (clamped to bounds). Ignored in simple mode. |
+| `showTotal` | `(total: number, range: [number, number]) => ReactNode` | — | Renders a summary of the total and the current page's item range |
+| `simple` | `boolean` | `false` | Minimal mode: page input plus prev/next instead of the page list |
+| `ellipsisJump` | `boolean` | `false` | Turns the ellipsis markers into buttons jumping ±5 pages (clamped) |
+| `onPageChange` | `(page: number, pageSize: number) => void` | — | Called for every page jump, ellipsis jump and page-size change |
 | `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Size of pagination buttons |
 | `className` | `string` | — | Additional CSS class |
 | `...rest` | `NavHTMLAttributes` | — | All native nav attributes |
@@ -2172,6 +2295,11 @@ import { Slider, SliderCore } from 'haze-ui';
 | `onChange` | `(value: number \| [number, number]) => void` | — |  |
 | `onNativeChange` | `ChangeEventHandler<HTMLInputElement, HTMLInputElement> \| undefined` | — |  |
 | `range` | `boolean` | — |  |
+| `tooltip` | `boolean` | — |  |
+| `tooltipFormatter` | `(value: number) => ReactNode` | — |  |
+| `marks` | `Record<number, ReactNode>` | — |  |
+| `vertical` | `boolean` | — |  |
+| `step` | `number \| null` | — |  |
 | `className` | `string` | — |  |
 | `aria-label` | `string \| [string, string]` | — |  |
 | `ref` | `Ref<HTMLInputElement>` | — |  |
@@ -2184,10 +2312,14 @@ import { Slider, SliderCore } from 'haze-ui';
 | `range` | `boolean` | — |  |
 | `onValuesChange` | `(value: number \| [number, number]) => void` | — |  |
 | `aria-label` | `string \| [string, string]` | — |  |
+| `tooltip` | `boolean` | `false` | Show a value bubble over the active thumb while dragging or focused (aria-hidden; the native input keeps announcing the value) |
+| `tooltipFormatter` | `(value: number) => ReactNode` | — | Formats the tooltip bubble content; defaults to the raw number |
+| `marks` | `Record<number, ReactNode>` | — | Tick labels under the track; clicking one moves the nearest thumb onto it |
+| `vertical` | `boolean` | `false` | Vertical orientation (bottom-to-top) via `writing-mode: vertical-lr; direction: rtl`; track length defaults to calc(var(--haze-space-16) * 2), override with --haze-slider-track |
+| `step` | `number \| null` | `1` | Step increment; `null` (with `marks`) restricts the selectable values to the mark keys — every change snaps to the nearest mark |
 | `ref` | `Ref<HTMLInputElement>` | — |  |
 | `min` | `number` | `0` | Minimum value |
 | `max` | `number` | `100` | Maximum value |
-| `step` | `number` | `1` | Step increment |
 | `disabled` | `boolean` | `false` | Disable the slider |
 | `className` | `string` | — | Additional CSS class |
 
@@ -2611,10 +2743,18 @@ import { TimePicker, TimePickerCore } from 'haze-ui';
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `value` | `ControlOrValue<string>` | — | Controlled time value |
-| `onChange` | `(value: string) => void` | — | Called when time changes |
+| `value` | `ControlOrValue<string>` | — | Controlled time value — 'HH:mm' or 'HH:mm:ss' per format |
+| `open` | `ControlOrValue<boolean>` | — | Panel visibility; defaults to the trigger's own toggle state |
+| `onChange` | `(value: string) => void` | — | Called when the time changes |
+| `format` | `TimePickerFormat` | `'HH:mm'` | Column granularity and the value's serialization shape; 'HH:mm:ss' adds a second column |
+| `hourStep` | `number` | `1` | Hour column step — only multiples of it are offered (trigger arrows step by it too) |
+| `minuteStep` | `number` | `1` | Minute column step — only multiples of it are offered |
+| `secondStep` | `number` | `1` | Second column step — only multiples of it are offered |
+| `use12Hours` | `boolean` | `false` | Presents a 12-hour clock column plus an AM/PM column; the value stays 24-hour 'HH:mm[:ss]' |
+| `disabledTime` | `(parts: TimeParts) => boolean` | — | Disables candidate times on the columns; each candidate is judged against the currently selected parts of the other fields |
+| `native` | `boolean` | `false` | Falls back to the bare native <input type="time"> form (TimePickerCore); the panel props do not apply |
 | `placeholder` | `string` | — | Input placeholder |
-| `className` | `string` | — | Additional CSS class |
+| `className` | `string` | — | Additional CSS class (on the wrapper; the native form puts it on the input) |
 | `ref` | `Ref<HTMLInputElement>` | — |  |
 | `...rest` | `InputHTMLAttributes` | — | All native input attributes |
 
@@ -2660,11 +2800,14 @@ import { Toast, ToastContainer, useToast, toast } from 'haze-ui';
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `variant` | `'info' \| 'success' \| 'warning' \| 'danger'` | — |  |
-| `onClose` | `() => void` | — |  |
-| `duration` | `number` | — |  |
-| `children` | `ReactNode` | — |  |
-| `classNames` | `ToastClassNames` | — |  |
+| `variant` | `'info' \| 'success' \| 'warning' \| 'danger' \| 'loading'` | `'info'` | Color variant; loading renders the spinner glyph (usually fired via toast.loading()) |
+| `action` | `ToastAction` | — | Action button between the message and the dismiss × — { label, onClick, close? }; close defaults to true (dismisses right after onClick) |
+| `title` | `ReactNode` | — | Bold first line rendered above the message |
+| `onClose` | `() => void` | — | Runs when the toast is dismissed (× button or countdown expiry) |
+| `duration` | `number` | — | Auto-dismiss delay in ms; 0 keeps the toast until dismissed |
+| `children` | `ReactNode` | — | Toast message |
+| `classNames` | `ToastClassNames` | — | Semantic slot classes — viewport (container) / item / content / action / title / close |
+| `className` | `string` | — | Additional CSS class |
 
 ## Toggle
 
@@ -2957,8 +3100,8 @@ import { Upload, UploadCore } from 'haze-ui';
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `value` | `File[]` | — |  |
-| `onChange` | `(files: File[]) => void` | — |  |
+| `value` | `UploadValueItem[]` | — |  |
+| `onChange` | `(files: UploadValueItem[]) => void` | — |  |
 | `accept` | `string` | — |  |
 | `droppable` | `boolean` | — |  |
 | `beforeUpload` | `(file: File) => boolean \| Promise<boolean>` | — |  |
@@ -2972,7 +3115,8 @@ import { Upload, UploadCore } from 'haze-ui';
 | `data` | `Record<string, string \| Blob>` | — |  |
 | `manual` | `boolean` | — |  |
 | `showUploadList` | `boolean \| { itemRender?: UploadListItemRender \| undefined; }` | — |  |
-| `listType` | `'text' \| 'picture-card'` | — |  |
+| `listType` | `'picture' \| 'text' \| 'picture-card'` | — |  |
+| `onPreview` | `(file: UploadValueItem) => void` | — |  |
 | `removeLabel` | `string` | — |  |
 | `directory` | `boolean` | — |  |
 | `onStatusChange` | `(files: UploadFileStatus[]) => void` | — |  |
@@ -2985,18 +3129,19 @@ import { Upload, UploadCore } from 'haze-ui';
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `entries` | `UploadEntry[]` | — |  |
-| `listType` | `'text' \| 'picture-card'` | — |  |
+| `listType` | `'picture' \| 'text' \| 'picture-card'` | — |  |
 | `removeLabel` | `string` | — |  |
 | `itemRender` | `UploadListItemRender` | — |  |
-| `onRemove` | `(file: File) => void` | — |  |
-| `onRetry` | `(file: File) => void` | — |  |
-| `onCancel` | `(file: File) => void` | — |  |
+| `onPreview` | `(file: UploadValueItem) => void` | — |  |
+| `onRemove` | `(file: UploadValueItem) => void` | — |  |
+| `onRetry` | `(file: UploadValueItem) => void` | — |  |
+| `onCancel` | `(file: UploadValueItem) => void` | — |  |
 
 ### UploadProps
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `value` | `ControlOrValue<File[]>` | — |  |
+| `value` | `ControlOrValue<UploadValueItem[]>` | — |  |
 | `accept` | `string` | — | Accepted file types |
 | `droppable` | `boolean` | — |  |
 | `beforeUpload` | `(file: File) => boolean \| Promise<boolean>` | — |  |
@@ -3010,7 +3155,8 @@ import { Upload, UploadCore } from 'haze-ui';
 | `data` | `Record<string, string \| Blob>` | — |  |
 | `manual` | `boolean` | — |  |
 | `showUploadList` | `boolean \| { itemRender?: UploadListItemRender \| undefined; }` | — |  |
-| `listType` | `'text' \| 'picture-card'` | — |  |
+| `listType` | `'picture' \| 'text' \| 'picture-card'` | — |  |
+| `onPreview` | `(file: UploadValueItem) => void` | — |  |
 | `removeLabel` | `string` | — |  |
 | `directory` | `boolean` | — |  |
 | `onStatusChange` | `(files: UploadFileStatus[]) => void` | — |  |
@@ -3031,8 +3177,12 @@ import { VirtualList } from 'haze-ui';
 | --- | --- | --- | --- |
 | `items` | `T[]` | — | Array of items to render |
 | `height` | `number` | — | Container height in px |
+| `width` | `number` | — |  |
 | `itemHeight` | `number` | — | Height of each item in px |
 | `estimatedItemHeight` | `number` | — |  |
+| `columns` | `number` | — |  |
+| `columnWidth` | `number` | — |  |
+| `orientation` | `VirtualListOrientation` | — |  |
 | `groups` | `VirtualListGroup[]` | — |  |
 | `renderItem` | `(item: T, index: number) => ReactNode` | — | Item renderer |
 | `overscan` | `number` | `5` | Extra items to render outside viewport |

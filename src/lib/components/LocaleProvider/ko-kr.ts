@@ -99,6 +99,11 @@ const koKR: HazeStrings = {
   colorPicker: {
     pickColor: '색상 선택',
     hexColor: 'HEX 색상 코드',
+    saturationBrightness: '채도와 명도',
+    hue: '색조',
+    alpha: '불투명도',
+    presetsLabel: '사전 설정 색상',
+    recentColors: '최근 사용한 색상',
   },
   confirmDialog: {
     confirm: '확인',
@@ -179,6 +184,13 @@ const koKR: HazeStrings = {
   pagination: {
     previous: '이전',
     next: '다음',
+    sizeLabel: '페이지당 항목 수',
+    sizeOption: '페이지당 {count}개',
+    jumperLabel: '페이지로 이동',
+    jumperPrefix: '페이지',
+    jumperSuffix: '로 이동',
+    ellipsisBackward: '{count}페이지 뒤로 이동',
+    ellipsisForward: '{count}페이지 앞으로 이동',
   },
   passwordInput: {
     label: '비밀번호',
@@ -235,6 +247,15 @@ const koKR: HazeStrings = {
   },
   thinkingIndicator: {
     text: '생각 중',
+  },
+  timePicker: {
+    now: '지금',
+    hour: '시',
+    minute: '분',
+    second: '초',
+    period: '오전/오후',
+    am: '오전',
+    pm: '오후',
   },
   toast: {
     loading: '불러오는 중…',

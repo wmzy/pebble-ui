@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { css } from '@linaria/core';
 
 import {
@@ -8,14 +8,16 @@ import {
   Input,
   darkTheme,
 } from '@/lib';
+import { createBrandTheme } from '@/lib/tokens';
 import { useDarkMode } from '@/lib/hooks';
 import { intro, page, section } from '@/views/ComponentDetail/styles';
 
 /*
  * Dark mode guide: the two token classes, the useDarkMode hook (storage,
  * system follow, functional updates), a scoped-container live demo, the
- * mode persistence comparison, and next-themes interop (documented only —
- * the demo app deliberately does not depend on next-themes).
+ * mode persistence comparison, next-themes interop (documented only —
+ * the demo app deliberately does not depend on next-themes), and runtime
+ * custom brand themes via createBrandTheme / the haze-ui-theme CLI.
  */
 
 const paragraph = css`
@@ -206,6 +208,72 @@ function ScopedDarkModeDemo() {
   );
 }
 
+/**
+ * Runtime brand theme: createBrandTheme builds the full token set from a
+ * seed hex at runtime; the demo injects the blocks as plain CSS classes and
+ * renders the same island pair under them. Primary/info/focus-ring follow
+ * the seed; neutrals and success/warning/danger stay on the default scales.
+ */
+function RuntimeBrandDemo() {
+  const [draft, setDraft] = useState('#7c3aed');
+  const seed = draft.trim();
+  const valid = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(seed);
+  const theme = useMemo(() => (valid ? createBrandTheme({name: 'demo', light: seed}) : null), [valid, seed]);
+
+  useEffect(() => {
+    if (theme === null) return;
+    const style = document.createElement('style');
+    style.setAttribute('data-haze-demo-brand', '');
+    style.textContent = `.demo-brand-light {\n${theme.light}\n}\n\n.demo-brand-dark {\n${theme.dark}\n}`;
+    document.head.append(style);
+    return () => {
+      style.remove();
+    };
+  }, [theme]);
+
+  return (
+    <div>
+      <Flex gap='var(--haze-space-2)' wrap align='center' style={{marginBottom: 'var(--haze-space-3)'}}>
+        <Input
+          size='sm'
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          aria-label='Brand seed hex'
+          style={{width: 130, fontFamily: 'var(--haze-font-mono)'}}
+        />
+        <span className={demoStatus}>
+          {valid ? 'dark mode derived automatically (oklch l +0.2)' : 'enter a #rgb or #rrggbb hex'}
+        </span>
+      </Flex>
+      <div className={islandRow}>
+        <div className='demo-brand-light'>
+          <div x-class={island}>
+            <strong>demo-brand-light</strong>
+            Generated at runtime from the seed above.
+            <Button size='sm'>Button</Button>
+            <Input size='sm' placeholder='Focus shows the brand ring' aria-label='Runtime brand light input' />
+          </div>
+        </div>
+        <div className='demo-brand-dark'>
+          <div x-class={island}>
+            <strong>demo-brand-dark</strong>
+            Derived dark: same hue, lifted lightness.
+            <Button size='sm'>Button</Button>
+            <Input size='sm' placeholder='Focus shows the brand ring' aria-label='Runtime brand dark input' />
+          </div>
+        </div>
+      </div>
+      <p className={demoCaption}>
+        Try <code className={inlineCode}>&apos;#0066ff&apos;</code>,{' '}
+        <code className={inlineCode}>&apos;#0f766e&apos;</code> or{' '}
+        <code className={inlineCode}>&apos;#c2410c&apos;</code> — the hover,
+        active and subtle states re-resolve with it because they are CSS
+        relative-color formulas over the generated primitives.
+      </p>
+    </div>
+  );
+}
+
 export default function DarkModeGuide() {
   return (
     <div className={page}>
@@ -296,6 +364,56 @@ export default function DarkModeGuide() {
           restate the entire theme (every token the default themes carry)
           rather than shipping a diff that only works when stacked.
         </div>
+      </div>
+
+      <div className={section}>
+        <h2>Custom brand themes at runtime</h2>
+        <p className={paragraph}>
+          When none of the presets match,{' '}
+          <code className={inlineCode}>createBrandTheme</code> builds the
+          same complete theme from your own seed color — one hex for light
+          mode, an optional second for dark. It runs the preset pipeline
+          (primitive 12-step scales, primary/info/focus-ring rerouting,
+          relative-color interaction states), so the result is
+          indistinguishable from a shipped preset:
+        </p>
+        <CodeBlock language='tsx' className={codeMargin}>
+          {`import { createBrandTheme } from 'haze-ui/tokens';
+
+const brand = createBrandTheme({
+  name: 'acme',        // → --haze-acme-1…12 (lowercase kebab)
+  light: '#0066ff',    // light-mode primary seed
+  // dark: '#0a3d99',  // optional — derived from light (oklch l +0.2) if omitted
+  // overrides: {light: {10: '#…'}, dark: {8: '#…'}},  // pin extra anchors
+});
+
+// bare declaration blocks — wrap them in classes once:
+const style = document.createElement('style');
+style.textContent = \`.acme-light { \\\${brand.light} }\\n.acme-dark { \\\${brand.dark} }\`;
+document.head.append(style);`}
+        </CodeBlock>
+        <RuntimeBrandDemo />
+        <div className={note}>
+          Two rules carry over from the presets: the blocks are{' '}
+          <strong>replacements</strong> for{' '}
+          <code className={inlineCode}>lightTheme</code>/
+          <code className={inlineCode}>darkTheme</code> (never stack), and
+          you own contrast — pick a light-mode seed dark enough for white
+          text (the presets&rsquo; step-9 anchors sit near Tailwind&rsquo;s
+          600/700 range for exactly that reason).
+        </div>
+        <p className={paragraph}>
+          Outside React, the{' '}
+          <code className={inlineCode}>haze-ui-theme</code> CLI emits the
+          identical CSS as a file — handy for design handoff or static
+          sites. Brand presets are also exported as W3C design-token JSON
+          via{' '}
+          <code className={inlineCode}>haze-ui/design-tokens/&#123;brand&#125;/&#123;mode&#125;.json</code>.
+        </p>
+        <CodeBlock language='bash' className={codeMargin}>
+          {`npx haze-ui-theme --primary '#0066ff' --name acme --out acme-theme.css
+# → .haze-acme-light / .haze-acme-dark classes, complete token set`}
+        </CodeBlock>
       </div>
 
       <div className={section}>

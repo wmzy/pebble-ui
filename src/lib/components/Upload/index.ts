@@ -5,6 +5,8 @@ export type {UploadCoreProps} from './UploadCore';
 export type {
   UploadHandle,
   UploadStatus,
+  UploadFile,
+  UploadValueItem,
   UploadFileStatus,
   UploadRequest,
   UploadRequestOptions,

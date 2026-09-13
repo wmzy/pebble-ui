@@ -2,6 +2,8 @@
 export { lightTheme, darkTheme } from './tokens/colors';
 export { violetTheme, tealTheme, cyanTheme, orangeTheme, roseTheme } from './tokens/brands';
 export type { BrandTheme } from './tokens/brands';
+export { createBrandTheme, BRAND_FAMILIES, BRAND_SEEDS, buildBrandTheme } from './tokens/palette';
+export type { CreateBrandThemeOptions, BrandThemeCss, BrandSeedOverrides, ScaleSeed } from './tokens/palette';
 export { spacing } from './tokens/spacing';
 export { compact } from './tokens/density';
 export { typography } from './tokens/typography';
@@ -71,14 +73,14 @@ export type {
 } from './components/Breadcrumb';
 export { Disclosure } from './components/Disclosure';
 export type { DisclosureProps } from './components/Disclosure';
-export { Menu, MenuItem, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } from './components/Menu';
-export type { MenuProps, MenuItemProps, MenuSubProps, MenuSubTriggerProps, MenuSubContentProps } from './components/Menu';
+export { Menu, MenuItem, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuGroup, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } from './components/Menu';
+export type { MenuProps, MenuDataItem, MenuItemProps, MenuCheckboxItemProps, MenuRadioGroupProps, MenuRadioItemProps, MenuGroupProps, MenuSubProps, MenuSubTriggerProps, MenuSubContentProps } from './components/Menu';
 export { NumberInput, NumberInputCore } from './components/NumberInput';
 export type { NumberInputProps, NumberInputCoreProps } from './components/NumberInput';
 export { FileInput } from './components/FileInput';
 export type { FileInputProps } from './components/FileInput';
 export { Toast, ToastContainer, useToast, toast } from './components/Toast';
-export type { ToastProps, ToastContainerProps, ToastOptions, ToastVariant, ToastClassNames } from './components/Toast';
+export type { ToastProps, ToastContainerProps, ToastOptions, ToastVariant, ToastAction, ToastClassNames } from './components/Toast';
 export { List, ListItem } from './components/List';
 export type { ListProps, ListItemProps } from './components/List';
 export { Combobox, ComboboxOption, ComboboxGroup } from './components/Combobox';
@@ -101,8 +103,8 @@ export { Carousel, CarouselSlide } from './components/Carousel';
 export type { CarouselProps, CarouselSlideProps } from './components/Carousel';
 export { Datepicker, DatepickerCore } from './components/Datepicker';
 export type { DatepickerProps, DatepickerCoreProps, DatepickerPreset } from './components/Datepicker';
-export { Tree } from './components/Tree';
-export type { TreeProps, TreeNodeData } from './components/Tree';
+export { Tree, SortableTree } from './components/Tree';
+export type { TreeProps, TreeNodeData, SortableTreeProps, SortableTreeMoveInfo } from './components/Tree';
 export { TreeSelect } from './components/TreeSelect';
 export type { TreeSelectProps } from './components/TreeSelect';
 
@@ -144,7 +146,7 @@ export type { CollapsibleProps, CollapsibleTriggerProps, CollapsibleContentProps
 export { Transfer, TransferCore } from './components/Transfer';
 export type { TransferProps, TransferItem, TransferCoreProps } from './components/Transfer';
 export { Upload, UploadCore } from './components/Upload';
-export type { UploadProps, UploadCoreProps, UploadHandle, UploadStatus, UploadFileStatus, UploadRequest, UploadRequestOptions, UploadListItemActions, UploadListItemRender } from './components/Upload';
+export type { UploadProps, UploadCoreProps, UploadHandle, UploadStatus, UploadFile, UploadValueItem, UploadFileStatus, UploadRequest, UploadRequestOptions, UploadListItemActions, UploadListItemRender } from './components/Upload';
 export { ColorPicker, ColorPickerCore } from './components/ColorPicker';
 export type { ColorPickerProps, ColorPickerCoreProps } from './components/ColorPicker';
 export { Rating, RatingCore } from './components/Rating';
@@ -167,7 +169,7 @@ export type { ChipProps } from './components/Chip';
 export { ScrollArea } from './components/ScrollArea';
 export type { ScrollAreaProps } from './components/ScrollArea';
 export { TimePicker, TimePickerCore } from './components/TimePicker';
-export type { TimePickerProps, TimePickerCoreProps } from './components/TimePicker';
+export type { TimePickerProps, TimePickerCoreProps, TimeParts, TimePickerFormat } from './components/TimePicker';
 export { DateRangePicker, DateRangePickerCore } from './components/DateRangePicker';
 export type { DateRangePickerProps, DateRangePickerCoreProps, DateRangePickerPreset, DateRangePickerPresets } from './components/DateRangePicker';
 export { OTPInput, OTPInputCore } from './components/OTPInput';
@@ -182,8 +184,8 @@ export { PromptInput } from './components/PromptInput';
 export type { PromptInputProps } from './components/PromptInput';
 export { InlineEdit } from './components/InlineEdit';
 export type { InlineEditProps } from './components/InlineEdit';
-export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './components/DropdownMenu';
-export type { DropdownMenuProps, DropdownMenuTriggerProps, DropdownMenuContentProps, DropdownMenuItemProps, DropdownMenuSeparatorProps, DropdownMenuSubProps, DropdownMenuSubTriggerProps, DropdownMenuSubContentProps, DropdownMenuHandle } from './components/DropdownMenu';
+export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuGroup, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './components/DropdownMenu';
+export type { DropdownMenuProps, DropdownMenuDataItem, DropdownMenuTriggerProps, DropdownMenuContentProps, DropdownMenuItemProps, DropdownMenuCheckboxItemProps, DropdownMenuRadioGroupProps, DropdownMenuRadioItemProps, DropdownMenuGroupProps, DropdownMenuSeparatorProps, DropdownMenuSubProps, DropdownMenuSubTriggerProps, DropdownMenuSubContentProps, DropdownMenuHandle } from './components/DropdownMenu';
 export { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator } from './components/ContextMenu';
 export type { ContextMenuProps, ContextMenuTriggerProps, ContextMenuContentProps, ContextMenuItemProps, ContextMenuSeparatorProps } from './components/ContextMenu';
 export { NavigationBar, NavLink } from './components/NavigationBar';
@@ -203,7 +205,7 @@ export type { CodeBlockProps, Highlighter } from './components/CodeBlock';
 export { AspectRatio } from './components/AspectRatio';
 export type { AspectRatioProps } from './components/AspectRatio';
 export { VirtualList } from './components/VirtualList';
-export type { VirtualListProps, VirtualListHandle, VirtualListGroup, VirtualListAlign } from './components/VirtualList';
+export type { VirtualListProps, VirtualListHandle, VirtualListGroup, VirtualListAlign, VirtualListOrientation } from './components/VirtualList';
 export { TagGroup, TagGroupItem, SortableTagGroup } from './components/TagGroup';
 export type { TagGroupProps, TagGroupItemProps, SortableTagGroupProps } from './components/TagGroup';
 export { BottomSheet } from './components/BottomSheet';
@@ -216,6 +218,10 @@ export { default as LocaleProvider, useStrings } from './components/LocaleProvid
 export { defaultStrings, enUS, zhCN, jaJP, deDE, frFR, esES, itIT, ptBR, ruRU, koKR, arSA, createStrings } from './components/LocaleProvider';
 export type { LocaleProviderProps, HazeStrings } from './components/LocaleProvider';
 export type { DeepPartial } from './components/LocaleProvider';
+
+// component default overrides (AntD-v6-ConfigProvider shape, defaults only)
+export { default as ConfigProvider, useConfigDefaults } from './components/ConfigProvider';
+export type { ConfigProviderProps, HazeConfig } from './components/ConfigProvider';
 
 // direction (RTL): declared intent from the LocaleProvider chain and
 // layout truth read off the DOM — see utils/direction.ts
@@ -245,7 +251,11 @@ export type { KbdProps } from './components/Kbd';
 export { AvatarGroup } from './components/AvatarGroup';
 export type { AvatarGroupProps } from './components/AvatarGroup';
 export { Calendar } from './components/Calendar';
-export type { CalendarProps, CalendarPickerMode } from './components/Calendar';
+export type {
+  CalendarProps,
+  CalendarPickerMode,
+  CalendarCellRender,
+} from './components/Calendar';
 export { HoverCard } from './components/HoverCard';
 export type { HoverCardProps } from './components/HoverCard';
 export { Toolbar, ToolbarButton, ToolbarSeparator, ToolbarToggle } from './components/Toolbar';

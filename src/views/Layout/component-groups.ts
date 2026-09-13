@@ -175,6 +175,7 @@ export const COMPONENT_GROUPS: ComponentGroup[] = [
     group: 'Utilities',
     items: [
       { name: 'Collapsible', route: 'collapsible' },
+      { name: 'ConfigProvider', route: 'config-provider' },
       { name: 'Disclosure', route: 'disclosure' },
       { name: 'Fullscreen', route: 'fullscreen' },
       { name: 'LocaleProvider', route: 'locale-provider' },

@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/virtual-list.css';
 
 export { VirtualList };
-export type { VirtualListProps, VirtualListHandle, VirtualListGroup, VirtualListAlign } from 'haze-ui';
+export type { VirtualListProps, VirtualListHandle, VirtualListGroup, VirtualListAlign, VirtualListOrientation } from 'haze-ui';

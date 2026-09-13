@@ -16,10 +16,10 @@
 // 'use client' directive, so imports resolve cleanly from RSC; the
 // wrapper inherits client semantics either way.
 
-import { Menu, MenuItem, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } from 'haze-ui';
+import { Menu, MenuItem, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuGroup, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent } from 'haze-ui';
 
 import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/menu.css';
 
-export { Menu, MenuItem, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent };
-export type { MenuProps, MenuItemProps, MenuSubProps, MenuSubTriggerProps, MenuSubContentProps } from 'haze-ui';
+export { Menu, MenuItem, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuGroup, MenuDivider, MenuSub, MenuSubTrigger, MenuSubContent };
+export type { MenuProps, MenuDataItem, MenuItemProps, MenuCheckboxItemProps, MenuRadioGroupProps, MenuRadioItemProps, MenuGroupProps, MenuSubProps, MenuSubTriggerProps, MenuSubContentProps } from 'haze-ui';

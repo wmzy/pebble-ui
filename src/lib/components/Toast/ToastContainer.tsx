@@ -7,6 +7,7 @@ import {css} from '@linaria/core';
 import {useState, useCallback, useRef, useEffect} from 'react';
 
 import {Presence} from '../../utils/presence';
+import {useConfigDefaults} from '../ConfigProvider/useConfigDefaults';
 import {useStrings} from '../LocaleProvider';
 
 import Toast from './Toast';
@@ -73,10 +74,16 @@ export const toastPlacements = {
 
 export default function ToastContainer({
   children,
-  maxCount,
-  placement = 'bottom-right',
+  maxCount: maxCountProp,
+  placement: placementProp,
   classNames,
 }: ToastContainerProps) {
+  // Three tiers per wired prop: explicit prop → ConfigProvider default →
+  // built-in. The built-ins stay last so a missing provider keeps the
+  // pre-wiring behavior byte-identical.
+  const config = useConfigDefaults('Toast');
+  const placement = placementProp ?? config.placement ?? 'bottom-right';
+  const maxCount = maxCountProp ?? config.maxCount;
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   // Ids whose exit animation is in flight; the toast stays in `toasts`
   // (and mounted under Presence) until the exit settles.
@@ -185,6 +192,8 @@ export default function ToastContainer({
               <Toast
                 variant={t.variant}
                 duration={t.duration}
+                action={t.action}
+                title={t.title}
                 onClose={() => removeToast(t.id)}
                 classNames={classNames}
               >

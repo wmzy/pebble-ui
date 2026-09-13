@@ -243,7 +243,11 @@ function ChatAttachmentBridgeDemo() {
         />
       </div>
 
-      <UploadCore value={files} onChange={setFiles} multiple>
+      <UploadCore
+        value={files}
+        onChange={(next) => setFiles(next.filter((f): f is File => f instanceof File))}
+        multiple
+      >
         <span>
           …or drop files here to attach — in-memory only, nothing uploads
         </span>

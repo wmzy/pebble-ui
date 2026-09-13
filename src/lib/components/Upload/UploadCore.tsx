@@ -5,6 +5,7 @@ import type {
   UploadHandle,
   UploadListItemRender,
   UploadRequest,
+  UploadValueItem,
 } from './types';
 
 import { css } from '@linaria/core';
@@ -17,12 +18,16 @@ import { createXhrRequest } from './xhr-upload';
 
 type UploadCoreProps = {
   /** The selected files — the field value, emitted verbatim (as the
-   * complete next list) by `onChange`. */
-  value: File[];
+   * complete next list) by `onChange`. Local `File` picks mix freely
+   * with `UploadFile` echo entries describing files already on the
+   * server; echo entries only render (and stay removable), they never
+   * enter the upload pipeline. */
+  value: UploadValueItem[];
   /** Emits the next file list: a single pick replaces `value`, a
    * `multiple` pick appends to it. Removals from the built-in list
-   * (and `clear()`) also flow through here. */
-  onChange: (files: File[]) => void;
+   * (and `clear()`) also flow through here — echo entries come back
+   * as the very objects the consumer passed in. */
+  onChange: (files: UploadValueItem[]) => void;
   /** Comma-separated accept tokens (`.txt`, `image/*`, `text/plain`) —
    * the same grammar the native picker uses. Dropped files that do not
    * match are discarded silently (the native dialog already enforces
@@ -87,12 +92,21 @@ type UploadCoreProps = {
   showUploadList?: boolean | { itemRender?: UploadListItemRender };
   /**
    * Rendering style of the built-in list (default `text`): `text`
-   * rows, or a `picture-card` grid of square thumbnail cards —
-   * object-URL previews for image files (revoked once the card leaves),
-   * a type-icon fallback for the rest, an upload mask with the live
-   * percent, and a danger border + retry on error.
+   * rows; `picture` — a text row with a 32px inline thumbnail before
+   * the name (a `url` image for `UploadFile` echoes, an object-URL
+   * preview for image files, a type-icon fallback otherwise); or a
+   * `picture-card` grid of square thumbnail cards with the upload
+   * mask, danger border + retry on error, and corner remove button.
    */
-  listType?: 'text' | 'picture-card';
+  listType?: 'text' | 'picture' | 'picture-card';
+  /**
+   * Click handler for the thumbnails of `picture` / `picture-card`
+   * lists — the natural spot to open a lightbox (wire it to
+   * `Image`/`ImagePreview`). Receives the value item the thumbnail
+   * describes. The remove/retry/cancel buttons sit outside the hit
+   * area and keep working.
+   */
+  onPreview?: (file: UploadValueItem) => void;
   /**
    * Overrides the built-in remove-button label (list rows and
    * picture-card corners); defaults to the locale string.
@@ -108,7 +122,8 @@ type UploadCoreProps = {
   /**
    * Fires whenever the tracked entries change (added, removed, status
    * or percent) with the complete snapshot in value order. Only tracks
-   * while `request`/`action` or `showUploadList` is in play.
+   * while `request`/`action` or `showUploadList` is in play. `UploadFile`
+   * echoes report their terminal `status`/`percent` like any row.
    */
   onStatusChange?: (files: UploadFileStatus[]) => void;
   className?: string;
@@ -205,16 +220,18 @@ function clampPercent(percent: number): number {
   return Math.max(0, Math.min(100, Math.round(percent)));
 }
 
-// File objects carry no serializable identity, so list keys come from
-// this WeakMap — stable per File instance across renders/picks.
-const fileUids = new WeakMap<File, string>();
+// Value items carry no serializable identity, so list keys come from
+// this WeakMap — stable per object instance across renders/picks.
+// `UploadFile` echoes prefer their explicit `uid`.
+const itemUids = new WeakMap<object, string>();
 const uidCounter = { n: 0 };
-function uidFor(file: File): string {
-  const existing = fileUids.get(file);
+function uidFor(item: UploadValueItem): string {
+  if (!(item instanceof File) && item.uid) return item.uid;
+  const existing = itemUids.get(item);
   if (existing) return existing;
   uidCounter.n += 1;
   const uid = `haze-upload-file-${uidCounter.n}`;
-  fileUids.set(file, uid);
+  itemUids.set(item, uid);
   return uid;
 }
 
@@ -235,6 +252,7 @@ export default function UploadCore({
   manual = false,
   showUploadList,
   listType,
+  onPreview,
   removeLabel,
   directory,
   onStatusChange,
@@ -370,7 +388,7 @@ export default function UploadCore({
   }, []);
 
   // Keep the tracked entries in lockstep with the value: files that
-  // entered (picked, dropped) get fresh idle entries carrying their
+  // entered (picked, dropped, echoed) get fresh entries carrying their
   // status forward; files that left are dropped. Dormant in pure
   // collection mode.
   useEffect(() => {
@@ -380,36 +398,55 @@ export default function UploadCore({
     }
     // A file that left the value forgets its attempt mark — if it is
     // ever re-added (same File object), autostart picks it up again.
-    const liveUids = new Set(value.map((file) => uidFor(file)));
+    const liveUids = new Set(value.map((item) => uidFor(item)));
     attemptedUids.current.forEach((uid) => {
       if (!liveUids.has(uid)) attemptedUids.current.delete(uid);
     });
     setEntries((prev) => {
       if (prev.length === 0 && value.length === 0) return prev;
-      const byFile = new Map(prev.map((e) => [e.file, e] as const));
+      const byItem = new Map(prev.map((e) => [e.file, e] as const));
       let changed = value.length !== prev.length;
-      const next = value.map((file) => {
-        const existing = byFile.get(file);
+      const next = value.map((item) => {
+        const existing = byItem.get(item);
         if (existing) {
-          byFile.delete(file);
-          return existing;
+          byItem.delete(item);
+          if (item instanceof File) return existing;
+          // Echo entries follow their terminal description — a consumer
+          // may flip `status`/`percent` between renders.
+          const status = item.status ?? 'success';
+          const percent = clampPercent(item.percent ?? 0);
+          if (existing.status === status && existing.percent === percent) {
+            return existing;
+          }
+          changed = true;
+          return { ...existing, status, percent };
         }
         changed = true;
-        return { uid: uidFor(file), file, status: 'idle' as const, percent: 0 };
+        return item instanceof File
+          ? { uid: uidFor(item), file: item, status: 'idle' as const, percent: 0 }
+          : {
+              uid: uidFor(item),
+              file: item,
+              status: item.status ?? 'success',
+              percent: clampPercent(item.percent ?? 0),
+            };
       });
-      return changed || byFile.size > 0 ? next : prev;
+      return changed || byItem.size > 0 ? next : prev;
     });
   }, [value, tracking]);
 
   // Auto mode: every entry that lands in the list starts uploading
   // right away (initial value included) — exactly once per stay in the
   // list; cancelled/failed files wait for an explicit retry. Manual
-  // mode leaves them idle for the handle to trigger.
+  // mode leaves them idle for the handle to trigger. Echo entries sit
+  // at a terminal status, so they never take this path.
   useEffect(() => {
     if (!armed || manual) return;
-    entries
-      .filter((e) => e.status === 'idle' && !attemptedUids.current.has(e.uid))
-      .forEach((e) => runUpload(e.file));
+    entries.forEach((e) => {
+      if (e.file instanceof File && e.status === 'idle' && !attemptedUids.current.has(e.uid)) {
+        runUpload(e.file);
+      }
+    });
   }, [entries, armed, manual, runUpload]);
 
   useEffect(() => {
@@ -429,14 +466,22 @@ export default function UploadCore({
           runUpload(file);
           return;
         }
-        entriesRef.current
-          .filter((e) => e.status === 'idle' || e.status === 'error')
-          .forEach((e) => runUpload(e.file));
+        entriesRef.current.forEach((e) => {
+          // echo entries never re-enter the pipeline — status is terminal
+          if (
+            e.file instanceof File &&
+            (e.status === 'idle' || e.status === 'error')
+          ) {
+            runUpload(e.file);
+          }
+        });
       },
       uploadAll: () => {
-        entriesRef.current
-          .filter((e) => e.status !== 'uploading')
-          .forEach((e) => runUpload(e.file));
+        entriesRef.current.forEach((e) => {
+          if (e.file instanceof File && e.status !== 'uploading') {
+            runUpload(e.file);
+          }
+        });
       },
       abort: () => {
         controllers.current.forEach((controller) => controller.abort());
@@ -450,7 +495,7 @@ export default function UploadCore({
     [runUpload]
   );
 
-  const abortEntry = useCallback((file: File) => {
+  const abortEntry = useCallback((file: UploadValueItem) => {
     const entry = entriesRef.current.find((e) => e.file === file);
     if (entry) controllers.current.get(entry.uid)?.abort();
   }, []);
@@ -458,7 +503,7 @@ export default function UploadCore({
   // Remove/cancel both abort an in-flight upload and drop the file
   // from the value; the sync effect then forgets its entry.
   const removeFile = useCallback(
-    (file: File) => {
+    (file: UploadValueItem) => {
       abortEntry(file);
       if (!mountedRef.current) return;
       onChange(latestValue.current.filter((f) => f !== file));
@@ -467,7 +512,8 @@ export default function UploadCore({
   );
 
   const retryFile = useCallback(
-    (file: File) => {
+    (file: UploadValueItem) => {
+      if (!(file instanceof File)) return;
       if (entriesRef.current.find((e) => e.file === file)?.status !== 'error') return;
       runUpload(file);
     },
@@ -607,6 +653,7 @@ export default function UploadCore({
           entries={entries}
           listType={listType}
           removeLabel={removeLabel}
+          onPreview={onPreview}
           itemRender={
             typeof showUploadList === 'object' ? showUploadList.itemRender : undefined
           }

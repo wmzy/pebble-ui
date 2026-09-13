@@ -32,7 +32,7 @@ describe('Toast', () => {
   });
 
   it('maps every variant to its live-region role', () => {
-    const variants = ['info', 'success', 'warning', 'danger'] as const;
+    const variants = ['info', 'success', 'warning', 'danger', 'loading'] as const;
     for (const variant of variants) {
       const { unmount } = render(
         <Toast variant={variant} onClose={vi.fn()} duration={0}>
@@ -96,6 +96,75 @@ describe('Toast', () => {
     render(<Toast onClose={onClose} duration={0}>Message</Toast>);
     await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the default DOM untouched — exactly content + close, no icon', () => {
+    // The e2e toast-open baseline pins this structure: without an action
+    // or title, and on a non-loading variant, the root holds exactly the
+    // content wrapper and the dismiss button, nothing else.
+    render(<Toast onClose={vi.fn()} duration={0}>Message</Toast>);
+    const root = screen.getByRole('status');
+    expect(root.childElementCount).toBe(2);
+    expect(root.querySelector('svg')).not.toBeInTheDocument();
+    expect(root.children[0]).toHaveTextContent('Message');
+    expect(root.children[1]).toHaveAccessibleName('Close');
+  });
+
+  it('renders the action button between the content and the close button', () => {
+    render(
+      <Toast
+        onClose={vi.fn()}
+        duration={0}
+        action={{ label: 'Undo', onClick: vi.fn() }}
+      >
+        Message
+      </Toast>
+    );
+    const root = screen.getByRole('status');
+    const action = screen.getByRole('button', { name: 'Undo' });
+    const close = screen.getByRole('button', { name: 'Close' });
+    expect(root.childElementCount).toBe(3);
+    // DOM order contract: content → action → close.
+    expect(root.children[1]).toBe(action);
+    expect(root.children[2]).toBe(close);
+    expect(root.children[0]).toHaveTextContent('Message');
+  });
+
+  it('renders the loading variant with an aria-hidden spinner glyph', () => {
+    render(
+      <Toast variant='loading' onClose={vi.fn()} duration={0}>
+        Working…
+      </Toast>
+    );
+    // aria-hidden art: the toast root is the live region — the glyph must
+    // not announce anything of its own.
+    const glyph = screen.getByRole('status').querySelector('svg');
+    expect(glyph).toBeInTheDocument();
+    expect(glyph).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('Working…')).toBeInTheDocument();
+  });
+
+  it('renders a title above the description when provided', () => {
+    render(
+      <Toast onClose={vi.fn()} duration={0} title='Network unstable'>
+        Falling back to the cached copy.
+      </Toast>
+    );
+    const root = screen.getByRole('status');
+    // The body wrapper now carries exactly the title and description.
+    const body = root.children[0] as HTMLElement;
+    expect(body.childElementCount).toBe(2);
+    expect(body.children[0]).toHaveTextContent('Network unstable');
+    expect(body.children[1]).toHaveTextContent('Falling back to the cached copy.');
+    // Without a title the body renders the content directly (plain text:
+    // the body wrapper IS the text element, no extra description div).
+    render(<Toast onClose={vi.fn()} duration={0}>Bare</Toast>);
+    const bareRoot = screen
+      .getByText('Bare')
+      .closest('[role="status"]')!;
+    const bareBody = bareRoot.children[0];
+    expect(bareBody).toBe(screen.getByText('Bare'));
+    expect(bareBody?.childElementCount).toBe(0);
   });
 
   it('auto-closes after duration', () => {
@@ -520,6 +589,196 @@ describe('ToastContainer + useToast', () => {
     await expect(returned).resolves.toBe('records');
   });
 
+  it('shows the spinner during the loading phase and drops it on settle', async () => {
+    render(<ToastContainer>{null}</ToastContainer>);
+    let resolveJob!: () => void;
+    const job = new Promise<void>((resolve) => {
+      resolveJob = resolve;
+    });
+    act(() => {
+      void toast.promise(job, { loading: 'Working…', duration: 0 });
+    });
+    // The pending phase rides the loading variant: spinner glyph present.
+    const loadingRoot = screen.getByRole('status');
+    expect(loadingRoot.querySelector('svg')).toBeInTheDocument();
+
+    await act(async () => {
+      await Promise.resolve();
+      resolveJob();
+    });
+    // Settled: same element patched to success — the glyph is gone.
+    expect(screen.getByRole('status')).toBe(loadingRoot);
+    expect(screen.getByRole('status').querySelector('svg')).not.toBeInTheDocument();
+    expect(loadingRoot).toHaveTextContent('Success');
+  });
+
+  it('runs the action onClick and dismisses the toast by default', async () => {
+    const user = userEvent.setup();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+    const onClick = vi.fn();
+
+    act(() => {
+      result.current('Archived', {
+        duration: 0,
+        action: { label: 'Undo', onClick },
+      });
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(onClick).toHaveBeenCalledOnce();
+    // close defaults to true: the toast leaves without touching the ×.
+    await waitFor(() =>
+      expect(screen.queryByText('Archived')).not.toBeInTheDocument()
+    );
+  });
+
+  it('keeps the toast open when the action opts out with close: false', async () => {
+    const user = userEvent.setup();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+    const onClick = vi.fn();
+
+    act(() => {
+      result.current('Draft saved', {
+        duration: 0,
+        action: { label: 'View', onClick, close: false },
+      });
+    });
+
+    await user.click(screen.getByRole('button', { name: 'View' }));
+    expect(onClick).toHaveBeenCalledOnce();
+    expect(screen.getByText('Draft saved')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'open');
+  });
+
+  it('update() attaches an action to a live toast in place', async () => {
+    const user = userEvent.setup();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+
+    const ids: number[] = [];
+    act(() => {
+      ids.push(result.current('Uploaded', { duration: 0 }));
+    });
+    expect(
+      screen.queryByRole('button', { name: 'Undo' })
+    ).not.toBeInTheDocument();
+    const el = screen.getByRole('status');
+
+    act(() => {
+      result.current.update(ids[0]!, {
+        action: { label: 'Undo', onClick: vi.fn() },
+      });
+    });
+
+    // Same element patched, not remounted.
+    expect(screen.getByRole('status')).toBe(el);
+    const action = screen.getByRole('button', { name: 'Undo' });
+    await user.click(action);
+    await waitFor(() =>
+      expect(screen.queryByText('Uploaded')).not.toBeInTheDocument()
+    );
+  });
+
+  it('reaches the action button by keyboard and activates it with Enter', async () => {
+    const user = userEvent.setup();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+    const onClick = vi.fn();
+
+    act(() => {
+      result.current('Saved', {
+        duration: 0,
+        action: { label: 'Undo', onClick },
+      });
+    });
+
+    // The action is a real button first in the tab order (the toast body
+    // holds no focusable content).
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(onClick).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect(screen.queryByText('Saved')).not.toBeInTheDocument()
+    );
+  });
+
+  it('loading() shows the spinner and never auto-dismisses', () => {
+    vi.useFakeTimers();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+
+    act(() => {
+      result.current.loading('Crunching numbers…');
+    });
+
+    const root = screen.getByRole('status');
+    expect(root).toHaveTextContent('Crunching numbers…');
+    expect(root.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    // duration defaults to 0 — no countdown is ever armed.
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'open');
+    vi.useRealTimers();
+  });
+
+  it('loading() honors an explicit duration override', () => {
+    vi.useFakeTimers();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+
+    act(() => {
+      result.current.loading('Brief spin', { duration: 2000 });
+    });
+    act(() => {
+      vi.advanceTimersByTime(1999);
+    });
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'open');
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'closed');
+    vi.useRealTimers();
+  });
+
+  it('has no axe violations for an action toast with a title', async () => {
+    const { axe } = await import('jest-axe');
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ToastContainer>{children}</ToastContainer>
+    );
+    const { result } = renderHook(() => useToast(), { wrapper });
+
+    act(() => {
+      result.current('Falling back to the cached copy.', {
+        variant: 'warning',
+        title: 'Network unstable',
+        duration: 0,
+        action: { label: 'Retry now', onClick: vi.fn() },
+      });
+    });
+
+    expect(await screen.findByText('Network unstable')).toBeInTheDocument();
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+
   it('has no axe violations while a toast is shown', async () => {
     const { axe } = await import('jest-axe');
     const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -623,6 +882,42 @@ describe('imperative toast()', () => {
     expect(failed).toBeInTheDocument();
     // Distinct variants land on distinct classes of the toast root.
     expect(saved?.className).not.toBe(failed?.className);
+  });
+
+  it('toast.loading stays until dismissed and carries the spinner', () => {
+    vi.useFakeTimers();
+    render(<ToastContainer>{null}</ToastContainer>);
+    act(() => {
+      toast.loading('Fetching schema…');
+    });
+    const root = screen.getByRole('status');
+    expect(root).toHaveTextContent('Fetching schema…');
+    expect(root.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(screen.getByRole('status')).toHaveAttribute('data-state', 'open');
+    act(() => {
+      toast.dismiss();
+    });
+    vi.useRealTimers();
+  });
+
+  it('variant sugar methods carry an action like plain toast()', async () => {
+    const user = userEvent.setup();
+    render(<ToastContainer>{null}</ToastContainer>);
+    const onClick = vi.fn();
+    act(() => {
+      toast.danger('Delete failed', {
+        duration: 0,
+        action: { label: 'Retry', onClick },
+      });
+    });
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(onClick).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect(screen.queryByText('Delete failed')).not.toBeInTheDocument()
+    );
   });
 
   it('dismisses a specific toast by id', async () => {
@@ -900,6 +1195,22 @@ describe('Toast classNames slots', () => {
     expect(item).toHaveClass('t-item');
     expect(item.firstElementChild).toHaveClass('t-content');
     expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('t-close');
+  });
+
+  it('applies action and title slots when those parts render', () => {
+    render(
+      <Toast
+        onClose={vi.fn()}
+        duration={0}
+        title='Slotted title'
+        classNames={{ action: 't-action', title: 't-title' }}
+        action={{ label: 'Undo', onClick: vi.fn() }}
+      >
+        Message
+      </Toast>
+    );
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveClass('t-action');
+    expect(screen.getByText('Slotted title')).toHaveClass('t-title');
   });
 
   it('distributes viewport and item slots from ToastContainer to fired toasts', async () => {

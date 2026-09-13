@@ -161,7 +161,15 @@ function buildGrayScale(seed: ScaleSeed, mode: Mode): readonly string[] {
 }
 
 function buildChromaticScale(seed: ScaleSeed, mode: Mode): readonly string[] {
-  const anchors = seedAnchors(seed, mode, false);
+  return chromaticScaleFromAnchors(seedAnchors(seed, mode, false), mode);
+}
+
+/**
+ * Chromatic scale from pre-parsed anchors — the shared tail of the hex-seed
+ * path above and the runtime-seed path createBrandTheme uses (its derived
+ * anchors are OKLCH math results, so they must not round-trip through hex).
+ */
+function chromaticScaleFromAnchors(anchors: readonly {step: number; color: Oklch}[], mode: Mode): readonly string[] {
   const endpoints = CHROMATIC_ENDPOINTS[mode];
   const luminancePoints = [{x: 1, y: endpoints.l1}, ...anchors.map((a) => ({x: a.step, y: a.color.l})), {x: 12, y: endpoints.l12}];
   const chromaPoints = [{x: 1, y: endpoints.c1}, ...anchors.map((a) => ({x: a.step, y: a.color.c})), {x: 12, y: endpoints.c12}];
@@ -432,5 +440,130 @@ function brandDeclarations(family: BrandFamily, mode: Mode): string {
   return buildBrandTheme(family).declarations[mode];
 }
 
-export {PRIMITIVES, SEMANTIC_COLOR_TOKENS, BRAND_FAMILIES, buildBrandTheme, brandDeclarations, themeDeclarations};
-export type {ThemeScales};
+/**
+ * Families a custom brand name may not take: their scales carry the fixed
+ * neutrals and the success/warning/danger statuses every theme routes to.
+ */
+const NEUTRAL_FAMILIES: ReadonlySet<string> = new Set(['gray', 'green', 'amber', 'red']);
+
+/** The family name becomes CSS custom-property idents (`--haze-{name}-*`), so kebab-lowercase only. */
+const FAMILY_NAME_RE = /^[a-z][a-z0-9-]*$/;
+
+/**
+ * Seed-derivation offsets, fitted to the mean light→dark relationship
+ * measured in OKLCH across the six seed families (blue + the five brand
+ * presets): the dark primary anchor sits 0.2 higher in lightness than the
+ * light one, and each mode's info anchor sits 0.07 below its primary
+ * (step 10 in light, step 8 in dark). Chroma and hue are preserved, so the
+ * derived dark keeps the seed's identity; a hex passed as `dark` always
+ * wins over the derivation.
+ */
+const DERIVED_SEED_OFFSETS = {infoStep: -0.07, darkPrimary: 0.2} as const;
+
+export type BrandSeedOverrides = {
+  /** Extra light-mode anchors merged over the derived ones, e.g. `{10: '#6d28d9'}`. */
+  light?: ScaleSeed;
+  /** Extra dark-mode anchors merged over the derived ones, e.g. `{8: '#9b76fa'}`. */
+  dark?: ScaleSeed;
+};
+
+export type CreateBrandThemeOptions = {
+  /**
+   * Brand family name — becomes the primitive scale's custom-property
+   * prefix (`--haze-{name}-1…12`). Lowercase kebab (`brand`, `acme-corp`).
+   * A preset name ('violet' … 'rose') reproduces that preset's slots;
+   * 'blue' re-seeds the default theme's own scale.
+   */
+  name: string;
+  /** Light-mode primary seed (hex) — anchors scale step 9. */
+  light: string;
+  /**
+   * Dark-mode primary seed (hex) — anchors dark step 9. Omit to derive it
+   * from `light` via the family lightness relationship (see
+   * DERIVED_SEED_OFFSETS).
+   */
+  dark?: string;
+  /** Explicit anchors merged over the derived seeds — same slots the presets pin. */
+  overrides?: BrandSeedOverrides;
+};
+
+/** Runtime-built brand theme: class-ready declaration blocks per mode (see brands.ts for the preset shape). */
+export type BrandThemeCss = {name: string; light: string; dark: string};
+
+const clampLightness = (l: number): number => Math.min(1, Math.max(0, l));
+
+const shiftLightness = (color: Oklch, delta: number): Oklch =>
+  clampChroma({l: clampLightness(color.l + delta), c: color.c, h: color.h});
+
+/** Merge hex-seed overrides over derived anchors; later entries win, result stays step-sorted. */
+function mergeAnchors(base: readonly {step: number; color: Oklch}[], seed: ScaleSeed | undefined): readonly {step: number; color: Oklch}[] {
+  const byStep = new Map(base.map((anchor) => [anchor.step, anchor.color]));
+  for (const [step, hex] of Object.entries(seed ?? {})) {
+    if (Number(step) < 1 || Number(step) > 12) {
+      throw new Error(`Seed anchor step ${step} is outside the 1–12 scale`);
+    }
+    byStep.set(Number(step), parseHex(hex));
+  }
+  return [...byStep.entries()].map(([step, color]) => ({step, color})).sort((a, b) => a.step - b.step);
+}
+
+/**
+ * Build a complete custom brand theme at runtime from one or two seed hexes
+ * — the same pipeline the build-time presets go through (primitive scales,
+ * semantic rerouting of primary/info to the brand family, relative-color
+ * interaction states), so the output is byte-compatible with
+ * `brandDeclarations()` given equivalent seeds.
+ *
+ * The returned blocks are bare custom-property declarations (no selector):
+ * hand them to a `<style>` tag or a Linaria `css` template as
+ * `.my-brand-light { … }` / `.my-brand-dark { … }` classes, exactly like the
+ * preset theme classes. As with the presets, the blocks are complete theme
+ * REPLACEMENTS for lightTheme/darkTheme — never stack them on top.
+ */
+function createBrandTheme({name, light, dark, overrides}: CreateBrandThemeOptions): BrandThemeCss {
+  if (!FAMILY_NAME_RE.test(name)) {
+    throw new Error(`Invalid brand name "${name}" — use a lowercase kebab identifier (letters, digits, hyphens)`);
+  }
+  if (NEUTRAL_FAMILIES.has(name)) {
+    throw new Error(`Brand name "${name}" collides with a fixed neutral family (gray/green/amber/red)`);
+  }
+  const lightPrimary = parseHex(light);
+  const darkPrimary = dark === undefined ? shiftLightness(lightPrimary, DERIVED_SEED_OFFSETS.darkPrimary) : parseHex(dark);
+  const anchors = {
+    light: mergeAnchors(
+      [
+        {step: 9, color: lightPrimary},
+        {step: 10, color: shiftLightness(lightPrimary, DERIVED_SEED_OFFSETS.infoStep)},
+      ],
+      overrides?.light,
+    ),
+    dark: mergeAnchors(
+      [
+        {step: 9, color: darkPrimary},
+        {step: 8, color: shiftLightness(darkPrimary, DERIVED_SEED_OFFSETS.infoStep)},
+      ],
+      overrides?.dark,
+    ),
+  };
+  const withBrand = (mode: Mode): Record<string, readonly string[]> =>
+    Object.fromEntries<readonly string[]>([
+      ['gray', PRIMITIVES[mode].gray],
+      [name, chromaticScaleFromAnchors(anchors[mode], mode)],
+      ['green', PRIMITIVES[mode].green],
+      ['amber', PRIMITIVES[mode].amber],
+      ['red', PRIMITIVES[mode].red],
+    ]);
+  const scales: ThemeScales = {light: withBrand('light'), dark: withBrand('dark')};
+  const semanticTokens = buildSemanticTokens({
+    scales,
+    statusFamily: {...DEFAULT_STATUS_FAMILY, primary: name, info: name},
+  });
+  return {
+    name,
+    light: themeDeclarations('light', scales, semanticTokens),
+    dark: themeDeclarations('dark', scales, semanticTokens),
+  };
+}
+
+export {PRIMITIVES, SEMANTIC_COLOR_TOKENS, BRAND_FAMILIES, BRAND_SEEDS, buildBrandTheme, brandDeclarations, themeDeclarations, createBrandTheme};
+export type {ThemeScales, ScaleSeed};

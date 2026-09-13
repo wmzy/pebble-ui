@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 
 import type {
+  ToastAction,
   ToastDeferredCopyKey,
   ToastItem,
   ToastUpdateOptions,
@@ -13,6 +14,11 @@ import {applyToastPatch, deferredToastCopy} from './ToastContext';
 type ToastOptions = {
   variant?: ToastVariant;
   duration?: number;
+  /** Action button rendered right of the content (left of the dismiss ×);
+   * `close` defaults to `true` — the toast dismisses after `onClick`. */
+  action?: ToastAction;
+  /** Bold first line rendered above the content. */
+  title?: ReactNode;
 };
 
 /** Options accepted by the variant sugar methods (`toast.success()` …). */
@@ -76,10 +82,10 @@ export function nextToastId() {
  * Returns the toast id, usable with `toast.dismiss(id)` and
  * `toast.update(id, patch)`.
  *
- * Mirrors the `useToast()` call shape (content + `{variant, duration}`,
- * defaulting to `info` / 3000ms). With no container mounted the toast is
- * silently queued (never throws) and replayed when a `ToastContainer`
- * mounts.
+ * Mirrors the `useToast()` call shape (content + `{variant, duration,
+ * action, title}`, defaulting to `info` / 3000ms). With no container
+ * mounted the toast is silently queued (never throws) and replayed when
+ * a `ToastContainer` mounts.
  */
 function toast(content: ReactNode, options?: ToastOptions) {
   const item: ToastItem = {
@@ -87,6 +93,8 @@ function toast(content: ReactNode, options?: ToastOptions) {
     content,
     variant: options?.variant ?? 'info',
     duration: options?.duration ?? 3000,
+    ...(options?.action !== undefined && {action: options.action}),
+    ...(options?.title !== undefined && {title: options.title}),
   };
   const [channel] = channels;
   if (channel) {
@@ -146,6 +154,20 @@ function withVariant(variant: ToastVariant) {
     toast(content, {...options, variant});
 }
 
+/**
+ * Fires a loading toast: spinner icon, and `duration` defaults to 0 —
+ * persistent until `toast.update`/`toast.dismiss` or a manual close,
+ * because an in-flight operation has no meaningful auto-dismiss budget.
+ * An explicit `duration` overrides the persistence like anywhere else.
+ */
+function loading(content: ReactNode, options?: ToastVariantOptions) {
+  return toast(content, {
+    ...options,
+    variant: 'loading',
+    duration: options?.duration ?? 0,
+  });
+}
+
 /** Resolves one phase's copy: a function is applied to the settle value,
  * a literal is used verbatim, an omitted field defers to the locale pack. */
 function resolvePhaseContent<T>(
@@ -158,24 +180,21 @@ function resolvePhaseContent<T>(
 }
 
 /**
- * Shared engine behind `toast.promise` and `useToast().promise`: fires the
- * loading toast through `show` (persistent — duration 0), then patches it
- * in place when the promise settles, so the toast never remounts and its
- * animations never replay. Returns the original promise untouched:
- * rejections keep propagating to the caller's `await`/`catch`, and a
- * loading toast dismissed before settling is simply not found by the
- * update — it never resurrects.
+ * Shared engine behind `toast.promise` and `useToast().promise`: fires
+ * the loading toast through `showLoading` (spinner icon, persistent —
+ * duration 0), then patches it in place when the promise settles, so the
+ * toast never remounts and its animations never replay. Returns the
+ * original promise untouched: rejections keep propagating to the
+ * caller's `await`/`catch`, and a loading toast dismissed before
+ * settling is simply not found by the update — it never resurrects.
  */
 export function driveToastPromise<T>(
-  show: (content: ReactNode, options?: ToastOptions) => number,
+  showLoading: (content: ReactNode) => number,
   updateById: (id: number, patch: ToastUpdateOptions) => void,
   promise: Promise<T>,
   options?: ToastPromiseOptions<T>
 ): Promise<T> {
-  const id = show(options?.loading ?? deferredToastCopy('loading'), {
-    variant: 'info',
-    duration: 0,
-  });
+  const id = showLoading(options?.loading ?? deferredToastCopy('loading'));
   const settledDuration = options?.duration ?? 3000;
   promise.then(
     (data) => {
@@ -206,13 +225,14 @@ function promise<T>(
   p: Promise<T>,
   options?: ToastPromiseOptions<T>
 ): Promise<T> {
-  return driveToastPromise(toast, update, p, options);
+  return driveToastPromise(loading, update, p, options);
 }
 
 toast.info = withVariant('info');
 toast.success = withVariant('success');
 toast.warning = withVariant('warning');
 toast.danger = withVariant('danger');
+toast.loading = loading;
 toast.dismiss = dismiss;
 toast.update = update;
 toast.promise = promise;
@@ -234,6 +254,7 @@ export function subscribeToastChannel(channel: ToastChannel) {
 
 export {toast};
 export type {
+  ToastAction,
   ToastDeferredCopyKey,
   ToastOptions,
   ToastPhaseContent,

@@ -5,8 +5,14 @@ import { useControl } from 'react-use-control';
 
 import { SUBMENU_CLOSE_GRACE_MS, SUBMENU_OPEN_DELAY_MS } from '../../utils/submenu';
 
-import Menu from './Menu';
+import { menuItemDanger } from './menu-item-styles';
+
+import Menu, { type MenuDataItem } from './Menu';
 import MenuItem from './MenuItem';
+import MenuCheckboxItem from './MenuCheckboxItem';
+import MenuRadioGroup from './MenuRadioGroup';
+import MenuRadioItem from './MenuRadioItem';
+import MenuGroup from './MenuGroup';
 import MenuDivider from './MenuDivider';
 import MenuSub from './MenuSub';
 import MenuSubTrigger from './MenuSubTrigger';
@@ -543,6 +549,410 @@ describe('Menu submenu', () => {
             <MenuItem>Zed</MenuItem>
           </MenuSubContent>
         </MenuSub>
+      </Menu>
+    );
+    // 'region' fires for any content outside a landmark — an artifact of
+    // the bare test document, not the component.
+    const results = await axe(document.body, {
+      rules: { region: { enabled: false } },
+    });
+    expect(results.violations).toEqual([]);
+  });
+});
+
+describe('MenuCheckboxItem', () => {
+  it('renders as menuitemcheckbox with aria-checked', () => {
+    render(
+      <Menu open trigger="T">
+        <MenuCheckboxItem checked>Show status bar</MenuCheckboxItem>
+      </Menu>
+    );
+    const item = screen.getByRole('menuitemcheckbox', { name: 'Show status bar' });
+    expect(item).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('toggles uncontrolled on click, firing onCheckedChange each way', async () => {
+    const user = userEvent.setup();
+    const onCheckedChange = vi.fn();
+    render(
+      <Menu open trigger="T">
+        <MenuCheckboxItem onCheckedChange={onCheckedChange}>Bookmarks</MenuCheckboxItem>
+      </Menu>
+    );
+    const item = screen.getByRole('menuitemcheckbox');
+    expect(item).toHaveAttribute('aria-checked', 'false');
+    await user.click(item);
+    expect(item).toHaveAttribute('aria-checked', 'true');
+    expect(onCheckedChange).toHaveBeenLastCalledWith(true);
+    await user.click(item);
+    expect(item).toHaveAttribute('aria-checked', 'false');
+    expect(onCheckedChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('drives a controlled checked control in both directions', async () => {
+    const user = userEvent.setup();
+    function Harness() {
+      const [checked, setChecked, checkedCtrl] = useControl(undefined, false);
+      return (
+        <div>
+          <Menu open trigger="T">
+            <MenuCheckboxItem checked={checkedCtrl}>Bookmarks</MenuCheckboxItem>
+          </Menu>
+          <button onClick={() => setChecked((v) => !v)}>flip</button>
+          <output data-testid="checked">{String(checked)}</output>
+        </div>
+      );
+    }
+    render(<Harness />);
+    await user.click(screen.getByRole('menuitemcheckbox'));
+    expect(screen.getByTestId('checked')).toHaveTextContent('true');
+    await user.click(screen.getByText('flip'));
+    expect(screen.getByRole('menuitemcheckbox')).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('activates with Enter; Space passes through to the native activation', async () => {
+    const user = userEvent.setup();
+    render(
+      <Menu open trigger="T">
+        <MenuCheckboxItem>Bookmarks</MenuCheckboxItem>
+      </Menu>
+    );
+    const item = screen.getByRole('menuitemcheckbox');
+    item.focus();
+    await user.keyboard('{Enter}');
+    expect(item).toHaveAttribute('aria-checked', 'true');
+    // Space must reach the browser's native button activation: the menu
+    // keyboard layer lets the keydown through (jsdom/user-event do not
+    // perform the space→click step, so the UA click is dispatched by
+    // hand and the toggle must follow).
+    const space = new KeyboardEvent('keydown', {
+      key: ' ',
+      bubbles: true,
+      cancelable: true,
+    });
+    item.dispatchEvent(space);
+    expect(space.defaultPrevented).toBe(false);
+    fireEvent.click(item);
+    expect(item).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('does not toggle when disabled', async () => {
+    const user = userEvent.setup();
+    render(
+      <Menu open trigger="T">
+        <MenuCheckboxItem disabled>Bookmarks</MenuCheckboxItem>
+      </Menu>
+    );
+    const item = screen.getByRole('menuitemcheckbox');
+    await user.click(item);
+    expect(item).toHaveAttribute('aria-checked', 'false');
+    expect(item).toBeDisabled();
+  });
+});
+
+describe('MenuRadioGroup', () => {
+  it('selects exactly one item in the group', async () => {
+    const user = userEvent.setup();
+    function Harness() {
+      const [value, , valueCtrl] = useControl(undefined, 'light');
+      return (
+        <div>
+          <Menu open trigger="T">
+            <MenuRadioGroup value={valueCtrl}>
+              <MenuRadioItem value="light">Light</MenuRadioItem>
+              <MenuRadioItem value="dark">Dark</MenuRadioItem>
+            </MenuRadioGroup>
+          </Menu>
+          <output data-testid="value">{value}</output>
+        </div>
+      );
+    }
+    render(<Harness />);
+    const light = screen.getByRole('menuitemradio', { name: 'Light' });
+    const dark = screen.getByRole('menuitemradio', { name: 'Dark' });
+    expect(light).toHaveAttribute('aria-checked', 'true');
+    expect(dark).toHaveAttribute('aria-checked', 'false');
+    await user.click(dark);
+    expect(dark).toHaveAttribute('aria-checked', 'true');
+    expect(light).toHaveAttribute('aria-checked', 'false');
+    expect(screen.getByTestId('value')).toHaveTextContent('dark');
+  });
+
+  it('fires onValueChange once; re-selecting the current item is a no-op', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    render(
+      <Menu open trigger="T">
+        <MenuRadioGroup onValueChange={onValueChange}>
+          <MenuRadioItem value="light">Light</MenuRadioItem>
+          <MenuRadioItem value="dark">Dark</MenuRadioItem>
+        </MenuRadioGroup>
+      </Menu>
+    );
+    const dark = screen.getByRole('menuitemradio', { name: 'Dark' });
+    await user.click(dark);
+    expect(onValueChange).toHaveBeenCalledOnce();
+    expect(onValueChange).toHaveBeenLastCalledWith('dark');
+    await user.click(dark);
+    expect(onValueChange).toHaveBeenCalledOnce();
+  });
+
+  it('supports selection with Enter and Space while focused', async () => {
+    const user = userEvent.setup();
+    render(
+      <Menu open trigger="T">
+        <MenuRadioGroup value="light">
+          <MenuRadioItem value="light">Light</MenuRadioItem>
+          <MenuRadioItem value="dark">Dark</MenuRadioItem>
+        </MenuRadioGroup>
+      </Menu>
+    );
+    const dark = screen.getByRole('menuitemradio', { name: 'Dark' });
+    dark.focus();
+    await user.keyboard('{Enter}');
+    expect(dark).toHaveAttribute('aria-checked', 'true');
+    const light = screen.getByRole('menuitemradio', { name: 'Light' });
+    expect(light).toHaveAttribute('aria-checked', 'false');
+    // Space reaches the native activation (see the checkbox test for the
+    // jsdom caveat) — the space keydown is not swallowed, then the UA
+    // click selects the focused radio.
+    const space = new KeyboardEvent('keydown', {
+      key: ' ',
+      bubbles: true,
+      cancelable: true,
+    });
+    light.dispatchEvent(space);
+    expect(space.defaultPrevented).toBe(false);
+    fireEvent.click(light);
+    expect(light).toHaveAttribute('aria-checked', 'true');
+    expect(dark).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('throws when a radio item is used outside a radio group', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(() => render(<MenuRadioItem value="x">X</MenuRadioItem>)).toThrow(
+      'MenuRadioItem / DropdownMenuRadioItem must be used within a radio group'
+    );
+    spy.mockRestore();
+  });
+
+  it('renders an optional labeled radio group', () => {
+    render(
+      <Menu open trigger="T">
+        <MenuRadioGroup label="Theme" value="light">
+          <MenuRadioItem value="light">Light</MenuRadioItem>
+        </MenuRadioGroup>
+      </Menu>
+    );
+    const group = screen.getByRole('group', { name: 'Theme' });
+    expect(group).toContainElement(screen.getByRole('menuitemradio', { name: 'Light' }));
+  });
+});
+
+describe('MenuGroup', () => {
+  it('renders a labeled group with aria-labelledby wiring', () => {
+    render(
+      <Menu open trigger="T">
+        <MenuGroup label="Actions">
+          <MenuItem>Rename</MenuItem>
+        </MenuGroup>
+      </Menu>
+    );
+    const group = screen.getByRole('group', { name: 'Actions' });
+    expect(group).toContainElement(screen.getByRole('menuitem', { name: 'Rename' }));
+  });
+
+  it('keeps the label outside the item set and the tab order', () => {
+    render(
+      <Menu open trigger="T">
+        <MenuGroup label="Actions">
+          <MenuItem>One</MenuItem>
+          <MenuItem>Two</MenuItem>
+        </MenuGroup>
+      </Menu>
+    );
+    const label = screen.getByText('Actions');
+    // not focusable, and never part of the roving item set
+    expect(label.tabIndex).toBe(-1);
+    expect(label.closest('[role^="menuitem"]')).toBeNull();
+    // the open menu auto-focuses its first ITEM — never the label
+    expect(screen.getByRole('menuitem', { name: 'One' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('menuitem', { name: 'One' }), { key: 'End' });
+    expect(screen.getByRole('menuitem', { name: 'Two' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Two' }), { key: 'Home' });
+    expect(screen.getByRole('menuitem', { name: 'One' })).toHaveFocus();
+  });
+});
+
+describe('Menu keyboard across item types', () => {
+  function renderMixed() {
+    return render(
+      <Menu open trigger="T">
+        <MenuItem>Alpha</MenuItem>
+        <MenuCheckboxItem>Cut</MenuCheckboxItem>
+        <MenuRadioGroup>
+          <MenuRadioItem value="b">Bold</MenuRadioItem>
+        </MenuRadioGroup>
+        <MenuItem>Omega</MenuItem>
+      </Menu>
+    );
+  }
+
+  it('traverses checkbox and radio items with the arrows, Home and End', () => {
+    renderMixed();
+    const expected = [
+      screen.getByRole('menuitem', { name: 'Alpha' }),
+      screen.getByRole('menuitemcheckbox', { name: 'Cut' }),
+      screen.getByRole('menuitemradio', { name: 'Bold' }),
+      screen.getByRole('menuitem', { name: 'Omega' }),
+    ];
+    // the open menu auto-focuses its first item
+    expect(expected[0]).toHaveFocus();
+    for (let i = 1; i < expected.length; i++) {
+      fireEvent.keyDown(expected[i - 1]!, { key: 'ArrowDown' });
+      expect(expected[i]).toHaveFocus();
+    }
+    // wraps back to the first item (a plain menuitem)
+    fireEvent.keyDown(expected[3]!, { key: 'ArrowDown' });
+    expect(expected[0]).toHaveFocus();
+    fireEvent.keyDown(expected[0]!, { key: 'End' });
+    expect(expected[3]).toHaveFocus();
+    fireEvent.keyDown(expected[3]!, { key: 'Home' });
+    expect(expected[0]).toHaveFocus();
+  });
+
+  it('keeps exactly one tab stop across the mixed item set', () => {
+    renderMixed();
+    const stops = screen
+      .getAllByRole('menu')
+      .flatMap((m) => Array.from(m.querySelectorAll<HTMLElement>('[role^="menuitem"]')))
+      .filter((el) => el.tabIndex === 0);
+    expect(stops).toHaveLength(1);
+  });
+
+  it('matches checkbox and radio labels through typeahead', () => {
+    const view = renderMixed();
+    // the open menu auto-focuses its first item (Alpha)
+    expect(screen.getByRole('menuitem', { name: 'Alpha' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Alpha' }), { key: 'c' });
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Cut' })).toHaveFocus();
+    // characters accumulate within the window: 'cu' still matches Cut
+    fireEvent.keyDown(screen.getByRole('menuitemcheckbox', { name: 'Cut' }), { key: 'u' });
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Cut' })).toHaveFocus();
+    // a fresh instance (fresh typeahead buffer) reaches the radio item
+    view.unmount();
+    renderMixed();
+    expect(screen.getByRole('menuitem', { name: 'Alpha' })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Alpha' }), { key: 'b' });
+    expect(screen.getByRole('menuitemradio', { name: 'Bold' })).toHaveFocus();
+  });
+});
+
+describe('Menu items data API', () => {
+  it('renders items, dividers, groups, checkboxes and submenus recursively', () => {
+    const items: MenuDataItem[] = [
+      { type: 'item', label: 'Rename', kbdLabel: 'F2' },
+      { type: 'divider' },
+      {
+        type: 'group',
+        label: 'View',
+        children: [{ type: 'checkbox', label: 'Status bar', checked: true }],
+      },
+      {
+        type: 'sub',
+        label: 'Share',
+        children: [{ type: 'item', label: 'Copy link' }],
+      },
+    ];
+    render(<Menu open trigger="T" items={items} />);
+
+    expect(screen.getByRole('menuitem', { name: 'Rename' })).toBeInTheDocument();
+    expect(screen.getByRole('separator')).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'View' })).toBeInTheDocument();
+    const checkbox = screen.getByRole('menuitemcheckbox', { name: 'Status bar' });
+    expect(checkbox).toHaveAttribute('aria-checked', 'true');
+
+    const share = screen.getByRole('menuitem', { name: 'Share' });
+    share.focus();
+    fireEvent.keyDown(share, { key: 'ArrowRight' });
+    expect(screen.getByRole('menuitem', { name: 'Copy link' })).toHaveFocus();
+  });
+
+  it('binds radio groups through the group value', async () => {
+    const user = userEvent.setup();
+    const items: MenuDataItem[] = [
+      {
+        type: 'group',
+        label: 'Theme',
+        value: 'light',
+        children: [
+          { type: 'radio', value: 'light', label: 'Light' },
+          { type: 'radio', value: 'dark', label: 'Dark' },
+        ],
+      },
+    ];
+    render(<Menu open trigger="T" items={items} />);
+    const light = screen.getByRole('menuitemradio', { name: 'Light' });
+    const dark = screen.getByRole('menuitemradio', { name: 'Dark' });
+    expect(light).toHaveAttribute('aria-checked', 'true');
+    await user.click(dark);
+    expect(dark).toHaveAttribute('aria-checked', 'true');
+    expect(light).toHaveAttribute('aria-checked', 'false');
+    // the labeled group still names the whole radio cluster
+    expect(screen.getByRole('group', { name: 'Theme' })).toContainElement(dark);
+  });
+
+  it('prefers items over children when both are passed', () => {
+    render(
+      <Menu open trigger="T" items={[{ type: 'item', label: 'From data' }]}>
+        <MenuItem>From children</MenuItem>
+      </Menu>
+    );
+    expect(screen.getByRole('menuitem', { name: 'From data' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'From children' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Menu danger variant', () => {
+  it('applies the danger skin class to items and checkable items', () => {
+    render(
+      <Menu open trigger="T">
+        <MenuItem danger>Delete</MenuItem>
+        <MenuCheckboxItem danger>Wipe cache</MenuCheckboxItem>
+        <MenuRadioGroup>
+          <MenuRadioItem value="nuke" danger>Nuke</MenuRadioItem>
+        </MenuRadioGroup>
+      </Menu>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveClass(menuItemDanger);
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Wipe cache' })).toHaveClass(menuItemDanger);
+    expect(screen.getByRole('menuitemradio', { name: 'Nuke' })).toHaveClass(menuItemDanger);
+  });
+
+  it('omits the danger class by default', () => {
+    render(
+      <Menu open trigger="T">
+        <MenuItem>Delete</MenuItem>
+      </Menu>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Delete' })).not.toHaveClass(menuItemDanger);
+  });
+});
+
+describe('Menu axe with selection items', () => {
+  it('has no axe violations with checkbox, radio and group items open', async () => {
+    const { axe } = await import('jest-axe');
+    render(
+      <Menu open trigger={<button>Open</button>}>
+        <MenuGroup label="View">
+          <MenuCheckboxItem checked>Status bar</MenuCheckboxItem>
+        </MenuGroup>
+        <MenuDivider />
+        <MenuRadioGroup value="light">
+          <MenuRadioItem value="light">Light</MenuRadioItem>
+          <MenuRadioItem value="dark">Dark</MenuRadioItem>
+        </MenuRadioGroup>
+        <MenuItem danger>Delete</MenuItem>
       </Menu>
     );
     // 'region' fires for any content outside a landmark — an artifact of

@@ -19,6 +19,22 @@ export default function SliderDemo() {
   const [span, , spanCtrl] = useControl<[number, number]>(undefined, [
     20, 80,
   ]);
+  // Tooltip demo: bubble follows the thumb while dragging/focused.
+  const [tipValue, , tipValueCtrl] = useControl(undefined, 40);
+  const [tipSpan, , tipSpanCtrl] = useControl<[number, number]>(undefined, [
+    30, 70,
+  ]);
+  // Marks demo: step={null} locks the values onto the mark keys.
+  const [markValue, , markValueCtrl] = useControl(undefined, 25);
+  const [markSpan, , markSpanCtrl] = useControl<[number, number]>(undefined, [
+    25, 75,
+  ]);
+  // Vertical demo readouts.
+  const [verticalValue, , verticalValueCtrl] = useControl(undefined, 60);
+  const readout = {
+    fontSize: 'var(--haze-text-sm)',
+    color: 'var(--haze-color-text-secondary)',
+  } as const;
 
   return (
     <>
@@ -78,6 +94,120 @@ export default function SliderDemo() {
           >
             Value: [{span[0]}, {span[1]}]
           </span>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Tooltip — value bubble on the active thumb</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>tooltip</code> shows a value bubble over the thumb being
+          dragged or focused (in range mode each thumb carries its own).
+          <code> tooltipFormatter</code> customizes the content. The bubble
+          is visual only — the native input keeps announcing the value.
+        </p>
+        <div className={fieldRow}>
+          <Slider
+            tooltip
+            value={tipValueCtrl}
+            min={0}
+            max={100}
+            tooltipFormatter={(v) => `${v} dB`}
+            aria-label="Volume with tooltip"
+          />
+          <span style={readout}>Value: {tipValue} dB</span>
+        </div>
+        <div className={fieldRow}>
+          <Slider
+            range
+            tooltip
+            value={tipSpanCtrl}
+            min={0}
+            max={100}
+            aria-label={['Tooltip low thumb', 'Tooltip high thumb']}
+            onValuesChange={(value) =>
+              console.log('tooltip onValuesChange:', value)
+            }
+          />
+          <span style={readout}>
+            Value: [{tipSpan[0]}, {tipSpan[1]}]
+          </span>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Marks — tick labels, snap with step=null</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>marks</code> renders tick labels under the track; clicking
+          one moves the nearest thumb onto it. With{' '}
+          <code>step={'{'}null{'}'}</code> the marks become the only
+          selectable values — every drag or key press snaps to the nearest
+          mark.
+        </p>
+        <div className={fieldRow}>
+          <Slider
+            marks={{ 0: '0', 25: '25', 50: '50', 75: '75', 100: '100' }}
+            step={null}
+            value={markValueCtrl}
+            min={0}
+            max={100}
+            aria-label="Quarter steps"
+          />
+          <span style={readout}>Value: {markValue}</span>
+        </div>
+        <div className={fieldRow}>
+          <Slider
+            range
+            marks={{ 0: 'Min', 50: 'Mid', 100: 'Max' }}
+            value={markSpanCtrl}
+            min={0}
+            max={100}
+            aria-label={['Marked minimum', 'Marked maximum']}
+          />
+          <span style={readout}>
+            Value: [{markSpan[0]}, {markSpan[1]}]
+          </span>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h2>Vertical — bottom-to-top</h2>
+        <p
+          style={{
+            fontSize: 'var(--haze-text-sm)',
+            color: 'var(--haze-color-text-secondary)',
+            margin: '0 0 var(--haze-space-3)',
+          }}
+        >
+          <code>vertical</code> lays the track out bottom-to-top via the
+          modern <code>writing-mode</code> slider recipe (Chromium 119+,
+          Firefox 120+, Safari 17.4+; older engines fall back to
+          horizontal). Keyboard behavior stays native. The track length
+          defaults to <code>calc(var(--haze-space-16) * 2)</code> — set{' '}
+          <code>--haze-slider-track</code> to change it.
+        </p>
+        <div className={fieldRow}>
+          <Slider
+            vertical
+            tooltip
+            value={verticalValueCtrl}
+            min={0}
+            max={100}
+            marks={{ 0: '0', 50: '50', 100: '100' }}
+            aria-label="Vertical volume"
+          />
+          <span style={readout}>Value: {verticalValue}</span>
         </div>
       </div>
 

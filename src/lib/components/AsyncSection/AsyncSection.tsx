@@ -45,6 +45,16 @@ const spin = css`
   height: 24px;
   animation: spin 0.8s linear infinite;
 
+  /* WCAG 2.3.3: the loop period is a literal on purpose (the motion
+     tokens model transition durations, not multi-second cycles), so
+     reduced-motion needs this explicit collapse. A single 0.01ms
+     iteration parks the spinner at its rest frame beside the loading
+     text — still recognizably a busy section. */
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+
   @keyframes spin {
     from {
       transform: rotate(0deg);

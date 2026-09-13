@@ -97,6 +97,11 @@ const zhCN: HazeStrings = {
   colorPicker: {
     pickColor: '选择颜色',
     hexColor: '十六进制颜色',
+    saturationBrightness: '饱和度与明度',
+    hue: '色相',
+    alpha: '不透明度',
+    presetsLabel: '预设颜色',
+    recentColors: '最近使用',
   },
   confirmDialog: {
     confirm: '确认',
@@ -177,6 +182,13 @@ const zhCN: HazeStrings = {
   pagination: {
     previous: '上一页',
     next: '下一页',
+    sizeLabel: '每页条数',
+    sizeOption: '{count} 条/页',
+    jumperLabel: '跳至页码',
+    jumperPrefix: '跳至',
+    jumperSuffix: '页',
+    ellipsisBackward: '向前跳 {count} 页',
+    ellipsisForward: '向后跳 {count} 页',
   },
   passwordInput: {
     label: '密码',
@@ -233,6 +245,15 @@ const zhCN: HazeStrings = {
   },
   thinkingIndicator: {
     text: '思考中',
+  },
+  timePicker: {
+    now: '现在',
+    hour: '小时',
+    minute: '分钟',
+    second: '秒',
+    period: '上午/下午',
+    am: '上午',
+    pm: '下午',
   },
   toast: {
     loading: '加载中…',

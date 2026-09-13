@@ -22,4 +22,4 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/time-picker.css';
 
 export { TimePicker, TimePickerCore };
-export type { TimePickerProps, TimePickerCoreProps } from 'haze-ui';
+export type { TimePickerProps, TimePickerCoreProps, TimeParts, TimePickerFormat } from 'haze-ui';

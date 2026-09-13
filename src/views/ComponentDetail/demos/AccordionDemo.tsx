@@ -29,7 +29,8 @@ export default function AccordionDemo() {
             Content for section two. Click the header to expand or collapse.
           </AccordionItem>
           <AccordionItem title='Section Three'>
-            Content for section three. The chevron rotates on open.
+            Content for section three. The chevron rotates and the content
+            height animates on open.
           </AccordionItem>
         </Accordion>
       </div>
@@ -59,6 +60,13 @@ export default function AccordionDemo() {
             <li>
               Exclusive mode uses the HTML <strong>name</strong> attribute for
               mutual exclusion
+            </li>
+            <li>
+              Open/close height animates via CSS progressive enhancement
+              (<code>::details-content</code> + <code>interpolate-size</code>)
+              — engines without support fall back to instant toggles, and{' '}
+              <strong>prefers-reduced-motion</strong> collapses the animation
+              to instant
             </li>
           </ul>
         </A11yNote>

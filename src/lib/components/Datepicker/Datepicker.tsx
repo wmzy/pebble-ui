@@ -1,7 +1,7 @@
 import type { Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
-import type { CalendarPickerMode } from '../Calendar/Calendar';
+import type { CalendarCellRender, CalendarPickerMode } from '../Calendar/Calendar';
 
 import type { DatepickerPreset } from './DatepickerCore';
 
@@ -12,22 +12,33 @@ import DatepickerCore from './DatepickerCore';
 type DatepickerProps = {
   value?: ControlOrValue<string>;
   open?: ControlOrValue<boolean>;
-  /** Calendar granularity — 'date' (default), 'month', 'quarter' or
-   * 'year'. `value` serializes per mode: "YYYY-MM-DD", "YYYY-MM",
-   * "YYYY-Qn" or "YYYY". */
+  /** Calendar granularity — 'date' (default), an ISO week 'week',
+   * 'month', 'quarter' or 'year'. `value` serializes per mode:
+   * "YYYY-MM-DD", "YYYY-Www", "YYYY-MM", "YYYY-Qn" or "YYYY". */
   picker?: CalendarPickerMode;
   min?: string;
   max?: string;
   /** Disables individual dates on the calendar panel (see Calendar's
-   * `disabledDate`). */
+   * `disabledDate`) — day grid and header drill-down grids alike. */
   disabledDate?: (date: Date) => boolean;
   /** Shortcut rows at the top of the panel; clicking applies the
    * preset's value and closes the panel. */
   presets?: DatepickerPreset[];
-  /** Adds a time input (hour/minute) below the calendar; `value`
-   * serializes as `"YYYY-MM-DD HH:mm"` instead of `"YYYY-MM-DD"`
-   * (plain-date values stay accepted). Date granularity only. */
-  showTime?: boolean;
+  /** Adds a time input (hour/minute, or seconds with
+   * `{ seconds: true }`) below the calendar; `value` serializes as
+   * `"YYYY-MM-DD HH:mm"` / `"YYYY-MM-DD HH:mm:ss"` instead of
+   * `"YYYY-MM-DD"` (plain-date values stay accepted). Date granularity
+   * only. */
+  showTime?: boolean | { seconds?: boolean };
+  /** Custom serialization for picks, replacing the built-in value
+   * format (see DatepickerCore's `format`). */
+  format?: (date: Date) => string;
+  /** Reads a custom-formatted value back into the calendar (see
+   * DatepickerCore's `parse`). */
+  parse?: (text: string) => Date | null;
+  /** Appends custom content inside the panel's picker cells (see
+   * Calendar's `cellRender`). */
+  cellRender?: CalendarCellRender;
   locale?: string;
   weekStartsOn?: 0 | 1;
   placeholder?: string;
@@ -46,8 +57,11 @@ export default function Datepicker({
   disabledDate,
   presets,
   showTime,
+  format,
+  parse,
   locale,
   weekStartsOn,
+  cellRender,
   placeholder,
   className,
   ref,
@@ -68,8 +82,11 @@ export default function Datepicker({
       disabledDate={disabledDate}
       presets={presets}
       showTime={showTime}
+      format={format}
+      parse={parse}
       locale={locale}
       weekStartsOn={weekStartsOn}
+      cellRender={cellRender}
       placeholder={placeholder}
       className={className}
     />

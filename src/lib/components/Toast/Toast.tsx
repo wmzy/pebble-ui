@@ -1,4 +1,5 @@
 import type { ComponentPropsWithRef, ReactNode } from 'react';
+import type { ToastAction } from './ToastContext';
 
 import { css } from '@linaria/core';
 import { useCallback, useEffect, useRef } from 'react';
@@ -24,23 +25,35 @@ type ToastClassNames = {
   item?: string;
   /** The body wrapper around the toast content. */
   content?: string;
+  /** The action button (only rendered for toasts carrying an action). */
+  action?: string;
+  /** The bold title line (only rendered for toasts carrying a title). */
+  title?: string;
   /** The dismiss × button. */
   close?: string;
 };
 
 type ToastProps = {
-  variant?: 'info' | 'success' | 'warning' | 'danger';
+  variant?: 'info' | 'success' | 'warning' | 'danger' | 'loading';
+  /**
+   * Action button rendered right of the content and left of the dismiss
+   * × — a real focusable button (see {@link ToastAction}). `close`
+   * defaults to `true`: the toast dismisses right after `onClick` runs.
+   */
+  action?: ToastAction;
+  /** Bold first line rendered above the content. */
+  title?: ReactNode;
   onClose: () => void;
   duration: number;
   children: ReactNode;
   /**
    * Semantic slot classes (AntD v6 `classNames` shape) — see
-   * {@link ToastClassNames}. Only `item`/`content`/`close` apply to a
-   * directly rendered toast; `viewport` is a `ToastContainer` part.
-   * Omitting it changes nothing.
+   * {@link ToastClassNames}. Only `item`/`content`/`action`/`title`/
+   * `close` apply to a directly rendered toast; `viewport` is a
+   * `ToastContainer` part. Omitting it changes nothing.
    */
   classNames?: ToastClassNames;
-} & Omit<ComponentPropsWithRef<'div'>, 'children' | 'onClose'>;
+} & Omit<ComponentPropsWithRef<'div'>, 'children' | 'onClose' | 'title'>;
 
 const base = css`
   display: flex;
@@ -113,6 +126,14 @@ const variants = {
     border: 1px solid
       color-mix(in srgb, var(--haze-color-danger) 25%, transparent);
   `,
+  // The loading surface stays neutral (same shape as info): the spinner
+  // glyph carries the state, and the settle patch swaps the whole item to
+  // success/danger styling.
+  loading: css`
+    background: var(--haze-color-bg);
+    color: var(--haze-color-text);
+    border: 1px solid var(--haze-color-border);
+  `,
 } as const;
 
 /* Live-region semantics per variant (Radix / React-Aria convention):
@@ -127,11 +148,98 @@ const liveRoles = {
   success: 'status',
   warning: 'status',
   danger: 'alert',
+  loading: 'status',
 } as const;
 
 const contentStyle = css`
   flex: 1;
 `;
+
+/* Spinner glyph for the `loading` variant — same geometry as the Spinner
+ * component, inlined as aria-hidden art: the toast root is already the
+ * live region, so a nested role="status" would announce the message
+ * twice. */
+const spinnerIcon = css`
+  flex-shrink: 0;
+  width: var(--haze-text-base);
+  height: var(--haze-text-base);
+  /* Literal loop period on purpose, matching Spinner: multi-second spin
+   * cycles sit outside the motion token scale, so reduced-motion needs
+   * this explicit collapse. A single 0.01ms iteration parks the arc at
+   * its rest frame — still readable as loading next to the copy. */
+  animation: toastSpin 0.8s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+
+  @keyframes toastSpin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const titleStyle = css`
+  font-weight: var(--haze-weight-medium);
+`;
+
+const descriptionStyle = css`
+  color: var(--haze-color-text-secondary);
+`;
+
+const actionBtn = css`
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: var(--haze-weight-medium);
+  line-height: inherit;
+  /* Same color as the toast text: the accent tokens sit under 4.5:1 on
+   * the tinted variant surfaces (light primary on success-subtle ≈ 4.16),
+   * so the interactive affordance comes from the underline instead.
+   * Hover/active intensify into the primary ramp (>3:1 everywhere). */
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: calc(var(--haze-space-1) / 2);
+  align-self: center;
+  transition: color var(--haze-duration-fast);
+  /* WCAG 2.5.8 target size: the label alone can fall under 24px — box it
+   * out to the minimum with the label centered. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+
+  &:hover {
+    color: var(--haze-color-primary);
+  }
+
+  &:active {
+    color: var(--haze-color-primary-active);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--haze-color-focus-ring);
+    outline-offset: 2px;
+  }
+`;
+
+/** Runs a toast action, then dismisses the toast unless it opted out
+ * (`close: false`). The countdown semantics are untouched: a closing
+ * toast never needed its timer again, and a staying one keeps running. */
+function runToastAction(action: ToastAction, onClose: () => void) {
+  action.onClick();
+  if (action.close !== false) onClose();
+}
 
 const closeBtn = css`
   appearance: none;
@@ -143,7 +251,7 @@ const closeBtn = css`
   font-size: var(--haze-text-lg);
   line-height: 1;
   opacity: 0.6;
-  transition: opacity 0.15s;
+  transition: opacity var(--haze-duration-fast);
   /* WCAG 2.5.8 target size: the × glyph alone is ~18px — box it out to
    * the 24px minimum with the glyph centered. */
   display: inline-flex;
@@ -159,6 +267,8 @@ const closeBtn = css`
 
 export default function Toast({
   variant = 'info',
+  action,
+  title,
   onClose,
   duration,
   children,
@@ -241,7 +351,47 @@ export default function Toast({
       }}
       {...rest}
     >
-      <div x-class={[contentStyle, classNames?.content]}>{children}</div>
+      {variant === 'loading' && (
+        <svg
+          x-class={spinnerIcon}
+          viewBox='0 0 24 24'
+          fill='none'
+          aria-hidden='true'
+        >
+          <circle
+            cx='12'
+            cy='12'
+            r='10'
+            stroke='var(--haze-color-border)'
+            strokeWidth='3'
+          />
+          <path
+            d='M12 2a10 10 0 0 1 10 10'
+            stroke='var(--haze-color-primary)'
+            strokeWidth='3'
+            strokeLinecap='round'
+          />
+        </svg>
+      )}
+      <div x-class={[contentStyle, classNames?.content]}>
+        {title === undefined ? (
+          children
+        ) : (
+          <>
+            <div x-class={[titleStyle, classNames?.title]}>{title}</div>
+            <div x-class={descriptionStyle}>{children}</div>
+          </>
+        )}
+      </div>
+      {action !== undefined && (
+        <button
+          type='button'
+          x-class={[actionBtn, classNames?.action]}
+          onClick={() => runToastAction(action, onCloseRef.current)}
+        >
+          {action.label}
+        </button>
+      )}
       <button
         type='button'
         x-class={[closeBtn, classNames?.close]}

@@ -1,8 +1,17 @@
-import type { UploadHandle, UploadRequest, UploadStatus } from '@/lib/components/Upload';
+import type {
+  UploadFile,
+  UploadHandle,
+  UploadRequest,
+  UploadStatus,
+  UploadValueItem,
+} from '@/lib/components/Upload';
 
 import { useRef, useState } from 'react';
 
+import { useControl } from 'react-use-control';
+
 import { Upload, Button } from '@/lib';
+import ImagePreview from '@/lib/components/Image/ImagePreview';
 
 import PropsTable from '../PropsTable';
 
@@ -54,6 +63,31 @@ export default function UploadDemo() {
   const [committed, setCommitted] = useState(0);
   const [autoStatus, setAutoStatus] = useState('');
   const uploadRef = useRef<UploadHandle>(null);
+
+  // Server file echo: an offline-safe inline SVG data URL stands in for
+  // the remote thumbnail a real backend would serve.
+  const echoThumb = (label: string, bg: string) => {
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96'><rect width='96' height='96' fill='${bg}'/><text x='48' y='52' font-size='15' text-anchor='middle' fill='white' font-family='sans-serif'>${label}</text></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+  const initialEcho: UploadFile[] = [
+    { uid: 'srv-1', name: 'site-hero.png', url: echoThumb('hero', '#2563eb'), size: 184320 },
+    { uid: 'srv-2', name: 'avatar.png', url: echoThumb('me', '#16a34a'), size: 48230 },
+    { uid: 'srv-3', name: 'expired-report.pdf', status: 'error' },
+  ];
+  const [echoValue, , echoCtrl] = useControl(undefined, initialEcho);
+
+  // onPreview lightbox: echo entries carry a url, so they open the
+  // ImagePreview directly (picked Files have no url yet — a real app
+  // could mint one with URL.createObjectURL).
+  const [previewSrc, setPreviewSrc] = useState('');
+  const [, , previewOpenCtrl] = useControl(undefined, false);
+  const [, setPreviewOpen] = useControl(previewOpenCtrl);
+  const openPreview = (file: UploadValueItem) => {
+    if (file instanceof File || !file.url) return;
+    setPreviewSrc(file.url);
+    setPreviewOpen(true);
+  };
 
   // Sync gate: return false to refuse a file outright. Async gates work
   // too — return a Promise<boolean> and the UI stays responsive until
@@ -263,6 +297,62 @@ export default function UploadDemo() {
             removeLabel='Delete image'
           />
         </div>
+      </div>
+
+      <div className={section}>
+        <h2>Picture list with preview</h2>
+        <p style={noteStyle}>
+          <code>{"listType='picture'"}</code> renders text rows with a 32px
+          inline thumbnail — a <code>url</code> image for{' '}
+          <code>UploadFile</code> echoes, an object-URL preview for picked
+          image files, a type icon otherwise. <code>onPreview</code> turns
+          each thumbnail into a click target (Esc or the backdrop closes the
+          lightbox; remove stays an independent action).
+        </p>
+        <div style={{ maxWidth: 480 }}>
+          <Upload
+            request={simulateRequest}
+            multiple
+            showUploadList
+            listType='picture'
+            onPreview={openPreview}
+          />
+        </div>
+        {previewSrc !== '' && (
+          <ImagePreview src={previewSrc} alt='Uploaded file preview' open={previewOpenCtrl} />
+        )}
+      </div>
+
+      <div className={section}>
+        <h2>Server file echo (UploadFile)</h2>
+        <p style={noteStyle}>
+          Files already on the server echo through <code>value</code> as{' '}
+          <code>UploadFile</code> entries (<code>name</code>,{' '}
+          <code>url</code>, <code>size</code>, terminal{' '}
+          <code>status</code>) mixed freely with fresh picks. Echo rows
+          render (thumbnail in picture list types) and remove like any
+          row — <code>onChange</code> returns them verbatim — but they
+          never re-upload: <code>request</code>/<code>action</code>,{' '}
+          <code>uploadAll()</code> and <code>retry</code> only ever see
+          local <code>File</code>s. Here the list starts with two healthy
+          echoes and one failed; new picks upload and append after them.
+        </p>
+        <div style={{ maxWidth: 480 }}>
+          <Upload
+            value={echoCtrl}
+            request={simulateRequest}
+            multiple
+            showUploadList
+            listType='picture'
+            onPreview={openPreview}
+          />
+        </div>
+        <p style={{ fontSize: 'var(--haze-text-sm)', color: 'var(--haze-color-text-secondary)', marginTop: 'var(--haze-space-2)' }}>
+          Value: {echoValue.map((f) => f.name).join(', ') || '(empty)'}
+        </p>
+        {previewSrc !== '' && (
+          <ImagePreview src={previewSrc} alt='Uploaded file preview' open={previewOpenCtrl} />
+        )}
       </div>
 
       <div className={section}>

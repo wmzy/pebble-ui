@@ -99,6 +99,11 @@ const ruRU: HazeStrings = {
   colorPicker: {
     pickColor: 'Выбрать цвет',
     hexColor: 'Цвет в формате HEX',
+    saturationBrightness: 'Насыщенность и яркость',
+    hue: 'Тон',
+    alpha: 'Непрозрачность',
+    presetsLabel: 'Предустановленные цвета',
+    recentColors: 'Недавние цвета',
   },
   confirmDialog: {
     confirm: 'Подтвердить',
@@ -179,6 +184,13 @@ const ruRU: HazeStrings = {
   pagination: {
     previous: 'Предыдущая',
     next: 'Следующая',
+    sizeLabel: 'Элементов на странице',
+    sizeOption: '{count} на странице',
+    jumperLabel: 'Перейти на страницу',
+    jumperPrefix: 'Перейти на',
+    jumperSuffix: 'страницу',
+    ellipsisBackward: 'Назад на {count} страниц',
+    ellipsisForward: 'Вперёд на {count} страниц',
   },
   passwordInput: {
     label: 'Пароль',
@@ -235,6 +247,15 @@ const ruRU: HazeStrings = {
   },
   thinkingIndicator: {
     text: 'Размышление',
+  },
+  timePicker: {
+    now: 'Сейчас',
+    hour: 'Час',
+    minute: 'Минута',
+    second: 'Секунда',
+    period: 'AM/PM',
+    am: 'AM',
+    pm: 'PM',
   },
   toast: {
     loading: 'Загрузка…',

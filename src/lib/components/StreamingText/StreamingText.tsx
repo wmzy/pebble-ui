@@ -26,6 +26,16 @@ const cursor = css`
   vertical-align: text-bottom;
   animation: blink 1s step-end infinite;
 
+  /* WCAG 2.3.3: the blink loop period is a literal on purpose (the
+     motion tokens model transition durations, not multi-second cycles),
+     so reduced-motion needs this explicit collapse. A single 0.01ms
+     iteration settles the caret at its base opacity 1 — a solid,
+     non-blinking cursor. */
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+
   @keyframes blink {
     50% { opacity: 0; }
   }

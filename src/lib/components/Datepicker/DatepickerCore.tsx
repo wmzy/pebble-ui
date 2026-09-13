@@ -1,6 +1,6 @@
 import type { Ref, SetStateAction } from 'react';
 
-import type { CalendarPickerMode } from '../Calendar/Calendar';
+import type { CalendarCellRender, CalendarPickerMode } from '../Calendar/Calendar';
 
 import { css } from '@linaria/core';
 import { useCallback, useId, useRef, useState } from 'react';
@@ -11,16 +11,34 @@ import { mergeRefs } from '../../utils/refs';
 import { useStrings } from '../LocaleProvider';
 
 import Calendar from '../Calendar/Calendar';
+import {
+  formatDate,
+  formatWeekValue,
+  getISOWeek,
+  getISOWeekStartDate,
+  parseCivilDate,
+  parseWeekValue,
+} from '../Calendar/date';
 
-import { formatDateTimeValue, splitDateTimeValue } from './datetime';
+import {
+  applyTimeToCivilDate,
+  formatDateTimeValue,
+  normalizeTime,
+  splitDateTimeValue,
+  timeOf,
+} from './datetime';
 
 /** One shortcut row at the top of the dropdown panel: clicking applies
  * `value` (serialized per `picker`) and closes the panel. */
 type DatepickerPreset = {
   /** Visible row copy. */
   label: string;
-  /** Applied value — "YYYY-MM-DD" (date), "YYYY-MM" (month), "YYYY-Qn"
-   * (quarter) or "YYYY" (year), matching `picker`. */
+  /**
+   * Applied value — "YYYY-MM-DD" (date), an ISO week "YYYY-Www" (week),
+   * "YYYY-MM" (month), "YYYY-Qn" (quarter) or "YYYY" (year), matching
+   * `picker`. With a custom `format`, presets carry the consumer's own
+   * serialization and pass through untouched.
+   */
   value: string;
 };
 
@@ -35,20 +53,44 @@ type DatepickerCoreProps = {
   min?: string;
   max?: string;
   /** Disables individual dates on the panel's Calendar (see Calendar's
-   * `disabledDate`). */
+   * `disabledDate`). Applies to the day grid and the header drill-down
+   * grids alike. */
   disabledDate?: (date: Date) => boolean;
   /** Shortcut rows rendered above the calendar; clicking applies the
    * preset and closes the panel. */
   presets?: DatepickerPreset[];
-  /** Renders a time input (hour/minute) below the calendar; `value`
-   * serializes as `"YYYY-MM-DD HH:mm"`. Applies to the default date
-   * granularity only; without it the value keeps the plain
-   * `"YYYY-MM-DD"` format. */
-  showTime?: boolean;
+  /**
+   * Renders a time input below the calendar; `value` serializes as
+   * `"YYYY-MM-DD HH:mm"`, or with seconds as `"YYYY-MM-DD HH:mm:ss"`
+   * (`{ seconds: true }`). Applies to the default date granularity
+   * only; without it the value keeps the plain `"YYYY-MM-DD"` format
+   * (plain-date and minute-precision values stay accepted in seconds
+   * mode — the missing parts read as `00`).
+   */
+  showTime?: boolean | { seconds?: boolean };
+  /**
+   * Custom serialization hook: when provided, picks serialize through
+   * it (`format(date-of-pick)`) instead of the built-in
+   * `"YYYY-MM-DD [HH:mm[:ss]]"` format, and the trigger input displays
+   * the resulting string verbatim. Pair with `parse` so a controlled
+   * value round-trips back into the calendar's anchor and highlight.
+   */
+  format?: (date: Date) => string;
+  /**
+   * Custom parse hook (the `format` counterpart): reads the value
+   * string back into a Date for the calendar's month view, day
+   * highlight and the time input. Returns `null` for text it does not
+   * recognize (the calendar then opens unanchored). The trigger stays
+   * readOnly — parsing serves controlled-value display, not typing.
+   */
+  parse?: (text: string) => Date | null;
   locale?: string;
   weekStartsOn?: 0 | 1;
   placeholder?: string;
   className?: string;
+  /** Appends custom content inside the panel's picker cells (see
+   * Calendar's `cellRender`). */
+  cellRender?: CalendarCellRender;
   /** Forwarded to the trigger `<input>` (not the wrapper div). */
   ref?: Ref<HTMLInputElement>;
 };
@@ -176,8 +218,11 @@ export default function DatepickerCore({
   disabledDate,
   presets,
   showTime,
+  format,
+  parse,
   locale,
   weekStartsOn,
+  cellRender,
   placeholder = 'Select date',
   className,
   ref,
@@ -193,19 +238,85 @@ export default function DatepickerCore({
   const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
 
-  // Hour/minute held while no date is chosen yet — the combined value
-  // cannot carry a time without its date part, so the time input's
-  // edit parks here until the first pick applies it. Purely internal
-  // UI state, never surfaced as a prop.
-  const [pendingTime, setPendingTime] = useState('00:00');
-
   // showTime applies to the day grid only; the coarser granularities
   // have no time-of-day to pick.
-  const withTime = showTime === true && (picker ?? 'date') === 'date';
-  const split = withTime ? splitDateTimeValue(value) : null;
-  // The calendar highlights and navigates by the date part alone.
-  const dateValue = withTime ? (split?.date ?? '') : value;
-  const timeValue = split?.time ?? pendingTime;
+  const withTime =
+    (showTime === true || typeof showTime === 'object') &&
+    (picker ?? 'date') === 'date';
+  const withSeconds = withTime && typeof showTime === 'object' &&
+    showTime.seconds === true;
+
+  // Custom format/parse pair: once either hook is provided the value is
+  // the consumer's own serialization — picks serialize through `format`
+  // and `parse` reads the controlled value back for the calendar.
+  const custom = format !== undefined || parse !== undefined;
+  const parsedDate = parse && value !== '' ? parse(value) : null;
+
+  // Hour/minute(/second) held while no date is chosen yet — the
+  // combined value cannot carry a time without its date part, so the
+  // time input's edit parks here until the first pick applies it.
+  // Purely internal UI state, never surfaced as a prop.
+  const [pendingTime, setPendingTime] = useState(() =>
+    withSeconds ? '00:00:00' : '00:00'
+  );
+
+  const split = withTime && !custom ? splitDateTimeValue(value) : null;
+  // The calendar highlights and navigates by the date part alone; the
+  // custom path derives it from `parse` instead of the built-in split
+  // (the week mode wants the picked week's "YYYY-Www" serialization).
+  const parsedWeek =
+    parsedDate && picker === 'week'
+      ? getISOWeek(
+          parsedDate.getFullYear(),
+          parsedDate.getMonth(),
+          parsedDate.getDate()
+        )
+      : null;
+  const dateValue = custom
+    ? parsedWeek
+      ? formatWeekValue(parsedWeek.year, parsedWeek.week)
+      : parsedDate
+        ? formatDate(
+            parsedDate.getFullYear(),
+            parsedDate.getMonth(),
+            parsedDate.getDate()
+          )
+        : ''
+    : withTime
+      ? (split?.date ?? '')
+      : value;
+  // The time input always reads in the active precision (seconds mode
+  // pads, minute mode truncates — see normalizeTime).
+  const parsedTime = custom
+    ? withTime && parsedDate
+      ? timeOf(parsedDate, withSeconds)
+      : null
+    : (split?.time ?? null);
+  const timeValue =
+    parsedTime === null ? pendingTime : normalizeTime(parsedTime, withSeconds);
+
+  /** Serialize a pick (plus optional parked time) through the active
+   * format — the consumer hook when provided, the built-in
+   * `"YYYY-MM-DD[ HH:mm[:ss]]"` serialization otherwise. Picks arrive
+   * as `"YYYY-MM-DD"` (or `"YYYY-Www"` in the week mode); the week
+   * value resolves to its Monday before `format` sees it. */
+  const serialize = (dayValue: string, time?: string) => {
+    if (custom && format) {
+      const week = picker === 'week' ? parseWeekValue(dayValue) : null;
+      const monday = week
+        ? getISOWeekStartDate(week.year, week.week)
+        : null;
+      const day =
+        (monday &&
+          new Date(monday.year, monday.month, monday.day)) ||
+        parseCivilDate(dayValue);
+      if (!day) return time !== undefined ? `${dayValue} ${time}` : dayValue;
+      return format(
+        time !== undefined ? applyTimeToCivilDate(day, time) : day
+      );
+    }
+    return time !== undefined ? formatDateTimeValue(dayValue, time) : dayValue;
+  };
 
   // Adapt the value/onChange pair to the state-setter shape the floating
   // behavior drives (functional updates included).
@@ -274,14 +385,15 @@ export default function DatepickerCore({
           disabledDate={disabledDate}
           locale={locale}
           weekStartsOn={weekStartsOn}
+          cellRender={cellRender}
           onSelect={(date) => {
             if (withTime) {
               // Keep the panel open so the time can still be adjusted
               // after the date pick; outside click and Escape close it
               // through the floating behavior as usual.
-              onChange(formatDateTimeValue(date, timeValue));
+              onChange(serialize(date, timeValue));
             } else {
-              onChange(date);
+              onChange(serialize(date));
               onOpenChange(false);
             }
           }}
@@ -291,16 +403,18 @@ export default function DatepickerCore({
             <span x-class={[timeLabel]}>{strings.time}</span>
             <input
               type='time'
+              step={withSeconds ? 1 : undefined}
               x-class={[timeInput]}
               aria-label={strings.time}
               value={timeValue}
               onChange={(e) => {
                 // Native time inputs report '' while cleared; fall back
                 // to midnight so the next pick still serializes.
-                const next = e.target.value || '00:00';
+                const next =
+                  e.target.value || (withSeconds ? '00:00:00' : '00:00');
                 setPendingTime(next);
-                if (split?.date) {
-                  onChange(formatDateTimeValue(split.date, next));
+                if (dateValue) {
+                  onChange(serialize(dateValue, next));
                 }
               }}
             />

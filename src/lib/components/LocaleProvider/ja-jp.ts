@@ -97,6 +97,11 @@ const jaJP: HazeStrings = {
   colorPicker: {
     pickColor: '色を選択',
     hexColor: 'HEX カラー',
+    saturationBrightness: '彩度と明度',
+    hue: '色相',
+    alpha: '不透明度',
+    presetsLabel: 'プリセット',
+    recentColors: '最近使用した色',
   },
   confirmDialog: {
     confirm: '確認',
@@ -177,6 +182,13 @@ const jaJP: HazeStrings = {
   pagination: {
     previous: '前へ',
     next: '次へ',
+    sizeLabel: 'ページあたりの件数',
+    sizeOption: '{count} 件/ページ',
+    jumperLabel: 'ページを指定して移動',
+    jumperPrefix: 'ページ',
+    jumperSuffix: 'へ',
+    ellipsisBackward: '{count} ページ戻る',
+    ellipsisForward: '{count} ページ進む',
   },
   passwordInput: {
     label: 'パスワード',
@@ -233,6 +245,15 @@ const jaJP: HazeStrings = {
   },
   thinkingIndicator: {
     text: '思考中',
+  },
+  timePicker: {
+    now: '現在',
+    hour: '時',
+    minute: '分',
+    second: '秒',
+    period: '午前/午後',
+    am: '午前',
+    pm: '午後',
   },
   toast: {
     loading: '読み込み中…',

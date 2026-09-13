@@ -4,10 +4,35 @@ import type { ReactNode } from 'react';
  * or `action`) is armed. */
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
-/** Status snapshot for one tracked file — the shape surfaced through
- * `onStatusChange` and `showUploadList.itemRender`. */
+/** A file that already lives on the server: described by metadata
+ * instead of a local `File` object. Passed through `value` to echo an
+ * existing upload — rendered in the built-in list (a `url` thumbnail
+ * for the picture list types), removable, but never re-entering the
+ * upload pipeline (`beforeUpload`/`request`/`action` only ever see
+ * real `File` objects). */
+type UploadFile = {
+  /** Stable identity for list keys. When omitted, one is generated per
+   * object instance and reused across renders. */
+  uid?: string;
+  name: string;
+  /** Remote source rendered as the thumbnail in picture list types. */
+  url?: string;
+  /** Bytes, when the server reports them. */
+  size?: number;
+  /** Terminal state of the echoed upload — defaults to `success`. */
+  status?: 'success' | 'error';
+  /** 0–100, clamped; purely informational for echo entries. */
+  percent?: number;
+};
+
+/** One item of the value channel: a picked local `File` (enters the
+ * upload pipeline) or an `UploadFile` echo (terminal). */
+type UploadValueItem = File | UploadFile;
+
+/** Status snapshot for one tracked value item — the shape surfaced
+ * through `onStatusChange` and `showUploadList.itemRender`. */
 type UploadFileStatus = {
-  file: File;
+  file: UploadValueItem;
   status: UploadStatus;
   /** 0–100, clamped; forced to 100 when the upload succeeds. */
   percent: number;
@@ -41,9 +66,10 @@ type UploadListItemActions = {
   cancel: () => void;
 };
 
-/** Custom renderer replacing a built-in list row. */
+/** Custom renderer replacing a built-in list row. Echo entries
+ * (`UploadFile` items) reach it the same way local files do. */
 type UploadListItemRender = (
-  file: File,
+  file: UploadValueItem,
   status: UploadStatus,
   percent: number,
   actions: UploadListItemActions
@@ -69,11 +95,15 @@ type UploadHandle = {
 };
 
 /** Internal tracked row: public status snapshot plus the stable uid the
- * list keys on (File objects have no serializable identity). */
+ * list keys on (value items carry no serializable identity). Echo
+ * entries hold their terminal `status`/`percent` from the
+ * `UploadFile` description. */
 type UploadEntry = UploadFileStatus & { uid: string };
 
 export type {
   UploadStatus,
+  UploadFile,
+  UploadValueItem,
   UploadFileStatus,
   UploadRequestOptions,
   UploadRequest,

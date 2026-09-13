@@ -34,6 +34,7 @@
     },
     "./design-tokens/light.json": "./dist/design-tokens/light.json",
     "./design-tokens/dark.json": "./dist/design-tokens/dark.json",
+    "./design-tokens/*/*": "./dist/design-tokens/*/*",
     "./mcp-docs.json": "./dist/mcp-docs.json",
     "./styles.css": "./dist/haze-ui.css",
     "./css/*": "./dist/css/*",
@@ -42,10 +43,12 @@
   },
   "files": [
     "dist",
-    "mcp"
+    "mcp",
+    "cli"
   ],
   "bin": {
-    "haze-ui-mcp": "./mcp/index.mjs"
+    "haze-ui-mcp": "./mcp/index.mjs",
+    "haze-ui-theme": "./cli/theme.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -185,19 +188,25 @@
       "limit": "30 KB"
     },
     {
+      "name": "SortableTree — pulls the @dnd-kit trio (from barrel)",
+      "path": "dist/index.js",
+      "import": "{SortableTree}",
+      "limit": "35 KB"
+    },
+    {
       "name": "Dashboard profile: Button + Input + Select + Dialog + Toast + Pagination",
       "path": "dist/index.js",
       "import": "{Button, Input, Select, Dialog, Toast, Pagination}",
-      "limit": "17 KB"
+      "limit": "17.5 KB"
     },
     {
       "name": "CSS aggregate (dist/haze-ui.css, brotli)",
       "path": "dist/haze-ui.css",
-      "limit": "21 KB"
+      "limit": "22.5 KB"
     },
     {
       "path": "dist/haze-ui.css",
-      "limit": "26 KB",
+      "limit": "28.5 KB",
       "gzip": true
     },
     {
@@ -269,7 +278,7 @@
     {
       "name": "CSS family ratchet: toast",
       "path": "dist/css/toast.css",
-      "limit": "1 KB",
+      "limit": "1.25 KB",
       "gzip": true
     },
     {
@@ -281,7 +290,7 @@
     {
       "name": "CSS family ratchet: tree",
       "path": "dist/css/tree.css",
-      "limit": "1 KB",
+      "limit": "1.25 KB",
       "gzip": true
     },
     {

@@ -106,6 +106,11 @@ const arSA: HazeStrings = {
   colorPicker: {
     pickColor: 'اختيار اللون',
     hexColor: 'رمز اللون HEX',
+    saturationBrightness: 'التشبع والسطوع',
+    hue: 'درجة اللون',
+    alpha: 'العتامة',
+    presetsLabel: 'ألوان جاهزة',
+    recentColors: 'الألوان الأخيرة',
   },
   confirmDialog: {
     confirm: 'تأكيد',
@@ -186,6 +191,13 @@ const arSA: HazeStrings = {
   pagination: {
     previous: 'السابق',
     next: 'التالي',
+    sizeLabel: 'العناصر لكل صفحة',
+    sizeOption: '{count} / صفحة',
+    jumperLabel: 'الانتقال إلى صفحة',
+    jumperPrefix: 'الانتقال إلى',
+    jumperSuffix: 'صفحة',
+    ellipsisBackward: 'الرجوع {count} صفحات',
+    ellipsisForward: 'التقدم {count} صفحات',
   },
   passwordInput: {
     label: 'كلمة المرور',
@@ -242,6 +254,15 @@ const arSA: HazeStrings = {
   },
   thinkingIndicator: {
     text: 'جارٍ التفكير',
+  },
+  timePicker: {
+    now: 'الآن',
+    hour: 'الساعة',
+    minute: 'الدقيقة',
+    second: 'الثانية',
+    period: 'ص/م',
+    am: 'ص',
+    pm: 'م',
   },
   toast: {
     loading: 'جارٍ التحميل…',

@@ -60,11 +60,11 @@ function SlottedToastActions() {
 function ToastDemoInner() {
   const toast = useToast();
 
-  /** Fires a persistent toast, then patches it in place as a fake upload
-   * progresses — the toast element never remounts, so no enter/exit
+  /** Fires a persistent loading toast, then patches it in place as a fake
+   * upload progresses — the toast element never remounts, so no enter/exit
    * animation replays; only the final step arms the auto-dismiss timer. */
   const simulateProgress = () => {
-    const id = toast('Uploading report… 0%', { duration: 0 });
+    const id = toast.loading('Uploading report… 0%');
     const steps = [25, 55, 80, 100];
     const advance = (index: number) => {
       const progress = steps[index];
@@ -116,6 +116,40 @@ function ToastDemoInner() {
             onClick={() => toast('Error occurred', { variant: 'danger' })}
           >
             Danger
+          </Button>
+          <Button
+            variant='outline'
+            onClick={() => toast.loading('Crunching numbers…')}
+          >
+            loading (persistent)
+          </Button>
+          <Button
+            variant='outline'
+            onClick={() =>
+              toast('Report archived', {
+                variant: 'success',
+                duration: 0,
+                action: {
+                  label: 'Undo',
+                  onClick: () =>
+                    toast.success('Report restored', { duration: 3000 }),
+                },
+              })
+            }
+          >
+            action (Undo)
+          </Button>
+          <Button
+            variant='outline'
+            onClick={() =>
+              toast('Falling back to the cached copy.', {
+                variant: 'warning',
+                title: 'Network unstable',
+                duration: 6000,
+              })
+            }
+          >
+            title + description
           </Button>
           <Button variant='outline' onClick={simulateProgress}>
             update (progress)
@@ -185,9 +219,10 @@ function ToastDemoInner() {
             },
             {
               name: 'options.variant',
-              type: "'info' | 'success' | 'warning' | 'danger'",
+              type: "'info' | 'success' | 'warning' | 'danger' | 'loading'",
               default: "'info'",
-              description: 'Color variant',
+              description:
+                'Color variant. loading renders the spinner glyph; prefer the toast.loading() sugar over passing it by hand',
             },
             {
               name: 'options.duration',
@@ -196,8 +231,26 @@ function ToastDemoInner() {
               description: 'Auto-dismiss time in ms',
             },
             {
+              name: 'options.action',
+              type: '{ label: ReactNode; onClick: () => void; close?: boolean }',
+              description:
+                'Action button rendered between the message and the dismiss × (a real focusable button). close defaults to true — the toast dismisses right after onClick runs; set close: false to keep it open.',
+            },
+            {
+              name: 'options.title',
+              type: 'ReactNode',
+              description:
+                'Bold first line rendered above the message (two-line layout); omitted renders the message alone',
+            },
+            {
+              name: 'loading(content, options?)',
+              type: 'ToastVariantOptions',
+              description:
+                'Sugar for variant: loading with duration defaulting to 0 — the toast stays (spinner spinning) until update/dismiss or a manual close. An explicit duration overrides the persistence.',
+            },
+            {
               name: 'update(id, patch)',
-              type: '{ content?: ReactNode; variant?; duration?: number }',
+              type: '{ content?: ReactNode; variant?; duration?: number; action?; title? }',
               description:
                 'Patches a toast in place — same element, no enter/exit replay. A new duration re-arms the countdown; an omitted one leaves it running. Available on both useToast() and the module-level toast().',
             },
@@ -205,7 +258,7 @@ function ToastDemoInner() {
               name: 'promise(promise, options)',
               type: '{ loading?; success?; error?; duration? }',
               description:
-                'Shows a persistent loading toast, then patches it to the success (or danger) copy when the promise settles. success/error accept ReactNode or (value) => ReactNode; omitted copy falls back to the locale pack. Returns the original promise — rejections still reach the caller.',
+                'Shows a persistent loading toast (spinner), then patches it to the success (or danger) copy when the promise settles. success/error accept ReactNode or (value) => ReactNode; omitted copy falls back to the locale pack. Returns the original promise — rejections still reach the caller.',
             },
           ]}
         />
@@ -216,12 +269,20 @@ function ToastDemoInner() {
         <A11yNote>
           <ul>
             <li>
-              Each toast has <strong>role=&quot;alert&quot;</strong>
+              Each toast is a live region — <strong>role=&quot;status&quot;</strong>{' '}
+              (polite) for info/success/warning/loading,{' '}
+              <strong>role=&quot;alert&quot;</strong> (assertive) for danger
+              only
             </li>
             <li>
-              Close button has <strong>aria-label=&quot;Close&quot;</strong>
+              Close button has <strong>aria-label=&quot;Close&quot;</strong>;
+              the action button is a real focusable <code>&lt;button&gt;</code>{' '}
+              (Tab + Enter), and the loading spinner is aria-hidden art
             </li>
-            <li>Toasts auto-dismiss after the configured duration</li>
+            <li>
+              Countdown pauses on hover and focus (WCAG 2.2.1); toasts
+              auto-dismiss after the configured duration
+            </li>
           </ul>
         </A11yNote>
       </div>

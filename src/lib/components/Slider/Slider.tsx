@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, Ref } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 
 import { useControl } from 'react-use-control';
@@ -28,11 +28,36 @@ type SliderProps = {
    */
   'aria-label'?: string | [string, string];
   /**
+   * Value bubble over the active thumb while dragging or focused
+   * (see SliderCoreProps.tooltip). Opt-in; in single mode it wraps the
+   * input in a positioning span (the input keeps `className`).
+   */
+  tooltip?: boolean;
+  /** Bubble content formatter (see SliderCoreProps.tooltipFormatter). */
+  tooltipFormatter?: (value: number) => ReactNode;
+  /**
+   * Tick labels under the track, clickable onto the nearest thumb
+   * (see SliderCoreProps.marks).
+   */
+  marks?: Record<number, ReactNode>;
+  /**
+   * Vertical orientation, bottom-to-top (see SliderCoreProps.vertical).
+   */
+  vertical?: boolean;
+  /**
+   * `null` restricts the selectable values to the `marks` keys
+   * (see SliderCoreProps.step); a number forwards to the native input.
+   */
+  step?: number | null;
+  /**
    * Forwarded to the `<input type='range'>` — the only input in single
    * mode, the low thumb (first tab stop) in range mode.
    */
   ref?: Ref<HTMLInputElement>;
-} & Omit<ComponentPropsWithoutRef<'input'>, 'type' | 'value' | 'aria-label'>;
+} & Omit<
+  ComponentPropsWithoutRef<'input'>,
+  'type' | 'value' | 'aria-label' | 'step'
+>;
 
 /** A min/max attribute as a finite number, else the native default. */
 function numberOr(raw: string | number | undefined, fallback: number): number {

@@ -117,6 +117,24 @@ export type TreeProps = {
    * localized empty state is shown.
    */
   searchValue?: string;
+  /**
+   * Wraps one rendered treeitem row — called on both render paths
+   * (recursive and virtualized) with the row element and its node.
+   * Injection seam for drag-and-drop variants: the wrapper owns the
+   * sortable node while the base tree stays free of any dnd runtime.
+   * @internal
+   */
+  rowWrap?: (row: ReactNode, node: TreeNodeData) => ReactNode;
+  /**
+   * Disables the built-in tree keymap (arrows / Home / End / Enter /
+   * Space). The roving tabindex itself is unaffected — only the key
+   * handlers go quiet.
+   * @internal — injected by `SortableTree` while a drag is active so
+   * dnd-kit owns the keydown stream (Space lift/drop, arrows, Escape)
+   * without the tree also moving focus or toggling selection and
+   * checkboxes mid-drag.
+   */
+  keyboardNavigation?: boolean;
   /** （受控）展开的节点 */
   expandedKeys?: ControlOrValue<string[]>;
   /** （受控）选中的节点 */

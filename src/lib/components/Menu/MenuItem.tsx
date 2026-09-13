@@ -2,9 +2,17 @@ import type { ReactNode } from 'react';
 
 import { css } from '@linaria/core';
 
+import { menuItemDanger, menuItemIcon, menuItemKbd } from './menu-item-styles';
+
 type MenuItemProps = {
   onSelect?: () => void;
   disabled?: boolean;
+  /** Danger skin for destructive actions: danger-colored text and interaction states. */
+  danger?: boolean;
+  /** Inline-start icon slot; bare `svg` children are sized to 1em by the slot. */
+  icon?: ReactNode;
+  /** Inline-end shortcut hint (e.g. '⌘C'), muted and pushed to the item's end. */
+  kbdLabel?: ReactNode;
   className?: string;
   children: ReactNode;
 };
@@ -46,6 +54,9 @@ const item = css`
 export default function MenuItem({
   onSelect,
   disabled = false,
+  danger = false,
+  icon,
+  kbdLabel,
   className,
   children,
 }: MenuItemProps) {
@@ -54,11 +65,15 @@ export default function MenuItem({
       type='button'
       role='menuitem'
       tabIndex={-1}
-      x-class={[item, className]}
+      x-class={[item, danger && menuItemDanger, className]}
       disabled={disabled}
       onClick={onSelect}
     >
+      {icon !== undefined && <span x-class={menuItemIcon}>{icon}</span>}
       {children}
+      {kbdLabel !== undefined && (
+        <span x-class={menuItemKbd} aria-hidden='true'>{kbdLabel}</span>
+      )}
     </button>
   );
 }

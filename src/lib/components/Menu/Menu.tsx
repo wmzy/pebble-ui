@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ControlOrValue } from 'react-use-control';
+import type { MenuDataItem } from '../../utils/menuItems';
 
 import { css } from '@linaria/core';
 import { useCallback, useRef } from 'react';
@@ -8,12 +9,30 @@ import { useControl } from 'react-use-control';
 import { FloatingPanel, useFloating } from '../../utils/floating';
 import { useFocusScope } from '../../utils/focus-scope';
 import { useMenuKeyboard, useRovingTabindex } from '../../utils/menuKeyboard';
+import { renderMenuDataItems } from '../../utils/menuItems';
+
+import MenuCheckboxItem from './MenuCheckboxItem';
+import MenuDivider from './MenuDivider';
+import MenuGroup from './MenuGroup';
+import MenuItem from './MenuItem';
+import MenuRadioGroup from './MenuRadioGroup';
+import MenuRadioItem from './MenuRadioItem';
+import MenuSub from './MenuSub';
+import MenuSubContent from './MenuSubContent';
+import MenuSubTrigger from './MenuSubTrigger';
 
 type MenuProps = {
   open?: ControlOrValue<boolean>;
   trigger?: ReactNode;
+  /**
+   * Data-driven alternative to composed children: plain items,
+   * checkboxes, radio groups, labeled groups, dividers and nested
+   * submenus, rendered through the same components the compound API
+   * uses. When passed, it replaces the panel's children.
+   */
+  items?: MenuDataItem[];
   className?: string;
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 const container = css`
@@ -30,9 +49,23 @@ const panel = css`
   box-shadow: var(--haze-shadow-lg);
 `;
 
+/** The family record the data-driven `items` renderer composes from. */
+const menuFamily = {
+  Item: MenuItem,
+  CheckboxItem: MenuCheckboxItem,
+  RadioGroup: MenuRadioGroup,
+  RadioItem: MenuRadioItem,
+  Group: MenuGroup,
+  Divider: MenuDivider,
+  Sub: MenuSub,
+  SubTrigger: MenuSubTrigger,
+  SubContent: MenuSubContent,
+};
+
 export default function Menu({
   open: openControl,
   trigger,
+  items,
   className,
   children,
 }: MenuProps) {
@@ -83,10 +116,11 @@ export default function Menu({
         className={className}
         onKeyDown={handleKeyDown}
       >
-        {children}
+        {items !== undefined ? renderMenuDataItems(items, menuFamily) : children}
       </FloatingPanel>
     </div>
   );
 }
 
 export type { MenuProps };
+export type { MenuDataItem };

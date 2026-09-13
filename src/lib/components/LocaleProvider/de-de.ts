@@ -99,6 +99,11 @@ const deDE: HazeStrings = {
   colorPicker: {
     pickColor: 'Farbe wählen',
     hexColor: 'Hex-Farbwert',
+    saturationBrightness: 'Sättigung und Helligkeit',
+    hue: 'Farbton',
+    alpha: 'Deckkraft',
+    presetsLabel: 'Voreinstellungen',
+    recentColors: 'Zuletzt verwendete Farben',
   },
   confirmDialog: {
     confirm: 'Bestätigen',
@@ -179,6 +184,13 @@ const deDE: HazeStrings = {
   pagination: {
     previous: 'Zurück',
     next: 'Weiter',
+    sizeLabel: 'Einträge pro Seite',
+    sizeOption: '{count} pro Seite',
+    jumperLabel: 'Zu Seite springen',
+    jumperPrefix: 'Gehe zu',
+    jumperSuffix: 'Seite',
+    ellipsisBackward: '{count} Seiten zurückblättern',
+    ellipsisForward: '{count} Seiten weiterblättern',
   },
   passwordInput: {
     label: 'Passwort',
@@ -235,6 +247,15 @@ const deDE: HazeStrings = {
   },
   thinkingIndicator: {
     text: 'Denkt nach',
+  },
+  timePicker: {
+    now: 'Jetzt',
+    hour: 'Stunde',
+    minute: 'Minute',
+    second: 'Sekunde',
+    period: 'AM/PM',
+    am: 'AM',
+    pm: 'PM',
   },
   toast: {
     loading: 'Wird geladen…',

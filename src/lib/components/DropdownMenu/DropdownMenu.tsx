@@ -1,12 +1,26 @@
 import type { ReactNode, Ref } from 'react';
 import type { ControlOrValue } from 'react-use-control';
 import type { CollisionPadding } from '../../utils/collision';
+import type { MenuDataItem } from '../../utils/menuItems';
 
 import { useCallback, useId, useImperativeHandle, useMemo, useRef } from 'react';
 import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
 
 import { useFloating } from '../../utils/floating';
+import { renderMenuDataItems } from '../../utils/menuItems';
+
+import DropdownMenuCheckboxItem from './DropdownMenuCheckboxItem';
+import DropdownMenuContent from './DropdownMenuContent';
+import DropdownMenuGroup from './DropdownMenuGroup';
+import DropdownMenuItem from './DropdownMenuItem';
+import DropdownMenuRadioGroup from './DropdownMenuRadioGroup';
+import DropdownMenuRadioItem from './DropdownMenuRadioItem';
+import DropdownMenuSeparator from './DropdownMenuSeparator';
+import DropdownMenuSub from './DropdownMenuSub';
+import DropdownMenuSubContent from './DropdownMenuSubContent';
+import DropdownMenuSubTrigger from './DropdownMenuSubTrigger';
+import DropdownMenuTrigger from './DropdownMenuTrigger';
 
 import { DropdownMenuProvider } from './DropdownMenuContext';
 
@@ -38,7 +52,15 @@ type DropdownMenuProps = {
    * to all four edges, an object per edge.
    */
   collisionPadding?: CollisionPadding;
-  children: ReactNode;
+  /**
+   * Data-driven alternative to composed children: plain items,
+   * checkboxes, radio groups, labeled groups, dividers and nested
+   * submenus, rendered through the same components the compound API
+   * uses. When passed, it replaces the children with a default `⋯`
+   * trigger plus the content built from the data.
+   */
+  items?: MenuDataItem[];
+  children?: ReactNode;
   className?: string;
   ref?: Ref<DropdownMenuHandle>;
 };
@@ -48,10 +70,24 @@ const wrapper = css`
   display: inline-block;
 `;
 
+/** The family record the data-driven `items` renderer composes from. */
+const dropdownMenuFamily = {
+  Item: DropdownMenuItem,
+  CheckboxItem: DropdownMenuCheckboxItem,
+  RadioGroup: DropdownMenuRadioGroup,
+  RadioItem: DropdownMenuRadioItem,
+  Group: DropdownMenuGroup,
+  Divider: DropdownMenuSeparator,
+  Sub: DropdownMenuSub,
+  SubTrigger: DropdownMenuSubTrigger,
+  SubContent: DropdownMenuSubContent,
+};
+
 export default function DropdownMenu({
   open: openControl,
   onOpenChange,
   collisionPadding,
+  items,
   children,
   className,
   ref,
@@ -118,9 +154,21 @@ export default function DropdownMenu({
         floating,
       }}
     >
-      <div x-class={[wrapper, className]}>{children}</div>
+      <div x-class={[wrapper, className]}>
+        {items !== undefined ? (
+          <>
+            <DropdownMenuTrigger>⋯</DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {renderMenuDataItems(items, dropdownMenuFamily)}
+            </DropdownMenuContent>
+          </>
+        ) : (
+          children
+        )}
+      </div>
     </DropdownMenuProvider>
   );
 }
 
 export type { DropdownMenuProps, DropdownMenuHandle };
+export type { MenuDataItem as DropdownMenuDataItem };

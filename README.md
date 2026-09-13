@@ -458,6 +458,46 @@ not wrapped.
 }
 ```
 
+## Brand themes: presets, runtime generation, CLI
+
+Five preset brand themes ship as complete theme classes — `violetTheme`,
+`tealTheme`, `cyanTheme`, `orangeTheme`, `roseTheme` — each a drop-in
+replacement for `lightTheme`/`darkTheme` with primary/info/focus-ring
+rerouted to the brand's scale.
+
+**Runtime custom brands.** `createBrandTheme` (from `haze-ui` or
+`haze-ui/tokens`) runs the exact preset pipeline from your own seed hex:
+
+```ts
+import { createBrandTheme } from 'haze-ui/tokens';
+
+const brand = createBrandTheme({
+  name: 'acme',       // → --haze-acme-1…12 (lowercase kebab; not gray/green/amber/red)
+  light: '#0066ff',   // light-mode primary seed (scale step 9)
+  dark: '#0a3d99',    // optional — derived from light (oklch l +0.2) when omitted
+  overrides: { light: { 10: '#0052cc' } },  // optional extra anchors
+});
+// brand.light / brand.dark: bare declaration blocks — wrap in classes once:
+// styleEl.textContent = `.acme-light { ${brand.light} }\n.acme-dark { ${brand.dark} }`;
+```
+
+The blocks are theme *replacements* (never stack on `lightTheme`), and you
+own contrast: pick a light seed dark enough for white text — the presets'
+step-9 anchors sit near Tailwind's 600/700 range for that reason.
+
+**CLI.** Zero Node dependencies, identical output:
+
+```bash
+npx haze-ui-theme --primary '#0066ff' [--dark '#0a3d99'] [--name brand] [--out brand.css]
+```
+
+**W3C design-token archives.** Every preset is also exported per mode as
+W3C DTF JSON:
+
+```js
+import violetLight from 'haze-ui/design-tokens/violet/light.json';
+```
+
 ## Component-level tokens
 
 Global `--haze-*` tokens theme the whole system; **component-level tokens**

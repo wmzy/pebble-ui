@@ -125,6 +125,8 @@ export default function Tree({
   virtualized,
   loadData,
   searchValue,
+  rowWrap,
+  keyboardNavigation = true,
   expandedKeys: expandedKeysControl,
   selectedKeys: selectedKeysControl,
   checkedKeys: checkedKeysControl,
@@ -315,6 +317,10 @@ export default function Tree({
   }
 
   function handleKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    // Injection seam (SortableTree): while a drag is active, dnd-kit owns
+    // the keydown stream — the tree keymap stays quiet so Space doesn't
+    // also check and arrows don't move focus mid-drag.
+    if (!keyboardNavigation) return;
     const rows = visibleRows;
     if (rows.length === 0) return;
     const target = event.target as HTMLElement;
@@ -526,35 +532,39 @@ export default function Tree({
       const isLastAtThisLevel = index === nodes.length - 1;
       const currentIsLast = [...parentIsLast, isLastAtThisLevel];
 
+      const row = (
+        <TreeItem
+          node={node}
+          level={level}
+          expanded={isExpanded}
+          selected={isSelected}
+          checked={checkedState}
+          disabled={disabled}
+          checkable={checkable}
+          selectable={selectable}
+          blockNode={blockNode}
+          showLine={showLine}
+          showIcon={showIcon}
+          switcherIcon={switcherIcon}
+          loadingIcon={loadingIcon}
+          loading={status === 'loading'}
+          loadable={loadable}
+          loadFailed={status === 'error'}
+          searchValue={searchValue}
+          titleRender={titleRender}
+          iconRender={iconRender}
+          isLast={currentIsLast}
+          tabIndex={node.key === stopKey ? 0 : -1}
+          onToggle={() => handleToggle(node.key)}
+          onSelect={() => handleSelect(node.key)}
+          onCheck={() => handleCheck(node.key)}
+          onRetry={() => handleRetryLoad(node.key)}
+        />
+      );
+
       return (
         <div key={node.key} role='group' x-class={group}>
-          <TreeItem
-            node={node}
-            level={level}
-            expanded={isExpanded}
-            selected={isSelected}
-            checked={checkedState}
-            disabled={disabled}
-            checkable={checkable}
-            selectable={selectable}
-            blockNode={blockNode}
-            showLine={showLine}
-            showIcon={showIcon}
-            switcherIcon={switcherIcon}
-            loadingIcon={loadingIcon}
-            loading={status === 'loading'}
-            loadable={loadable}
-            loadFailed={status === 'error'}
-            searchValue={searchValue}
-            titleRender={titleRender}
-            iconRender={iconRender}
-            isLast={currentIsLast}
-            tabIndex={node.key === stopKey ? 0 : -1}
-            onToggle={() => handleToggle(node.key)}
-            onSelect={() => handleSelect(node.key)}
-            onCheck={() => handleCheck(node.key)}
-            onRetry={() => handleRetryLoad(node.key)}
-          />
+          {rowWrap ? rowWrap(row, node) : row}
           {hasChildren && isExpanded && (
             <div>{renderNodes(node.children!, level + 1, currentIsLast)}</div>
           )}
@@ -576,7 +586,7 @@ export default function Tree({
         ? 'halfChecked'
         : 'unchecked';
 
-    return (
+    const item = (
       <TreeItem
         node={row.node}
         level={row.level}
@@ -605,6 +615,7 @@ export default function Tree({
         onRetry={() => handleRetryLoad(row.key)}
       />
     );
+    return rowWrap ? rowWrap(item, row.node) : item;
   }
 
   if (searchActive && displayData.length === 0) {

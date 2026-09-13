@@ -33,6 +33,19 @@ const dot = css`
   border-radius: var(--haze-radius-full);
   background: var(--haze-color-text-muted);
   animation: bounce 1.4s ease-in-out infinite;
+
+  /* WCAG 2.3.3: the bounce loop period is a literal on purpose (the
+     motion tokens model transition durations, not multi-second cycles),
+     so reduced-motion needs this explicit collapse. A single 0.01ms
+     iteration settles each dot at its base transform — a static dot row
+     beside the text label. The staggered animation-delay literals on
+     dot2/dot3 are phase offsets of the loop, not motion: under reduce
+     they merely hold the base state briefly before the instant
+     iteration, so they stay as-is. */
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
 `;
 
 const dot2 = css`animation-delay: 0.16s;`;

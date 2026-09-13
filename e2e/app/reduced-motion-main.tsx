@@ -3,7 +3,10 @@
  * one representative surface per motion family the tokens drive —
  * Button hover transitions (fast), Switch state transitions (normal),
  * Popover panel enter animation (fast, floating tier) and Dialog modal
- * enter animation (normal). The motion token class mounted by
+ * enter animation (normal) — plus the infinite-loop family (Spinner
+ * spin / Skeleton shimmer), whose literal loop periods sit outside the
+ * token scale and are collapsed per-class instead (single 0.01ms
+ * iteration). The motion token class mounted by
  * mountPage collapses every --haze-duration-* to 0ms under
  * prefers-reduced-motion: reduce, so all of these must resolve to 0s
  * computed durations in that mode and keep full values otherwise.
@@ -17,6 +20,8 @@ import { Button } from '../../src/lib/components/Button';
 import { Dialog } from '../../src/lib/components/Dialog';
 import type { DialogHandle } from '../../src/lib/components/Dialog';
 import { Popover } from '../../src/lib/components/Popover';
+import { Skeleton } from '../../src/lib/components/Skeleton';
+import { Spinner } from '../../src/lib/components/Spinner';
 import { Switch } from '../../src/lib/components/Switch';
 
 import { mountPage } from './components/mount';
@@ -89,6 +94,12 @@ mountPage(
     </section>
     <section id="popover-demo">
       <Popover content="Popover body">Open popover</Popover>
+    </section>
+    <section id="spinner-demo">
+      <Spinner />
+    </section>
+    <section id="skeleton-demo">
+      <Skeleton width={200} height={20} />
     </section>
     <DialogDemo />
     <ViewTransitionDialogDemo />

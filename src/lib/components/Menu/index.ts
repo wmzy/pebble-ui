@@ -1,7 +1,15 @@
 export {default as Menu} from './Menu';
-export type {MenuProps} from './Menu';
+export type {MenuProps, MenuDataItem} from './Menu';
 export {default as MenuItem} from './MenuItem';
 export type {MenuItemProps} from './MenuItem';
+export {default as MenuCheckboxItem} from './MenuCheckboxItem';
+export type {MenuCheckboxItemProps} from './MenuCheckboxItem';
+export {default as MenuRadioGroup} from './MenuRadioGroup';
+export type {MenuRadioGroupProps} from './MenuRadioGroup';
+export {default as MenuRadioItem} from './MenuRadioItem';
+export type {MenuRadioItemProps} from './MenuRadioItem';
+export {default as MenuGroup} from './MenuGroup';
+export type {MenuGroupProps} from './MenuGroup';
 export {default as MenuDivider} from './MenuDivider';
 export {default as MenuSub} from './MenuSub';
 export type {MenuSubProps} from './MenuSub';

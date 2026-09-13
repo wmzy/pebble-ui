@@ -443,6 +443,18 @@
       "description": "Auto-play interval in ms"
     },
     {
+      "name": "effect",
+      "type": "'slide' | 'fade'",
+      "default": "'slide'",
+      "description": "Transition effect: slide (scroll-snap track) or fade (stacked cross-fade)"
+    },
+    {
+      "name": "pauseOnHover",
+      "type": "boolean",
+      "default": "false",
+      "description": "Pause auto-play while hovered or focused; resume with the remaining time budget"
+    },
+    {
       "name": "className",
       "type": "string",
       "description": "Additional CSS class"
@@ -642,23 +654,53 @@
   "ColorPickerProps": [
     {
       "name": "value",
-      "type": "Control<string> | string",
-      "description": "Controlled color value (hex)"
+      "type": "ControlOrValue<string>",
+      "description": "Color value in any supported format (hex / rgb / hsl); a bare value is the uncontrolled initial color"
+    },
+    {
+      "name": "open",
+      "type": "ControlOrValue<boolean>",
+      "description": "Floating panel visibility (controllable; floating mode only)"
+    },
+    {
+      "name": "inline",
+      "type": "boolean",
+      "description": "Always-visible panel card instead of trigger + floating panel"
+    },
+    {
+      "name": "format",
+      "type": "'hex' | 'rgb' | 'hsl'",
+      "description": "Serialization format of the text field and emitted values; switching it does not re-emit the current value"
+    },
+    {
+      "name": "allowAlpha",
+      "type": "boolean",
+      "description": "Adds the alpha rail; opacity below 1 serializes into the value (#rrggbbaa / rgba() / hsla())"
     },
     {
       "name": "presets",
       "type": "string[]",
-      "description": "Array of preset color hex values"
+      "description": "Preset swatch row above the recent row; any parsable format"
+    },
+    {
+      "name": "recent",
+      "type": "boolean",
+      "description": "Tracks recently used colors (last 10, newest first) as internal state"
     },
     {
       "name": "onChange",
       "type": "(color: string) => void",
-      "description": "Called when color changes"
+      "description": "Value callback — streams continuously while a drag runs (Slider precedent), serialized in format"
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "description": "Accessible name of the trigger and the panel; defaults to the locale's \"Pick color\". Set it when more than one picker is on a page"
     },
     {
       "name": "className",
       "type": "string",
-      "description": "Additional CSS class"
+      "description": "Additional CSS class (the panel card)"
     }
   ],
   "ComboboxProps": [
@@ -794,6 +836,19 @@
       "description": "Dialog body content"
     }
   ],
+  "ConfigProviderProps": [
+    {
+      "name": "defaults",
+      "type": "HazeConfig",
+      "description": "Component defaults keyed by exported component name (Button / ButtonLink / Toast / Tooltip); nested providers shallow-merge per section, inner wins, explicit props always beat config"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "required": true,
+      "description": "Subtree reading the defaults"
+    }
+  ],
   "ContainerProps": [
     {
       "name": "size",
@@ -909,6 +964,12 @@
       "description": "Selected date (ISO format YYYY-MM-DD)"
     },
     {
+      "name": "picker",
+      "type": "'date' | 'week' | 'month' | 'quarter' | 'year'",
+      "default": "'date'",
+      "description": "Calendar granularity: 'date' (default), ISO-week 'week', 'month', 'quarter' or 'year'; value serializes per mode (YYYY-MM-DD / YYYY-Www / YYYY-MM / YYYY-Qn / YYYY)"
+    },
+    {
       "name": "open",
       "type": "Control<boolean> | boolean",
       "description": "Dropdown open state (controllable)"
@@ -932,6 +993,26 @@
       "name": "weekStartsOn",
       "type": "0 | 1",
       "description": "First day of the week (0 = Sunday, 1 = Monday); defaults to the locale week info"
+    },
+    {
+      "name": "showTime",
+      "type": "boolean | { seconds?: boolean }",
+      "description": "Adds a time input below the calendar; value serializes as 'YYYY-MM-DD HH:mm' (or 'YYYY-MM-DD HH:mm:ss' with { seconds: true }). Date granularity only"
+    },
+    {
+      "name": "format",
+      "type": "(date: Date) => string",
+      "description": "Custom serialization for picks, replacing the built-in value format; pair with parse so controlled values round-trip into the calendar"
+    },
+    {
+      "name": "parse",
+      "type": "(text: string) => Date | null",
+      "description": "Reads a custom-formatted value back into the calendar (month anchor, day highlight, time input); null leaves the panel unanchored"
+    },
+    {
+      "name": "cellRender",
+      "type": "CalendarCellRender",
+      "description": "Appends custom content inside the panel's picker cells (see Calendar's cellRender)"
     },
     {
       "name": "placeholder",
@@ -1677,9 +1758,48 @@
     },
     {
       "name": "pageSize",
-      "type": "number",
+      "type": "Control<number> | number",
       "default": "10",
-      "description": "Items per page"
+      "description": "Items per page (controlled)"
+    },
+    {
+      "name": "pageSizeOptions",
+      "type": "number[]",
+      "description": "Page sizes offered by the size changer (showSizeChanger); defaults to [10, 20, 50, 100]. The current pageSize is folded in if missing."
+    },
+    {
+      "name": "showSizeChanger",
+      "type": "boolean",
+      "default": "false",
+      "description": "Renders a page-size select; changing it resets to page 1"
+    },
+    {
+      "name": "showQuickJumper",
+      "type": "boolean",
+      "default": "false",
+      "description": "Renders a jump-to-page input that navigates on Enter (clamped to bounds). Ignored in simple mode."
+    },
+    {
+      "name": "showTotal",
+      "type": "(total: number, range: [number, number]) => ReactNode",
+      "description": "Renders a summary of the total and the current page's item range"
+    },
+    {
+      "name": "simple",
+      "type": "boolean",
+      "default": "false",
+      "description": "Minimal mode: page input plus prev/next instead of the page list"
+    },
+    {
+      "name": "ellipsisJump",
+      "type": "boolean",
+      "default": "false",
+      "description": "Turns the ellipsis markers into buttons jumping ±5 pages (clamped)"
+    },
+    {
+      "name": "onPageChange",
+      "type": "(page: number, pageSize: number) => void",
+      "description": "Called for every page jump, ellipsis jump and page-size change"
     },
     {
       "name": "size",
@@ -2011,9 +2131,31 @@
     },
     {
       "name": "step",
-      "type": "number",
+      "type": "number | null",
       "default": "1",
-      "description": "Step increment"
+      "description": "Step increment; `null` (with `marks`) restricts the selectable values to the mark keys — every change snaps to the nearest mark"
+    },
+    {
+      "name": "tooltip",
+      "type": "boolean",
+      "default": "false",
+      "description": "Show a value bubble over the active thumb while dragging or focused (aria-hidden; the native input keeps announcing the value)"
+    },
+    {
+      "name": "tooltipFormatter",
+      "type": "(value: number) => ReactNode",
+      "description": "Formats the tooltip bubble content; defaults to the raw number"
+    },
+    {
+      "name": "marks",
+      "type": "Record<number, ReactNode>",
+      "description": "Tick labels under the track; clicking one moves the nearest thumb onto it"
+    },
+    {
+      "name": "vertical",
+      "type": "boolean",
+      "default": "false",
+      "description": "Vertical orientation (bottom-to-top) via `writing-mode: vertical-lr; direction: rtl`; track length defaults to calc(var(--haze-space-16) * 2), override with --haze-slider-track"
     },
     {
       "name": "disabled",
@@ -2427,6 +2569,49 @@
       "description": "Tag content"
     }
   ],
+  "ToastProps": [
+    {
+      "name": "variant",
+      "type": "'info' | 'success' | 'warning' | 'danger' | 'loading'",
+      "default": "'info'",
+      "description": "Color variant; loading renders the spinner glyph (usually fired via toast.loading())"
+    },
+    {
+      "name": "action",
+      "type": "ToastAction",
+      "description": "Action button between the message and the dismiss × — { label, onClick, close? }; close defaults to true (dismisses right after onClick)"
+    },
+    {
+      "name": "title",
+      "type": "ReactNode",
+      "description": "Bold first line rendered above the message"
+    },
+    {
+      "name": "onClose",
+      "type": "() => void",
+      "description": "Runs when the toast is dismissed (× button or countdown expiry)"
+    },
+    {
+      "name": "duration",
+      "type": "number",
+      "description": "Auto-dismiss delay in ms; 0 keeps the toast until dismissed"
+    },
+    {
+      "name": "children",
+      "type": "ReactNode",
+      "description": "Toast message"
+    },
+    {
+      "name": "classNames",
+      "type": "ToastClassNames",
+      "description": "Semantic slot classes — viewport (container) / item / content / action / title / close"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "description": "Additional CSS class"
+    }
+  ],
   "TextareaProps": [
     {
       "name": "value",
@@ -2537,12 +2722,58 @@
     {
       "name": "value",
       "type": "Control<string> | string",
-      "description": "Controlled time value"
+      "description": "Controlled time value — 'HH:mm' or 'HH:mm:ss' per format"
+    },
+    {
+      "name": "open",
+      "type": "Control<boolean> | boolean",
+      "description": "Panel visibility; defaults to the trigger's own toggle state"
     },
     {
       "name": "onChange",
       "type": "(value: string) => void",
-      "description": "Called when time changes"
+      "description": "Called when the time changes"
+    },
+    {
+      "name": "format",
+      "type": "'HH:mm' | 'HH:mm:ss'",
+      "default": "'HH:mm'",
+      "description": "Column granularity and the value's serialization shape; 'HH:mm:ss' adds a second column"
+    },
+    {
+      "name": "hourStep",
+      "type": "number",
+      "default": "1",
+      "description": "Hour column step — only multiples of it are offered (trigger arrows step by it too)"
+    },
+    {
+      "name": "minuteStep",
+      "type": "number",
+      "default": "1",
+      "description": "Minute column step — only multiples of it are offered"
+    },
+    {
+      "name": "secondStep",
+      "type": "number",
+      "default": "1",
+      "description": "Second column step — only multiples of it are offered"
+    },
+    {
+      "name": "use12Hours",
+      "type": "boolean",
+      "default": "false",
+      "description": "Presents a 12-hour clock column plus an AM/PM column; the value stays 24-hour 'HH:mm[:ss]'"
+    },
+    {
+      "name": "disabledTime",
+      "type": "(parts: TimeParts) => boolean",
+      "description": "Disables candidate times on the columns; each candidate is judged against the currently selected parts of the other fields"
+    },
+    {
+      "name": "native",
+      "type": "boolean",
+      "default": "false",
+      "description": "Falls back to the bare native <input type=\"time\"> form (TimePickerCore); the panel props do not apply"
     },
     {
       "name": "placeholder",
@@ -2552,7 +2783,7 @@
     {
       "name": "className",
       "type": "string",
-      "description": "Additional CSS class"
+      "description": "Additional CSS class (on the wrapper; the native form puts it on the input)"
     },
     {
       "name": "...rest",
@@ -2640,6 +2871,12 @@
       "type": "'top' | 'bottom' | 'left' | 'right'",
       "default": "'top'",
       "description": "Tooltip placement"
+    },
+    {
+      "name": "delay",
+      "type": "number",
+      "default": "150",
+      "description": "Hover delay in ms before showing; defaults to 150 or the ConfigProvider defaults.Tooltip.delay value"
     },
     {
       "name": "className",
@@ -2826,6 +3063,11 @@
   ],
   "UploadProps": [
     {
+      "name": "value",
+      "type": "ControlOrValue<(File | UploadFile)[]>",
+      "description": "Selected files — local File picks mixed freely with UploadFile echo entries (files already on the server); uncontrolled (accumulating internally) when omitted"
+    },
+    {
       "name": "accept",
       "type": "string",
       "description": "Accepted file types"
@@ -2837,9 +3079,26 @@
       "description": "Allow multiple files"
     },
     {
+      "name": "showUploadList",
+      "type": "boolean | { itemRender?: UploadListItemRender }",
+      "default": "false",
+      "description": "Renders the built-in file list below the zone: live progress, cancel while uploading, retry + remove on error, per-state actions"
+    },
+    {
+      "name": "listType",
+      "type": "'text' | 'picture' | 'picture-card'",
+      "default": "'text'",
+      "description": "Rendering style of the built-in list: text rows; picture — text rows with a 32px inline thumbnail; picture-card — a grid of square thumbnail cards"
+    },
+    {
+      "name": "onPreview",
+      "type": "(file: File | UploadFile) => void",
+      "description": "Click handler for picture / picture-card thumbnails — the natural spot to open a lightbox (wire it to Image/ImagePreview); remove/retry/cancel buttons stay independent"
+    },
+    {
       "name": "onChange",
       "type": "(files: File[]) => void",
-      "description": "Called when files are selected"
+      "description": "Fires with the freshly picked local Files only — the accumulated list (echo entries included) is the value channel"
     },
     {
       "name": "className",
@@ -2864,9 +3123,31 @@
       "description": "Container height in px"
     },
     {
+      "name": "width",
+      "type": "number",
+      "description": "Scrollport width in px — horizontal orientation only: fixes the port width and acts as the main-axis extent until the real clientWidth is measured"
+    },
+    {
       "name": "itemHeight",
       "type": "number",
-      "description": "Height of each item in px"
+      "description": "Extent of one item along the scroll axis: row height in vertical lists, item width with orientation='horizontal', row height in grid mode"
+    },
+    {
+      "name": "columns",
+      "type": "number",
+      "description": "Grid mode: lay items out in a row-major grid with this many columns, virtualizing both axes (rows like a vertical list, columns against the rendered width). Vertical orientation only — a dev error is logged and columns ignored otherwise"
+    },
+    {
+      "name": "columnWidth",
+      "type": "number",
+      "default": "itemHeight",
+      "description": "Column width in px (grid mode only)"
+    },
+    {
+      "name": "orientation",
+      "type": "'vertical' | 'horizontal'",
+      "default": "'vertical'",
+      "description": "Scroll axis of the list; 'horizontal' mirrors windowing, dynamic measurement, scrollToIndex, reverse and sticky group headers onto the x axis with logical (RTL-aware) offsets"
     },
     {
       "name": "renderItem",
@@ -2987,6 +3268,12 @@
   ],
   "CalendarProps": [
     {
+      "name": "picker",
+      "type": "'date' | 'week' | 'month' | 'quarter' | 'year'",
+      "default": "'date'",
+      "description": "Granularity: 'date' (default), 'week' (whole-ISO-week rows, Monday-first grid, week column forced on), 'month', 'quarter' or 'year'"
+    },
+    {
       "name": "showWeekNumbers",
       "type": "boolean",
       "default": "false",
@@ -3007,6 +3294,11 @@
       "name": "rangeEnd",
       "type": "string",
       "description": "Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting"
+    },
+    {
+      "name": "cellRender",
+      "type": "CalendarCellRender",
+      "description": "Appends custom content inside every picker cell (day numbers, month/quarter/year labels, drill-down grids) — receives the cell's civil date and the mode it renders in"
     }
   ],
   "PromptInputProps": [

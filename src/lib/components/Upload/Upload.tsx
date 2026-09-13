@@ -5,6 +5,7 @@ import type {
   UploadHandle,
   UploadListItemRender,
   UploadRequest,
+  UploadValueItem,
 } from './types';
 
 import { useControl } from 'react-use-control';
@@ -12,8 +13,10 @@ import { useControl } from 'react-use-control';
 import UploadCore from './UploadCore';
 
 type UploadProps = {
-  /** Selected files; uncontrolled (accumulating internally) when omitted. */
-  value?: ControlOrValue<File[]>;
+  /** Selected files — local `File` picks mixed freely with `UploadFile`
+   * echo entries (files already on the server); uncontrolled
+   * (accumulating internally) when omitted. */
+  value?: ControlOrValue<UploadValueItem[]>;
   accept?: string;
   /** Renders the drag-and-drop drop area (default) or a plain
    * click-only picker area — see `UploadCoreProps.droppable`. */
@@ -43,9 +46,13 @@ type UploadProps = {
   /** Built-in file list with progress and per-state actions — see
    * `UploadCoreProps.showUploadList`. */
   showUploadList?: boolean | { itemRender?: UploadListItemRender };
-  /** Rendering style of the built-in list (`text` rows or a
-   * `picture-card` thumbnail grid) — see `UploadCoreProps.listType`. */
-  listType?: 'text' | 'picture-card';
+  /** Rendering style of the built-in list (`text` rows, a `picture`
+   * row with a 32px inline thumbnail, or a `picture-card` thumbnail
+   * grid) — see `UploadCoreProps.listType`. */
+  listType?: 'text' | 'picture' | 'picture-card';
+  /** Click handler for `picture` / `picture-card` thumbnails (e.g. a
+   * lightbox) — see `UploadCoreProps.onPreview`. */
+  onPreview?: (file: UploadValueItem) => void;
   /** Overrides the built-in remove-button label — see
    * `UploadCoreProps.removeLabel`. */
   removeLabel?: string;
@@ -55,9 +62,10 @@ type UploadProps = {
   /** Status-machine snapshot callback — see
    * `UploadCoreProps.onStatusChange`. */
   onStatusChange?: (files: UploadFileStatus[]) => void;
-  /** Fires with the freshly picked files only — the accumulated list is
-   * the `value` channel (or internal state when uncontrolled).
-   * Removals and `clear()` do not fire this (they are not picks). */
+  /** Fires with the freshly picked files only (always local `File`s)
+   * — the accumulated list is the `value` channel (or internal state
+   * when uncontrolled). Removals and `clear()` do not fire this (they
+   * are not picks). */
   onChange?: (files: File[]) => void;
   className?: string;
   children?: ReactNode;
@@ -80,6 +88,7 @@ export default function Upload({
   manual,
   showUploadList,
   listType,
+  onPreview,
   removeLabel,
   directory,
   onStatusChange,
@@ -94,7 +103,9 @@ export default function Upload({
     <UploadCore
       value={files}
       onChange={(next) => {
-        const picked = next.filter((file) => !files.includes(file));
+        // items new to the value are always freshly picked local Files
+        // (echo entries only ever arrive through the value itself)
+        const picked = next.filter((file): file is File => !files.includes(file));
         setFiles(next);
         if (picked.length > 0) onChange?.(picked);
       }}
@@ -112,6 +123,7 @@ export default function Upload({
       manual={manual}
       showUploadList={showUploadList}
       listType={listType}
+      onPreview={onPreview}
       removeLabel={removeLabel}
       directory={directory}
       onStatusChange={onStatusChange}

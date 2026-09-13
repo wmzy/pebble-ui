@@ -6,13 +6,17 @@ import {
   formatDate,
   formatMonthValue,
   formatQuarterValue,
+  formatWeekValue,
   formatYearValue,
   getDaysInMonth,
+  getISOWeek,
   getISOWeekNumber,
+  getISOWeekStartDate,
   getLeadingDays,
   parseCivilDate,
   parseMonthValue,
   parseQuarterValue,
+  parseWeekValue,
   parseYearValue,
 } from './date';
 
@@ -623,5 +627,126 @@ describe('picker-mode value serialization', () => {
     expect(parseCivilDate('2026-03')).toBeNull();
     expect(parseCivilDate('2026-Q1')).toBeNull();
     expect(parseCivilDate('2026')).toBeNull();
+  });
+});
+
+describe('week values and ISO week identity', () => {
+  describe('getISOWeek', () => {
+    it('pairs the week number with its ISO week-numbering year at the edges', () => {
+      // 2025-12-31 is week 1 OF 2026; 2027-01-01 is week 53 OF 2026.
+      expect(getISOWeek(2025, 11, 31)).toEqual({ year: 2026, week: 1 });
+      expect(getISOWeek(2027, 0, 1)).toEqual({ year: 2026, week: 53 });
+      // Mid-year dates carry their own civil year.
+      expect(getISOWeek(2026, 8, 10)).toEqual({ year: 2026, week: 37 });
+    });
+
+    it('agrees with getISOWeekNumber on the week component', () => {
+      for (const [year, month, day] of [
+        [2025, 0, 1],
+        [2026, 11, 31],
+        [2024, 1, 29],
+      ] as const) {
+        expect(getISOWeek(year, month, day).week).toBe(
+          getISOWeekNumber(year, month, day)
+        );
+      }
+    });
+  });
+
+  describe('getISOWeekStartDate', () => {
+    it('returns the Monday of the requested ISO week', () => {
+      // Known anchors: 2026-W01 starts Monday 2025-12-29; 2026-W37
+      // starts Monday 2026-09-07.
+      expect(getISOWeekStartDate(2026, 1)).toEqual({
+        year: 2025,
+        month: 11,
+        day: 29,
+      });
+      expect(getISOWeekStartDate(2026, 37)).toEqual({
+        year: 2026,
+        month: 8,
+        day: 7,
+      });
+      const monday = getISOWeekStartDate(2025, 20);
+      expect(
+        new Date(monday.year, monday.month, monday.day).getDay()
+      ).toBe(1);
+    });
+
+    it('round-trips every week of a 52-week and a 53-week ISO year', () => {
+      // 2026 starts Thursday → long year (53 weeks); 2025 → 52.
+      for (const [year, weeks] of [
+        [2025, 52],
+        [2026, 53],
+      ] as const) {
+        for (const week of range(1, weeks)) {
+          const monday = getISOWeekStartDate(year, week);
+          expect(getISOWeek(monday.year, monday.month, monday.day)).toEqual(
+            { year, week }
+          );
+          expect(
+            new Date(monday.year, monday.month, monday.day).getDay()
+          ).toBe(1);
+        }
+        // The week beyond the year's last resolves into the neighbor.
+        const beyond = getISOWeekStartDate(year, weeks + 1);
+        expect(getISOWeek(beyond.year, beyond.month, beyond.day)).not.toEqual(
+          { year, week: weeks + 1 }
+        );
+      }
+    });
+
+    it('keeps the Monday stable west of UTC (America/New_York)', () => {
+      process.env.TZ = 'America/New_York';
+      try {
+        expect(new Date(2026, 2, 8).getTimezoneOffset()).toBe(300);
+        expect(getISOWeekStartDate(2026, 37)).toEqual({
+          year: 2026,
+          month: 8,
+          day: 7,
+        });
+        expect(getISOWeek(2025, 11, 31)).toEqual({ year: 2026, week: 1 });
+      } finally {
+        restoreTZ();
+      }
+    });
+  });
+
+  describe('formatWeekValue / parseWeekValue', () => {
+    it('round-trips every week of a year, zero-padded', () => {
+      for (const week of range(1, 52)) {
+        const value = formatWeekValue(2025, week);
+        expect(value).toBe(`2025-W${String(week).padStart(2, '0')}`);
+        expect(parseWeekValue(value)).toEqual({ year: 2025, week });
+      }
+      // The 53rd week exists only in long ISO years.
+      expect(formatWeekValue(2026, 53)).toBe('2026-W53');
+      expect(parseWeekValue('2026-W53')).toEqual({ year: 2026, week: 53 });
+    });
+
+    it('rejects weeks that do not exist in the given ISO year', () => {
+      // 2025 is a 52-week year.
+      expect(parseWeekValue('2025-W53')).toBeNull();
+    });
+
+    it('rejects out-of-range and differently shaped weeks', () => {
+      expect(parseWeekValue('2026-W00')).toBeNull();
+      expect(parseWeekValue('2026-W54')).toBeNull();
+      expect(parseWeekValue('2026-W1')).toBeNull();
+      expect(parseWeekValue('2026-w05')).toBeNull();
+      expect(parseWeekValue('2026W05')).toBeNull();
+      expect(parseWeekValue('26-W05')).toBeNull();
+      expect(parseWeekValue('2026-W')).toBeNull();
+      expect(parseWeekValue('')).toBeNull();
+    });
+
+    it('stays strict about the other modes serializations', () => {
+      expect(parseWeekValue('2026-03-15')).toBeNull();
+      expect(parseWeekValue('2026-03')).toBeNull();
+      expect(parseWeekValue('2026-Q1')).toBeNull();
+      expect(parseWeekValue('2026')).toBeNull();
+      expect(parseMonthValue('2026-W05')).toBeNull();
+      expect(parseCivilDate('2026-W05')).toBeNull();
+    });
   });
 });
