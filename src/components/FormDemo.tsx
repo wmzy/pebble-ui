@@ -237,6 +237,173 @@ function ResolverFieldForm() {
   );
 }
 
+type LayoutValues = {name: string; email: string; seats: number};
+
+const layoutStack = css`
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-3);
+  max-width: 480px;
+  margin-bottom: var(--haze-space-4);
+`;
+
+/** Horizontal layout demo: a fixed label column (labelWidth/labelAlign)
+ * beside the control, errors landing under the control column so every
+ * row's controls stay aligned. */
+function HorizontalForm() {
+  const form = useForm<LayoutValues>({
+    initialValues: {name: '', email: '', seats: 1},
+  });
+  return (
+    <Form form={form} onValidSubmit={() => undefined}>
+      <div className={layoutStack}>
+        <FormItem
+          form={form}
+          name='name'
+          label='Name'
+          layout='horizontal'
+          labelWidth={80}
+          input={InputCore}
+          placeholder='Ada Lovelace'
+          validate={validateName}
+        />
+        <FormItem
+          form={form}
+          name='email'
+          label='Email'
+          layout='horizontal'
+          labelWidth={80}
+          input={InputCore}
+          placeholder='ada@example.com'
+          validate={validateEmail}
+        />
+        <FormItem
+          form={form}
+          name='seats'
+          label='Seats'
+          layout='horizontal'
+          labelWidth={80}
+          input={NumberInputCore}
+          validate={validateSeats}
+        />
+      </div>
+      <div className={row}>
+        <Button
+          onClick={(e) => {
+            e.currentTarget.form?.requestSubmit();
+          }}
+        >
+          Submit
+        </Button>
+      </div>
+    </Form>
+  );
+}
+
+type InlineValues = {keyword: string; seats: number};
+
+/** Inline layout demo: label + control flow on one row; each item
+ * carries its own trailing margin, so inline items space themselves. */
+function InlineForm() {
+  const form = useForm<InlineValues>({initialValues: {keyword: '', seats: 1}});
+  return (
+    <Form form={form} onValidSubmit={() => undefined}>
+      <div className={row}>
+        <FormItem
+          form={form}
+          name='keyword'
+          label='Keyword'
+          layout='inline'
+          input={InputCore}
+          placeholder='search'
+          style={{width: 'calc(var(--haze-space-10) * 4)'}}
+        />
+        <FormItem
+          form={form}
+          name='seats'
+          label='Seats'
+          layout='inline'
+          input={NumberInputCore}
+        />
+        <Button
+          onClick={(e) => {
+            e.currentTarget.form?.requestSubmit();
+          }}
+        >
+          Submit
+        </Button>
+      </div>
+    </Form>
+  );
+}
+
+type PasswordValues = {password: string; confirm: string};
+
+/**
+ * Cross-field demo schema: the object-level refine compares the two
+ * fields and lands its issue on the confirm path — one schema owns both
+ * fields, so no FormItem below carries its own validate (field-level
+ * validators would short-circuit the form-level round).
+ */
+const passwordSchema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirm: z.string(),
+  })
+  .refine((values) => values.password === values.confirm, {
+    path: ['confirm'],
+    message: 'Passwords do not match',
+  });
+
+/**
+ * Cross-field validation demo — the react-f0rm equivalent of AntD's
+ * `dependencies`: list the participating fields in `validateDeps` and
+ * any user edit re-runs the whole form validator, clearing the previous
+ * round's stale error sitting on the *other* field.
+ */
+function PasswordForm() {
+  const form = useForm<PasswordValues>({
+    initialValues: {password: '', confirm: ''},
+    validate: standardSchemaFormValidator<PasswordValues>(passwordSchema),
+    validateDeps: ['password', 'confirm'],
+  });
+  return (
+    <Form form={form} onValidSubmit={() => undefined}>
+      <div className={layoutStack}>
+        <FormItem
+          form={form}
+          name='password'
+          label='Password'
+          layout='horizontal'
+          labelWidth={80}
+          input={InputCore}
+          type='password'
+          placeholder='at least 8 characters'
+        />
+        <FormItem
+          form={form}
+          name='confirm'
+          label='Confirm'
+          layout='horizontal'
+          labelWidth={80}
+          input={InputCore}
+          type='password'
+          placeholder='repeat the password'
+        />
+      </div>
+      <div className={row}>
+        <Button
+          onClick={(e) => {
+            e.currentTarget.form?.requestSubmit();
+          }}
+        >
+          Submit
+        </Button>
+      </div>
+    </Form>
+  );
+}
+
 export default function FormDemo() {
   const form = useForm<ProfileValues>({
     initialValues: INITIAL_VALUES,
@@ -436,6 +603,47 @@ export default function FormDemo() {
       </div>
 
       <div className={section}>
+        <h2>Item layout — horizontal · inline</h2>
+        <p className={intro}>
+          FormItem defaults to the vertical stack (label above control —
+          the historical rendering). <code>layout=&apos;horizontal&apos;</code>{' '}
+          pairs a fixed label column with the control:{' '}
+          <code>labelWidth</code> (number → px, string verbatim; default{' '}
+          auto) and <code>labelAlign</code> (default{' '}
+          <code>&apos;right&apos;</code>, the AntD convention) shape the
+          label column, and the error message slots under the{' '}
+          <em>control</em> column so sibling rows keep their controls
+          aligned. <code>layout=&apos;inline&apos;</code> flows label +
+          control + error on one row and carries a trailing{' '}
+          <code>margin-inline-end</code>, so consecutive inline items
+          space themselves. The label/aria wiring is identical in all
+          three layouts.
+        </p>
+        <h3>Horizontal</h3>
+        <HorizontalForm />
+        <h3>Inline</h3>
+        <InlineForm />
+      </div>
+
+      <div className={section}>
+        <h2>Cross-field validation — password match</h2>
+        <p className={intro}>
+          One schema owns both fields: the object-level <code>refine</code>{' '}
+          compares <code>password</code> and <code>confirm</code> and lands
+          its issue on the <code>confirm</code> path. react-f0rm&apos;s
+          equivalent of AntD&apos;s <code>dependencies</code> is{' '}
+          <code>validateDeps</code> — list the participating fields and any
+          user edit re-runs the whole form validator, clearing the previous
+          round&apos;s stale error on the <em>other</em> field (fix the
+          password after a mismatch and the confirm error disappears — no
+          manual <code>trigger</code>, no <code>dependencies</code> prop).
+          Keep these FormItems validate-free: a field-level validator
+          short-circuits the form-level round.
+        </p>
+        <PasswordForm />
+      </div>
+
+      <div className={section}>
         <h2>API</h2>
         <h3>useField (react-f0rm) — the binding layer</h3>
         <PropsTable
@@ -471,6 +679,24 @@ export default function FormDemo() {
               name: 'label',
               type: 'ReactNode',
               description: 'Label rendered with htmlFor pointing at the field id',
+            },
+            {
+              name: 'layout',
+              type: "'vertical' | 'horizontal' | 'inline'",
+              description:
+                "Item layout (default 'vertical'): horizontal pairs a fixed label column with the control, error under the control column; inline flows label + control + error on one row",
+            },
+            {
+              name: 'labelWidth',
+              type: 'number | string',
+              description:
+                "Horizontal label column width — number as px, string verbatim (e.g. '8em'); default auto",
+            },
+            {
+              name: 'labelAlign',
+              type: "'left' | 'right'",
+              description:
+                "Horizontal label text alignment (default 'right', the AntD convention)",
             },
             {
               name: 'validate',

@@ -52,6 +52,7 @@ export function ResizableGroup({
   return (
     <ResizableContext.Provider value={{ direction, sizes, setSizes, dragging, setDragging }}>
       <div
+        data-slot="resizable-group"
         x-class={[groupBase, direction === 'horizontal' ? groupHorizontal : groupVertical, className]}
       >
         {children}
@@ -84,7 +85,7 @@ export function ResizablePanel({
     : { flex: `0 0 ${defaultSize}%` };
 
   return (
-    <div x-class={[panelStyle, className]} style={style}>
+    <div data-slot="resizable-panel" x-class={[panelStyle, className]} style={style}>
       {children}
     </div>
   );
@@ -123,6 +124,7 @@ export function ResizableHandle({ className }: ResizableHandleProps) {
 
   return (
     <div
+      data-slot="resizable-handle"
       role="separator"
       aria-orientation={direction}
       x-class={[

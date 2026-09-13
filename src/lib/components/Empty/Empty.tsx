@@ -58,10 +58,10 @@ export default function Empty({
   const strings = useStrings('empty');
   const descriptionLabel = description ?? strings.description;
   return (
-    <div x-class={[base, className]}>
-      <div x-class={[imageStyle]}>{image ?? defaultImage}</div>
-      <div x-class={[descStyle]}>{descriptionLabel}</div>
-      {children && <div x-class={[actionStyle]}>{children}</div>}
+    <div data-slot="empty" x-class={[base, className]}>
+      <div data-slot="illustration" x-class={[imageStyle]}>{image ?? defaultImage}</div>
+      <div data-slot="description" x-class={[descStyle]}>{descriptionLabel}</div>
+      {children && <div data-slot="actions" x-class={[actionStyle]}>{children}</div>}
     </div>
   );
 }

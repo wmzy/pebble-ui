@@ -80,11 +80,11 @@ export default function Chip({
   const colorClass = variant === 'outline' ? outlineColors[color] : solidColors[color];
 
   return (
-    <span x-class={[base, colorClass, className]}>
-      {icon && <span x-class={[iconStyle]}>{icon}</span>}
+    <span data-slot="chip" x-class={[base, colorClass, className]}>
+      {icon && <span data-slot="icon" x-class={[iconStyle]}>{icon}</span>}
       {children}
       {onClose && (
-        <button type="button" x-class={[closeBtn]} onClick={onClose} aria-label={strings.remove}>
+        <button data-slot="remove-button" type="button" x-class={[closeBtn]} onClick={onClose} aria-label={strings.remove}>
           ×
         </button>
       )}

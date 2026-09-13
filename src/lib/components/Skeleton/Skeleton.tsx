@@ -33,6 +33,14 @@ const base = css`
       opacity: 1;
     }
   }
+
+  /* Forced-colors: the muted block flattens onto Canvas — the
+     placeholder would vanish. System colors survive the override, so
+     the skeleton renders as a GrayText block; the opacity shimmer
+     keeps running (opacity is not squashed). */
+  @media (forced-colors: active) {
+    background: GrayText;
+  }
 `;
 
 const variantStyles = {
@@ -60,7 +68,7 @@ export default function Skeleton({
   };
 
   return (
-    <span x-class={[base, variantStyles[variant], className]} style={style} />
+    <span data-slot='skeleton' x-class={[base, variantStyles[variant], className]} style={style} />
   );
 }
 

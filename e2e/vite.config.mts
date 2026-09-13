@@ -54,6 +54,7 @@ export default defineConfig({
         path.resolve(repoRoot, 'e2e/app/index.html'),
         path.resolve(repoRoot, 'e2e/app/collision.html'),
         path.resolve(repoRoot, 'e2e/app/reduced-motion.html'),
+        path.resolve(repoRoot, 'e2e/app/forced-colors.html'),
         path.resolve(repoRoot, 'e2e/app/snapshots.html'),
         path.resolve(repoRoot, 'e2e/app/snapshots-overlays.html'),
         path.resolve(repoRoot, 'e2e/app/components/button.html'),

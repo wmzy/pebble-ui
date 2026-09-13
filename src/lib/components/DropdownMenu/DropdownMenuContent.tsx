@@ -25,6 +25,13 @@ const content = css`
   border: 1px solid var(--haze-color-border);
   border-radius: var(--haze-radius-md);
   box-shadow: var(--haze-shadow-md);
+
+  /* Forced-colors: the UA keeps the author border visible by forcing
+     its color to CanvasText — restated so the panel stays separated
+     from the Canvas behind it deterministically. */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
 `;
 
 /** `align` prop → floating placement under the trigger. */

@@ -114,9 +114,10 @@ export default function LogViewer({ logs, filter: filterControl, className }: Lo
   );
 
   return (
-    <div x-class={[wrapper, className]}>
-      <div x-class={[toolbar]}>
+    <div data-slot="log-viewer" x-class={[wrapper, className]}>
+      <div data-slot="toolbar" x-class={[toolbar]}>
         <button
+          data-slot="filter-button"
           x-class={[filterBtn, !filter && filterActive]}
           type="button"
           onClick={() => setFilter(null)}
@@ -126,6 +127,7 @@ export default function LogViewer({ logs, filter: filterControl, className }: Lo
         {ALL_LEVELS.map((lvl) => (
           <button
             key={lvl}
+            data-slot="filter-button"
             x-class={[filterBtn, filter === lvl && filterActive]}
             type="button"
             onClick={() => setFilter(lvl)}
@@ -134,17 +136,17 @@ export default function LogViewer({ logs, filter: filterControl, className }: Lo
           </button>
         ))}
       </div>
-      <div x-class={[body]}>
+      <div data-slot="body" x-class={[body]}>
         {filtered.map((log, i) => (
-          <div key={i} x-class={[entry]}>
-            {log.timestamp && <span x-class={[timestamp]}>{log.timestamp}</span>}
-            <span x-class={[levelBadge, levelClassMap[log.level]]}>{log.level}</span>
-            <span x-class={[messageStyle]}>{log.message}</span>
+          <div key={i} data-slot="entry" x-class={[entry]}>
+            {log.timestamp && <span data-slot="time" x-class={[timestamp]}>{log.timestamp}</span>}
+            <span data-slot="level" x-class={[levelBadge, levelClassMap[log.level]]}>{log.level}</span>
+            <span data-slot="message" x-class={[messageStyle]}>{log.message}</span>
           </div>
         ))}
         {filtered.length === 0 && (
-          <div x-class={[entry]}>
-            <span x-class={[messageStyle]} style={{ color: 'var(--haze-color-text-muted)' }}>{strings.noLogs}</span>
+          <div data-slot="entry" x-class={[entry]}>
+            <span data-slot="message" x-class={[messageStyle]} style={{ color: 'var(--haze-color-text-muted)' }}>{strings.noLogs}</span>
           </div>
         )}
       </div>

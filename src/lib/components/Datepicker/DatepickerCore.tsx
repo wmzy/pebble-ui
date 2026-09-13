@@ -338,6 +338,7 @@ export default function DatepickerCore({
     <div x-class={[wrapper, className]}>
       <input
         ref={setInputRef}
+        data-slot='input'
         readOnly
         style={floating.triggerStyle}
         className={input}
@@ -361,10 +362,11 @@ export default function DatepickerCore({
         id={panelId}
       >
         {presets && presets.length > 0 && (
-          <div x-class={[presetList]}>
+          <div data-slot='presets' x-class={[presetList]}>
             {presets.map((preset) => (
               <button
                 key={`${preset.label}:${preset.value}`}
+                data-slot='preset'
                 type='button'
                 x-class={[presetRow]}
                 onClick={() => {
@@ -399,9 +401,10 @@ export default function DatepickerCore({
           }}
         />
         {withTime && (
-          <div x-class={[timeRow]}>
-            <span x-class={[timeLabel]}>{strings.time}</span>
+          <div data-slot='footer' x-class={[timeRow]}>
+            <span data-slot='label' x-class={[timeLabel]}>{strings.time}</span>
             <input
+              data-slot='time-input'
               type='time'
               step={withSeconds ? 1 : undefined}
               x-class={[timeInput]}

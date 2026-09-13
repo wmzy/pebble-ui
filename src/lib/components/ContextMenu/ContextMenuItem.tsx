@@ -51,6 +51,7 @@ export default function ContextMenuItem({ children, onClick, disabled, className
 
   return (
     <button
+      data-slot='menu-item'
       x-class={[item, className]}
       type="button"
       role="menuitem"

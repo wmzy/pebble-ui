@@ -12,7 +12,7 @@ export default function TableCell({
   children,
   ...rest
 }: TableCellProps) {
-  return <Tag x-class={[className]} {...rest}>{children}</Tag>;
+  return <Tag data-slot="cell" x-class={[className]} {...rest}>{children}</Tag>;
 }
 
 export type {TableCellProps};

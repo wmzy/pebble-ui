@@ -86,26 +86,28 @@ export default function FloatButtonGroup({
   return (
     <FloatButtonGroupContext.Provider value={contextValue}>
       <div
+        data-slot='float-button-group'
         x-class={[groupAnchor, anchored, className]}
         data-state={state}
         onKeyDown={handleKeyDown}
         {...rest}
       >
-        <div id={listId} x-class={[menuList]} data-state={state}>
+        <div id={listId} data-slot='list' x-class={[menuList]} data-state={state}>
           <div>{children}</div>
         </div>
         <button
           type='button'
+          data-slot='trigger'
           x-class={[fab, shapes[shape], variants[variant]]}
           data-state={state}
           aria-expanded={open}
           aria-controls={listId}
           onClick={() => update(!open)}
         >
-          <span x-class={[iconBox, open && iconOpen]} aria-hidden='true'>
+          <span data-slot='icon' x-class={[iconBox, open && iconOpen]} aria-hidden='true'>
             {icon ?? <PlusGlyph />}
           </span>
-          {description != null && <span x-class={[descBox]}>{description}</span>}
+          {description != null && <span data-slot='description' x-class={[descBox]}>{description}</span>}
         </button>
       </div>
     </FloatButtonGroupContext.Provider>

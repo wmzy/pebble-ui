@@ -341,17 +341,17 @@ function DefaultRow({
   const isFile = file instanceof File;
   return (
     <>
-      <div x-class={[rowBase]}>
+      <div data-slot='row' x-class={[rowBase]}>
         {thumb}
         {status === 'success' && (
-          <span x-class={[statusIcon, successIcon]} role="img" aria-label={strings.success}>
+          <span data-slot='icon' x-class={[statusIcon, successIcon]} role="img" aria-label={strings.success}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </span>
         )}
         {status === 'error' && (
-          <span x-class={[statusIcon, errorIcon]} role="img" aria-label={strings.error}>
+          <span data-slot='icon' x-class={[statusIcon, errorIcon]} role="img" aria-label={strings.error}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
@@ -359,17 +359,18 @@ function DefaultRow({
             </svg>
           </span>
         )}
-        <span x-class={[nameClass]} title={file.name}>
+        <span data-slot='name' x-class={[nameClass]} title={file.name}>
           {file.name}
         </span>
         {status === 'uploading' && (
-          <span x-class={[percentClass]}>
+          <span data-slot='status' x-class={[percentClass]}>
             {strings.uploading} {percent}%
           </span>
         )}
         {status === 'uploading' ? (
           <button
             type="button"
+            data-slot='cancel-button'
             x-class={[actionButton]}
             aria-label={strings.cancel}
             data-action="cancel"
@@ -385,6 +386,7 @@ function DefaultRow({
             {status === 'error' && isFile && (
               <button
                 type="button"
+                data-slot='retry-button'
                 x-class={[actionButton]}
                 aria-label={strings.retry}
                 data-action="retry"
@@ -398,6 +400,7 @@ function DefaultRow({
             )}
             <button
               type="button"
+              data-slot='remove-button'
               x-class={[actionButton]}
               aria-label={removeLabel ?? strings.remove}
               data-action="remove"
@@ -447,10 +450,11 @@ function PictureThumb({
     </svg>
   );
   return (
-    <span x-class={[picThumb]} data-thumb>
+    <span data-slot='thumbnail' x-class={[picThumb]} data-thumb>
       {onPreview ? (
         <button
           type="button"
+          data-slot='preview'
           x-class={[previewHit]}
           aria-label={file.name}
           data-action="preview"
@@ -489,12 +493,14 @@ function PictureCard({
 
   const media = thumbSrc ? (
     <img
+      data-slot='thumbnail'
       x-class={[cardImage]}
       src={thumbSrc}
       alt={onPreview ? '' : file.name}
     />
   ) : (
     <span
+      data-slot='thumbnail'
       x-class={[cardFallback]}
       role={onPreview ? undefined : 'img'}
       aria-label={onPreview ? undefined : file.name}
@@ -503,7 +509,7 @@ function PictureCard({
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
         <polyline points="14 2 14 8 20 8" />
       </svg>
-      <span x-class={[cardFallbackName]} title={file.name}>
+      <span data-slot='name' x-class={[cardFallbackName]} title={file.name}>
         {file.name}
       </span>
     </span>
@@ -514,6 +520,7 @@ function PictureCard({
       {onPreview ? (
         <button
           type="button"
+          data-slot='preview'
           x-class={[previewHit]}
           aria-label={file.name}
           data-action="preview"
@@ -525,13 +532,13 @@ function PictureCard({
         media
       )}
       {status === 'uploading' && (
-        <div x-class={[cardMask]}>
+        <div data-slot='mask' x-class={[cardMask]}>
           <Progress value={percent} size="sm" />
-          <span x-class={[cardMaskPercent]}>{percent}%</span>
+          <span data-slot='status' x-class={[cardMaskPercent]}>{percent}%</span>
         </div>
       )}
       {status === 'error' && (
-        <div x-class={[cardErrorOverlay]}>
+        <div data-slot='error-overlay' x-class={[cardErrorOverlay]}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />
@@ -541,6 +548,7 @@ function PictureCard({
           {isFile && (
             <button
               type="button"
+              data-slot='retry-button'
               x-class={[actionButton]}
               aria-label={strings.retry}
               data-action="retry"
@@ -556,6 +564,7 @@ function PictureCard({
       )}
       <button
         type="button"
+        data-slot='remove-button'
         x-class={[cardRemove]}
         data-card-remove
         aria-label={removeLabel ?? strings.remove}
@@ -584,12 +593,13 @@ export default function UploadList({
   const pictureCard = listType === 'picture-card';
   const pictureRow = listType === 'picture';
   return (
-    <ul x-class={[pictureCard ? cardGrid : listBase]}>
+    <ul data-slot='list' x-class={[pictureCard ? cardGrid : listBase]}>
       {entries.map((entry) => {
         const actions = actionsFor(entry, onRemove, onRetry, onCancel);
         return (
           <li
             key={entry.uid}
+            data-slot='item'
             x-class={[pictureCard ? cardBase : itemBase]}
             data-status={entry.status}
           >

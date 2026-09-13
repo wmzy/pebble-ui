@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import type { TooltipProps } from '../Tooltip/Tooltip';
+import type { HoverCardProps } from '../HoverCard/HoverCard';
 
 import { expect } from 'vitest';
 
@@ -9,7 +10,9 @@ import { useControl } from 'react-use-control';
 
 import { sizes as buttonSizes, squareSizes } from '../Button/styles';
 import Button from '../Button/Button';
+// ButtonLink lives in the Button directory (exported through its barrel).
 import ButtonLink from '../Button/ButtonLink';
+import HoverCard from '../HoverCard/HoverCard';
 import LocaleProvider from '../LocaleProvider/LocaleProvider';
 import Pagination from '../Pagination/Pagination';
 import ToastContainer, { toastPlacements } from '../Toast/ToastContainer';
@@ -54,8 +57,33 @@ function hover() {
   fireEvent.mouseOver(screen.getByText('Hover me'));
 }
 
+function leave() {
+  // The mouseout half of the same synthetic pair — drives onMouseLeave.
+  fireEvent.mouseOut(screen.getByText('Hover me'));
+}
+
 function openState() {
   return screen.getByTestId('open-state').textContent;
+}
+
+/**
+ * Same controlled-state harness shape as TooltipHarness, for the card
+ * with two timers (open dwell + close grace).
+ */
+function HoverCardHarness(
+  props: Omit<Partial<HoverCardProps>, 'children' | 'open' | 'content'> & {
+    content: ReactNode;
+  }
+) {
+  const [open, , openCtrl] = useControl(undefined, false);
+  return (
+    <>
+      <HoverCard {...props} open={openCtrl}>
+        <button>Hover me</button>
+      </HoverCard>
+      <output data-testid='open-state'>{String(open)}</output>
+    </>
+  );
 }
 
 /** Fires one config-default toast from inside the tree. */
@@ -366,6 +394,65 @@ describe('ConfigProvider — Tooltip delay', () => {
   });
 });
 
+describe('ConfigProvider — HoverCard delays', () => {
+  it('opens and closes on the config delays', () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ConfigProvider defaults={{HoverCard: {openDelay: 300, closeDelay: 400}}}>
+          <HoverCardHarness content='Card' />
+        </ConfigProvider>
+      );
+      hover();
+      act(() => {
+        vi.advanceTimersByTime(299);
+      });
+      expect(openState()).toBe('false');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(openState()).toBe('true');
+      // leaving arms the config's close grace, not the built-in 120
+      leave();
+      act(() => {
+        vi.advanceTimersByTime(399);
+      });
+      expect(openState()).toBe('true');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(openState()).toBe('false');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('lets explicit delay props beat the config', () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ConfigProvider
+          defaults={{HoverCard: {openDelay: 300, closeDelay: 400}}}
+        >
+          <HoverCardHarness content='Card' openDelay={100} closeDelay={50} />
+        </ConfigProvider>
+      );
+      hover();
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+      expect(openState()).toBe('true');
+      leave();
+      act(() => {
+        vi.advanceTimersByTime(50);
+      });
+      expect(openState()).toBe('false');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe('ConfigProvider — nesting', () => {
   it('lets the innermost provider win per component section', () => {
     render(
@@ -552,6 +639,33 @@ describe('ConfigProvider — absent provider keeps built-in defaults', () => {
       vi.useRealTimers();
     }
   });
+
+  it('keeps the HoverCard delays at 200/120', () => {
+    vi.useFakeTimers();
+    try {
+      render(<HoverCardHarness content='Card' />);
+      hover();
+      act(() => {
+        vi.advanceTimersByTime(199);
+      });
+      expect(openState()).toBe('false');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(openState()).toBe('true');
+      leave();
+      act(() => {
+        vi.advanceTimersByTime(119);
+      });
+      expect(openState()).toBe('true');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(openState()).toBe('false');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe('ConfigProvider — a11y', () => {
@@ -564,6 +678,7 @@ describe('ConfigProvider — a11y', () => {
           ButtonLink: { size: 'sm' },
           Toast: { duration: 0, placement: 'top-left' },
           Tooltip: { delay: 300 },
+          HoverCard: { openDelay: 300, closeDelay: 400 },
         }}
       >
         <Button>Save changes</Button>
@@ -571,6 +686,9 @@ describe('ConfigProvider — a11y', () => {
         <Tooltip content='Helpful tip'>
           <button>Hover me</button>
         </Tooltip>
+        <HoverCard content='Card preview' open>
+          <button>Hover me too</button>
+        </HoverCard>
         <ToastContainer>{null}</ToastContainer>
       </ConfigProvider>
     );

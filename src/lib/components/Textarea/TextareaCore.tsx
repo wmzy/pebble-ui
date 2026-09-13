@@ -46,6 +46,22 @@ const base = css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  /* Forced-colors: mirror of InputCore — CanvasText border restated,
+     box-shadow focus ring replaced by a Highlight outline, disabled
+     surfaces GrayText at full opacity. */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+
+    &:focus {
+      outline: 2px solid Highlight;
+    }
+
+    &:disabled {
+      opacity: 1;
+      color: GrayText;
+    }
+  }
 `;
 
 const sizes = {
@@ -75,6 +91,7 @@ export default function TextareaCore({
   return (
     <textarea
       ref={ref}
+      data-slot='textarea'
       x-class={[base, sizes[size], className]}
       value={value}
       onChange={(e) => {

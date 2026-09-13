@@ -99,11 +99,12 @@ export default function ColorPickerCore({
 }: ColorPickerCoreProps) {
   const strings = useStrings('colorPicker');
   return (
-    <div x-class={[container, className]}>
-      <div x-class={[previewRow]}>
+    <div data-slot="color-picker" x-class={[container, className]}>
+      <div data-slot="preview" x-class={[previewRow]}>
         <input
           ref={ref}
           type="color"
+          data-slot="color-input"
           x-class={[colorInput]}
           value={value}
           aria-label={strings.pickColor}
@@ -111,6 +112,7 @@ export default function ColorPickerCore({
         />
         <input
           type="text"
+          data-slot="text-input"
           x-class={[textInput]}
           value={value}
           aria-label={strings.hexColor}
@@ -118,11 +120,12 @@ export default function ColorPickerCore({
         />
       </div>
       {presets && presets.length > 0 && (
-        <div x-class={[presetsRow]}>
+        <div data-slot="swatch-row" x-class={[presetsRow]}>
           {presets.map((color) => (
             <button
               key={color}
               type="button"
+              data-slot="swatch-item"
               x-class={[presetBtn, value === color && activePreset]}
               style={{ background: color }}
               aria-label={color}

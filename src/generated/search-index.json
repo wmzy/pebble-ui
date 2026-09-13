@@ -1,0 +1,6094 @@
+[
+  {
+    "type": "page",
+    "label": "Getting Started",
+    "sublabel": "Guide",
+    "route": "/getting-started",
+    "keywords": [
+      "install",
+      "setup",
+      "quickstart",
+      "usage"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Recipes",
+    "sublabel": "Guide",
+    "route": "/recipes",
+    "keywords": [
+      "patterns",
+      "examples",
+      "member crud",
+      "chat adapter"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Dark mode",
+    "sublabel": "Guide",
+    "route": "/guides/dark-mode",
+    "keywords": [
+      "theme",
+      "theming",
+      "night",
+      "color scheme"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Density (compact)",
+    "sublabel": "Guide",
+    "route": "/guides/density",
+    "keywords": [
+      "compact",
+      "spacing",
+      "dense"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Accessibility",
+    "sublabel": "Guide",
+    "route": "/guides/a11y",
+    "keywords": [
+      "a11y",
+      "screen reader",
+      "keyboard",
+      "axe",
+      "wcag"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Migrating from AntD / shadcn",
+    "sublabel": "Guide",
+    "route": "/guides/migration",
+    "keywords": [
+      "antd",
+      "shadcn",
+      "upgrade",
+      "port"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Design Tokens",
+    "sublabel": "Reference",
+    "route": "/tokens",
+    "keywords": [
+      "colors",
+      "palette",
+      "oklch",
+      "css variables",
+      "spacing",
+      "typography"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "AI Showcase",
+    "sublabel": "Demo",
+    "route": "/ai-showcase",
+    "keywords": [
+      "chat",
+      "assistant",
+      "playground"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Theme Editor",
+    "sublabel": "Tool",
+    "route": "/theme-editor",
+    "keywords": [
+      "brand",
+      "customize",
+      "export theme",
+      "palette editor"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Changelog",
+    "sublabel": "Reference",
+    "route": "/changelog",
+    "keywords": [
+      "releases",
+      "version history",
+      "changes"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Help",
+    "sublabel": "Reference",
+    "route": "/help",
+    "keywords": [
+      "faq",
+      "support",
+      "troubleshooting"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Avatar",
+    "route": "/components/avatar",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "AvatarGroup",
+    "route": "/components/avatar-group",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Badge",
+    "route": "/components/badge",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Button",
+    "route": "/components/button",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Divider",
+    "route": "/components/divider",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Icon",
+    "route": "/components/icon",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Tag",
+    "route": "/components/tag",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "TagGroup",
+    "route": "/components/tag-group",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Typography",
+    "route": "/components/typography",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Ellipsis",
+    "route": "/components/ellipsis",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "CountUp",
+    "route": "/components/count-up",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "AspectRatio",
+    "route": "/components/aspect-ratio",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "AppShell",
+    "route": "/components/app-shell",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Container",
+    "route": "/components/container",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Flex",
+    "route": "/components/flex",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Grid",
+    "route": "/components/grid",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Masonry",
+    "route": "/components/masonry",
+    "keywords": [
+      "columns",
+      "waterfall"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Resizable",
+    "route": "/components/resizable",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ScrollArea",
+    "route": "/components/scroll-area",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Sidebar",
+    "route": "/components/sidebar",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Cascader",
+    "route": "/components/cascader",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Checkbox",
+    "route": "/components/checkbox",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ColorPicker",
+    "route": "/components/color-picker",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Combobox",
+    "route": "/components/combobox",
+    "keywords": [
+      "autocomplete",
+      "search"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Datepicker",
+    "route": "/components/datepicker",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "DateRangePicker",
+    "route": "/components/date-range-picker",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "FileInput",
+    "route": "/components/file-input",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Form",
+    "route": "/components/form",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "InlineEdit",
+    "route": "/components/inline-edit",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Input",
+    "route": "/components/input",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Mentions",
+    "route": "/components/mentions",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "NumberInput",
+    "route": "/components/number-input",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "OTPInput",
+    "route": "/components/otp-input",
+    "keywords": [
+      "pin",
+      "verification"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "PasswordInput",
+    "route": "/components/password-input",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Radio",
+    "route": "/components/radio",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Rating",
+    "route": "/components/rating",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Segmented",
+    "route": "/components/segmented",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Select",
+    "route": "/components/select",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Signature",
+    "route": "/components/signature",
+    "keywords": [
+      "handwriting",
+      "pad"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Slider",
+    "route": "/components/slider",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Switch",
+    "route": "/components/switch",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "TagInput",
+    "route": "/components/tag-input",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Textarea",
+    "route": "/components/textarea",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "TimePicker",
+    "route": "/components/time-picker",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Toggle",
+    "route": "/components/toggle",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Transfer",
+    "route": "/components/transfer",
+    "keywords": [
+      "shuttle"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "TreeSelect",
+    "route": "/components/tree-select",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Upload",
+    "route": "/components/upload",
+    "keywords": [
+      "drag",
+      "drop"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "BottomSheet",
+    "route": "/components/bottom-sheet",
+    "keywords": [
+      "sheet",
+      "mobile"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "ConfirmDialog",
+    "route": "/components/confirm-dialog",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ContextMenu",
+    "route": "/components/context-menu",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Dialog",
+    "route": "/components/dialog",
+    "keywords": [
+      "modal",
+      "popup"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Drawer",
+    "route": "/components/drawer",
+    "keywords": [
+      "panel"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "DropdownMenu",
+    "route": "/components/dropdown-menu",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "HoverCard",
+    "route": "/components/hover-card",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Menu",
+    "route": "/components/menu",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Popover",
+    "route": "/components/popover",
+    "keywords": [
+      "floating"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Tooltip",
+    "route": "/components/tooltip",
+    "keywords": [
+      "hint"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Accordion",
+    "route": "/components/accordion",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Calendar",
+    "route": "/components/calendar",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Card",
+    "route": "/components/card",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Carousel",
+    "route": "/components/carousel",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Chart",
+    "route": "/components/chart",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Chip",
+    "route": "/components/chip",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "CodeBlock",
+    "route": "/components/code-block",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "DataTable",
+    "route": "/components/data-table",
+    "keywords": [
+      "tanstack"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Descriptions",
+    "route": "/components/descriptions",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Image",
+    "route": "/components/image",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "JsonView",
+    "route": "/components/json-view",
+    "keywords": [
+      "json",
+      "tree"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Kbd",
+    "route": "/components/kbd",
+    "keywords": [
+      "shortcut",
+      "hotkey"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "List",
+    "route": "/components/list",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Progress",
+    "route": "/components/progress",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "QRCode",
+    "route": "/components/qr-code",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Stat",
+    "route": "/components/stat",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Table",
+    "route": "/components/table",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Timeline",
+    "route": "/components/timeline",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Tree",
+    "route": "/components/tree",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "VirtualList",
+    "route": "/components/virtual-list",
+    "keywords": [
+      "virtual",
+      "windowing"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Watermark",
+    "route": "/components/watermark",
+    "keywords": [
+      "copyright"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Affix",
+    "route": "/components/affix",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Anchor",
+    "route": "/components/anchor",
+    "keywords": [
+      "toc",
+      "scrollspy"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "BackToTop",
+    "route": "/components/back-to-top",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Breadcrumb",
+    "route": "/components/breadcrumb",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Command",
+    "route": "/components/command",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "FloatButton",
+    "route": "/components/float-button",
+    "keywords": [
+      "fab"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "NavigationBar",
+    "route": "/components/navigation-bar",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Pagination",
+    "route": "/components/pagination",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Stepper",
+    "route": "/components/stepper",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Tabs",
+    "route": "/components/tabs",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Toolbar",
+    "route": "/components/toolbar",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Tour",
+    "route": "/components/tour",
+    "keywords": [
+      "onboarding",
+      "guide"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Alert",
+    "route": "/components/alert",
+    "keywords": [
+      "message"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "AsyncSection",
+    "route": "/components/async-section",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Banner",
+    "route": "/components/banner",
+    "keywords": [
+      "callout"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "Empty",
+    "route": "/components/empty",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Result",
+    "route": "/components/result",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Skeleton",
+    "route": "/components/skeleton",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Spinner",
+    "route": "/components/spinner",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Toast",
+    "route": "/components/toast",
+    "keywords": [
+      "notification",
+      "snackbar"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "ApprovalCard",
+    "route": "/components/approval-card",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ChatContainer",
+    "route": "/components/chat-container",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ChatInput",
+    "route": "/components/chat-input",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ChatMessage",
+    "route": "/components/chat-message",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ConversationList",
+    "route": "/components/conversation-list",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "DiffViewer",
+    "route": "/components/diff-viewer",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "FilePreview",
+    "route": "/components/file-preview",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "InlineCompletion",
+    "route": "/components/inline-completion",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "LogViewer",
+    "route": "/components/log-viewer",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "MarkdownRenderer",
+    "route": "/components/markdown-renderer",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ModelPicker",
+    "route": "/components/model-picker",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "PromptInput",
+    "route": "/components/prompt-input",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Sources",
+    "route": "/components/sources",
+    "keywords": [
+      "citations",
+      "rag"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "StepTimeline",
+    "route": "/components/step-timeline",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "StreamingText",
+    "route": "/components/streaming-text",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ThinkingIndicator",
+    "route": "/components/thinking-indicator",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "TokenCounter",
+    "route": "/components/token-counter",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ToolCallCard",
+    "route": "/components/tool-call-card",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Collapsible",
+    "route": "/components/collapsible",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "ConfigProvider",
+    "route": "/components/config-provider",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Disclosure",
+    "route": "/components/disclosure",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "Fullscreen",
+    "route": "/components/fullscreen",
+    "keywords": [
+      "maximize",
+      "immersive"
+    ]
+  },
+  {
+    "type": "component",
+    "label": "LocaleProvider",
+    "route": "/components/locale-provider",
+    "keywords": []
+  },
+  {
+    "type": "component",
+    "label": "SwipeAction",
+    "route": "/components/swipe-action",
+    "keywords": []
+  },
+  {
+    "type": "section",
+    "label": "Variants",
+    "sublabel": "Button",
+    "route": "/components/button"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Button",
+    "route": "/components/button"
+  },
+  {
+    "type": "section",
+    "label": "Component-level tokens",
+    "sublabel": "Button",
+    "route": "/components/button"
+  },
+  {
+    "type": "section",
+    "label": "Square (Icon Button)",
+    "sublabel": "Button",
+    "route": "/components/button"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "Button",
+    "route": "/components/button"
+  },
+  {
+    "type": "section",
+    "label": "ButtonLink — a real anchor with the Button skin",
+    "sublabel": "Button",
+    "route": "/components/button"
+  },
+  {
+    "type": "section",
+    "label": "Composing with buttonVariants / buttonSizes",
+    "sublabel": "Button",
+    "route": "/components/button"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Input",
+    "route": "/components/input"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "Input",
+    "route": "/components/input"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "Searchable & clearable",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "Grouped options",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "Multiple selection",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "maxTagCount & clearable (multiple)",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "Loading",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "Remote search",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "Virtualized multiple",
+    "sublabel": "Select",
+    "route": "/components/select"
+  },
+  {
+    "type": "section",
+    "label": "Default",
+    "sublabel": "Checkbox",
+    "route": "/components/checkbox"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "Checkbox",
+    "route": "/components/checkbox"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Switch",
+    "route": "/components/switch"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "Switch",
+    "route": "/components/switch"
+  },
+  {
+    "type": "section",
+    "label": "Variants",
+    "sublabel": "Badge",
+    "route": "/components/badge"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Badge",
+    "route": "/components/badge"
+  },
+  {
+    "type": "section",
+    "label": "Composing with badgeVariants / badgeSizes",
+    "sublabel": "Badge",
+    "route": "/components/badge"
+  },
+  {
+    "type": "section",
+    "label": "classNames slots",
+    "sublabel": "Dialog",
+    "route": "/components/dialog"
+  },
+  {
+    "type": "section",
+    "label": "Positions",
+    "sublabel": "Tooltip",
+    "route": "/components/tooltip"
+  },
+  {
+    "type": "section",
+    "label": "classNames slots",
+    "sublabel": "Popover",
+    "route": "/components/popover"
+  },
+  {
+    "type": "section",
+    "label": "Variants",
+    "sublabel": "Card",
+    "route": "/components/card"
+  },
+  {
+    "type": "section",
+    "label": "RadioGroup Props",
+    "sublabel": "Radio",
+    "route": "/components/radio"
+  },
+  {
+    "type": "section",
+    "label": "Radio Props",
+    "sublabel": "Radio",
+    "route": "/components/radio"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Textarea",
+    "route": "/components/textarea"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "Textarea",
+    "route": "/components/textarea"
+  },
+  {
+    "type": "section",
+    "label": "Range — two thumbs",
+    "sublabel": "Slider",
+    "route": "/components/slider"
+  },
+  {
+    "type": "section",
+    "label": "Tooltip — value bubble on the active thumb",
+    "sublabel": "Slider",
+    "route": "/components/slider"
+  },
+  {
+    "type": "section",
+    "label": "Marks — tick labels, snap with step=null",
+    "sublabel": "Slider",
+    "route": "/components/slider"
+  },
+  {
+    "type": "section",
+    "label": "Vertical — bottom-to-top",
+    "sublabel": "Slider",
+    "route": "/components/slider"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "Slider",
+    "route": "/components/slider"
+  },
+  {
+    "type": "section",
+    "label": "classNames slots",
+    "sublabel": "Tabs",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "section",
+    "label": "Tabs Props",
+    "sublabel": "Tabs",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "section",
+    "label": "Tab Props",
+    "sublabel": "Tabs",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "section",
+    "label": "TabPanel Props",
+    "sublabel": "Tabs",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "section",
+    "label": "Accordion Props",
+    "sublabel": "Accordion",
+    "route": "/components/accordion"
+  },
+  {
+    "type": "section",
+    "label": "AccordionItem Props",
+    "sublabel": "Accordion",
+    "route": "/components/accordion"
+  },
+  {
+    "type": "section",
+    "label": "Variants",
+    "sublabel": "Alert",
+    "route": "/components/alert"
+  },
+  {
+    "type": "section",
+    "label": "Closable",
+    "sublabel": "Alert",
+    "route": "/components/alert"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Avatar",
+    "route": "/components/avatar"
+  },
+  {
+    "type": "section",
+    "label": "Fallback",
+    "sublabel": "Avatar",
+    "route": "/components/avatar"
+  },
+  {
+    "type": "section",
+    "label": "Variants",
+    "sublabel": "Tag",
+    "route": "/components/tag"
+  },
+  {
+    "type": "section",
+    "label": "Closable",
+    "sublabel": "Tag",
+    "route": "/components/tag"
+  },
+  {
+    "type": "section",
+    "label": "Variants",
+    "sublabel": "Skeleton",
+    "route": "/components/skeleton"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Icon",
+    "route": "/components/icon"
+  },
+  {
+    "type": "section",
+    "label": "Fill vs Stroke",
+    "sublabel": "Icon",
+    "route": "/components/icon"
+  },
+  {
+    "type": "section",
+    "label": "Using the icon Prop",
+    "sublabel": "Icon",
+    "route": "/components/icon"
+  },
+  {
+    "type": "section",
+    "label": "Community Icon Libraries",
+    "sublabel": "Icon",
+    "route": "/components/icon"
+  },
+  {
+    "type": "section",
+    "label": "Using an Icon Library",
+    "sublabel": "Icon",
+    "route": "/components/icon"
+  },
+  {
+    "type": "section",
+    "label": "Fallback",
+    "sublabel": "Image",
+    "route": "/components/image"
+  },
+  {
+    "type": "section",
+    "label": "Preview",
+    "sublabel": "Image",
+    "route": "/components/image"
+  },
+  {
+    "type": "section",
+    "label": "Column",
+    "sublabel": "Flex",
+    "route": "/components/flex"
+  },
+  {
+    "type": "section",
+    "label": "Space / Stack equivalents",
+    "sublabel": "Flex",
+    "route": "/components/flex"
+  },
+  {
+    "type": "section",
+    "label": "Custom Separator",
+    "sublabel": "Breadcrumb",
+    "route": "/components/breadcrumb"
+  },
+  {
+    "type": "section",
+    "label": "Breadcrumb Props",
+    "sublabel": "Breadcrumb",
+    "route": "/components/breadcrumb"
+  },
+  {
+    "type": "section",
+    "label": "BreadcrumbItem Props",
+    "sublabel": "Breadcrumb",
+    "route": "/components/breadcrumb"
+  },
+  {
+    "type": "section",
+    "label": "Selection items: checkboxes, radios and groups",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "Danger items, icons and shortcut hints",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "Data-driven items",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "Nested submenus",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "Menu Props",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "MenuItem Props",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "MenuCheckboxItem Props",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "MenuRadioGroup Props",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "MenuRadioItem Props",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "MenuGroup Props",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "MenuSub Props",
+    "sublabel": "Menu",
+    "route": "/components/menu"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "NumberInput",
+    "route": "/components/number-input"
+  },
+  {
+    "type": "section",
+    "label": "classNames slots",
+    "sublabel": "Toast",
+    "route": "/components/toast"
+  },
+  {
+    "type": "section",
+    "label": "useToast API",
+    "sublabel": "Toast",
+    "route": "/components/toast"
+  },
+  {
+    "type": "section",
+    "label": "Unordered",
+    "sublabel": "List",
+    "route": "/components/list"
+  },
+  {
+    "type": "section",
+    "label": "Ordered",
+    "sublabel": "List",
+    "route": "/components/list"
+  },
+  {
+    "type": "section",
+    "label": "List Props",
+    "sublabel": "List",
+    "route": "/components/list"
+  },
+  {
+    "type": "section",
+    "label": "Multiple",
+    "sublabel": "Combobox",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "section",
+    "label": "Groups",
+    "sublabel": "Combobox",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "section",
+    "label": "Creatable",
+    "sublabel": "Combobox",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "section",
+    "label": "Match highlighting, loading & empty states",
+    "sublabel": "Combobox",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "section",
+    "label": "Remote search",
+    "sublabel": "Combobox",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "section",
+    "label": "Virtualized",
+    "sublabel": "Combobox",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "section",
+    "label": "Default",
+    "sublabel": "Table",
+    "route": "/components/table"
+  },
+  {
+    "type": "section",
+    "label": "Striped + Bordered",
+    "sublabel": "Table",
+    "route": "/components/table"
+  },
+  {
+    "type": "section",
+    "label": "Table Props",
+    "sublabel": "Table",
+    "route": "/components/table"
+  },
+  {
+    "type": "section",
+    "label": "Sortable, selectable, paginated",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "Minimal — plain columns",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "Column widths & fixed columns",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "Enterprise: resize, filter, column menu & expansion",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "Tree data (subRows)",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "Summary rows",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "Editable cells",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "Server mode (manual pagination & sorting)",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "CSV export",
+    "sublabel": "DataTable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "section",
+    "label": "Effect: fade",
+    "sublabel": "Carousel",
+    "route": "/components/carousel"
+  },
+  {
+    "type": "section",
+    "label": "Auto-play with pause on hover",
+    "sublabel": "Carousel",
+    "route": "/components/carousel"
+  },
+  {
+    "type": "section",
+    "label": "Picker modes",
+    "sublabel": "Datepicker",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "section",
+    "label": "Panel header drill-down",
+    "sublabel": "Datepicker",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "section",
+    "label": "Date and time",
+    "sublabel": "Datepicker",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "section",
+    "label": "Custom format / parse",
+    "sublabel": "Datepicker",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "section",
+    "label": "Presets",
+    "sublabel": "Datepicker",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "section",
+    "label": "disabledDate",
+    "sublabel": "Datepicker",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "section",
+    "label": "cellRender",
+    "sublabel": "Datepicker",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "section",
+    "label": "Basic",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "Checkable",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "With Icons and Lines",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "Keyboard Navigation",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "Virtualized (1200 nodes)",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "Lazy Loading (loadData)",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "Search Filtering (searchValue)",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "Sortable (SortableTree)",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "Tree Props",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "TreeNodeData",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "SortableTree Props",
+    "sublabel": "Tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "section",
+    "label": "Horizontal",
+    "sublabel": "Divider",
+    "route": "/components/divider"
+  },
+  {
+    "type": "section",
+    "label": "Vertical",
+    "sublabel": "Divider",
+    "route": "/components/divider"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Spinner",
+    "route": "/components/spinner"
+  },
+  {
+    "type": "section",
+    "label": "With Text",
+    "sublabel": "Spinner",
+    "route": "/components/spinner"
+  },
+  {
+    "type": "section",
+    "label": "Default",
+    "sublabel": "Empty",
+    "route": "/components/empty"
+  },
+  {
+    "type": "section",
+    "label": "Custom Description",
+    "sublabel": "Empty",
+    "route": "/components/empty"
+  },
+  {
+    "type": "section",
+    "label": "With Action",
+    "sublabel": "Empty",
+    "route": "/components/empty"
+  },
+  {
+    "type": "section",
+    "label": "Success / Error / Info / Warning",
+    "sublabel": "Result",
+    "route": "/components/result"
+  },
+  {
+    "type": "section",
+    "label": "404 Page",
+    "sublabel": "Result",
+    "route": "/components/result"
+  },
+  {
+    "type": "section",
+    "label": "Custom Icon",
+    "sublabel": "Result",
+    "route": "/components/result"
+  },
+  {
+    "type": "section",
+    "label": "Bar Variants",
+    "sublabel": "Progress",
+    "route": "/components/progress"
+  },
+  {
+    "type": "section",
+    "label": "Bar Sizes",
+    "sublabel": "Progress",
+    "route": "/components/progress"
+  },
+  {
+    "type": "section",
+    "label": "Circle Variant",
+    "sublabel": "Progress",
+    "route": "/components/progress"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Pagination",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "section",
+    "label": "Extras",
+    "sublabel": "Pagination",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "section",
+    "label": "Simple",
+    "sublabel": "Pagination",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "section",
+    "label": "Basic",
+    "sublabel": "Grid",
+    "route": "/components/grid"
+  },
+  {
+    "type": "section",
+    "label": "Spanning Columns",
+    "sublabel": "Grid",
+    "route": "/components/grid"
+  },
+  {
+    "type": "section",
+    "label": "Container-query Responsive",
+    "sublabel": "Grid",
+    "route": "/components/grid"
+  },
+  {
+    "type": "section",
+    "label": "Grid Props",
+    "sublabel": "Grid",
+    "route": "/components/grid"
+  },
+  {
+    "type": "section",
+    "label": "GridItem Props",
+    "sublabel": "Grid",
+    "route": "/components/grid"
+  },
+  {
+    "type": "section",
+    "label": "Stepper Props",
+    "sublabel": "Stepper",
+    "route": "/components/stepper"
+  },
+  {
+    "type": "section",
+    "label": "Step Props",
+    "sublabel": "Stepper",
+    "route": "/components/stepper"
+  },
+  {
+    "type": "section",
+    "label": "Roles",
+    "sublabel": "ChatMessage",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "section",
+    "label": "With Status",
+    "sublabel": "ChatMessage",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "section",
+    "label": "Copy & Actions",
+    "sublabel": "ChatMessage",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "section",
+    "label": "Edit / Resend / Branch (recipe)",
+    "sublabel": "ChatMessage",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "section",
+    "label": "Stick-to-bottom follow",
+    "sublabel": "ChatContainer",
+    "route": "/components/chat-container"
+  },
+  {
+    "type": "section",
+    "label": "10,000 messages — ChatContainer × VirtualList (recipe)",
+    "sublabel": "ChatContainer",
+    "route": "/components/chat-container"
+  },
+  {
+    "type": "section",
+    "label": "Stop generation",
+    "sublabel": "ChatInput",
+    "route": "/components/chat-input"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "ChatInput",
+    "route": "/components/chat-input"
+  },
+  {
+    "type": "section",
+    "label": "Attachments bridge (recipe)",
+    "sublabel": "ChatInput",
+    "route": "/components/chat-input"
+  },
+  {
+    "type": "section",
+    "label": "Statuses",
+    "sublabel": "ToolCallCard",
+    "route": "/components/tool-call-card"
+  },
+  {
+    "type": "section",
+    "label": "Error State",
+    "sublabel": "StepTimeline",
+    "route": "/components/step-timeline"
+  },
+  {
+    "type": "section",
+    "label": "StepTimeline Props",
+    "sublabel": "StepTimeline",
+    "route": "/components/step-timeline"
+  },
+  {
+    "type": "section",
+    "label": "StepTimelineItem Props",
+    "sublabel": "StepTimeline",
+    "route": "/components/step-timeline"
+  },
+  {
+    "type": "section",
+    "label": "ConversationList Props",
+    "sublabel": "ConversationList",
+    "route": "/components/conversation-list"
+  },
+  {
+    "type": "section",
+    "label": "ConversationItem Props",
+    "sublabel": "ConversationList",
+    "route": "/components/conversation-list"
+  },
+  {
+    "type": "section",
+    "label": "LogEntry Type",
+    "sublabel": "LogViewer",
+    "route": "/components/log-viewer"
+  },
+  {
+    "type": "section",
+    "label": "Retryable fetch",
+    "sublabel": "AsyncSection",
+    "route": "/components/async-section"
+  },
+  {
+    "type": "section",
+    "label": "Custom copy",
+    "sublabel": "AsyncSection",
+    "route": "/components/async-section"
+  },
+  {
+    "type": "section",
+    "label": "CommandDialog (mod+k)",
+    "sublabel": "Command",
+    "route": "/components/command"
+  },
+  {
+    "type": "section",
+    "label": "Command Props",
+    "sublabel": "Command",
+    "route": "/components/command"
+  },
+  {
+    "type": "section",
+    "label": "CommandInput Props",
+    "sublabel": "Command",
+    "route": "/components/command"
+  },
+  {
+    "type": "section",
+    "label": "CommandList Props",
+    "sublabel": "Command",
+    "route": "/components/command"
+  },
+  {
+    "type": "section",
+    "label": "CommandItem Props",
+    "sublabel": "Command",
+    "route": "/components/command"
+  },
+  {
+    "type": "section",
+    "label": "CommandGroup Props",
+    "sublabel": "Command",
+    "route": "/components/command"
+  },
+  {
+    "type": "section",
+    "label": "CommandDialog Props",
+    "sublabel": "Command",
+    "route": "/components/command"
+  },
+  {
+    "type": "section",
+    "label": "Horizontal",
+    "sublabel": "Resizable",
+    "route": "/components/resizable"
+  },
+  {
+    "type": "section",
+    "label": "ResizableGroup Props",
+    "sublabel": "Resizable",
+    "route": "/components/resizable"
+  },
+  {
+    "type": "section",
+    "label": "ResizablePanel Props",
+    "sublabel": "Resizable",
+    "route": "/components/resizable"
+  },
+  {
+    "type": "section",
+    "label": "classNames slots",
+    "sublabel": "Collapsible",
+    "route": "/components/collapsible"
+  },
+  {
+    "type": "section",
+    "label": "Collapsible Props",
+    "sublabel": "Collapsible",
+    "route": "/components/collapsible"
+  },
+  {
+    "type": "section",
+    "label": "Click-only picker",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "beforeUpload gate",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "maxCount",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "Auto upload with progress",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "Manual upload",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "Custom itemRender",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "Picture-card list",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "Picture list with preview",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "Server file echo (UploadFile)",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "Directory picker",
+    "sublabel": "Upload",
+    "route": "/components/upload"
+  },
+  {
+    "type": "section",
+    "label": "Formats & alpha",
+    "sublabel": "ColorPicker",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "section",
+    "label": "Inline",
+    "sublabel": "ColorPicker",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "section",
+    "label": "Core — native primitive",
+    "sublabel": "ColorPicker",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "section",
+    "label": "Half Stars",
+    "sublabel": "Rating",
+    "route": "/components/rating"
+  },
+  {
+    "type": "section",
+    "label": "TimelineItem Props",
+    "sublabel": "Timeline",
+    "route": "/components/timeline"
+  },
+  {
+    "type": "section",
+    "label": "Title",
+    "sublabel": "Typography",
+    "route": "/components/typography"
+  },
+  {
+    "type": "section",
+    "label": "Text",
+    "sublabel": "Typography",
+    "route": "/components/typography"
+  },
+  {
+    "type": "section",
+    "label": "Paragraph",
+    "sublabel": "Typography",
+    "route": "/components/typography"
+  },
+  {
+    "type": "section",
+    "label": "Ellipsis",
+    "sublabel": "Typography",
+    "route": "/components/typography"
+  },
+  {
+    "type": "section",
+    "label": "Title Props",
+    "sublabel": "Typography",
+    "route": "/components/typography"
+  },
+  {
+    "type": "section",
+    "label": "Text Props",
+    "sublabel": "Typography",
+    "route": "/components/typography"
+  },
+  {
+    "type": "section",
+    "label": "Single line",
+    "sublabel": "Ellipsis",
+    "route": "/components/ellipsis"
+  },
+  {
+    "type": "section",
+    "label": "Multi-line",
+    "sublabel": "Ellipsis",
+    "route": "/components/ellipsis"
+  },
+  {
+    "type": "section",
+    "label": "Tooltip preview",
+    "sublabel": "Ellipsis",
+    "route": "/components/ellipsis"
+  },
+  {
+    "type": "section",
+    "label": "Expandable (controlled)",
+    "sublabel": "Ellipsis",
+    "route": "/components/ellipsis"
+  },
+  {
+    "type": "section",
+    "label": "Ellipsis Props",
+    "sublabel": "Ellipsis",
+    "route": "/components/ellipsis"
+  },
+  {
+    "type": "section",
+    "label": "Basic",
+    "sublabel": "CountUp",
+    "route": "/components/count-up"
+  },
+  {
+    "type": "section",
+    "label": "Decimals & custom format",
+    "sublabel": "CountUp",
+    "route": "/components/count-up"
+  },
+  {
+    "type": "section",
+    "label": "Re-animating on target change",
+    "sublabel": "CountUp",
+    "route": "/components/count-up"
+  },
+  {
+    "type": "section",
+    "label": "With Stat",
+    "sublabel": "CountUp",
+    "route": "/components/count-up"
+  },
+  {
+    "type": "section",
+    "label": "CountUp Props",
+    "sublabel": "CountUp",
+    "route": "/components/count-up"
+  },
+  {
+    "type": "section",
+    "label": "Stat Props",
+    "sublabel": "Stat",
+    "route": "/components/stat"
+  },
+  {
+    "type": "section",
+    "label": "StatGroup Props",
+    "sublabel": "Stat",
+    "route": "/components/stat"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Segmented",
+    "route": "/components/segmented"
+  },
+  {
+    "type": "section",
+    "label": "Solid Variants",
+    "sublabel": "Chip",
+    "route": "/components/chip"
+  },
+  {
+    "type": "section",
+    "label": "Outline Variants",
+    "sublabel": "Chip",
+    "route": "/components/chip"
+  },
+  {
+    "type": "section",
+    "label": "With Close",
+    "sublabel": "Chip",
+    "route": "/components/chip"
+  },
+  {
+    "type": "section",
+    "label": "Steps",
+    "sublabel": "TimePicker",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "section",
+    "label": "Seconds",
+    "sublabel": "TimePicker",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "section",
+    "label": "12-hour clock",
+    "sublabel": "TimePicker",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "section",
+    "label": "disabledTime",
+    "sublabel": "TimePicker",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "section",
+    "label": "Native fallback",
+    "sublabel": "TimePicker",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "section",
+    "label": "Dual-month panel",
+    "sublabel": "DateRangePicker",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "section",
+    "label": "Built-in presets",
+    "sublabel": "DateRangePicker",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "section",
+    "label": "Presets",
+    "sublabel": "DateRangePicker",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "section",
+    "label": "disabledDate",
+    "sublabel": "DateRangePicker",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "section",
+    "label": "Sortable tags",
+    "sublabel": "TagInput",
+    "route": "/components/tag-input"
+  },
+  {
+    "type": "section",
+    "label": "Custom trigger",
+    "sublabel": "Mentions",
+    "route": "/components/mentions"
+  },
+  {
+    "type": "section",
+    "label": "Many options",
+    "sublabel": "Mentions",
+    "route": "/components/mentions"
+  },
+  {
+    "type": "section",
+    "label": "Basic composer",
+    "sublabel": "PromptInput",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "section",
+    "label": "Controlled text and tags",
+    "sublabel": "PromptInput",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "section",
+    "label": "Mentions with async suggestions",
+    "sublabel": "PromptInput",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "section",
+    "label": "Submit with mod-enter",
+    "sublabel": "PromptInput",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "PromptInput",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "section",
+    "label": "Selection items: checkboxes, radios and groups",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "Icons, shortcut hints and the items data API",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "Nested submenus",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "DropdownMenu Props",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "DropdownMenuContent Props",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "DropdownMenuItem Props",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "DropdownMenuCheckboxItem Props",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "DropdownMenuRadioGroup Props",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "DropdownMenuRadioItem Props",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "DropdownMenuGroup Props",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "DropdownMenuSub Props",
+    "sublabel": "DropdownMenu",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "section",
+    "label": "ContextMenu Props",
+    "sublabel": "ContextMenu",
+    "route": "/components/context-menu"
+  },
+  {
+    "type": "section",
+    "label": "ContextMenuItem Props",
+    "sublabel": "ContextMenu",
+    "route": "/components/context-menu"
+  },
+  {
+    "type": "section",
+    "label": "NavigationBar Props",
+    "sublabel": "NavigationBar",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "section",
+    "label": "NavLink Props",
+    "sublabel": "NavigationBar",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Container",
+    "route": "/components/container"
+  },
+  {
+    "type": "section",
+    "label": "Variants",
+    "sublabel": "Banner",
+    "route": "/components/banner"
+  },
+  {
+    "type": "section",
+    "label": "Pluggable highlighting",
+    "sublabel": "CodeBlock",
+    "route": "/components/code-block"
+  },
+  {
+    "type": "section",
+    "label": "Horizontal orientation",
+    "sublabel": "VirtualList",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "section",
+    "label": "Grid mode (columns)",
+    "sublabel": "VirtualList",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "section",
+    "label": "Sortable chips",
+    "sublabel": "TagGroup",
+    "route": "/components/tag-group"
+  },
+  {
+    "type": "section",
+    "label": "TagGroup Props",
+    "sublabel": "TagGroup",
+    "route": "/components/tag-group"
+  },
+  {
+    "type": "section",
+    "label": "TagGroupItem Props",
+    "sublabel": "TagGroup",
+    "route": "/components/tag-group"
+  },
+  {
+    "type": "section",
+    "label": "Mobile: swipe to dismiss & virtual keyboard",
+    "sublabel": "BottomSheet",
+    "route": "/components/bottom-sheet"
+  },
+  {
+    "type": "section",
+    "label": "Basic",
+    "sublabel": "Descriptions",
+    "route": "/components/descriptions"
+  },
+  {
+    "type": "section",
+    "label": "Bordered with spans",
+    "sublabel": "Descriptions",
+    "route": "/components/descriptions"
+  },
+  {
+    "type": "section",
+    "label": "Compact size",
+    "sublabel": "Descriptions",
+    "route": "/components/descriptions"
+  },
+  {
+    "type": "section",
+    "label": "Collapsed by depth",
+    "sublabel": "JsonView",
+    "route": "/components/json-view"
+  },
+  {
+    "type": "section",
+    "label": "Large collections",
+    "sublabel": "JsonView",
+    "route": "/components/json-view"
+  },
+  {
+    "type": "section",
+    "label": "Basic",
+    "sublabel": "QRCode",
+    "route": "/components/qr-code"
+  },
+  {
+    "type": "section",
+    "label": "Without Border",
+    "sublabel": "QRCode",
+    "route": "/components/qr-code"
+  },
+  {
+    "type": "section",
+    "label": "Error Correction Level & Size",
+    "sublabel": "QRCode",
+    "route": "/components/qr-code"
+  },
+  {
+    "type": "section",
+    "label": "Custom Colors",
+    "sublabel": "QRCode",
+    "route": "/components/qr-code"
+  },
+  {
+    "type": "section",
+    "label": "Full list",
+    "sublabel": "Sources",
+    "route": "/components/sources"
+  },
+  {
+    "type": "section",
+    "label": "Pre-expanded entries",
+    "sublabel": "Sources",
+    "route": "/components/sources"
+  },
+  {
+    "type": "section",
+    "label": "Compact footnotes",
+    "sublabel": "Sources",
+    "route": "/components/sources"
+  },
+  {
+    "type": "section",
+    "label": "States",
+    "sublabel": "FilePreview",
+    "route": "/components/file-preview"
+  },
+  {
+    "type": "section",
+    "label": "Single line",
+    "sublabel": "InlineCompletion",
+    "route": "/components/inline-completion"
+  },
+  {
+    "type": "section",
+    "label": "Multiline host",
+    "sublabel": "InlineCompletion",
+    "route": "/components/inline-completion"
+  },
+  {
+    "type": "section",
+    "label": "Standalone",
+    "sublabel": "FloatButton",
+    "route": "/components/float-button"
+  },
+  {
+    "type": "section",
+    "label": "Group with expandable menu",
+    "sublabel": "FloatButton",
+    "route": "/components/float-button"
+  },
+  {
+    "type": "section",
+    "label": "Basic",
+    "sublabel": "Masonry",
+    "route": "/components/masonry"
+  },
+  {
+    "type": "section",
+    "label": "Four columns, tighter gap",
+    "sublabel": "Masonry",
+    "route": "/components/masonry"
+  },
+  {
+    "type": "section",
+    "label": "Basic",
+    "sublabel": "Signature",
+    "route": "/components/signature"
+  },
+  {
+    "type": "section",
+    "label": "Custom pen and labels",
+    "sublabel": "Signature",
+    "route": "/components/signature"
+  },
+  {
+    "type": "section",
+    "label": "Disabled",
+    "sublabel": "Signature",
+    "route": "/components/signature"
+  },
+  {
+    "type": "section",
+    "label": "Sizes",
+    "sublabel": "Kbd",
+    "route": "/components/kbd"
+  },
+  {
+    "type": "section",
+    "label": "Key combinations",
+    "sublabel": "Kbd",
+    "route": "/components/kbd"
+  },
+  {
+    "type": "section",
+    "label": "Basic stack",
+    "sublabel": "AvatarGroup",
+    "route": "/components/avatar-group"
+  },
+  {
+    "type": "section",
+    "label": "Max with overflow counter",
+    "sublabel": "AvatarGroup",
+    "route": "/components/avatar-group"
+  },
+  {
+    "type": "section",
+    "label": "Total override",
+    "sublabel": "AvatarGroup",
+    "route": "/components/avatar-group"
+  },
+  {
+    "type": "section",
+    "label": "Sizes follow the stacked avatars",
+    "sublabel": "AvatarGroup",
+    "route": "/components/avatar-group"
+  },
+  {
+    "type": "section",
+    "label": "Controlled selection",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Month quick select",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Picker modes",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "disabledDate",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Week numbers",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Dual month grid",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Uncontrolled",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Min / max range",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Locale and week start",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Week picker",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Header drill-down",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "cellRender",
+    "sublabel": "Calendar",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "section",
+    "label": "Link preview",
+    "sublabel": "HoverCard",
+    "route": "/components/hover-card"
+  },
+  {
+    "type": "section",
+    "label": "Profile card with resting zone",
+    "sublabel": "HoverCard",
+    "route": "/components/hover-card"
+  },
+  {
+    "type": "section",
+    "label": "Usage",
+    "sublabel": "HoverCard",
+    "route": "/components/hover-card"
+  },
+  {
+    "type": "section",
+    "label": "Text formatting",
+    "sublabel": "Toolbar",
+    "route": "/components/toolbar"
+  },
+  {
+    "type": "section",
+    "label": "Vertical",
+    "sublabel": "Toolbar",
+    "route": "/components/toolbar"
+  },
+  {
+    "type": "section",
+    "label": "Usage",
+    "sublabel": "Toolbar",
+    "route": "/components/toolbar"
+  },
+  {
+    "type": "section",
+    "label": "Toolbar Props",
+    "sublabel": "Toolbar",
+    "route": "/components/toolbar"
+  },
+  {
+    "type": "section",
+    "label": "ToolbarButton Props",
+    "sublabel": "Toolbar",
+    "route": "/components/toolbar"
+  },
+  {
+    "type": "section",
+    "label": "ToolbarSeparator Props",
+    "sublabel": "Toolbar",
+    "route": "/components/toolbar"
+  },
+  {
+    "type": "section",
+    "label": "Basic — leaf selection",
+    "sublabel": "Cascader",
+    "route": "/components/cascader"
+  },
+  {
+    "type": "section",
+    "label": "changeOnSelect — commit every level",
+    "sublabel": "Cascader",
+    "route": "/components/cascader"
+  },
+  {
+    "type": "section",
+    "label": "expandTrigger=\"hover\"",
+    "sublabel": "Cascader",
+    "route": "/components/cascader"
+  },
+  {
+    "type": "section",
+    "label": "Virtualized — wide trees",
+    "sublabel": "Cascader",
+    "route": "/components/cascader"
+  },
+  {
+    "type": "section",
+    "label": "Remote search",
+    "sublabel": "Cascader",
+    "route": "/components/cascader"
+  },
+  {
+    "type": "section",
+    "label": "Usage",
+    "sublabel": "Cascader",
+    "route": "/components/cascader"
+  },
+  {
+    "type": "section",
+    "label": "Single — shared control",
+    "sublabel": "TreeSelect",
+    "route": "/components/tree-select"
+  },
+  {
+    "type": "section",
+    "label": "Multiple — cascading checkboxes",
+    "sublabel": "TreeSelect",
+    "route": "/components/tree-select"
+  },
+  {
+    "type": "section",
+    "label": "Search — panel filter",
+    "sublabel": "TreeSelect",
+    "route": "/components/tree-select"
+  },
+  {
+    "type": "section",
+    "label": "Lazy loading — loadData",
+    "sublabel": "TreeSelect",
+    "route": "/components/tree-select"
+  },
+  {
+    "type": "section",
+    "label": "Usage",
+    "sublabel": "TreeSelect",
+    "route": "/components/tree-select"
+  },
+  {
+    "type": "section",
+    "label": "Usage",
+    "sublabel": "Sidebar",
+    "route": "/components/sidebar"
+  },
+  {
+    "type": "section",
+    "label": "Sidebar Props",
+    "sublabel": "Sidebar",
+    "route": "/components/sidebar"
+  },
+  {
+    "type": "section",
+    "label": "SidebarGroup Props",
+    "sublabel": "Sidebar",
+    "route": "/components/sidebar"
+  },
+  {
+    "type": "section",
+    "label": "SidebarItem Props",
+    "sublabel": "Sidebar",
+    "route": "/components/sidebar"
+  },
+  {
+    "type": "section",
+    "label": "SidebarFooter Props",
+    "sublabel": "Sidebar",
+    "route": "/components/sidebar"
+  },
+  {
+    "type": "section",
+    "label": "SidebarToggle Props",
+    "sublabel": "Sidebar",
+    "route": "/components/sidebar"
+  },
+  {
+    "type": "section",
+    "label": "Scroll-spy in a custom container",
+    "sublabel": "Anchor",
+    "route": "/components/anchor"
+  },
+  {
+    "type": "section",
+    "label": "Over content",
+    "sublabel": "Watermark",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "section",
+    "label": "Multi-line, rotation, gap",
+    "sublabel": "Watermark",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "section",
+    "label": "Fullscreen",
+    "sublabel": "Watermark",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "section",
+    "label": "Targeting an element",
+    "sublabel": "Fullscreen",
+    "route": "/components/fullscreen"
+  },
+  {
+    "type": "section",
+    "label": "Overriding component copy",
+    "sublabel": "LocaleProvider",
+    "route": "/components/locale-provider"
+  },
+  {
+    "type": "section",
+    "label": "Built-in locales",
+    "sublabel": "LocaleProvider",
+    "route": "/components/locale-provider"
+  },
+  {
+    "type": "section",
+    "label": "Usage",
+    "sublabel": "LocaleProvider",
+    "route": "/components/locale-provider"
+  },
+  {
+    "type": "section",
+    "label": "Dictionary shape",
+    "sublabel": "LocaleProvider",
+    "route": "/components/locale-provider"
+  },
+  {
+    "type": "section",
+    "label": "Default Button size",
+    "sublabel": "ConfigProvider",
+    "route": "/components/config-provider"
+  },
+  {
+    "type": "section",
+    "label": "Nested providers",
+    "sublabel": "ConfigProvider",
+    "route": "/components/config-provider"
+  },
+  {
+    "type": "section",
+    "label": "Toast defaults",
+    "sublabel": "ConfigProvider",
+    "route": "/components/config-provider"
+  },
+  {
+    "type": "section",
+    "label": "Tooltip delay",
+    "sublabel": "ConfigProvider",
+    "route": "/components/config-provider"
+  },
+  {
+    "type": "section",
+    "label": "Usage",
+    "sublabel": "ConfigProvider",
+    "route": "/components/config-provider"
+  },
+  {
+    "type": "section",
+    "label": "Uncontrolled",
+    "sublabel": "Toggle",
+    "route": "/components/toggle"
+  },
+  {
+    "type": "section",
+    "label": "Controlled (ControlOrValue)",
+    "sublabel": "Toggle",
+    "route": "/components/toggle"
+  },
+  {
+    "type": "section",
+    "label": "Sizes and square (icon) toggles",
+    "sublabel": "Toggle",
+    "route": "/components/toggle"
+  },
+  {
+    "type": "section",
+    "label": "ToggleCore — the controlled primitive",
+    "sublabel": "Toggle",
+    "route": "/components/toggle"
+  },
+  {
+    "type": "section",
+    "label": "Inside a toolbar",
+    "sublabel": "Toggle",
+    "route": "/components/toggle"
+  },
+  {
+    "type": "section",
+    "label": "Toggle Props",
+    "sublabel": "Toggle",
+    "route": "/components/toggle"
+  },
+  {
+    "type": "section",
+    "label": "ToggleCore Props",
+    "sublabel": "Toggle",
+    "route": "/components/toggle"
+  },
+  {
+    "type": "section",
+    "label": "ToolbarToggle Props",
+    "sublabel": "Toggle",
+    "route": "/components/toggle"
+  },
+  {
+    "type": "section",
+    "label": "Complete shell",
+    "sublabel": "AppShell",
+    "route": "/components/app-shell"
+  },
+  {
+    "type": "section",
+    "label": "Slots are optional",
+    "sublabel": "AppShell",
+    "route": "/components/app-shell"
+  },
+  {
+    "type": "section",
+    "label": "AppShell Props",
+    "sublabel": "AppShell",
+    "route": "/components/app-shell"
+  },
+  {
+    "type": "section",
+    "label": "Line chart",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Area chart",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Bar chart",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Custom series colors",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Pie & donut",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Custom tooltip",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Horizontal bars",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Radar chart",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Scatter chart",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Chart Props",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Controlled form",
+    "sublabel": "Form",
+    "route": "/components/form"
+  },
+  {
+    "type": "section",
+    "label": "Schema validation — zod × react-f0rm resolvers",
+    "sublabel": "Form",
+    "route": "/components/form"
+  },
+  {
+    "type": "section",
+    "label": "Item layout — horizontal · inline",
+    "sublabel": "Form",
+    "route": "/components/form"
+  },
+  {
+    "type": "section",
+    "label": "Cross-field validation — password match",
+    "sublabel": "Form",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "content",
+    "sublabel": "useToast — Toast message (first argument)",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "options.variant",
+    "sublabel": "useToast — Color variant. loading renders the spinner glyph; prefer the toast.loading() sugar over passing it by hand",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "options.duration",
+    "sublabel": "useToast — Auto-dismiss time in ms",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "options.action",
+    "sublabel": "useToast — Action button rendered between the message and the dismiss × (a real focusable button). close defaults to true — the toast dismisses right after onClick runs; set close: false to keep it open.",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "options.title",
+    "sublabel": "useToast — Bold first line rendered above the message (two-line layout); omitted renders the message alone",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "loading(content, options?)",
+    "sublabel": "useToast — Sugar for variant: loading with duration defaulting to 0 — the toast stays (spinner spinning) until update/dismiss or a manual close. An explicit duration overrides the persistence.",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "update(id, patch)",
+    "sublabel": "useToast — Patches a toast in place — same element, no enter/exit replay. A new duration re-arms the countdown; an omitted one leaves it running. Available on both useToast() and the module-level toast().",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "promise(promise, options)",
+    "sublabel": "useToast — Shows a persistent loading toast (spinner), then patches it to the success (or danger) copy when the promise settles. success/error accept ReactNode or (value) => ReactNode; omitted copy falls back to the locale pack. Returns the original promise — rejections still reach the caller.",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "form",
+    "sublabel": "useField — Form instance from useForm()/createForm()",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "name",
+    "sublabel": "useField — Field path; value type is inferred from it",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "returns",
+    "sublabel": "useField — Headless binding — the same channel react-f0rm's Field/Checkbox/Select use; pass value/onChange to any haze-ui core",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "form",
+    "sublabel": "FormItem — Form instance",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "name",
+    "sublabel": "FormItem — Field path to bind",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "label",
+    "sublabel": "FormItem — Label rendered with htmlFor pointing at the field id",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "layout",
+    "sublabel": "FormItem — Item layout (default 'vertical'): horizontal pairs a fixed label column with the control, error under the control column; inline flows label + control + error on one row",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "labelWidth",
+    "sublabel": "FormItem — Horizontal label column width — number as px, string verbatim (e.g. '8em'); default auto",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "labelAlign",
+    "sublabel": "FormItem — Horizontal label text alignment (default 'right', the AntD convention)",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "validate",
+    "sublabel": "FormItem — Field-level validator (sync or async); runs per mode/on submit, meta carries {form, path, signal}",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "FormItem — Render any haze-ui core; spread id/aria attributes and pass value/onChange to the core",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "form",
+    "sublabel": "FormList — Form instance; omitted, falls back to the nearest <FormProvider value={form}>",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "name",
+    "sublabel": "FormList — Array field path, e.g. tags",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "keyName",
+    "sublabel": "FormList — Property the stable row key is exposed under on each fields entry",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "rules",
+    "sublabel": "FormList — Rules validated against the whole array (required fails on empty)",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "shouldUnregister",
+    "sublabel": "FormList — Drop the array branch on unmount; defaults to the form-level flag",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "FormList — Render-prop rows — key each row by field.id; array ops materialize in-row edits first",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "standardSchemaFormValidator",
+    "sublabel": "Resolvers — Form-level Standard Schema adapter for useForm({validate}); pair with validateDeps",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "standardSchemaResolver / zodResolver",
+    "sublabel": "Resolvers — Field-level adapters — slot straight into FormItem's validate",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "hasStandardProps",
+    "sublabel": "Resolvers — Runtime probe for the ~standard props",
+    "route": "/components/form"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "AccordionItem — Header text shown in the summary",
+    "route": "/components/accordion"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "AccordionItem — Collapsible content",
+    "route": "/components/accordion"
+  },
+  {
+    "type": "prop",
+    "label": "exclusive",
+    "sublabel": "Accordion — Only one item open at a time (uses name attribute)",
+    "route": "/components/accordion"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Accordion — AccordionItem elements",
+    "route": "/components/accordion"
+  },
+  {
+    "type": "prop",
+    "label": "position",
+    "sublabel": "Affix — Viewport edge",
+    "route": "/components/affix"
+  },
+  {
+    "type": "prop",
+    "label": "offset",
+    "sublabel": "Affix — Pixel offset from edge",
+    "route": "/components/affix"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Affix — Content to affix",
+    "route": "/components/affix"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Alert — Color variant",
+    "route": "/components/alert"
+  },
+  {
+    "type": "prop",
+    "label": "visible",
+    "sublabel": "Alert — Visibility state (controllable)",
+    "route": "/components/alert"
+  },
+  {
+    "type": "prop",
+    "label": "closable",
+    "sublabel": "Alert — Show a close button",
+    "route": "/components/alert"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "Alert — Called when the close button is clicked",
+    "route": "/components/alert"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Alert — Alert content",
+    "route": "/components/alert"
+  },
+  {
+    "type": "prop",
+    "label": "items",
+    "sublabel": "Anchor — Anchor sections in document order; each id must match an element rendered on the page",
+    "route": "/components/anchor"
+  },
+  {
+    "type": "prop",
+    "label": "activeId",
+    "sublabel": "Anchor — Highlighted section id — accepts a control (controlled) or a plain value (uncontrolled initial). Scroll-spy and clicks write through it",
+    "route": "/components/anchor"
+  },
+  {
+    "type": "prop",
+    "label": "onClick",
+    "sublabel": "Anchor — Fires when a link is clicked (the highlight moves and scrolling is queued first)",
+    "route": "/components/anchor"
+  },
+  {
+    "type": "prop",
+    "label": "offsetTop",
+    "sublabel": "Anchor — Gap kept between the container top and the section top when scrolling (sticky header height), px",
+    "route": "/components/anchor"
+  },
+  {
+    "type": "prop",
+    "label": "bounds",
+    "sublabel": "Anchor — Scroll-spy trigger line, px from the container top (engines without IntersectionObserver)",
+    "route": "/components/anchor"
+  },
+  {
+    "type": "prop",
+    "label": "getContainer",
+    "sublabel": "Anchor — Scroll container the anchors navigate and observe",
+    "route": "/components/anchor"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "ApprovalCard — Card title",
+    "route": "/components/approval-card"
+  },
+  {
+    "type": "prop",
+    "label": "description",
+    "sublabel": "ApprovalCard — Description text",
+    "route": "/components/approval-card"
+  },
+  {
+    "type": "prop",
+    "label": "onApprove",
+    "sublabel": "ApprovalCard — Called when approve is clicked",
+    "route": "/components/approval-card"
+  },
+  {
+    "type": "prop",
+    "label": "onDeny",
+    "sublabel": "ApprovalCard — Called when deny is clicked",
+    "route": "/components/approval-card"
+  },
+  {
+    "type": "prop",
+    "label": "approveText",
+    "sublabel": "ApprovalCard — Approve button text",
+    "route": "/components/approval-card"
+  },
+  {
+    "type": "prop",
+    "label": "denyText",
+    "sublabel": "ApprovalCard — Deny button text",
+    "route": "/components/approval-card"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ApprovalCard — Additional content",
+    "route": "/components/approval-card"
+  },
+  {
+    "type": "prop",
+    "label": "ratio",
+    "sublabel": "AspectRatio — Aspect ratio (width / height)",
+    "route": "/components/aspect-ratio"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "AspectRatio — Content to render inside",
+    "route": "/components/aspect-ratio"
+  },
+  {
+    "type": "prop",
+    "label": "src",
+    "sublabel": "Avatar — Image URL",
+    "route": "/components/avatar"
+  },
+  {
+    "type": "prop",
+    "label": "alt",
+    "sublabel": "Avatar — Alt text; first letter used as fallback",
+    "route": "/components/avatar"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Avatar — Avatar size",
+    "route": "/components/avatar"
+  },
+  {
+    "type": "prop",
+    "label": "fallback",
+    "sublabel": "Avatar — Custom fallback content",
+    "route": "/components/avatar"
+  },
+  {
+    "type": "prop",
+    "label": "threshold",
+    "sublabel": "BackToTop — Scroll distance before showing (px)",
+    "route": "/components/back-to-top"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "BackToTop — Button content",
+    "route": "/components/back-to-top"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Badge — Color variant",
+    "route": "/components/badge"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Badge — Size of the badge",
+    "route": "/components/badge"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Badge — Badge content",
+    "route": "/components/badge"
+  },
+  {
+    "type": "prop",
+    "label": "visible",
+    "sublabel": "Banner — Controlled visibility",
+    "route": "/components/banner"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "Banner — Close handler; shows close button when provided",
+    "route": "/components/banner"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Banner — Color variant",
+    "route": "/components/banner"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Banner — Banner content",
+    "route": "/components/banner"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "BottomSheet — Controlled open state",
+    "route": "/components/bottom-sheet"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "BottomSheet — Called when sheet closes",
+    "route": "/components/bottom-sheet"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "BottomSheet — Sheet content",
+    "route": "/components/bottom-sheet"
+  },
+  {
+    "type": "prop",
+    "label": "swipeToDismiss",
+    "sublabel": "BottomSheet — Drag the sheet down to dismiss (pointer gesture; keyboard users keep Escape/overlay paths)",
+    "route": "/components/bottom-sheet"
+  },
+  {
+    "type": "prop",
+    "label": "virtualKeyboard",
+    "sublabel": "BottomSheet — Track visualViewport so the sheet lifts above the on-screen keyboard and clears the safe-area inset",
+    "route": "/components/bottom-sheet"
+  },
+  {
+    "type": "prop",
+    "label": "href",
+    "sublabel": "BreadcrumbItem — Link URL; omit for current page",
+    "route": "/components/breadcrumb"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "BreadcrumbItem — Item label",
+    "route": "/components/breadcrumb"
+  },
+  {
+    "type": "prop",
+    "label": "separator",
+    "sublabel": "Breadcrumb — Separator between items",
+    "route": "/components/breadcrumb"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Breadcrumb — BreadcrumbItem elements",
+    "route": "/components/breadcrumb"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Button — Visual style of the button",
+    "route": "/components/button"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Button — Size of the button",
+    "route": "/components/button"
+  },
+  {
+    "type": "prop",
+    "label": "square",
+    "sublabel": "Button — Equal padding on all sides, ideal for icon-only buttons",
+    "route": "/components/button"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "Button — Disable the button",
+    "route": "/components/button"
+  },
+  {
+    "type": "prop",
+    "label": "...rest",
+    "sublabel": "Button — All native button attributes (except type)",
+    "route": "/components/button"
+  },
+  {
+    "type": "prop",
+    "label": "picker",
+    "sublabel": "Calendar — Granularity: 'date' (default), 'week' (whole-ISO-week rows, Monday-first grid, week column forced on), 'month', 'quarter' or 'year'",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "prop",
+    "label": "showWeekNumbers",
+    "sublabel": "Calendar — Prepend an ISO-8601 week-number column to the day grid",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "prop",
+    "label": "months",
+    "sublabel": "Calendar — Render two adjacent month grids sharing navigation and range highlight",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "prop",
+    "label": "rangeStart",
+    "sublabel": "Calendar — Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "prop",
+    "label": "rangeEnd",
+    "sublabel": "Calendar — Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "prop",
+    "label": "cellRender",
+    "sublabel": "Calendar — Appends custom content inside every picker cell (day numbers, month/quarter/year labels, drill-down grids) — receives the cell's civil date and the mode it renders in",
+    "route": "/components/calendar"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Card — Visual style of the card",
+    "route": "/components/card"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Card — Card content",
+    "route": "/components/card"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Carousel — Active slide index",
+    "route": "/components/carousel"
+  },
+  {
+    "type": "prop",
+    "label": "autoPlay",
+    "sublabel": "Carousel — Auto-advance slides",
+    "route": "/components/carousel"
+  },
+  {
+    "type": "prop",
+    "label": "interval",
+    "sublabel": "Carousel — Auto-play interval in ms",
+    "route": "/components/carousel"
+  },
+  {
+    "type": "prop",
+    "label": "effect",
+    "sublabel": "Carousel — Transition effect: slide (scroll-snap track) or fade (stacked cross-fade)",
+    "route": "/components/carousel"
+  },
+  {
+    "type": "prop",
+    "label": "pauseOnHover",
+    "sublabel": "Carousel — Pause auto-play while hovered or focused; resume with the remaining time budget",
+    "route": "/components/carousel"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Carousel — CarouselSlide elements",
+    "route": "/components/carousel"
+  },
+  {
+    "type": "prop",
+    "label": "virtualized",
+    "sublabel": "Cascader — Window each cascading panel list with VirtualList for large option trees",
+    "route": "/components/cascader"
+  },
+  {
+    "type": "prop",
+    "label": "autoScroll",
+    "sublabel": "ChatContainer — Automatically scroll to bottom on new content",
+    "route": "/components/chat-container"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ChatContainer — Chat messages",
+    "route": "/components/chat-container"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "ChatInput — Input value (controllable)",
+    "route": "/components/chat-input"
+  },
+  {
+    "type": "prop",
+    "label": "onSend",
+    "sublabel": "ChatInput — Called when the user sends a message",
+    "route": "/components/chat-input"
+  },
+  {
+    "type": "prop",
+    "label": "placeholder",
+    "sublabel": "ChatInput — Input placeholder text",
+    "route": "/components/chat-input"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "ChatInput — Disable the input",
+    "route": "/components/chat-input"
+  },
+  {
+    "type": "prop",
+    "label": "maxLength",
+    "sublabel": "ChatInput — Maximum character length",
+    "route": "/components/chat-input"
+  },
+  {
+    "type": "prop",
+    "label": "role",
+    "sublabel": "ChatMessage — Message role determining layout and style",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "prop",
+    "label": "avatar",
+    "sublabel": "ChatMessage — Custom avatar content",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "prop",
+    "label": "name",
+    "sublabel": "ChatMessage — Display name shown in the header",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "prop",
+    "label": "timestamp",
+    "sublabel": "ChatMessage — Timestamp shown in the header",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "prop",
+    "label": "status",
+    "sublabel": "ChatMessage — Delivery status indicator",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ChatMessage — Message content",
+    "route": "/components/chat-message"
+  },
+  {
+    "type": "prop",
+    "label": "checked",
+    "sublabel": "Checkbox — Controlled checked state or control object",
+    "route": "/components/checkbox"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "Checkbox — Disable the checkbox",
+    "route": "/components/checkbox"
+  },
+  {
+    "type": "prop",
+    "label": "...rest",
+    "sublabel": "Checkbox — All native input attributes",
+    "route": "/components/checkbox"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Chip — Visual variant",
+    "route": "/components/chip"
+  },
+  {
+    "type": "prop",
+    "label": "color",
+    "sublabel": "Chip — Color scheme",
+    "route": "/components/chip"
+  },
+  {
+    "type": "prop",
+    "label": "icon",
+    "sublabel": "Chip — Leading icon",
+    "route": "/components/chip"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "Chip — Close handler; shows close button when provided",
+    "route": "/components/chip"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Chip — Chip content",
+    "route": "/components/chip"
+  },
+  {
+    "type": "prop",
+    "label": "language",
+    "sublabel": "CodeBlock — Language label displayed in corner",
+    "route": "/components/code-block"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "CodeBlock — Code content",
+    "route": "/components/code-block"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "Collapsible — Controlled open state",
+    "route": "/components/collapsible"
+  },
+  {
+    "type": "prop",
+    "label": "defaultOpen",
+    "sublabel": "Collapsible — Initial open state",
+    "route": "/components/collapsible"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Collapsible — CollapsibleTrigger and CollapsibleContent elements",
+    "route": "/components/collapsible"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "ColorPicker — Color value in any supported format (hex / rgb / hsl); a bare value is the uncontrolled initial color",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "ColorPicker — Floating panel visibility (controllable; floating mode only)",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "inline",
+    "sublabel": "ColorPicker — Always-visible panel card instead of trigger + floating panel",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "format",
+    "sublabel": "ColorPicker — Serialization format of the text field and emitted values; switching it does not re-emit the current value",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "allowAlpha",
+    "sublabel": "ColorPicker — Adds the alpha rail; opacity below 1 serializes into the value (#rrggbbaa / rgba() / hsla())",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "presets",
+    "sublabel": "ColorPicker — Preset swatch row above the recent row; any parsable format",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "recent",
+    "sublabel": "ColorPicker — Tracks recently used colors (last 10, newest first) as internal state",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "ColorPicker — Value callback — streams continuously while a drag runs (Slider precedent), serialized in format",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "aria-label",
+    "sublabel": "ColorPicker — Accessible name of the trigger and the panel; defaults to the locale's \"Pick color\". Set it when more than one picker is on a page",
+    "route": "/components/color-picker"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Combobox — Controlled value or control object",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "Combobox — Dropdown open state (controllable)",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "prop",
+    "label": "options",
+    "sublabel": "Combobox — List of options",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "prop",
+    "label": "placeholder",
+    "sublabel": "Combobox — Input placeholder text",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "prop",
+    "label": "virtualized",
+    "sublabel": "Combobox — Force the option list virtualization on/off; by default it kicks in past a threshold of options",
+    "route": "/components/combobox"
+  },
+  {
+    "type": "prop",
+    "label": "placeholder",
+    "sublabel": "CommandInput — Input placeholder text",
+    "route": "/components/command"
+  },
+  {
+    "type": "prop",
+    "label": "onSelect",
+    "sublabel": "CommandItem — Called when item is selected",
+    "route": "/components/command"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "CommandItem — Item content (string for filtering)",
+    "route": "/components/command"
+  },
+  {
+    "type": "prop",
+    "label": "query",
+    "sublabel": "Command — Filter query (controllable)",
+    "route": "/components/command"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Command — CommandInput, CommandList, and CommandItem elements",
+    "route": "/components/command"
+  },
+  {
+    "type": "prop",
+    "label": "defaults",
+    "sublabel": "ConfigProvider — Component defaults keyed by exported component name (Button / ButtonLink / Toast / Tooltip / HoverCard); nested providers shallow-merge per section, inner wins, explicit props always beat config",
+    "route": "/components/config-provider"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ConfigProvider — Subtree reading the defaults",
+    "route": "/components/config-provider"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "ConfirmDialog — Controlled open state",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "ConfirmDialog — Called when dialog closes",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "onConfirm",
+    "sublabel": "ConfirmDialog — Called on confirm",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "onCancel",
+    "sublabel": "ConfirmDialog — Called on cancel",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "ConfirmDialog — Dialog title",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "confirmText",
+    "sublabel": "ConfirmDialog — Confirm button text",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "cancelText",
+    "sublabel": "ConfirmDialog — Cancel button text",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "ConfirmDialog — Confirm button style",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ConfirmDialog — Dialog body content",
+    "route": "/components/confirm-dialog"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Container — Max-width breakpoint",
+    "route": "/components/container"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Container — Container content",
+    "route": "/components/container"
+  },
+  {
+    "type": "prop",
+    "label": "onClick",
+    "sublabel": "ContextMenuItem — Called when item is clicked",
+    "route": "/components/context-menu"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "ContextMenuItem — Disable the item",
+    "route": "/components/context-menu"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ContextMenuItem — Item content",
+    "route": "/components/context-menu"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "ContextMenu — Controlled open state",
+    "route": "/components/context-menu"
+  },
+  {
+    "type": "prop",
+    "label": "onOpenChange",
+    "sublabel": "ContextMenu — Called when open state changes",
+    "route": "/components/context-menu"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ContextMenu — Trigger and Content elements",
+    "route": "/components/context-menu"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "ConversationItem — Conversation title",
+    "route": "/components/conversation-list"
+  },
+  {
+    "type": "prop",
+    "label": "subtitle",
+    "sublabel": "ConversationItem — Subtitle or preview text",
+    "route": "/components/conversation-list"
+  },
+  {
+    "type": "prop",
+    "label": "active",
+    "sublabel": "ConversationItem — Whether this item is currently active",
+    "route": "/components/conversation-list"
+  },
+  {
+    "type": "prop",
+    "label": "onClick",
+    "sublabel": "ConversationItem — Called when the item is clicked",
+    "route": "/components/conversation-list"
+  },
+  {
+    "type": "prop",
+    "label": "end",
+    "sublabel": "ConversationItem — Content at the end of the item",
+    "route": "/components/conversation-list"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ConversationList — ConversationItem elements",
+    "route": "/components/conversation-list"
+  },
+  {
+    "type": "prop",
+    "label": "resizable",
+    "sublabel": "DataTable — Enable column resizing: drag (or focus + Arrow keys) the handle on resizable column headers; double-click resets",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "prop",
+    "label": "expanded",
+    "sublabel": "DataTable — Controlled expanded-row state (TanStack ExpandedState)",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "prop",
+    "label": "getRowCanExpand",
+    "sublabel": "DataTable — Per-row switch for the expander column; defaults to expandable when only renderExpandedRow is given",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "prop",
+    "label": "renderExpandedRow",
+    "sublabel": "DataTable — Renders an expansion panel row spanning all visible columns",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "prop",
+    "label": "columnVisibility",
+    "sublabel": "DataTable — Controlled column visibility state (TanStack VisibilityState)",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "prop",
+    "label": "columnToggle",
+    "sublabel": "DataTable — Render the column settings menu (hideable columns only; meta.hideable === false pins a column)",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "prop",
+    "label": "filterable",
+    "sublabel": "DataTable — Render a filter row under the header; per-column opt-in/out via meta.filterable",
+    "route": "/components/data-table"
+  },
+  {
+    "type": "prop",
+    "label": "startDate",
+    "sublabel": "DateRangePicker — Controlled start date",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "prop",
+    "label": "endDate",
+    "sublabel": "DateRangePicker — Controlled end date",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "prop",
+    "label": "onStartChange",
+    "sublabel": "DateRangePicker — Called when start date changes",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "prop",
+    "label": "onEndChange",
+    "sublabel": "DateRangePicker — Called when end date changes",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "prop",
+    "label": "separator",
+    "sublabel": "DateRangePicker — Separator between inputs",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "prop",
+    "label": "months",
+    "sublabel": "DateRangePicker — Show a two-month inline panel for range picking",
+    "route": "/components/date-range-picker"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Datepicker — Selected date (ISO format YYYY-MM-DD)",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "picker",
+    "sublabel": "Datepicker — Calendar granularity: 'date' (default), ISO-week 'week', 'month', 'quarter' or 'year'; value serializes per mode (YYYY-MM-DD / YYYY-Www / YYYY-MM / YYYY-Qn / YYYY)",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "Datepicker — Dropdown open state (controllable)",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "min",
+    "sublabel": "Datepicker — Minimum selectable date",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "max",
+    "sublabel": "Datepicker — Maximum selectable date",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "locale",
+    "sublabel": "Datepicker — BCP 47 locale for month and weekday formatting (e.g. \"zh-CN\")",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "weekStartsOn",
+    "sublabel": "Datepicker — First day of the week (0 = Sunday, 1 = Monday); defaults to the locale week info",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "showTime",
+    "sublabel": "Datepicker — Adds a time input below the calendar; value serializes as 'YYYY-MM-DD HH:mm' (or 'YYYY-MM-DD HH:mm:ss' with { seconds: true }). Date granularity only",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "format",
+    "sublabel": "Datepicker — Custom serialization for picks, replacing the built-in value format; pair with parse so controlled values round-trip into the calendar",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "parse",
+    "sublabel": "Datepicker — Reads a custom-formatted value back into the calendar (month anchor, day highlight, time input); null leaves the panel unanchored",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "cellRender",
+    "sublabel": "Datepicker — Appends custom content inside the panel's picker cells (see Calendar's cellRender)",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "placeholder",
+    "sublabel": "Datepicker — Input placeholder",
+    "route": "/components/datepicker"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "Dialog — Whether the dialog is open",
+    "route": "/components/dialog"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "Dialog — Called when the dialog is closed",
+    "route": "/components/dialog"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Dialog — Dialog content",
+    "route": "/components/dialog"
+  },
+  {
+    "type": "prop",
+    "label": "oldValue",
+    "sublabel": "DiffViewer — Original text",
+    "route": "/components/diff-viewer"
+  },
+  {
+    "type": "prop",
+    "label": "newValue",
+    "sublabel": "DiffViewer — Modified text",
+    "route": "/components/diff-viewer"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "Disclosure — Whether the disclosure is open",
+    "route": "/components/disclosure"
+  },
+  {
+    "type": "prop",
+    "label": "summary",
+    "sublabel": "Disclosure — Header/trigger text",
+    "route": "/components/disclosure"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Disclosure — Collapsible content",
+    "route": "/components/disclosure"
+  },
+  {
+    "type": "prop",
+    "label": "orientation",
+    "sublabel": "Divider — Direction of the divider",
+    "route": "/components/divider"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "Drawer — Whether the drawer is open",
+    "route": "/components/drawer"
+  },
+  {
+    "type": "prop",
+    "label": "placement",
+    "sublabel": "Drawer — Edge to anchor the drawer",
+    "route": "/components/drawer"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "Drawer — Called when the drawer is closed",
+    "route": "/components/drawer"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Drawer — Drawer content",
+    "route": "/components/drawer"
+  },
+  {
+    "type": "prop",
+    "label": "align",
+    "sublabel": "DropdownMenuContent — Content alignment",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "DropdownMenuContent — MenuItem and MenuSeparator elements",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "prop",
+    "label": "onClick",
+    "sublabel": "DropdownMenuItem — Called when item is clicked",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "DropdownMenuItem — Disable the item",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "DropdownMenuItem — Item content",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "DropdownMenu — Controlled open state",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "prop",
+    "label": "onOpenChange",
+    "sublabel": "DropdownMenu — Called when open state changes",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "DropdownMenu — Trigger and Content elements",
+    "route": "/components/dropdown-menu"
+  },
+  {
+    "type": "prop",
+    "label": "description",
+    "sublabel": "Empty — Text description below the image",
+    "route": "/components/empty"
+  },
+  {
+    "type": "prop",
+    "label": "image",
+    "sublabel": "Empty — Custom image/illustration (replaces default)",
+    "route": "/components/empty"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Empty — Action content (e.g. a button)",
+    "route": "/components/empty"
+  },
+  {
+    "type": "prop",
+    "label": "accept",
+    "sublabel": "FileInput — Accepted file types",
+    "route": "/components/file-input"
+  },
+  {
+    "type": "prop",
+    "label": "multiple",
+    "sublabel": "FileInput — Allow multiple files",
+    "route": "/components/file-input"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "FileInput — Custom trigger text",
+    "route": "/components/file-input"
+  },
+  {
+    "type": "prop",
+    "label": "direction",
+    "sublabel": "Flex — Flex direction",
+    "route": "/components/flex"
+  },
+  {
+    "type": "prop",
+    "label": "align",
+    "sublabel": "Flex — Align items",
+    "route": "/components/flex"
+  },
+  {
+    "type": "prop",
+    "label": "justify",
+    "sublabel": "Flex — Justify content",
+    "route": "/components/flex"
+  },
+  {
+    "type": "prop",
+    "label": "gap",
+    "sublabel": "Flex — Gap between items",
+    "route": "/components/flex"
+  },
+  {
+    "type": "prop",
+    "label": "wrap",
+    "sublabel": "Flex — Enable flex-wrap",
+    "route": "/components/flex"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Flex — Flex children",
+    "route": "/components/flex"
+  },
+  {
+    "type": "prop",
+    "label": "fullscreen",
+    "sublabel": "Fullscreen — Whether the target should be fullscreen — accepts a control (controlled) or a plain value (uncontrolled initial). Browser-side changes (Esc) write back through it",
+    "route": "/components/fullscreen"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "Fullscreen — Fires whenever the actual fullscreen state changes — trigger toggle, prop drives, or the Esc shortcut",
+    "route": "/components/fullscreen"
+  },
+  {
+    "type": "prop",
+    "label": "target",
+    "sublabel": "Fullscreen — Element (or ref holding it) taken fullscreen",
+    "route": "/components/fullscreen"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Fullscreen — The single trigger element; its click toggles fullscreen (own onClick is preserved)",
+    "route": "/components/fullscreen"
+  },
+  {
+    "type": "prop",
+    "label": "span",
+    "sublabel": "GridItem — Number of columns to span",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "start",
+    "sublabel": "GridItem — Grid column start line; preserved across sm/md/lg breakpoints (queries override only the span)",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "sm",
+    "sublabel": "GridItem — Columns to span once the grid container is at least 384px wide; only takes effect inside a responsive Grid, otherwise degrades to span",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "md",
+    "sublabel": "GridItem — Columns to span once the grid container is at least 576px wide; only takes effect inside a responsive Grid, otherwise degrades to span",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "lg",
+    "sublabel": "GridItem — Columns to span once the grid container is at least 768px wide; only takes effect inside a responsive Grid, otherwise degrades to span",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "GridItem — Grid item content",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "columns",
+    "sublabel": "Grid — Number of grid columns",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "gap",
+    "sublabel": "Grid — Gap token index (--haze-space-N)",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "responsive",
+    "sublabel": "Grid — Enable a container-query context (container-type: inline-size) so GridItem sm/md/lg breakpoints respond to the grid's own width instead of the viewport",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Grid — GridItem elements",
+    "route": "/components/grid"
+  },
+  {
+    "type": "prop",
+    "label": "icon",
+    "sublabel": "Icon — SVG component to render (alternative to children). Stroke mode is auto-enabled.",
+    "route": "/components/icon"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Icon — Icon size (16px / 20px / 24px)",
+    "route": "/components/icon"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Icon — SVG element (used when icon prop is not provided)",
+    "route": "/components/icon"
+  },
+  {
+    "type": "prop",
+    "label": "src",
+    "sublabel": "Image — Image URL",
+    "route": "/components/image"
+  },
+  {
+    "type": "prop",
+    "label": "alt",
+    "sublabel": "Image — Alt text",
+    "route": "/components/image"
+  },
+  {
+    "type": "prop",
+    "label": "fallback",
+    "sublabel": "Image — Fallback content on error",
+    "route": "/components/image"
+  },
+  {
+    "type": "prop",
+    "label": "aspectRatio",
+    "sublabel": "Image — CSS aspect-ratio value",
+    "route": "/components/image"
+  },
+  {
+    "type": "prop",
+    "label": "objectFit",
+    "sublabel": "Image — Object-fit behavior",
+    "route": "/components/image"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "InlineEdit — Controlled value",
+    "route": "/components/inline-edit"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "InlineEdit — Called when value is committed",
+    "route": "/components/inline-edit"
+  },
+  {
+    "type": "prop",
+    "label": "placeholder",
+    "sublabel": "InlineEdit — Placeholder text",
+    "route": "/components/inline-edit"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "InlineEdit — Disable editing",
+    "route": "/components/inline-edit"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Input — Controlled value or control object",
+    "route": "/components/input"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Input — Size of the input",
+    "route": "/components/input"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "Input — Disable the input",
+    "route": "/components/input"
+  },
+  {
+    "type": "prop",
+    "label": "...rest",
+    "sublabel": "Input — All native input attributes",
+    "route": "/components/input"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "List — List style",
+    "route": "/components/list"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "List — ListItem elements",
+    "route": "/components/list"
+  },
+  {
+    "type": "prop",
+    "label": "level",
+    "sublabel": "LogEntry — Log severity level",
+    "route": "/components/log-viewer"
+  },
+  {
+    "type": "prop",
+    "label": "message",
+    "sublabel": "LogEntry — Log message text",
+    "route": "/components/log-viewer"
+  },
+  {
+    "type": "prop",
+    "label": "timestamp",
+    "sublabel": "LogEntry — Optional timestamp string",
+    "route": "/components/log-viewer"
+  },
+  {
+    "type": "prop",
+    "label": "logs",
+    "sublabel": "LogViewer — Array of { level, message, timestamp? }",
+    "route": "/components/log-viewer"
+  },
+  {
+    "type": "prop",
+    "label": "filter",
+    "sublabel": "LogViewer — Active level filter (controllable)",
+    "route": "/components/log-viewer"
+  },
+  {
+    "type": "prop",
+    "label": "content",
+    "sublabel": "MarkdownRenderer — Markdown source string",
+    "route": "/components/markdown-renderer"
+  },
+  {
+    "type": "prop",
+    "label": "onSelect",
+    "sublabel": "MenuItem — Called when item is selected",
+    "route": "/components/menu"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "MenuItem — Disable the item",
+    "route": "/components/menu"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "MenuItem — Item content",
+    "route": "/components/menu"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "Menu — Whether the menu is open",
+    "route": "/components/menu"
+  },
+  {
+    "type": "prop",
+    "label": "trigger",
+    "sublabel": "Menu — Trigger element",
+    "route": "/components/menu"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Menu — MenuItem and MenuDivider elements",
+    "route": "/components/menu"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "ModelPicker — Selected model value",
+    "route": "/components/model-picker"
+  },
+  {
+    "type": "prop",
+    "label": "options",
+    "sublabel": "ModelPicker — Array of { value, label, description?, contextLength? }",
+    "route": "/components/model-picker"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "ModelPicker — Disable the picker",
+    "route": "/components/model-picker"
+  },
+  {
+    "type": "prop",
+    "label": "href",
+    "sublabel": "NavLink — Link URL",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "prop",
+    "label": "active",
+    "sublabel": "NavLink — Mark as active",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "prop",
+    "label": "onClick",
+    "sublabel": "NavLink — Click handler (prevents default)",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "NavLink — Link text",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "prop",
+    "label": "brand",
+    "sublabel": "NavigationBar — Brand/logo content",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "NavigationBar — NavLink elements",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "prop",
+    "label": "end",
+    "sublabel": "NavigationBar — End slot content (e.g. login button)",
+    "route": "/components/navigation-bar"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "NumberInput — Controlled value or control object",
+    "route": "/components/number-input"
+  },
+  {
+    "type": "prop",
+    "label": "min",
+    "sublabel": "NumberInput — Minimum value",
+    "route": "/components/number-input"
+  },
+  {
+    "type": "prop",
+    "label": "max",
+    "sublabel": "NumberInput — Maximum value",
+    "route": "/components/number-input"
+  },
+  {
+    "type": "prop",
+    "label": "step",
+    "sublabel": "NumberInput — Step increment",
+    "route": "/components/number-input"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "NumberInput — Input size",
+    "route": "/components/number-input"
+  },
+  {
+    "type": "prop",
+    "label": "length",
+    "sublabel": "OTPInput — Number of input cells",
+    "route": "/components/otp-input"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "OTPInput — Controlled OTP value",
+    "route": "/components/otp-input"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "OTPInput — Called when OTP changes",
+    "route": "/components/otp-input"
+  },
+  {
+    "type": "prop",
+    "label": "page",
+    "sublabel": "Pagination — Current page number (controlled)",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "total",
+    "sublabel": "Pagination — Total number of items",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "pageSize",
+    "sublabel": "Pagination — Items per page (controlled)",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "pageSizeOptions",
+    "sublabel": "Pagination — Page sizes offered by the size changer (showSizeChanger); defaults to [10, 20, 50, 100]. The current pageSize is folded in if missing.",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "showSizeChanger",
+    "sublabel": "Pagination — Renders a page-size select; changing it resets to page 1",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "showQuickJumper",
+    "sublabel": "Pagination — Renders a jump-to-page input that navigates on Enter (clamped to bounds). Ignored in simple mode.",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "showTotal",
+    "sublabel": "Pagination — Renders a summary of the total and the current page's item range",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "simple",
+    "sublabel": "Pagination — Minimal mode: page input plus prev/next instead of the page list",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "ellipsisJump",
+    "sublabel": "Pagination — Turns the ellipsis markers into buttons jumping ±5 pages (clamped)",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "onPageChange",
+    "sublabel": "Pagination — Called for every page jump, ellipsis jump and page-size change",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Pagination — Size of pagination buttons",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "...rest",
+    "sublabel": "Pagination — All native nav attributes",
+    "route": "/components/pagination"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "PasswordInput — Controlled value",
+    "route": "/components/password-input"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "PasswordInput — Called when value changes",
+    "route": "/components/password-input"
+  },
+  {
+    "type": "prop",
+    "label": "placeholder",
+    "sublabel": "PasswordInput — Input placeholder",
+    "route": "/components/password-input"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "PasswordInput — Disable the input",
+    "route": "/components/password-input"
+  },
+  {
+    "type": "prop",
+    "label": "content",
+    "sublabel": "Popover — Popover panel content",
+    "route": "/components/popover"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "Popover — Whether the popover is open",
+    "route": "/components/popover"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Popover — Trigger element",
+    "route": "/components/popover"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Progress — Progress percentage (0-100)",
+    "route": "/components/progress"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Progress — Visual style",
+    "route": "/components/progress"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Progress — Size of the progress indicator",
+    "route": "/components/progress"
+  },
+  {
+    "type": "prop",
+    "label": "color",
+    "sublabel": "Progress — Color variant",
+    "route": "/components/progress"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "PromptInput — Free-text draft (auto-growing textarea)",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "prop",
+    "label": "tags",
+    "sublabel": "PromptInput — Inline removable tokens rendered before the text",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "prop",
+    "label": "triggers",
+    "sublabel": "PromptInput — Characters that open the suggestion popover at the word start",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "prop",
+    "label": "getSuggestions",
+    "sublabel": "PromptInput — Suggestion source per trigger; async responses are guarded against stale races",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "prop",
+    "label": "onSubmit",
+    "sublabel": "PromptInput — Fires when submitKey is pressed with non-empty input",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "prop",
+    "label": "submitKey",
+    "sublabel": "PromptInput — Key combination that submits (Shift+Enter always inserts a newline)",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "prop",
+    "label": "maxRows",
+    "sublabel": "PromptInput — Auto-grow cap in rows; the textarea scrolls beyond it",
+    "route": "/components/prompt-input"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "RadioGroup — Controlled value or control object",
+    "route": "/components/radio"
+  },
+  {
+    "type": "prop",
+    "label": "name",
+    "sublabel": "RadioGroup — HTML name attribute for the radio group",
+    "route": "/components/radio"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "RadioGroup — <Radio> elements",
+    "route": "/components/radio"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Radio — Value of this radio option",
+    "route": "/components/radio"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Radio — Label text",
+    "route": "/components/radio"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Rating — Controlled rating value",
+    "route": "/components/rating"
+  },
+  {
+    "type": "prop",
+    "label": "count",
+    "sublabel": "Rating — Number of stars",
+    "route": "/components/rating"
+  },
+  {
+    "type": "prop",
+    "label": "allowHalf",
+    "sublabel": "Rating — Allow half-star ratings",
+    "route": "/components/rating"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "Rating — Called when rating changes",
+    "route": "/components/rating"
+  },
+  {
+    "type": "prop",
+    "label": "direction",
+    "sublabel": "ResizableGroup — Layout direction",
+    "route": "/components/resizable"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ResizableGroup — ResizablePanel and ResizableHandle elements",
+    "route": "/components/resizable"
+  },
+  {
+    "type": "prop",
+    "label": "SplitterGroup · SplitterPanel · SplitterHandle",
+    "sublabel": "ResizableGroup — AntD migration entry: `import { SplitterGroup, SplitterPanel, SplitterHandle } from 'haze-ui'` maps 1:1 onto ResizableGroup / ResizablePanel / ResizableHandle (same props)",
+    "route": "/components/resizable"
+  },
+  {
+    "type": "prop",
+    "label": "defaultSize",
+    "sublabel": "ResizablePanel — Default size as percentage",
+    "route": "/components/resizable"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ResizablePanel — Panel content",
+    "route": "/components/resizable"
+  },
+  {
+    "type": "prop",
+    "label": "maxHeight",
+    "sublabel": "ScrollArea — Maximum height (px if number)",
+    "route": "/components/scroll-area"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "ScrollArea — Scrollable content",
+    "route": "/components/scroll-area"
+  },
+  {
+    "type": "prop",
+    "label": "options",
+    "sublabel": "Segmented — Array of strings or { value, label, disabled? }",
+    "route": "/components/segmented"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Segmented — Controlled selected value",
+    "route": "/components/segmented"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "Segmented — Called when selection changes",
+    "route": "/components/segmented"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Segmented — Segment size",
+    "route": "/components/segmented"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Select — Controlled value or control object",
+    "route": "/components/select"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Select — Size of the select",
+    "route": "/components/select"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "Select — Disable the select",
+    "route": "/components/select"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Select — <Option> elements",
+    "route": "/components/select"
+  },
+  {
+    "type": "prop",
+    "label": "virtualized",
+    "sublabel": "Select — Multiple mode: window the option listbox with VirtualList for large option sets (single mode is a native select and ignores this)",
+    "route": "/components/select"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Skeleton — Shape of the skeleton",
+    "route": "/components/skeleton"
+  },
+  {
+    "type": "prop",
+    "label": "width",
+    "sublabel": "Skeleton — Width (px if number)",
+    "route": "/components/skeleton"
+  },
+  {
+    "type": "prop",
+    "label": "height",
+    "sublabel": "Skeleton — Height (px if number)",
+    "route": "/components/skeleton"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Slider — Controlled value or control object",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "min",
+    "sublabel": "Slider — Minimum value",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "max",
+    "sublabel": "Slider — Maximum value",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "step",
+    "sublabel": "Slider — Step increment; `null` (with `marks`) restricts the selectable values to the mark keys — every change snaps to the nearest mark",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "tooltip",
+    "sublabel": "Slider — Show a value bubble over the active thumb while dragging or focused (aria-hidden; the native input keeps announcing the value)",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "tooltipFormatter",
+    "sublabel": "Slider — Formats the tooltip bubble content; defaults to the raw number",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "marks",
+    "sublabel": "Slider — Tick labels under the track; clicking one moves the nearest thumb onto it",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "vertical",
+    "sublabel": "Slider — Vertical orientation (bottom-to-top) via `writing-mode: vertical-lr; direction: rtl`; track length defaults to calc(var(--haze-space-16) * 2), override with --haze-slider-track",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "Slider — Disable the slider",
+    "route": "/components/slider"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Spinner — Spinner size (16px / 24px / 32px)",
+    "route": "/components/spinner"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "StatGroup — Stat elements",
+    "route": "/components/stat"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "Stat — Stat label",
+    "route": "/components/stat"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Stat — Stat value",
+    "route": "/components/stat"
+  },
+  {
+    "type": "prop",
+    "label": "description",
+    "sublabel": "Stat — Additional description",
+    "route": "/components/stat"
+  },
+  {
+    "type": "prop",
+    "label": "trend",
+    "sublabel": "Stat — Trend direction",
+    "route": "/components/stat"
+  },
+  {
+    "type": "prop",
+    "label": "trendValue",
+    "sublabel": "Stat — Trend percentage text",
+    "route": "/components/stat"
+  },
+  {
+    "type": "prop",
+    "label": "prefix",
+    "sublabel": "Stat — Content before value",
+    "route": "/components/stat"
+  },
+  {
+    "type": "prop",
+    "label": "suffix",
+    "sublabel": "Stat — Content after value",
+    "route": "/components/stat"
+  },
+  {
+    "type": "prop",
+    "label": "label",
+    "sublabel": "StepTimelineItem — Step label text",
+    "route": "/components/step-timeline"
+  },
+  {
+    "type": "prop",
+    "label": "description",
+    "sublabel": "StepTimelineItem — Optional description below the label",
+    "route": "/components/step-timeline"
+  },
+  {
+    "type": "prop",
+    "label": "status",
+    "sublabel": "StepTimelineItem — Step status",
+    "route": "/components/step-timeline"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "StepTimeline — StepTimelineItem elements",
+    "route": "/components/step-timeline"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "Step — Step label text",
+    "route": "/components/stepper"
+  },
+  {
+    "type": "prop",
+    "label": "description",
+    "sublabel": "Step — Optional description below the title",
+    "route": "/components/stepper"
+  },
+  {
+    "type": "prop",
+    "label": "activeStep",
+    "sublabel": "Stepper — Index of the currently active step",
+    "route": "/components/stepper"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Stepper — Step elements",
+    "route": "/components/stepper"
+  },
+  {
+    "type": "prop",
+    "label": "text",
+    "sublabel": "StreamingText — Full text to stream",
+    "route": "/components/streaming-text"
+  },
+  {
+    "type": "prop",
+    "label": "speed",
+    "sublabel": "StreamingText — Milliseconds between characters",
+    "route": "/components/streaming-text"
+  },
+  {
+    "type": "prop",
+    "label": "onComplete",
+    "sublabel": "StreamingText — Called when streaming finishes",
+    "route": "/components/streaming-text"
+  },
+  {
+    "type": "prop",
+    "label": "showCursor",
+    "sublabel": "StreamingText — Show blinking cursor during streaming",
+    "route": "/components/streaming-text"
+  },
+  {
+    "type": "prop",
+    "label": "left",
+    "sublabel": "SwipeAction — Left swipe action content",
+    "route": "/components/swipe-action"
+  },
+  {
+    "type": "prop",
+    "label": "right",
+    "sublabel": "SwipeAction — Right swipe action content",
+    "route": "/components/swipe-action"
+  },
+  {
+    "type": "prop",
+    "label": "onSwipeLeft",
+    "sublabel": "SwipeAction — Called when swiped left past threshold",
+    "route": "/components/swipe-action"
+  },
+  {
+    "type": "prop",
+    "label": "onSwipeRight",
+    "sublabel": "SwipeAction — Called when swiped right past threshold",
+    "route": "/components/swipe-action"
+  },
+  {
+    "type": "prop",
+    "label": "threshold",
+    "sublabel": "SwipeAction — Swipe distance threshold in px",
+    "route": "/components/swipe-action"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "SwipeAction — Main content",
+    "route": "/components/swipe-action"
+  },
+  {
+    "type": "prop",
+    "label": "checked",
+    "sublabel": "Switch — Controlled checked state or control object",
+    "route": "/components/switch"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Switch — Size of the switch",
+    "route": "/components/switch"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "Switch — Disable the switch",
+    "route": "/components/switch"
+  },
+  {
+    "type": "prop",
+    "label": "striped",
+    "sublabel": "Table — Alternate row backgrounds",
+    "route": "/components/table"
+  },
+  {
+    "type": "prop",
+    "label": "bordered",
+    "sublabel": "Table — Add cell borders",
+    "route": "/components/table"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Table — TableHead and TableBody elements",
+    "route": "/components/table"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "TabPanel — Matches the corresponding Tab value",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "TabPanel — Panel content",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Tab — Unique value identifying this tab",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Tab — Tab label",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Tabs — Active tab value",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Tabs — TabList and TabPanel elements",
+    "route": "/components/tabs"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Tag — Color variant",
+    "route": "/components/tag"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Tag — Tag size",
+    "route": "/components/tag"
+  },
+  {
+    "type": "prop",
+    "label": "closable",
+    "sublabel": "Tag — Show close button",
+    "route": "/components/tag"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "Tag — Called when close button is clicked",
+    "route": "/components/tag"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Tag — Tag content",
+    "route": "/components/tag"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "TagGroupItem — Close handler; shows close button when provided",
+    "route": "/components/tag-group"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "TagGroupItem — Tag content",
+    "route": "/components/tag-group"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "TagGroup — TagGroupItem elements",
+    "route": "/components/tag-group"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "TagInput — Controlled tags array",
+    "route": "/components/tag-input"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "TagInput — Called when tags change",
+    "route": "/components/tag-input"
+  },
+  {
+    "type": "prop",
+    "label": "placeholder",
+    "sublabel": "TagInput — Input placeholder",
+    "route": "/components/tag-input"
+  },
+  {
+    "type": "prop",
+    "label": "maxTags",
+    "sublabel": "TagInput — Maximum number of tags",
+    "route": "/components/tag-input"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "TagInput — Disable the input",
+    "route": "/components/tag-input"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Textarea — Controlled value or control object",
+    "route": "/components/textarea"
+  },
+  {
+    "type": "prop",
+    "label": "size",
+    "sublabel": "Textarea — Size of the textarea",
+    "route": "/components/textarea"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "Textarea — Disable the textarea",
+    "route": "/components/textarea"
+  },
+  {
+    "type": "prop",
+    "label": "...rest",
+    "sublabel": "Textarea — All native textarea attributes",
+    "route": "/components/textarea"
+  },
+  {
+    "type": "prop",
+    "label": "text",
+    "sublabel": "ThinkingIndicator — Label text shown before the dots",
+    "route": "/components/thinking-indicator"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "TimePicker — Controlled time value — 'HH:mm' or 'HH:mm:ss' per format",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "open",
+    "sublabel": "TimePicker — Panel visibility; defaults to the trigger's own toggle state",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "TimePicker — Called when the time changes",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "format",
+    "sublabel": "TimePicker — Column granularity and the value's serialization shape; 'HH:mm:ss' adds a second column",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "hourStep",
+    "sublabel": "TimePicker — Hour column step — only multiples of it are offered (trigger arrows step by it too)",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "minuteStep",
+    "sublabel": "TimePicker — Minute column step — only multiples of it are offered",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "secondStep",
+    "sublabel": "TimePicker — Second column step — only multiples of it are offered",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "use12Hours",
+    "sublabel": "TimePicker — Presents a 12-hour clock column plus an AM/PM column; the value stays 24-hour 'HH:mm[:ss]'",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "disabledTime",
+    "sublabel": "TimePicker — Disables candidate times on the columns; each candidate is judged against the currently selected parts of the other fields",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "native",
+    "sublabel": "TimePicker — Falls back to the bare native <input type=\"time\"> form (TimePickerCore); the panel props do not apply",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "placeholder",
+    "sublabel": "TimePicker — Input placeholder",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "...rest",
+    "sublabel": "TimePicker — All native input attributes",
+    "route": "/components/time-picker"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "TimelineItem — Event title",
+    "route": "/components/timeline"
+  },
+  {
+    "type": "prop",
+    "label": "description",
+    "sublabel": "TimelineItem — Event description",
+    "route": "/components/timeline"
+  },
+  {
+    "type": "prop",
+    "label": "time",
+    "sublabel": "TimelineItem — Timestamp text",
+    "route": "/components/timeline"
+  },
+  {
+    "type": "prop",
+    "label": "color",
+    "sublabel": "TimelineItem — Dot color",
+    "route": "/components/timeline"
+  },
+  {
+    "type": "prop",
+    "label": "variant",
+    "sublabel": "Toast — Color variant; loading renders the spinner glyph (usually fired via toast.loading())",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "action",
+    "sublabel": "Toast — Action button between the message and the dismiss × — { label, onClick, close? }; close defaults to true (dismisses right after onClick)",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "Toast — Bold first line rendered above the message",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "onClose",
+    "sublabel": "Toast — Runs when the toast is dismissed (× button or countdown expiry)",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "duration",
+    "sublabel": "Toast — Auto-dismiss delay in ms; 0 keeps the toast until dismissed",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Toast — Toast message",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "classNames",
+    "sublabel": "Toast — Semantic slot classes — viewport (container) / item / content / action / title / close",
+    "route": "/components/toast"
+  },
+  {
+    "type": "prop",
+    "label": "used",
+    "sublabel": "TokenCounter — Number of tokens used",
+    "route": "/components/token-counter"
+  },
+  {
+    "type": "prop",
+    "label": "max",
+    "sublabel": "TokenCounter — Maximum token capacity",
+    "route": "/components/token-counter"
+  },
+  {
+    "type": "prop",
+    "label": "label",
+    "sublabel": "TokenCounter — Label text",
+    "route": "/components/token-counter"
+  },
+  {
+    "type": "prop",
+    "label": "name",
+    "sublabel": "ToolCallCard — Tool or function name",
+    "route": "/components/tool-call-card"
+  },
+  {
+    "type": "prop",
+    "label": "input",
+    "sublabel": "ToolCallCard — Input passed to the tool",
+    "route": "/components/tool-call-card"
+  },
+  {
+    "type": "prop",
+    "label": "output",
+    "sublabel": "ToolCallCard — Output returned by the tool",
+    "route": "/components/tool-call-card"
+  },
+  {
+    "type": "prop",
+    "label": "status",
+    "sublabel": "ToolCallCard — Execution status",
+    "route": "/components/tool-call-card"
+  },
+  {
+    "type": "prop",
+    "label": "content",
+    "sublabel": "Tooltip — Tooltip content",
+    "route": "/components/tooltip"
+  },
+  {
+    "type": "prop",
+    "label": "position",
+    "sublabel": "Tooltip — Tooltip placement",
+    "route": "/components/tooltip"
+  },
+  {
+    "type": "prop",
+    "label": "delay",
+    "sublabel": "Tooltip — Hover delay in ms before showing; defaults to 150 or the ConfigProvider defaults.Tooltip.delay value",
+    "route": "/components/tooltip"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Tooltip — Trigger element",
+    "route": "/components/tooltip"
+  },
+  {
+    "type": "prop",
+    "label": "dataSource",
+    "sublabel": "Transfer — Array of { key, title, disabled? } items",
+    "route": "/components/transfer"
+  },
+  {
+    "type": "prop",
+    "label": "targetKeys",
+    "sublabel": "Transfer — Keys of items in the target list (controllable)",
+    "route": "/components/transfer"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "Transfer — Called when items are moved",
+    "route": "/components/transfer"
+  },
+  {
+    "type": "prop",
+    "label": "key",
+    "sublabel": "TreeNodeData — Unique identifier for the node",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "title",
+    "sublabel": "TreeNodeData — Display title of the node",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "TreeNodeData — Child nodes",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "TreeNodeData — Disable the node",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "selectable",
+    "sublabel": "TreeNodeData — Allow node selection",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "disableCheckbox",
+    "sublabel": "TreeNodeData — Disable the checkbox for this node",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "icon",
+    "sublabel": "TreeNodeData — Custom icon for this node",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "isLeaf",
+    "sublabel": "TreeNodeData — Mark as leaf node (for lazy loading)",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "treeData",
+    "sublabel": "Tree — Array of tree node data",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "checkable",
+    "sublabel": "Tree — Show checkbox before each node",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "checkStrictly",
+    "sublabel": "Tree — Disable parent-child cascade selection",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "selectable",
+    "sublabel": "Tree — Allow node selection",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "multiple",
+    "sublabel": "Tree — Allow multiple selection",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "disabled",
+    "sublabel": "Tree — Disable the entire tree",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "blockNode",
+    "sublabel": "Tree — Node content takes full width",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "showLine",
+    "sublabel": "Tree — Show connecting lines between nodes",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "showIcon",
+    "sublabel": "Tree — Show icon for each node",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "expandedKeys",
+    "sublabel": "Tree — Controlled expanded node keys",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "selectedKeys",
+    "sublabel": "Tree — Controlled selected node keys",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "checkedKeys",
+    "sublabel": "Tree — Controlled checked node keys",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "titleRender",
+    "sublabel": "Tree — Custom title renderer",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "iconRender",
+    "sublabel": "Tree — Custom icon renderer",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "switcherIcon",
+    "sublabel": "Tree — Custom expand/collapse icon",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "onExpand",
+    "sublabel": "Tree — Callback when node is expanded/collapsed",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "onSelect",
+    "sublabel": "Tree — Callback when node is selected",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "onCheck",
+    "sublabel": "Tree — Callback when node is checked",
+    "route": "/components/tree"
+  },
+  {
+    "type": "prop",
+    "label": "type",
+    "sublabel": "Text — Text color variant",
+    "route": "/components/typography"
+  },
+  {
+    "type": "prop",
+    "label": "strong",
+    "sublabel": "Text — Render as bold",
+    "route": "/components/typography"
+  },
+  {
+    "type": "prop",
+    "label": "code",
+    "sublabel": "Text — Render as inline code",
+    "route": "/components/typography"
+  },
+  {
+    "type": "prop",
+    "label": "mark",
+    "sublabel": "Text — Highlight text",
+    "route": "/components/typography"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Text — Text content",
+    "route": "/components/typography"
+  },
+  {
+    "type": "prop",
+    "label": "level",
+    "sublabel": "Title — Heading level",
+    "route": "/components/typography"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Title — Title content",
+    "route": "/components/typography"
+  },
+  {
+    "type": "prop",
+    "label": "value",
+    "sublabel": "Upload — Selected files — local File picks mixed freely with UploadFile echo entries (files already on the server); uncontrolled (accumulating internally) when omitted",
+    "route": "/components/upload"
+  },
+  {
+    "type": "prop",
+    "label": "accept",
+    "sublabel": "Upload — Accepted file types",
+    "route": "/components/upload"
+  },
+  {
+    "type": "prop",
+    "label": "multiple",
+    "sublabel": "Upload — Allow multiple files",
+    "route": "/components/upload"
+  },
+  {
+    "type": "prop",
+    "label": "showUploadList",
+    "sublabel": "Upload — Renders the built-in file list below the zone: live progress, cancel while uploading, retry + remove on error, per-state actions",
+    "route": "/components/upload"
+  },
+  {
+    "type": "prop",
+    "label": "listType",
+    "sublabel": "Upload — Rendering style of the built-in list: text rows; picture — text rows with a 32px inline thumbnail; picture-card — a grid of square thumbnail cards",
+    "route": "/components/upload"
+  },
+  {
+    "type": "prop",
+    "label": "onPreview",
+    "sublabel": "Upload — Click handler for picture / picture-card thumbnails — the natural spot to open a lightbox (wire it to Image/ImagePreview); remove/retry/cancel buttons stay independent",
+    "route": "/components/upload"
+  },
+  {
+    "type": "prop",
+    "label": "onChange",
+    "sublabel": "Upload — Fires with the freshly picked local Files only — the accumulated list (echo entries included) is the value channel",
+    "route": "/components/upload"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Upload — Custom dropzone content",
+    "route": "/components/upload"
+  },
+  {
+    "type": "prop",
+    "label": "items",
+    "sublabel": "VirtualList — Array of items to render",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "height",
+    "sublabel": "VirtualList — Container height in px",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "width",
+    "sublabel": "VirtualList — Scrollport width in px — horizontal orientation only: fixes the port width and acts as the main-axis extent until the real clientWidth is measured",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "itemHeight",
+    "sublabel": "VirtualList — Extent of one item along the scroll axis: row height in vertical lists, item width with orientation='horizontal', row height in grid mode",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "columns",
+    "sublabel": "VirtualList — Grid mode: lay items out in a row-major grid with this many columns, virtualizing both axes (rows like a vertical list, columns against the rendered width). Vertical orientation only — a dev error is logged and columns ignored otherwise",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "columnWidth",
+    "sublabel": "VirtualList — Column width in px (grid mode only)",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "orientation",
+    "sublabel": "VirtualList — Scroll axis of the list; 'horizontal' mirrors windowing, dynamic measurement, scrollToIndex, reverse and sticky group headers onto the x axis with logical (RTL-aware) offsets",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "renderItem",
+    "sublabel": "VirtualList — Item renderer",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "overscan",
+    "sublabel": "VirtualList — Extra items to render outside viewport",
+    "route": "/components/virtual-list"
+  },
+  {
+    "type": "prop",
+    "label": "content",
+    "sublabel": "Watermark — Watermark text; an array renders stacked lines",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "prop",
+    "label": "font",
+    "sublabel": "Watermark — Typography of the drawn text: size (px), color, weight, family",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "prop",
+    "label": "rotate",
+    "sublabel": "Watermark — Tile rotation in degrees",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "prop",
+    "label": "gap",
+    "sublabel": "Watermark — Space between tiles, px — one number or [x, y]",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "prop",
+    "label": "offset",
+    "sublabel": "Watermark — Offset of the tile grid origin, px",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "prop",
+    "label": "zIndex",
+    "sublabel": "Watermark — Overlay stacking order",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "prop",
+    "label": "fullscreen",
+    "sublabel": "Watermark — Cover the whole viewport (fixed layer) instead of the container",
+    "route": "/components/watermark"
+  },
+  {
+    "type": "prop",
+    "label": "children",
+    "sublabel": "Watermark — Content to watermark; with children the component acts as their container",
+    "route": "/components/watermark"
+  }
+]

@@ -70,7 +70,7 @@ export default function ContextMenu({
         floating,
       }}
     >
-      <div ref={wrapperRef} x-class={[wrapper, className]}>
+      <div ref={wrapperRef} data-slot='context-menu' x-class={[wrapper, className]}>
         {children}
       </div>
     </ContextMenuProvider>

@@ -148,10 +148,17 @@ export default function Watermark({
   }, [linesKey, fontKey, rotate, gapX, gapY]);
 
   return (
-    <div ref={containerRef} x-class={[container, className]} style={style} {...rest}>
+    <div
+      ref={containerRef}
+      data-slot="watermark"
+      x-class={[container, className]}
+      style={style}
+      {...rest}
+    >
       {children}
       {tile && (
         <div
+          data-slot="layer"
           aria-hidden="true"
           x-class={[overlay]}
           style={{

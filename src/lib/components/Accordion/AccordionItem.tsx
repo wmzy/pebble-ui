@@ -108,9 +108,9 @@ export default function AccordionItem({
   children,
 }: AccordionItemProps) {
   return (
-    <details x-class={[item, className]} name='accordion'>
-      <summary className={summary}>{title}</summary>
-      <div className={content}>{children}</div>
+    <details data-slot='accordion-item' x-class={[item, className]} name='accordion'>
+      <summary data-slot='header' className={summary}>{title}</summary>
+      <div data-slot='content' className={content}>{children}</div>
     </details>
   );
 }

@@ -51,6 +51,7 @@ export default function TagGroupItem({ children, onClose, className }: TagGroupI
   const handle = useSortableHandle();
   const label = handle ? (
     <span
+      data-slot="drag-handle"
       x-class={[sortableHandle]}
       {...handle.attributes}
       {...handle.listeners}
@@ -62,10 +63,10 @@ export default function TagGroupItem({ children, onClose, className }: TagGroupI
   );
 
   return (
-    <span x-class={[tag, className]}>
+    <span data-slot="tag-group-item" x-class={[tag, className]}>
       {label}
       {onClose && (
-        <button x-class={[closeBtn]} type="button" onClick={onClose} aria-label={strings.remove}>
+        <button data-slot="remove-button" x-class={[closeBtn]} type="button" onClick={onClose} aria-label={strings.remove}>
           x
         </button>
       )}

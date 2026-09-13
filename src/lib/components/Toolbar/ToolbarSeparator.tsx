@@ -36,6 +36,7 @@ export default function ToolbarSeparator({ className, ...rest }: ToolbarSeparato
   const verticalToolbar = useToolbarOrientation() === 'vertical';
   return (
     <div
+      data-slot="separator"
       role="separator"
       aria-orientation={verticalToolbar ? 'horizontal' : 'vertical'}
       x-class={[separator, verticalToolbar && horizontalRule, className]}

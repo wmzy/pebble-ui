@@ -316,6 +316,7 @@ export default function MentionsCore({
       // below still carries the APG combobox attrs that are legal there
       // (aria-autocomplete/controls/activedescendant).
       role="combobox"
+      data-slot="mentions"
       aria-expanded={open}
       aria-haspopup="listbox"
       aria-controls={id}
@@ -324,6 +325,7 @@ export default function MentionsCore({
     >
       <textarea
         ref={setTextareaRef}
+        data-slot="input"
         style={floating.triggerStyle}
         aria-label={ariaLabel ?? placeholder ?? strings.label}
         aria-autocomplete="list"
@@ -351,6 +353,7 @@ export default function MentionsCore({
           // elements satisfied while nothing is actually selectable.
           <div
             role="option"
+            data-slot="empty"
             aria-selected="false"
             aria-disabled="true"
             className={noMatch}
@@ -362,6 +365,7 @@ export default function MentionsCore({
             <div
               key={o.value}
               role="option"
+              data-slot="item"
               id={optionId(i)}
               aria-selected={i === highlightIndex}
               aria-setsize={filtered.length}

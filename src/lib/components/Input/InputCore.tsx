@@ -46,6 +46,23 @@ const base = css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  /* Forced-colors: the UA keeps the author border visible by forcing
+     its color to CanvasText — restated for determinism. The box-shadow
+     focus ring is dropped by the UA, so focus moves to a Highlight
+     outline. Disabled inputs render GrayText at full opacity. */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+
+    &:focus {
+      outline: 2px solid Highlight;
+    }
+
+    &:disabled {
+      opacity: 1;
+      color: GrayText;
+    }
+  }
 `;
 
 const sizes = {
@@ -75,6 +92,7 @@ export default function InputCore({
   return (
     <input
       ref={ref}
+      data-slot='input'
       x-class={[base, sizes[size], className]}
       value={value}
       onChange={(e) => {

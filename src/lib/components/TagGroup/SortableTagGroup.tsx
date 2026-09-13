@@ -38,7 +38,7 @@ export default function SortableTagGroup({
   const ids = items.map((_, index) => index);
 
   return (
-    <div x-class={[group, className]} role="group">
+    <div data-slot="tag-group" x-class={[group, className]} role="group">
       <SortableRegion
         ids={ids}
         strategy={rectSortingStrategy}

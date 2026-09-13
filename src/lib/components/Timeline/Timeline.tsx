@@ -16,7 +16,7 @@ const base = css`
 
 export function Timeline({ children, className }: TimelineProps) {
   return (
-    <div x-class={[base, className]} role="list">
+    <div data-slot="timeline" x-class={[base, className]} role="list">
       {children}
     </div>
   );
@@ -104,15 +104,15 @@ export function TimelineItem({
   className,
 }: TimelineItemProps) {
   return (
-    <div x-class={[item, className]} role="listitem">
-      <div x-class={[dotWrapper]}>
-        <div x-class={[dot, dotColors[color]]} />
-        <div x-class={[line]} />
+    <div data-slot="item" x-class={[item, className]} role="listitem">
+      <div data-slot="separator" x-class={[dotWrapper]}>
+        <div data-slot="dot" x-class={[dot, dotColors[color]]} />
+        <div data-slot="line" x-class={[line]} />
       </div>
-      <div x-class={[content]}>
-        <div x-class={[titleStyle]}>{title}</div>
-        {description && <div x-class={[descStyle]}>{description}</div>}
-        {time && <div x-class={[timeStyle]}>{time}</div>}
+      <div data-slot="content" x-class={[content]}>
+        <div data-slot="title" x-class={[titleStyle]}>{title}</div>
+        {description && <div data-slot="description" x-class={[descStyle]}>{description}</div>}
+        {time && <div data-slot="time" x-class={[timeStyle]}>{time}</div>}
       </div>
     </div>
   );

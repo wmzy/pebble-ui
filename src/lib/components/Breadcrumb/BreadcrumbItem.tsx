@@ -36,11 +36,11 @@ export default function BreadcrumbItem({
   children,
 }: BreadcrumbItemProps) {
   return href ? (
-    <a href={href} x-class={[link, className]}>
+    <a data-slot='breadcrumb-item' href={href} x-class={[link, className]}>
       {children}
     </a>
   ) : (
-    <span x-class={[current, className]}>{children}</span>
+    <span data-slot='breadcrumb-item' x-class={[current, className]}>{children}</span>
   );
 }
 

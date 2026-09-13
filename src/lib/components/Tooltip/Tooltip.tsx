@@ -42,6 +42,16 @@ const bubble = css`
   line-height: var(--haze-leading-normal);
   white-space: nowrap;
   pointer-events: none;
+
+  /* Forced-colors: the dark bubble flattens onto Canvas with its
+     inverse text forced to CanvasText — the tooltip would float as
+     unbounded text. The Windows-native shape renders instead: Canvas
+     background, CanvasText text, CanvasText boundary. */
+  @media (forced-colors: active) {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
 `;
 
 /** `position` prop → floating placement; sides center over the trigger. */
@@ -104,9 +114,10 @@ export default function Tooltip({
   };
 
   return (
-    <span x-class={[wrapper, className]}>
+    <span data-slot='tooltip' x-class={[wrapper, className]}>
       <span
         ref={triggerRef}
+        data-slot='trigger'
         style={floating.triggerStyle}
         aria-describedby={id}
         onMouseEnter={show}
@@ -120,6 +131,7 @@ export default function Tooltip({
       <span
         id={id}
         ref={panelRef}
+        data-slot='content'
         role="tooltip"
         data-state={floating.dataState}
         {...floating.panelAttrs}

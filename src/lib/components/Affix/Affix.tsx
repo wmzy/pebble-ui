@@ -37,7 +37,7 @@ export default function Affix({
     position === 'top' ? { top: offset } : { bottom: offset };
 
   return (
-    <div x-class={[affix, posClass, className]} style={{ ...offsetStyle, ...style }}>
+    <div data-slot='affix' x-class={[affix, posClass, className]} style={{ ...offsetStyle, ...style }}>
       {children}
     </div>
   );

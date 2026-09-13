@@ -780,6 +780,7 @@ export default function Cascader({
     return (
       <button
         key={option.value}
+        data-slot='option'
         type='button'
         role='menuitem'
         tabIndex={-1}
@@ -793,9 +794,9 @@ export default function Cascader({
         onClick={() => activate(option, level)}
         onMouseEnter={() => handleItemEnter(option, level)}
       >
-        <span x-class={itemLabel}>{option.label}</span>
+        <span data-slot='label' x-class={itemLabel}>{option.label}</span>
         {hasChildren && (
-          <span x-class={chevron} role='img' aria-label={strings.expand}>
+          <span role='img' data-slot='icon' x-class={chevron} aria-label={strings.expand}>
             <ChevronRight />
           </span>
         )}
@@ -810,6 +811,7 @@ export default function Cascader({
   const columnsBody = columns.map((columnOptions, level) => (
     <div
       key={level}
+      data-slot='column'
       role='menu'
       data-haze-cascader-column={level}
       x-class={[column, virtual && columnVirtual]}
@@ -834,12 +836,12 @@ export default function Cascader({
   ));
 
   const panelBody = loading ? (
-    <div x-class={loadingBlock}>
+    <div data-slot='loading' x-class={loadingBlock}>
       <Spinner size='sm' />
       <span>{searchStrings.loading}</span>
     </div>
   ) : searchMode && options.length === 0 ? (
-    <div x-class={emptyBlock}>{searchStrings.noMatch}</div>
+    <div data-slot='empty' x-class={emptyBlock}>{searchStrings.noMatch}</div>
   ) : (
     columnsBody
   );
@@ -848,6 +850,7 @@ export default function Cascader({
     <div x-class={[wrapper, className]} {...rest}>
       <button
         ref={setTriggerRef}
+        data-slot='trigger'
         type='button'
         style={floating.triggerStyle}
         aria-haspopup='menu'
@@ -858,21 +861,21 @@ export default function Cascader({
         onClick={floating.onTriggerClick}
         onKeyDown={handleTriggerKeyDown}
       >
-        <span x-class={triggerValue}>
+        <span data-slot='value' x-class={triggerValue}>
           {selectedPath.length === 0 ? (
-            <span x-class={triggerPlaceholder}>{placeholder}</span>
+            <span data-slot='placeholder' x-class={triggerPlaceholder}>{placeholder}</span>
           ) : (
             selectedPath.map((option, i) => (
               <Fragment key={option.value}>
                 {i > 0 && (
-                  <span x-class={separator}>{' / '}</span>
+                  <span data-slot='separator' x-class={separator}>{' / '}</span>
                 )}
                 {option.label}
               </Fragment>
             ))
           )}
         </span>
-        <span x-class={triggerCaret} aria-hidden='true'>
+        <span data-slot='icon' x-class={triggerCaret} aria-hidden='true'>
           <ChevronDown />
         </span>
       </button>
@@ -895,6 +898,7 @@ export default function Cascader({
           <>
             <input
               ref={searchRef}
+              data-slot='input'
               type='text'
               aria-label={searchStrings.searchLabel}
               placeholder={searchStrings.searchPlaceholder}
@@ -904,6 +908,7 @@ export default function Cascader({
             />
             <div
               id={id}
+              data-slot='columns'
               role={!loading && options.length > 0 ? 'menu' : undefined}
               x-class={columnsStrip}
             >

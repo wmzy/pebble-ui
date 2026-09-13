@@ -30,8 +30,8 @@ export default function DropdownMenuGroup({
 }: DropdownMenuGroupProps) {
   const labelId = useId();
   return (
-    <div role="group" aria-labelledby={labelId} x-class={[group, className]}>
-      <div id={labelId} x-class={dropdownMenuGroupLabel}>
+    <div data-slot='group' role="group" aria-labelledby={labelId} x-class={[group, className]}>
+      <div id={labelId} data-slot='group-label' x-class={dropdownMenuGroupLabel}>
         {label}
       </div>
       {children}

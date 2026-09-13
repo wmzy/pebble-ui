@@ -36,13 +36,15 @@ function SortableTag({ id, label, removeLabel, onRemove }: SortableTagProps) {
   return (
     <li
       ref={setNodeRef}
+      data-slot="item"
       style={sortableItemStyle(transform, transition)}
       x-class={[tag, isDragging && tagDragging]}
     >
-      <span x-class={[tagHandle]} {...attributes} {...listeners}>
+      <span data-slot="handle" x-class={[tagHandle]} {...attributes} {...listeners}>
         {label}
       </span>
       <button
+        data-slot="remove-button"
         x-class={[removeBtn]}
         type="button"
         onClick={onRemove}

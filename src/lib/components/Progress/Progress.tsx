@@ -15,6 +15,17 @@ const barBase = css`
   background: var(--haze-color-bg-muted);
   border-radius: var(--haze-radius-full);
   overflow: hidden;
+
+  /* Forced-colors: every fill color flattens onto Canvas — the
+     progress would vanish. Targeting the fill by its data-slot (not
+     the colorMap classes) keeps one rule ahead of them in the
+     cascade; the fill renders Highlight, the Windows-native
+     determinate-progress color. */
+  @media (forced-colors: active) {
+    & > [data-slot='fill'] {
+      background: Highlight;
+    }
+  }
 `;
 
 const barSizes = {
@@ -38,6 +49,20 @@ const colorMap = {
 
 const circleBase = css`
   transform: rotate(-90deg);
+
+  /* Forced-colors: both strokes flatten onto Canvas — the ring would
+     vanish. The track renders GrayText and the arc Highlight,
+     targeted by data-slot so one rule outranks the colorMap classes
+     in the cascade. */
+  @media (forced-colors: active) {
+    & [data-slot='track'] {
+      stroke: GrayText;
+    }
+
+    & [data-slot='fill'] {
+      stroke: Highlight;
+    }
+  }
 `;
 
 const circleSizes = {
@@ -86,6 +111,7 @@ export default function Progress({
     return (
       <div
         role="progressbar"
+        data-slot="progress"
         aria-label={strings.label}
         aria-valuemin={0}
         aria-valuemax={100}
@@ -94,6 +120,7 @@ export default function Progress({
       >
         <svg viewBox={`0 0 ${(r + sw) * 2} ${(r + sw) * 2}`}>
           <circle
+            data-slot="track"
             cx={r + sw}
             cy={r + sw}
             r={r}
@@ -101,6 +128,7 @@ export default function Progress({
             x-class={[circleBg]}
           />
           <circle
+            data-slot="fill"
             cx={r + sw}
             cy={r + sw}
             r={r}
@@ -117,6 +145,7 @@ export default function Progress({
   return (
     <div
       role="progressbar"
+      data-slot="progress"
       aria-label={strings.label}
       aria-valuemin={0}
       aria-valuemax={100}
@@ -124,6 +153,7 @@ export default function Progress({
       x-class={[barBase, barSizes[size], className]}
     >
       <div
+        data-slot="fill"
         x-class={[barFill, colorMap[color]]}
         style={{ width: `${clamped}%` }}
       />

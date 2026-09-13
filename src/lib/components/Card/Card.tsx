@@ -34,7 +34,7 @@ export default function Card({
   className,
   children,
 }: CardProps) {
-  return <div x-class={[base, variants[variant], className]}>{children}</div>;
+  return <div data-slot="card" x-class={[base, variants[variant], className]}>{children}</div>;
 }
 
 export type { CardProps };

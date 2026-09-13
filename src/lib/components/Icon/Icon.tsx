@@ -64,7 +64,7 @@ export default function Icon({
   const isStroke = IconComponent ? true : hasStrokeStyle(content);
 
   return (
-    <span x-class={[base, isStroke && strokeOnly, sizes[size], className]} aria-hidden='true'>
+    <span data-slot='icon' x-class={[base, isStroke && strokeOnly, sizes[size], className]} aria-hidden='true'>
       {content}
     </span>
   );

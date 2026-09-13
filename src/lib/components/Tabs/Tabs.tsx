@@ -34,7 +34,7 @@ export default function Tabs({
   const [value, setValue] = useControl(valueControl, '');
 
   return (
-    <div x-class={[base, className, classNames?.root]}>
+    <div data-slot='tabs' x-class={[base, className, classNames?.root]}>
       <TabsProvider value={{ value, setValue, classNames }}>{children}</TabsProvider>
     </div>
   );

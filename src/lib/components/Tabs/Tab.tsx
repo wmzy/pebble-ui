@@ -33,11 +33,35 @@ const base = css`
     outline: none;
     box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
   }
+
+  /* Forced-colors: the UA forces the transparent inactive underline to
+     CanvasText (transparent borders do not survive), so every tab
+     gains an underline that merges with the strip line — acceptable
+     noise, but it also means selection can no longer ride the
+     underline. The box-shadow focus ring is dropped by the UA — an
+     inset Highlight outline replaces it (the strip scrolls, an outer
+     outline would clip). */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
 `;
 
 const active = css`
   color: var(--haze-color-primary);
   border-bottom-color: var(--haze-color-primary);
+
+  /* Forced-colors: the primary underline and text flatten onto
+     CanvasText — the selected tab would be indistinguishable. The
+     Windows-native selection renders instead: a Highlight chip with
+     HighlightText content. */
+  @media (forced-colors: active) {
+    background: Highlight;
+    color: HighlightText;
+    border-bottom-color: Highlight;
+  }
 `;
 
 export default function Tab({ value, className, children }: TabProps) {
@@ -47,6 +71,7 @@ export default function Tab({ value, className, children }: TabProps) {
   return (
     <button
       type='button'
+      data-slot='tab'
       role='tab'
       aria-selected={isActive}
       aria-controls={`tabpanel-${value}`}

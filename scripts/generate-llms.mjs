@@ -252,6 +252,8 @@ const DESCRIPTIONS = {
     'wrap-mode Fullscreen API binding around a single trigger child with controllable `fullscreen` state; `useFullscreen()` hook also exported.',
   LocaleProvider:
     'supplies UI string packs (built-in English, zh-CN and ja-JP) to locale-aware components; `direction` (explicit or locale-derived) feeds `useDirection()`; `createStrings(base, overrides)` derives packs without forking the table. RTL locales (ar/he/fa/…) are derived automatically.',
+  ConfigProvider:
+    'component prop-default overrides (Button size, Toast duration/placement, Tooltip delay, HoverCard open/close delay) read via `useConfigDefaults()`; explicit props always win, providers nest with shallow per-section merge, and components without a provider keep their built-in defaults.',
   SwipeAction:
     'swipe-to-reveal row actions on left/right edges with a commit threshold.',
 };

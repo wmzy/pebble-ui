@@ -78,6 +78,7 @@ export default function DropdownMenuCheckboxItem({
 
   return (
     <button
+      data-slot='menu-checkbox-item'
       x-class={[item, danger && dropdownMenuItemDanger, className]}
       type="button"
       role="menuitemcheckbox"
@@ -90,7 +91,7 @@ export default function DropdownMenuCheckboxItem({
         onCheckedChange?.(next);
       }}
     >
-      <span x-class={dropdownMenuItemIndicator} aria-hidden="true">
+      <span data-slot='indicator' x-class={dropdownMenuItemIndicator} aria-hidden="true">
         {checked && (
           <svg width="1em" height="1em" viewBox="0 0 16 16" fill="none">
             <path
@@ -103,10 +104,10 @@ export default function DropdownMenuCheckboxItem({
           </svg>
         )}
       </span>
-      {icon !== undefined && <span x-class={dropdownMenuItemIcon}>{icon}</span>}
+      {icon !== undefined && <span data-slot='icon' x-class={dropdownMenuItemIcon}>{icon}</span>}
       {children}
       {kbdLabel !== undefined && (
-        <span x-class={dropdownMenuItemKbd} aria-hidden="true">{kbdLabel}</span>
+        <span data-slot='kbd' x-class={dropdownMenuItemKbd} aria-hidden="true">{kbdLabel}</span>
       )}
     </button>
   );

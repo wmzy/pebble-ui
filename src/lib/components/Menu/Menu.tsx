@@ -47,6 +47,13 @@ const panel = css`
   border-radius: var(--haze-radius-lg);
   background: var(--haze-color-bg);
   box-shadow: var(--haze-shadow-lg);
+
+  /* Forced-colors: the UA keeps the author border visible by forcing
+     its color to CanvasText — restated so the panel stays separated
+     from the Canvas behind it deterministically. */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
 `;
 
 /** The family record the data-driven `items` renderer composes from. */
@@ -98,9 +105,10 @@ export default function Menu({
   );
 
   return (
-    <div x-class={container}>
+    <div data-slot='menu' x-class={container}>
       <span
         ref={triggerRef}
+        data-slot='trigger'
         style={floating.triggerStyle}
         onPointerDown={floating.onTriggerPointerDown}
         onClick={floating.onTriggerClick}

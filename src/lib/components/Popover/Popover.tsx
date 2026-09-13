@@ -80,6 +80,13 @@ const panelVisuals = css`
   font-size: var(--haze-text-sm);
   box-shadow: var(--haze-shadow-lg);
   min-width: 200px;
+
+  /* Forced-colors: the UA keeps the author border visible by forcing
+     its color to CanvasText — restated so the panel stays separated
+     from the Canvas behind it deterministically. */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
 `;
 
 export default function Popover({
@@ -132,9 +139,10 @@ export default function Popover({
   );
 
   return (
-    <span className={container}>
+    <span data-slot='popover' className={container}>
       <span
         ref={triggerRef}
+        data-slot='trigger'
         // Plain className (not x-class): the trigger has no base class, so
         // an omitted slot must leave the attribute absent — undefined does
         // exactly that, while x-class would compile to class="".

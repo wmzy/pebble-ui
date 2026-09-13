@@ -63,6 +63,40 @@ const base = css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  /* Forced-colors: the UA flattens the checked fill onto Canvas, so
+     the on/off signal would vanish. The box keeps a CanvasText
+     boundary and goes Highlight + HighlightText checkmark when
+     checked (the Windows-native checkbox rendering); disabled boxes
+     drop the dim and render GrayText instead. The box-shadow focus
+     ring is dropped by the UA — a Highlight outline replaces it. */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+
+    &:checked {
+      background: Highlight;
+      border-color: Highlight;
+
+      &::after {
+        border-color: HighlightText;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 1;
+      border-color: GrayText;
+    }
+
+    &:disabled:checked {
+      background: GrayText;
+      border-color: GrayText;
+    }
+  }
 `;
 
 const labelText = css`
@@ -86,6 +120,7 @@ export default function CheckboxCore({
     <input
       ref={ref}
       type='checkbox'
+      data-slot='checkbox'
       x-class={[base, className]}
       checked={checked}
       onChange={(e) => {
@@ -101,7 +136,7 @@ export default function CheckboxCore({
   }
 
   return (
-    <label x-class={labelText}>
+    <label data-slot='label' x-class={labelText}>
       {input}
       {label}
     </label>

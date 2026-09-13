@@ -481,6 +481,7 @@ export default function Tour({
   return createPortal(
     <Presence present={open}>
       <div
+        data-slot='tour'
         x-class={[overlay]}
         onClick={
           maskClosable
@@ -496,6 +497,7 @@ export default function Tour({
       >
         {spot !== null ? (
           <div
+            data-slot='spotlight'
             data-haze-tour-spotlight=''
             aria-hidden='true'
             x-class={[spotlight]}
@@ -507,10 +509,11 @@ export default function Tour({
             }}
           />
         ) : (
-          <div aria-hidden='true' x-class={[mask]} />
+          <div data-slot='mask' aria-hidden='true' x-class={[mask]} />
         )}
         <div
           ref={cardRef}
+          data-slot='content'
           role='dialog'
           aria-modal='false'
           aria-labelledby={step.title !== undefined ? titleId : counterId}
@@ -519,17 +522,18 @@ export default function Tour({
           {...rest}
         >
           {step.title !== undefined && (
-            <h2 id={titleId} x-class={[titleStyle]}>
+            <h2 id={titleId} data-slot='title' x-class={[titleStyle]}>
               {step.title}
             </h2>
           )}
-          <div x-class={[bodyStyle]}>{step.content}</div>
-          <div x-class={[footerStyle]}>
-            <span id={counterId} x-class={[counterStyle]}>
+          <div data-slot='body' x-class={[bodyStyle]}>{step.content}</div>
+          <div data-slot='footer' x-class={[footerStyle]}>
+            <span id={counterId} data-slot='counter' x-class={[counterStyle]}>
               {stepOf}
             </span>
             <button
               type='button'
+              data-slot='skip-button'
               x-class={[btn, subtleBtn]}
               onClick={() => close('skip')}
             >
@@ -537,6 +541,7 @@ export default function Tour({
             </button>
             <button
               type='button'
+              data-slot='prev'
               x-class={[btn, subtleBtn]}
               disabled={index === 0}
               onClick={() => goTo(index - 1)}
@@ -545,6 +550,7 @@ export default function Tour({
             </button>
             <button
               type='button'
+              data-slot='next'
               x-class={[btn, primaryBtn]}
               onClick={() => (last ? close('done') : goTo(index + 1))}
             >

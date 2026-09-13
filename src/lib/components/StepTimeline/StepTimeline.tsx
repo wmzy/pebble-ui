@@ -105,14 +105,14 @@ const markerMap: Record<StepStatus, string> = {
 
 function StepTimelineItem({ label, description, status = 'pending', className }: StepTimelineItemProps) {
   return (
-    <div x-class={[item, className]}>
-      <div x-class={[marker, markerMap[status]]}>
+    <div data-slot='item' x-class={[item, className]}>
+      <div data-slot='dot' x-class={[marker, markerMap[status]]}>
         {status === 'done' && '✓'}
         {status === 'error' && '!'}
       </div>
-      <div x-class={[body]}>
-        <div x-class={[labelStyle]}>{label}</div>
-        {description && <div x-class={[descriptionStyle]}>{description}</div>}
+      <div data-slot='content' x-class={[body]}>
+        <div data-slot='label' x-class={[labelStyle]}>{label}</div>
+        {description && <div data-slot='description' x-class={[descriptionStyle]}>{description}</div>}
       </div>
     </div>
   );
@@ -120,7 +120,7 @@ function StepTimelineItem({ label, description, status = 'pending', className }:
 
 function StepTimeline({ children, className }: StepTimelineProps) {
   return (
-    <div x-class={[list, className]}>
+    <div data-slot='step-timeline' x-class={[list, className]}>
       {children}
     </div>
   );

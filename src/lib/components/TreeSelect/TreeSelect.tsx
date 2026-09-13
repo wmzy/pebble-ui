@@ -672,16 +672,17 @@ export default function TreeSelect({
 
   const triggerBody = multiple ? (
     keys.length === 0 ? (
-      <span x-class={placeholderText}>
+      <span data-slot='placeholder' x-class={placeholderText}>
         {placeholder ?? strings.placeholder}
       </span>
     ) : (
       <>
         {visibleChips.map((key) => (
-          <span x-class={chipItem} key={key}>
+          <span data-slot='item' x-class={chipItem} key={key}>
             <Chip color='primary'>{labelText(key)}</Chip>
             <span
               aria-hidden='true'
+              data-slot='item-remove'
               x-class={chipRemove}
               onClick={(e) => {
                 // Removing a chip must not toggle the panel.
@@ -695,6 +696,7 @@ export default function TreeSelect({
         ))}
         {overflowKeys.length > 0 && (
           <span
+            data-slot='overflow-badge'
             x-class={overflowBadge}
             title={overflowKeys.map(labelText).join(', ')}
           >
@@ -704,9 +706,9 @@ export default function TreeSelect({
       </>
     )
   ) : selectedNode ? (
-    <span x-class={triggerValue}>{selectedNode.title ?? selectedNode.key}</span>
+    <span data-slot='value' x-class={triggerValue}>{selectedNode.title ?? selectedNode.key}</span>
   ) : (
-    <span x-class={[triggerValue, placeholderText]}>
+    <span data-slot='placeholder' x-class={[triggerValue, placeholderText]}>
       {placeholder ?? strings.placeholder}
     </span>
   );
@@ -714,6 +716,7 @@ export default function TreeSelect({
   const clearAffordance = showClear ? (
     <span
       aria-hidden='true'
+      data-slot='clear-button'
       title={strings.clear}
       x-class={clearBtn}
       onClick={(e) => {
@@ -734,6 +737,7 @@ export default function TreeSelect({
         // entirely (the SelectFloating ordering rationale).
         {...rest}
         ref={setTriggerRef}
+        data-slot='trigger'
         type='button'
         disabled={disabled}
         style={floating.triggerStyle}
@@ -749,7 +753,7 @@ export default function TreeSelect({
       >
         {triggerBody}
         {clearAffordance}
-        <span x-class={triggerCaret} aria-hidden='true'>
+        <span data-slot='icon' x-class={triggerCaret} aria-hidden='true'>
           <ChevronDown />
         </span>
       </button>
@@ -764,6 +768,7 @@ export default function TreeSelect({
           {showSearch && (
             <input
               ref={searchRef}
+              data-slot='input'
               type='text'
               aria-label={strings.searchLabel}
               placeholder={strings.searchPlaceholder}

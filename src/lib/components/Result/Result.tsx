@@ -247,11 +247,11 @@ export default function Result({
   ...rest
 }: ResultProps) {
   return (
-    <div x-class={[base, className]} {...rest}>
-      <div x-class={[iconStyle]}>{icon ?? statusIcons[status]}</div>
-      {title != null && <div x-class={[titleStyle]}>{title}</div>}
-      {subTitle != null && <div x-class={[subTitleStyle]}>{subTitle}</div>}
-      {extra != null && <div x-class={[extraStyle]}>{extra}</div>}
+    <div data-slot="result" x-class={[base, className]} {...rest}>
+      <div data-slot="icon" x-class={[iconStyle]}>{icon ?? statusIcons[status]}</div>
+      {title != null && <div data-slot="title" x-class={[titleStyle]}>{title}</div>}
+      {subTitle != null && <div data-slot="description" x-class={[subTitleStyle]}>{subTitle}</div>}
+      {extra != null && <div data-slot="actions" x-class={[extraStyle]}>{extra}</div>}
     </div>
   );
 }

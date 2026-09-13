@@ -155,6 +155,20 @@ const overlay = css`
       opacity: 0;
     }
   }
+
+  /* Forced-colors: the panel's opaque background flattens onto Canvas
+     and the dialog declares border:none — an open modal would blend
+     into the page. A CanvasText boundary separates the panel from the
+     Canvas behind it (the box-shadow is dropped by the UA), and the
+     squashed focus ring is replaced by a Highlight outline. */
+  @media (forced-colors: active) {
+    border: 1px solid CanvasText;
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
 `;
 
 const titleText = css`
@@ -248,6 +262,7 @@ export default function Dialog({
   return (
     <dialog
       ref={setDialogRef}
+      data-slot='content'
       data-state={open ? 'open' : 'closed'}
       aria-labelledby={title !== undefined ? titleId : undefined}
       x-class={[overlay, className, classNames?.root]}
@@ -275,7 +290,7 @@ export default function Dialog({
       }}
     >
       {title !== undefined && (
-        <h2 id={titleId} x-class={[titleText, classNames?.header]}>
+        <h2 id={titleId} data-slot='title' x-class={[titleText, classNames?.header]}>
           {title}
         </h2>
       )}

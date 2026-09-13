@@ -49,6 +49,21 @@ const surfaces = {
     &:active {
       background: var(--haze-color-primary-active);
     }
+
+    /* Forced-colors: the pressed fill flattens onto Canvas — the
+       on/off signal would vanish against the transparent rest state.
+       Pressed renders as the Windows-native Highlight chip (stable
+       across hover/active, which the UA would flatten back to
+       Canvas). */
+    @media (forced-colors: active) {
+      background: Highlight;
+      color: HighlightText;
+
+      &:hover,
+      &:active {
+        background: Highlight;
+      }
+    }
   `,
 } as const;
 
@@ -75,6 +90,7 @@ export default function ToggleCore({
       ref={ref}
       type='button'
       aria-pressed={pressed}
+      data-slot='toggle'
       x-class={[base, surfaces[pressed ? 'pressed' : 'rest'], sizeClass, className]}
       onClick={(e) => {
         onPressedChange(!pressed);

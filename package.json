@@ -202,11 +202,11 @@
     {
       "name": "CSS aggregate (dist/haze-ui.css, brotli)",
       "path": "dist/haze-ui.css",
-      "limit": "22.5 KB"
+      "limit": "23.5 KB"
     },
     {
       "path": "dist/haze-ui.css",
-      "limit": "28.5 KB",
+      "limit": "30 KB",
       "gzip": true
     },
     {
@@ -254,7 +254,7 @@
     {
       "name": "CSS family ratchet: dialog",
       "path": "dist/css/dialog.css",
-      "limit": "0.5 KB",
+      "limit": "0.55 KB",
       "gzip": true
     },
     {

@@ -382,6 +382,7 @@ export default function ImagePreview({
 
   return (
     <dialog
+      data-slot="image-preview"
       ref={setDialogRef}
       aria-label={alt}
       data-state={open ? 'open' : 'closed'}
@@ -405,6 +406,7 @@ export default function ImagePreview({
       onClick={handleDialogClick}
     >
       <img
+        data-slot="img"
         x-class={[
           previewImg,
           zoom && (dragging ? imgPanning : imgPannable),
@@ -421,10 +423,11 @@ export default function ImagePreview({
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
       />
-      <div className={toolbar}>
+      <div data-slot="toolbar" className={toolbar}>
         {zoom && (
           <>
             <button
+              data-slot="zoom-in-button"
               type="button"
               className={toolButton}
               aria-label={strings.zoomIn}
@@ -434,6 +437,7 @@ export default function ImagePreview({
               <ZoomInIcon />
             </button>
             <button
+              data-slot="zoom-out-button"
               type="button"
               className={toolButton}
               aria-label={strings.zoomOut}
@@ -443,6 +447,7 @@ export default function ImagePreview({
               <ZoomOutIcon />
             </button>
             <button
+              data-slot="reset-button"
               type="button"
               className={toolButton}
               aria-label={strings.reset}
@@ -454,6 +459,7 @@ export default function ImagePreview({
         )}
         {rotate && (
           <button
+            data-slot="rotate-button"
             type="button"
             className={toolButton}
             aria-label={strings.rotate}
@@ -464,6 +470,7 @@ export default function ImagePreview({
         )}
         <button
           ref={closeRef}
+          data-slot="close"
           type="button"
           className={toolButton}
           aria-label={strings.close}

@@ -118,6 +118,7 @@ export default function Toolbar({
     <ToolbarProvider value={orientation}>
       <div
         ref={toolbarRef}
+        data-slot="toolbar"
         role="toolbar"
         aria-orientation={orientation}
         x-class={[toolbar, orientation === 'vertical' && vertical, className]}

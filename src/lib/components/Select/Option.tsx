@@ -7,7 +7,7 @@ type OptionProps = {
 
 export default function Option({value, children, ...rest}: OptionProps) {
   return (
-    <option value={value} {...rest}>
+    <option value={value} data-slot='option' {...rest}>
       {children}
     </option>
   );

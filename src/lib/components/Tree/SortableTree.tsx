@@ -84,7 +84,7 @@ function TreeDragGrip() {
     | PointerEventHandler<HTMLSpanElement>
     | undefined;
   return (
-    <span aria-hidden='true' x-class={[grip]} onPointerDown={onPointerDown}>
+    <span aria-hidden='true' data-slot='drag-handle' x-class={[grip]} onPointerDown={onPointerDown}>
       <GripIcon />
     </span>
   );
@@ -133,6 +133,7 @@ function SortableRow({
     <SortableHandleContext.Provider value={{ attributes, listeners }}>
       <div
         ref={setNodeRef}
+        data-slot='sortable-row'
         data-sortable-row=''
         style={sortableItemStyle(transform, transition)}
         x-class={[

@@ -172,17 +172,18 @@ export default function ColorPicker({
 
   if (inline) {
     return (
-      <div ref={ref as Ref<HTMLDivElement> | undefined} x-class={[panelVisuals, className]}>
+      <div ref={ref as Ref<HTMLDivElement> | undefined} data-slot='color-picker' x-class={[panelVisuals, className]}>
         {panel}
       </div>
     );
   }
 
   return (
-    <span className={container}>
+    <span data-slot='color-picker' className={container}>
       <button
         ref={setTriggerRef}
         type='button'
+        data-slot='trigger'
         x-class={[trigger, checkerboard]}
         style={floating.triggerStyle}
         aria-label={label}
@@ -192,7 +193,7 @@ export default function ColorPicker({
         onPointerDown={floating.onTriggerPointerDown}
         onClick={floating.onTriggerClick}
       >
-        <span x-class={[swatchFill]} style={{background: cssColor(display)}} />
+        <span data-slot='swatch' x-class={[swatchFill]} style={{background: cssColor(display)}} />
       </button>
       <FloatingPanel
         ref={panelRef}

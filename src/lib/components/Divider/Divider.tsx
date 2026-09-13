@@ -28,13 +28,20 @@ export default function Divider({
   if (orientation === 'vertical') {
     return (
       <div
+        data-slot='divider'
         role="separator"
         aria-orientation="vertical"
         x-class={[base, vertical, className]}
       />
     );
   }
-  return <hr role="separator" x-class={[base, horizontal, className]} />;
+  return (
+    <hr
+      data-slot='divider'
+      role="separator"
+      x-class={[base, horizontal, className]}
+    />
+  );
 }
 
 export type { DividerProps };

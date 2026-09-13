@@ -286,42 +286,43 @@ export default function FilePreview({
       : Math.max(0, Math.min(100, progress));
 
   return (
-    <div x-class={[card, className]} {...rest}>
+    <div data-slot='file-preview' x-class={[card, className]} {...rest}>
       {showThumb ? (
-        <img x-class={[thumb]} src={file.url} alt='' loading='lazy' />
+        <img data-slot='preview' x-class={[thumb]} src={file.url} alt='' loading='lazy' />
       ) : (
-        <span x-class={[thumbWrap]}>
+        <span data-slot='icon' x-class={[thumbWrap]}>
           <FileGlyph />
           {extension && (
-            <span x-class={[extBadge]} aria-hidden='true'>
+            <span data-slot='badge' x-class={[extBadge]} aria-hidden='true'>
               {extension}
             </span>
           )}
         </span>
       )}
-      <div x-class={[info]}>
-        <span x-class={[nameClass]} title={file.name}>
+      <div data-slot='body' x-class={[info]}>
+        <span data-slot='name' x-class={[nameClass]} title={file.name}>
           {file.name}
         </span>
-        <div x-class={[meta]}>
-          {sizeText && <span>{sizeText}</span>}
+        <div data-slot='meta' x-class={[meta]}>
+          {sizeText && <span data-slot='size'>{sizeText}</span>}
           {status === 'uploading' && (
-            <span x-class={[statusUploading]}>{resolvedUploadingLabel}</span>
+            <span data-slot='status' x-class={[statusUploading]}>{resolvedUploadingLabel}</span>
           )}
           {status === 'uploaded' && (
-            <span x-class={[statusUploading]}>
+            <span data-slot='status' x-class={[statusUploading]}>
               <CheckGlyph />
               <span x-class={[srOnly]}>{resolvedUploadedLabel}</span>
             </span>
           )}
-          {status === 'error' && <span x-class={[statusError]}>{resolvedErrorLabel}</span>}
+          {status === 'error' && <span data-slot='status' x-class={[statusError]}>{resolvedErrorLabel}</span>}
         </div>
       </div>
       {(onRemove || (status === 'error' && onRetry)) && (
-        <div x-class={[actions]}>
+        <div data-slot='actions' x-class={[actions]}>
           {status === 'error' && onRetry && (
             <button
               type='button'
+              data-slot='retry-button'
               aria-label={resolvedRetryLabel}
               onClick={onRetry}
               x-class={[actionBtn, actionBtnRetry]}
@@ -332,6 +333,7 @@ export default function FilePreview({
           {onRemove && (
             <button
               type='button'
+              data-slot='remove-button'
               aria-label={resolvedRemoveLabel}
               onClick={onRemove}
               x-class={[actionBtn]}
@@ -342,10 +344,10 @@ export default function FilePreview({
         </div>
       )}
       {status === 'uploading' && (
-        <div x-class={[progressRow]}>
+        <div data-slot='progress' x-class={[progressRow]}>
           <Progress value={clamped ?? 0} size='sm' />
           {clamped !== undefined && (
-            <span x-class={[percentClass]}>{Math.round(clamped)}%</span>
+            <span data-slot='percent' x-class={[percentClass]}>{Math.round(clamped)}%</span>
           )}
         </div>
       )}

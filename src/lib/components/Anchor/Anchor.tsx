@@ -156,11 +156,12 @@ export default function Anchor({
   }, [items, bounds, getContainer, setActiveId]);
 
   return (
-    <nav x-class={[nav, className]} {...rest}>
-      <ul x-class={[list]}>
+    <nav data-slot='anchor' x-class={[nav, className]} {...rest}>
+      <ul data-slot='list' x-class={[list]}>
         {items.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} data-slot='item'>
             <a
+              data-slot='link'
               href={`#${item.id}`}
               x-class={[link, activeId === item.id && linkActive]}
               aria-current={activeId === item.id ? 'true' : undefined}

@@ -128,11 +128,11 @@ export default function StreamingText({
   }, [isDone, displayed, text, speed, onComplete]);
 
   return (
-    <span x-class={[wrapper, className]}>
+    <span data-slot='streaming-text' x-class={[wrapper, className]}>
       {chunks.map((chunk, i) => (
         <TextChunk key={i} text={chunk} />
       ))}
-      {showCursor && !isDone && <span x-class={[cursor]} />}
+      {showCursor && !isDone && <span data-slot='caret' x-class={[cursor]} />}
     </span>
   );
 }

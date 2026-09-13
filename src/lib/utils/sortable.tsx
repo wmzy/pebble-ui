@@ -84,6 +84,7 @@ export function SortableItem({ id, className, children }: SortableItemProps) {
     <SortableHandleContext.Provider value={{ attributes, listeners }}>
       <span
         ref={setNodeRef}
+        data-slot='sortable-item'
         style={sortableItemStyle(transform, transition)}
         x-class={[sortableNode, isDragging && sortableNodeDragging, className]}
       >

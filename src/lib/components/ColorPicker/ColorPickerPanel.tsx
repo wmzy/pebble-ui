@@ -258,7 +258,7 @@ export default function ColorPickerPanel({
   };
 
   const renderSwatches = (colors: string[], keyPrefix: string) => (
-    <div x-class={[swatchRow]}>
+    <div data-slot="swatch-row" x-class={[swatchRow]}>
       {colors.map((color) => {
         const rgb = parseColor(color)?.rgb;
         if (!rgb) return null;
@@ -266,11 +266,12 @@ export default function ColorPickerPanel({
           <button
             key={`${keyPrefix}:${color}`}
             type='button'
+            data-slot="swatch-item"
             x-class={[swatchBtn, checkerboard, rgbHexKey(rgb) === currentKey && swatchActive]}
             aria-label={color}
             onClick={() => emit(rgb, true)}
           >
-            <span x-class={[swatchFill]} style={{background: cssColor(rgb)}} />
+            <span data-slot="swatch" x-class={[swatchFill]} style={{background: cssColor(rgb)}} />
           </button>
         );
       })}
@@ -278,13 +279,14 @@ export default function ColorPickerPanel({
   );
 
   return (
-    <div x-class={[panelContent, className]}>
+    <div data-slot="panel" x-class={[panelContent, className]}>
       {/*
         The SV surface: hue base painted by inline style under white
         (left→right = saturation) and black (bottom→top = value)
         gradients — functional color stops, like the hue spectrum rail.
       */}
       <div
+        data-slot="saturation"
         x-class={[svArea]}
         role='slider'
         tabIndex={0}
@@ -300,12 +302,14 @@ export default function ColorPickerPanel({
         {...svHandlers}
       >
         <span
+          data-slot="thumb"
           x-class={[svThumb]}
           style={{left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`}}
         />
       </div>
 
       <div
+        data-slot="hue-track"
         x-class={[track, hueTrack]}
         role='slider'
         tabIndex={0}
@@ -317,11 +321,12 @@ export default function ColorPickerPanel({
         onKeyDown={hueKeyDown}
         {...hueHandlers}
       >
-        <span x-class={[trackThumb]} style={{left: `${(hsv.h / 360) * 100}%`}} />
+        <span data-slot="thumb" x-class={[trackThumb]} style={{left: `${(hsv.h / 360) * 100}%`}} />
       </div>
 
       {allowAlpha && (
         <div
+          data-slot="alpha-track"
           x-class={[track, checkerboard]}
           role='slider'
           tabIndex={0}
@@ -334,17 +339,19 @@ export default function ColorPickerPanel({
           {...alphaHandlers}
         >
           <span
+            data-slot="fill"
             x-class={[trackFill]}
             style={{
               background: `linear-gradient(to right, rgba(${base.r}, ${base.g}, ${base.b}, 0), rgba(${base.r}, ${base.g}, ${base.b}, 1))`,
             }}
           />
-          <span x-class={[trackThumb]} style={{left: `${alpha * 100}%`}} />
+          <span data-slot="thumb" x-class={[trackThumb]} style={{left: `${alpha * 100}%`}} />
         </div>
       )}
 
       <input
         type='text'
+        data-slot="input"
         x-class={[valueInput]}
         aria-label={strings.hexColor}
         spellCheck={false}
@@ -364,14 +371,14 @@ export default function ColorPickerPanel({
 
       {presets !== undefined && presets.length > 0 && (
         <>
-          <div x-class={[groupLabel]}>{strings.presetsLabel}</div>
+          <div data-slot="group-label" x-class={[groupLabel]}>{strings.presetsLabel}</div>
           {renderSwatches(presets, 'preset')}
         </>
       )}
 
       {recentColors !== undefined && recentColors.length > 0 && (
         <>
-          <div x-class={[groupLabel]}>{strings.recentColors}</div>
+          <div data-slot="group-label" x-class={[groupLabel]}>{strings.recentColors}</div>
           {renderSwatches(recentColors, 'recent')}
         </>
       )}

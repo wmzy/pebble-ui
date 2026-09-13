@@ -47,6 +47,15 @@ const link = css`
     cursor: not-allowed;
     pointer-events: none;
   }
+
+  /* Forced-colors: the anchor shape cannot carry Button base's
+   * :disabled rule, so the GrayText restatement lives here. */
+  @media (forced-colors: active) {
+    &[aria-disabled='true'] {
+      opacity: 1;
+      color: GrayText;
+    }
+  }
 `;
 
 export default forwardRef<HTMLAnchorElement, ButtonLinkProps>(
@@ -62,6 +71,7 @@ export default forwardRef<HTMLAnchorElement, ButtonLinkProps>(
     return (
       <a
         ref={ref}
+        data-slot='button-link'
         x-class={[base, variants[variant], sizeClass, link, className]}
         {...rest}
       />

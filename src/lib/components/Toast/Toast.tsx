@@ -332,6 +332,7 @@ export default function Toast({
   return (
     <div
       role={liveRoles[variant]}
+      data-slot='toast'
       x-class={[base, variants[variant], className, classNames?.item]}
       onPointerEnter={() => {
         hoveredRef.current = true;
@@ -353,6 +354,7 @@ export default function Toast({
     >
       {variant === 'loading' && (
         <svg
+          data-slot='icon'
           x-class={spinnerIcon}
           viewBox='0 0 24 24'
           fill='none'
@@ -373,19 +375,20 @@ export default function Toast({
           />
         </svg>
       )}
-      <div x-class={[contentStyle, classNames?.content]}>
+      <div data-slot='content' x-class={[contentStyle, classNames?.content]}>
         {title === undefined ? (
           children
         ) : (
           <>
-            <div x-class={[titleStyle, classNames?.title]}>{title}</div>
-            <div x-class={descriptionStyle}>{children}</div>
+            <div data-slot='title' x-class={[titleStyle, classNames?.title]}>{title}</div>
+            <div data-slot='description' x-class={descriptionStyle}>{children}</div>
           </>
         )}
       </div>
       {action !== undefined && (
         <button
           type='button'
+          data-slot='action'
           x-class={[actionBtn, classNames?.action]}
           onClick={() => runToastAction(action, onCloseRef.current)}
         >
@@ -394,6 +397,7 @@ export default function Toast({
       )}
       <button
         type='button'
+        data-slot='close'
         x-class={[closeBtn, classNames?.close]}
         aria-label={strings.close}
         onClick={onClose}

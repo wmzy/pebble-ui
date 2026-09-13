@@ -145,13 +145,14 @@ export default function TransferCore({
   };
 
   return (
-    <div x-class={[container, className]} {...rest}>
-      <div x-class={[panel]}>
-        <div x-class={[panelHeader]}>{formatString(strings.source, { count: sourceItems.length })}</div>
-        <div x-class={[panelBody]}>
+    <div data-slot="transfer" x-class={[container, className]} {...rest}>
+      <div data-slot="panel" x-class={[panel]}>
+        <div data-slot="header" x-class={[panelHeader]}>{formatString(strings.source, { count: sourceItems.length })}</div>
+        <div data-slot="list" x-class={[panelBody]}>
           {sourceItems.map((item) => (
-            <label key={item.key} x-class={[itemStyle]}>
+            <label key={item.key} data-slot="item" x-class={[itemStyle]}>
               <input
+                data-slot="checkbox"
                 type="checkbox"
                 checked={selectedSource.includes(item.key)}
                 disabled={item.disabled}
@@ -163,9 +164,10 @@ export default function TransferCore({
           ))}
         </div>
       </div>
-      <div x-class={[actions]}>
+      <div data-slot="actions" x-class={[actions]}>
         <button
           type="button"
+          data-slot="move-button"
           x-class={[actionBtn]}
           disabled={selectedSource.length === 0}
           onClick={moveToTarget}
@@ -175,6 +177,7 @@ export default function TransferCore({
         </button>
         <button
           type="button"
+          data-slot="move-button"
           x-class={[actionBtn]}
           disabled={selectedTarget.length === 0}
           onClick={moveToSource}
@@ -183,12 +186,13 @@ export default function TransferCore({
           ‹
         </button>
       </div>
-      <div x-class={[panel]}>
-        <div x-class={[panelHeader]}>{formatString(strings.target, { count: targetItems.length })}</div>
-        <div x-class={[panelBody]}>
+      <div data-slot="panel" x-class={[panel]}>
+        <div data-slot="header" x-class={[panelHeader]}>{formatString(strings.target, { count: targetItems.length })}</div>
+        <div data-slot="list" x-class={[panelBody]}>
           {targetItems.map((item) => (
-            <label key={item.key} x-class={[itemStyle]}>
+            <label key={item.key} data-slot="item" x-class={[itemStyle]}>
               <input
+                data-slot="checkbox"
                 type="checkbox"
                 checked={selectedTarget.includes(item.key)}
                 disabled={item.disabled}

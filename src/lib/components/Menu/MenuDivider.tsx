@@ -7,5 +7,5 @@ const divider = css`
 `;
 
 export default function MenuDivider() {
-  return <div className={divider} role='separator' />;
+  return <div data-slot='separator' className={divider} role='separator' />;
 }

@@ -538,6 +538,7 @@ export default function PromptInput({
       // aria-expanded on a plain textbox) — and only when completion is
       // enabled; without getSuggestions the component is a plain
       // auto-growing textbox.
+      data-slot='prompt-input'
       role={completionEnabled ? 'combobox' : undefined}
       aria-expanded={completionEnabled ? open : undefined}
       aria-haspopup={completionEnabled ? 'listbox' : undefined}
@@ -546,12 +547,13 @@ export default function PromptInput({
       x-class={[container, disabled && containerDisabled, className]}
     >
       {tags.length > 0 && (
-        <ul className={tagList}>
+        <ul data-slot='list' className={tagList}>
           {tags.map((tag, i) => (
-            <li key={`${tag}:${i}`} className={tag}>
+            <li key={`${tag}:${i}`} data-slot='tag' className={tag}>
               {tag}
               <button
                 type="button"
+                data-slot='remove-button'
                 className={removeBtn}
                 aria-label={formatString(strings.removeTag, { tag })}
                 disabled={disabled}
@@ -565,6 +567,7 @@ export default function PromptInput({
       )}
       <textarea
         ref={textareaRef}
+        data-slot='input'
         rows={1}
         style={completionEnabled ? floating.triggerStyle : undefined}
         className={textareaClass}
@@ -597,6 +600,7 @@ export default function PromptInput({
             // elements satisfied while nothing is actually selectable.
             <div
               role="option"
+              data-slot='loading'
               aria-selected="false"
               aria-disabled="true"
               className={hintRow}
@@ -606,6 +610,7 @@ export default function PromptInput({
           ) : suggestions.length === 0 ? (
             <div
               role="option"
+              data-slot='empty'
               aria-selected="false"
               aria-disabled="true"
               className={hintRow}
@@ -617,6 +622,7 @@ export default function PromptInput({
               <div
                 key={`${suggestion}:${i}`}
                 role="option"
+                data-slot='option'
                 id={optionId(i)}
                 aria-selected={i === highlightIndex}
                 aria-setsize={suggestions.length}

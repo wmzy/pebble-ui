@@ -177,7 +177,7 @@ export default function ToastContainer({
   return (
     <ToastProvider value={{ toasts, addToast, removeToast, updateToast }}>
       {children}
-      <div x-class={[containerBase, toastPlacements[placement], classNames?.viewport]}>
+      <div data-slot='toast-container' x-class={[containerBase, toastPlacements[placement], classNames?.viewport]}>
         {toasts.map((t) => {
           // Promise-phase sentinels resolve against the locale pack at
           // render time — `toast.promise` may have fired outside any

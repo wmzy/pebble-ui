@@ -286,9 +286,10 @@ export default function TimePickerPanel({
     listRef: RefObject<HTMLDivElement | null>,
     items: ColumnItem[]
   ) => (
-    <div x-class={[columnWrap]} key={kind}>
+    <div data-slot='column' x-class={[columnWrap]} key={kind}>
       <div
         ref={listRef}
+        data-slot='list'
         role="listbox"
         tabIndex={0}
         aria-label={label}
@@ -298,6 +299,7 @@ export default function TimePickerPanel({
         {items.map((item) => (
           <div
             key={item.key}
+            data-slot='option'
             role="option"
             aria-selected={item.selected}
             aria-disabled={item.disabled || undefined}
@@ -368,6 +370,7 @@ export default function TimePickerPanel({
     <div x-class={[wrapper, className]}>
       <input
         ref={setInputRef}
+        data-slot='input'
         readOnly
         style={floating.triggerStyle}
         className={trigger}
@@ -402,7 +405,7 @@ export default function TimePickerPanel({
           if (e.key === 'Escape') inputRef.current?.focus();
         }}
       >
-        <div x-class={[columns]}>
+        <div data-slot='columns' x-class={[columns]}>
           {renderColumn('hour', strings.hour, hourColumnRef, hourItems)}
           {renderColumn('minute', strings.minute, minuteColumnRef, minuteItems)}
           {withSeconds &&
@@ -410,8 +413,8 @@ export default function TimePickerPanel({
           {use12Hours &&
             renderColumn('period', strings.period, periodColumnRef, periodItems)}
         </div>
-        <div x-class={[footer]}>
-          <button type="button" x-class={[nowButton]} onClick={chooseNow}>
+        <div data-slot='footer' x-class={[footer]}>
+          <button data-slot='now-button' type="button" x-class={[nowButton]} onClick={chooseNow}>
             {strings.now}
           </button>
         </div>

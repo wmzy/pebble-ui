@@ -69,6 +69,7 @@ export default function DropdownMenuSubTrigger({
       ref={sub.triggerRef}
       type='button'
       role='menuitem'
+      data-slot='menu-sub-trigger'
       tabIndex={-1}
       aria-haspopup='menu'
       aria-expanded={sub.open}

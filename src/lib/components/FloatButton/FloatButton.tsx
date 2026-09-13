@@ -64,10 +64,10 @@ export default function FloatButton({
   // element type (the shared props accept both button and anchor).
   const content = (
     <>
-      <span x-class={[iconBox]} aria-hidden='true'>
+      <span data-slot='icon' x-class={[iconBox]} aria-hidden='true'>
         {icon ?? <PlusGlyph />}
       </span>
-      {description != null && <span x-class={[descBox]}>{description}</span>}
+      {description != null && <span data-slot='description' x-class={[descBox]}>{description}</span>}
     </>
   );
 
@@ -77,6 +77,7 @@ export default function FloatButton({
     return (
       <a
         href={href}
+        data-slot='float-button'
         x-class={classes}
         {...rest}
         onClick={(event) => {
@@ -92,6 +93,7 @@ export default function FloatButton({
   return (
     <button
       type='button'
+      data-slot='float-button'
       x-class={classes}
       {...rest}
       onClick={(event) => {

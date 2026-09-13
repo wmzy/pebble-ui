@@ -17,7 +17,7 @@ export default function Accordion({
   children,
 }: AccordionProps) {
   return (
-    <div x-class={[base, className]}>
+    <div data-slot='accordion' x-class={[base, className]}>
       {children}
     </div>
   );

@@ -131,6 +131,7 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
 
   return (
     <div
+      data-slot='markdown'
       x-class={[wrapper, className]}
       dangerouslySetInnerHTML={{ __html: html }}
     />

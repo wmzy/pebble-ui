@@ -43,6 +43,7 @@ export default function DropdownMenuTrigger({
   return (
     <button
       ref={triggerRef}
+      data-slot='trigger'
       x-class={[trigger, className]}
       type="button"
       aria-haspopup="menu"

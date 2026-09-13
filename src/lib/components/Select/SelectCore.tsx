@@ -280,6 +280,7 @@ export default function SelectCore({
       >
         <select
           ref={setNativeSelectRef}
+          data-slot='trigger'
           x-class={[base, sizes[size], className]}
           value={value}
           onChange={(e) => {
@@ -303,6 +304,7 @@ export default function SelectCore({
         {selectedValue !== '' && (
           <span
             aria-hidden='true'
+            data-slot='clear-button'
             title={strings.clear}
             x-class={nativeClear}
             onClick={(e) => {
@@ -325,6 +327,7 @@ export default function SelectCore({
   return (
     <select
       ref={ref as Ref<HTMLSelectElement> | undefined}
+      data-slot='trigger'
       x-class={[base, sizes[size], className]}
       value={value}
       onChange={(e) => {

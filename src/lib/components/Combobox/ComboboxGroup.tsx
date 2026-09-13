@@ -51,8 +51,8 @@ export default function ComboboxGroup({
 }: ComboboxGroupProps) {
   const headingId = useId();
   return (
-    <div role="group" aria-labelledby={headingId} x-class={[className]}>
-      <div id={headingId} x-class={[groupHeading]}>
+    <div data-slot='group' role="group" aria-labelledby={headingId} x-class={[className]}>
+      <div id={headingId} data-slot='group-label' x-class={[groupHeading]}>
         {label}
       </div>
       {children}

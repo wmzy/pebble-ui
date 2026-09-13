@@ -610,6 +610,7 @@ export default function UploadCore({
   return (
     <>
       <div
+        data-slot='drop-zone'
         /* before {...rest}: an explicit aria-label prop wins over the
            locale fallback so consumers can name the zone themselves */
         aria-label={strings.label}
@@ -639,12 +640,12 @@ export default function UploadCore({
         />
         {children || (
           <>
-            <svg x-class={[iconStyle]} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg data-slot='icon' x-class={[iconStyle]} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            <div>{droppable ? strings.hint : strings.clickHint}</div>
+            <div data-slot='hint'>{droppable ? strings.hint : strings.clickHint}</div>
           </>
         )}
       </div>

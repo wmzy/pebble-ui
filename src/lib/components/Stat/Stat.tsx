@@ -67,19 +67,19 @@ export function Stat({
   className,
 }: StatProps) {
   return (
-    <div x-class={[base, className]}>
-      <div x-class={[titleStyle]}>{title}</div>
-      <div x-class={[valueRow]}>
+    <div data-slot="stat" x-class={[base, className]}>
+      <div data-slot="label" x-class={[titleStyle]}>{title}</div>
+      <div data-slot="value-row" x-class={[valueRow]}>
         {prefix}
-        <div x-class={[valueStyle]}>{value}</div>
+        <div data-slot="value" x-class={[valueStyle]}>{value}</div>
         {suffix}
         {trend && trendValue && (
-          <div x-class={[trendStyle, trendColors[trend]]}>
+          <div data-slot="trend" x-class={[trendStyle, trendColors[trend]]}>
             {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→'} {trendValue}
           </div>
         )}
       </div>
-      {description && <div x-class={[descStyle]}>{description}</div>}
+      {description && <div data-slot="description" x-class={[descStyle]}>{description}</div>}
     </div>
   );
 }
@@ -98,7 +98,7 @@ const groupStyle = css`
 
 export function StatGroup({ children, className }: StatGroupProps) {
   return (
-    <div x-class={[groupStyle, className]}>
+    <div data-slot="stat-group" x-class={[groupStyle, className]}>
       {children}
     </div>
   );

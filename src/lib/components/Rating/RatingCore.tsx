@@ -46,6 +46,21 @@ const star = css`
     outline: none;
     box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
   }
+
+  /* Forced-colors: star glyphs draw with currentColor (fill for the
+     active state, stroke for the rest), which the UA already resolves
+     to CanvasText — the fill/stroke shape keeps active and inactive
+     stars distinguishable with no extra boxes. The system color is
+     restated for determinism; the box-shadow focus ring is dropped
+     by the UA, so a Highlight outline replaces it. */
+  @media (forced-colors: active) {
+    color: CanvasText;
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+  }
 `;
 
 const starActive = css`
@@ -131,6 +146,7 @@ export default function RatingCore({
   return (
     <div
       ref={containerRef}
+      data-slot="rating"
       x-class={[container, className]}
       role="radiogroup"
       onKeyDown={handleKeyDown}
@@ -147,6 +163,7 @@ export default function RatingCore({
           <span
             key={i}
             ref={isStop ? attachStop : undefined}
+            data-slot="item"
             x-class={[star, (filled || halfFilled) && starActive]}
             role="radio"
             aria-checked={value >= i + 1 ? 'true' : 'false'}
@@ -157,6 +174,7 @@ export default function RatingCore({
             onMouseLeave={() => setHoverValue(null)}
           >
             <svg
+              data-slot="icon"
               width="18"
               height="18"
               viewBox="0 0 24 24"

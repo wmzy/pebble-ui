@@ -98,6 +98,7 @@ export default function InlineEdit({
     return (
       <input
         ref={inputRef}
+        data-slot='inline-edit'
         x-class={[editing, className]}
         aria-label={placeholderLabel}
         value={draft}
@@ -110,6 +111,7 @@ export default function InlineEdit({
 
   return (
     <span
+      data-slot='inline-edit'
       x-class={[display, !value && placeholderStyle, className]}
       onClick={startEditing}
       role="button"

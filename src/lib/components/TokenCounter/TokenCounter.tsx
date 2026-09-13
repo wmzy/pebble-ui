@@ -49,13 +49,13 @@ export default function TokenCounter({ used, max, label, className }: TokenCount
   const strings = useStrings('tokenCounter');
 
   return (
-    <div x-class={[wrapper, className]}>
+    <div data-slot='token-counter' x-class={[wrapper, className]}>
       <div x-class={[info]}>
-        <span>{label || strings.label}</span>
-        <span x-class={[count]}>{used.toLocaleString()} / {max.toLocaleString()}</span>
+        <span data-slot='label'>{label || strings.label}</span>
+        <span data-slot='value' x-class={[count]}>{used.toLocaleString()} / {max.toLocaleString()}</span>
       </div>
-      <div x-class={[bar]}>
-        <div x-class={[fill, fillClass]} style={{ width: `${pct}%` }} />
+      <div data-slot='track' x-class={[bar]}>
+        <div data-slot='fill' x-class={[fill, fillClass]} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

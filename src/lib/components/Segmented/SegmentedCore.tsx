@@ -62,12 +62,43 @@ const btn = css`
     outline: none;
     box-shadow: 0 0 0 2px var(--haze-color-focus-ring);
   }
+
+  /* Forced-colors: unselected segments are transparent no-border
+     buttons — the UA gives them nothing to draw. An inset 1px
+     CanvasText outline adds the visible boundary without shifting
+     layout (borders would reflow the flex row); keyboard focus
+     upgrades it to the Highlight ring. */
+  @media (forced-colors: active) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+
+    &:disabled {
+      opacity: 1;
+      color: GrayText;
+      outline-color: GrayText;
+    }
+  }
 `;
 
 const activeBtn = css`
   background: var(--haze-color-bg);
   color: var(--haze-color-text);
   box-shadow: var(--haze-shadow-sm);
+
+  /* Forced-colors: the white-on-muted selection (background +
+     shadow) flattens to Canvas with the shadow dropped — the selected
+     segment would vanish. Selection renders as the Windows-native
+     Highlight chip instead; the unselected inset CanvasText outline
+     from the btn class keeps the chip's neighbors bounded. */
+  @media (forced-colors: active) {
+    background: Highlight;
+    color: HighlightText;
+  }
 `;
 
 function normalize(option: SegmentedOption) {
@@ -96,12 +127,13 @@ export default function SegmentedCore({
     options.findIndex((opt) => normalize(opt).value === value)
   );
   return (
-    <div x-class={[container, sizes[size], className]} role="group">
+    <div data-slot='segmented' x-class={[container, sizes[size], className]} role="group">
       {options.map((opt, index) => {
         const { value: val, label, disabled } = normalize(opt);
         return (
           <button
             key={val}
+            data-slot='segment'
             ref={index === stopIndex ? attachStop : undefined}
             type="button"
             x-class={[btn, value === val && activeBtn]}

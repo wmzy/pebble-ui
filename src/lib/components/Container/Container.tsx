@@ -25,7 +25,7 @@ const sizes: Record<string, string> = {
 
 export default function Container({ size = 'lg', children, className }: ContainerProps) {
   return (
-    <div x-class={[container, sizes[size], className]}>
+    <div data-slot='container' x-class={[container, sizes[size], className]}>
       {children}
     </div>
   );

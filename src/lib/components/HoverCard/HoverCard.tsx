@@ -7,6 +7,8 @@ import { css } from '@linaria/core';
 import { useEffect, useId, useMemo, useRef } from 'react';
 import { useControl } from 'react-use-control';
 
+import { useConfigDefaults } from '../ConfigProvider/useConfigDefaults';
+
 import { FloatingPanel, useFloating } from '../../utils/floating';
 
 /**
@@ -70,18 +72,31 @@ const panelVisuals = css`
   font-family: var(--haze-font-sans);
   font-size: var(--haze-text-sm);
   box-shadow: var(--haze-shadow-lg);
+
+  /* Forced-colors: the UA keeps the author border visible by forcing
+     its color to CanvasText — restated so the panel stays separated
+     from the Canvas behind it deterministically. */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
 `;
 
 export default function HoverCard({
   content,
-  openDelay = 200,
-  closeDelay = 120,
+  openDelay: openDelayProp,
+  closeDelay: closeDelayProp,
   placement = 'bottom-span',
   open: openControl,
   collisionPadding,
   className,
   children,
 }: HoverCardProps) {
+  // Three tiers: explicit prop → ConfigProvider default → built-ins
+  // 200/120 (a missing provider keeps the pre-wiring behavior
+  // byte-identical).
+  const config = useConfigDefaults('HoverCard');
+  const openDelay = openDelayProp ?? config.openDelay ?? 200;
+  const closeDelay = closeDelayProp ?? config.closeDelay ?? 120;
   const [open, setOpen] = useControl(openControl, false);
   const id = useId();
 
@@ -133,9 +148,10 @@ export default function HoverCard({
   };
 
   return (
-    <span className={container}>
+    <span data-slot='hover-card' className={container}>
       <span
         ref={triggerRef}
+        data-slot='trigger'
         style={floating.triggerStyle}
         aria-describedby={id}
         onMouseEnter={scheduleOpen}

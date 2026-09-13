@@ -44,7 +44,7 @@ export default function ScrollArea({
     : undefined;
 
   return (
-    <div x-class={[base, className]} style={style}>
+    <div data-slot='scroll-area' x-class={[base, className]} style={style}>
       {children}
     </div>
   );

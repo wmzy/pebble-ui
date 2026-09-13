@@ -12,7 +12,7 @@ type TagGroupProps = {
  * this base component stays free of the dnd runtime. */
 export default function TagGroup({ children, className }: TagGroupProps) {
   return (
-    <div x-class={[group, className]} role="group">
+    <div data-slot="tag-group" x-class={[group, className]} role="group">
       {children}
     </div>
   );

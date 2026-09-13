@@ -55,12 +55,12 @@ export default function ThinkingIndicator({ text, className }: ThinkingIndicator
   const strings = useStrings('thinkingIndicator');
   const label = text ?? strings.text;
   return (
-    <div x-class={[wrapper, className]}>
-      <span>{label}</span>
-      <span x-class={[dots]}>
-        <span x-class={[dot]} />
-        <span x-class={[dot, dot2]} />
-        <span x-class={[dot, dot3]} />
+    <div data-slot='thinking-indicator' x-class={[wrapper, className]}>
+      <span data-slot='label'>{label}</span>
+      <span data-slot='dots' x-class={[dots]}>
+        <span data-slot='dot' x-class={[dot]} />
+        <span data-slot='dot' x-class={[dot, dot2]} />
+        <span data-slot='dot' x-class={[dot, dot3]} />
       </span>
     </div>
   );

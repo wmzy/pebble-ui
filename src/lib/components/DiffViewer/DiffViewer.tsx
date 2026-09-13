@@ -114,16 +114,16 @@ export default function DiffViewer({ oldValue, newValue, className }: DiffViewer
   const lines = useMemo(() => computeDiff(oldValue, newValue), [oldValue, newValue]);
 
   return (
-    <div x-class={[wrapper, className]}>
-      <div x-class={[header]}>{strings.header}</div>
-      <div x-class={[body]}>
+    <div data-slot="diff-viewer" x-class={[wrapper, className]}>
+      <div data-slot="header" x-class={[header]}>{strings.header}</div>
+      <div data-slot="body" x-class={[body]}>
         {lines.map((line, i) => (
-          <div key={i} x-class={[lineStyle, line.type === 'added' && added, line.type === 'removed' && removed]}>
-            <span x-class={[lineNum]}>{line.oldLine ?? ''}</span>
-            <span x-class={[lineNum]}>{line.newLine ?? ''}</span>
-            <span x-class={[lineContent]}>
-              {line.type === 'added' && <span x-class={[addedPrefix]}>+ </span>}
-              {line.type === 'removed' && <span x-class={[removedPrefix]}>- </span>}
+          <div key={i} data-slot="line" x-class={[lineStyle, line.type === 'added' && added, line.type === 'removed' && removed]}>
+            <span data-slot="gutter" x-class={[lineNum]}>{line.oldLine ?? ''}</span>
+            <span data-slot="gutter" x-class={[lineNum]}>{line.newLine ?? ''}</span>
+            <span data-slot="content" x-class={[lineContent]}>
+              {line.type === 'added' && <span data-slot="sign" x-class={[addedPrefix]}>+ </span>}
+              {line.type === 'removed' && <span data-slot="sign" x-class={[removedPrefix]}>- </span>}
               {line.content}
             </span>
           </div>

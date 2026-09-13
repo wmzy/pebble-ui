@@ -128,21 +128,23 @@ export default function AppShell({
 
   return (
     <div
+      data-slot="app-shell"
       x-class={[shell, sidebarSlot != null && withSidebar, className]}
       style={{ '--haze-appshell-sidebar-width': sidebarWidth, ...style } as CSSProperties}
       {...rest}
     >
-      {headerSlot != null && <header x-class={header}>{headerSlot}</header>}
+      {headerSlot != null && <header data-slot="header" x-class={header}>{headerSlot}</header>}
       {sidebarSlot != null && (
         <aside
+          data-slot="aside"
           x-class={sidebar}
           data-state={collapsed ? 'collapsed' : 'expanded'}
         >
           {sidebarSlot}
         </aside>
       )}
-      <main x-class={content}>{children}</main>
-      {footerSlot != null && <footer x-class={footer}>{footerSlot}</footer>}
+      <main data-slot="main" x-class={content}>{children}</main>
+      {footerSlot != null && <footer data-slot="footer" x-class={footer}>{footerSlot}</footer>}
     </div>
   );
 }

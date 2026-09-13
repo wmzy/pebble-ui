@@ -51,6 +51,17 @@ const trigger = css`
     box-shadow: inset 0 0 0 2px var(--haze-color-focus-ring);
   }
 
+  /* Forced-colors: the inset focus ring is a box-shadow — dropped by
+     the UA — and the subtle background flattens onto Canvas, so the
+     keyboard-focused trigger would vanish. An inset Highlight outline
+     restores the focus indication. */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -74,6 +85,7 @@ export default function MenuSubTrigger({
       ref={sub.triggerRef}
       type='button'
       role='menuitem'
+      data-slot='menu-sub-trigger'
       tabIndex={-1}
       aria-haspopup='menu'
       aria-expanded={sub.open}

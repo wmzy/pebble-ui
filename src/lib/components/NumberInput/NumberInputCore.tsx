@@ -144,9 +144,10 @@ export default function NumberInputCore({
   };
 
   return (
-    <div x-class={[wrapper, className]}>
+    <div data-slot='number-input' x-class={[wrapper, className]}>
       <button
         type='button'
+        data-slot='step-down'
         x-class={[stepBtn, btnSizes[size]]}
         onClick={() => onChange(clamp(value - step))}
         disabled={min !== undefined && value <= min}
@@ -157,6 +158,7 @@ export default function NumberInputCore({
       <input
         ref={ref}
         type='number'
+        data-slot='input'
         x-class={[input, inputSizes[size]]}
         value={value}
         min={min}
@@ -171,6 +173,7 @@ export default function NumberInputCore({
       />
       <button
         type='button'
+        data-slot='step-up'
         x-class={[stepBtn, btnSizes[size]]}
         onClick={() => onChange(clamp(value + step))}
         disabled={max !== undefined && value >= max}

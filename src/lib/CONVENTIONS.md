@@ -214,6 +214,46 @@ const variants = {
 } as const;
 ```
 
+### `data-slot` semantic slots
+
+Every DOM-rendering part of a component's public structure carries a `data-slot`
+attribute — the stable styling hook consumers target instead of Linaria's hashed
+class names (the same convention shadcn/ui uses, and the DOM-level counterpart of
+AntD v6's semantic `classNames`/`styles` API):
+
+```tsx
+<button x-class={[base, className]} data-slot="button" {...rest} />
+```
+
+Rules:
+
+- **Root/primary element**: the component's kebab-case name — `data-slot="button"`,
+  `data-slot="otp-input"`. Compound sub-component roots use their own kebab name
+  (`tab-list`, `tab`, `tab-panel`, `menu-checkbox-item`, `toast-container`).
+- **Generic parts** draw from the shared vocabulary: `trigger`, `content`, `label`,
+  `input`, `icon`, `header`, `footer`, `title`, `description`, `close`,
+  `separator`, `item`, `list`, `group`, `group-label`, `panel`, `body`, `actions`,
+  `arrow`, `mask`, `indicator`, `thumb`, `track`, `fill`, `viewport`, `prefix`,
+  `suffix`, `clear-button`, `spinner`, `caption`, `prev`, `next`, `empty`,
+  `loading`, `retry-button`, `remove-button`, `drag-handle`. Coin new kebab-case
+  names in the same spirit (`step-up`, `swatch-row`, `send-button`) — grep first
+  so you reuse an existing precedent instead of minting a synonym.
+- Write the attribute in the static-props position, **before** `{...rest}` spread.
+  A consumer (or parent component) forwarding its own `data-slot` through rest
+  deliberately overrides the default — that is the sanctioned escape hatch
+  (DataTable/TableCell, Fullscreen precedent).
+- Mark every iteration item inside the loop body. Do NOT mark: pure technical
+  nodes (measurement, spacers, positioning wrappers), decorative `svg` glyphs,
+  or third-party engine DOM (recharts/tanstack/dnd-kit internals) — but DO mark
+  haze-owned wrapper elements around them.
+- The floating-panel shell rendered by `utils/floating.tsx` already carries
+  `data-slot="content"`; overlay components inherit it and only mark their
+  panel-internal parts.
+- Coverage is enforced by `src/lib/data-slot-coverage.test.ts`: every component
+  directory (except the no-DOM providers) must reference `data-slot` in its
+  source. New components join the list by marking their parts, not by extending
+  the skip list.
+
 ## Exports
 
 ### Component barrel export

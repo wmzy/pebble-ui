@@ -1012,6 +1012,7 @@ export function FloatingPanel({
 
   return (
     <div
+      data-slot='content'
       {...(behavior.dataState !== undefined && {
         'data-state': behavior.dataState,
       })}

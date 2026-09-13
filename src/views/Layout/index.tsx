@@ -350,6 +350,11 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
         </Disclosure>
       </ListItem>
       <ListItem>
+        <Link className={navLink} to='/tokens' onClick={onNavigate}>
+          Tokens
+        </Link>
+      </ListItem>
+      <ListItem>
         <Disclosure
           open={true}
           summary='Components'
@@ -425,6 +430,11 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
       <ListItem>
         <Link className={navLink} to='/changelog' onClick={onNavigate}>
           Changelog
+        </Link>
+      </ListItem>
+      <ListItem>
+        <Link className={navLink} to='/help' onClick={onNavigate}>
+          Help
         </Link>
       </ListItem>
       <ListItem>

@@ -139,6 +139,34 @@ const base = css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  /* Forced-colors: the UA flattens the muted rail and the primary
+     thumb onto Canvas — the slider would disappear. The single-mode
+     input paints its own rail in CanvasText with Highlight thumbs
+     (Windows-native slider rendering); the thumb pseudo rules also
+     cover the range-mode stacked inputs (rangeInput's transparent
+     background wins over the restated rail color there — the rail
+     span below paints it). The thumb box-shadow focus rings are
+     dropped by the UA, so focus moves to an input-level Highlight
+     outline. */
+  @media (forced-colors: active) {
+    background: CanvasText;
+
+    &::-webkit-slider-thumb {
+      background: Highlight;
+      border-color: HighlightText;
+    }
+
+    &::-moz-range-thumb {
+      background: Highlight;
+      border-color: HighlightText;
+    }
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+  }
 `;
 
 /**
@@ -178,6 +206,13 @@ const rangeRail = css`
   height: 6px;
   border-radius: var(--haze-radius-full);
   background: var(--haze-color-bg-muted);
+
+  /* Forced-colors: the muted rail flattens onto Canvas — restated as
+     a CanvasText track line (rangeInput's transparent background
+     keeps the stacked inputs from double-painting it). */
+  @media (forced-colors: active) {
+    background: CanvasText;
+  }
 `;
 
 /** Progress between the thumbs; positioned with logical properties so
@@ -188,6 +223,13 @@ const rangeFill = css`
   height: 6px;
   border-radius: var(--haze-radius-full);
   background: var(--haze-color-primary);
+
+  /* Forced-colors: the primary fill flattens onto Canvas — restated
+     as Highlight so the selected range stays visible over the
+     CanvasText rail. */
+  @media (forced-colors: active) {
+    background: Highlight;
+  }
 `;
 
 /**
@@ -293,6 +335,11 @@ const markTick = css`
   height: 4px;
   border-radius: var(--haze-radius-full);
   background: var(--haze-color-text-muted);
+
+  /* Forced-colors: the muted tick flattens onto Canvas. */
+  @media (forced-colors: active) {
+    background: CanvasText;
+  }
 `;
 
 const markLabel = css`
@@ -331,6 +378,15 @@ const tooltipBubble = css`
   &[data-state='open'] {
     opacity: 1;
     visibility: visible;
+  }
+
+  /* Forced-colors: the dark bubble and its inverse text flatten onto
+     Canvas/CanvasText — restated with a CanvasText boundary so the
+     value stays readable as a chip. */
+  @media (forced-colors: active) {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
   }
 `;
 
@@ -498,6 +554,7 @@ export default function SliderCore({
     const open = activeThumb === thumb;
     return (
       <span
+        data-slot='tooltip'
         aria-hidden='true'
         data-state={open ? 'open' : 'closed'}
         x-class={[tooltipBubble, vertical && tooltipBubbleVertical]}
@@ -518,6 +575,7 @@ export default function SliderCore({
       : markKeys.map((mark) => (
           <span
             key={mark}
+            data-slot='mark'
             x-class={[markBase, vertical ? markVertical : markHorizontal]}
             style={
               vertical
@@ -526,8 +584,8 @@ export default function SliderCore({
             }
             onClick={() => commit(mark)}
           >
-            <span x-class={markTick} />
-            <span x-class={markLabel}>{marks?.[mark] ?? null}</span>
+            <span data-slot='mark-tick' x-class={markTick} />
+            <span data-slot='mark-label' x-class={markLabel}>{marks?.[mark] ?? null}</span>
           </span>
         ));
 
@@ -543,6 +601,7 @@ export default function SliderCore({
       <input
         ref={ref}
         type='range'
+        data-slot='input'
         x-class={[base, vertical && verticalInput, className]}
         value={single}
         aria-label={singleLabel}
@@ -568,6 +627,7 @@ export default function SliderCore({
     }
     return (
       <span
+        data-slot='slider'
         x-class={[
           vertical ? verticalWrapper : singleWrapper,
           marks !== undefined && (vertical ? marksVertical : marksHorizontal),
@@ -624,6 +684,7 @@ export default function SliderCore({
 
   return (
     <span
+      data-slot='slider'
       x-class={[
         rangeWrapper,
         vertical && verticalWrapper,
@@ -631,8 +692,9 @@ export default function SliderCore({
         className,
       ]}
     >
-      <span x-class={[rangeRail, vertical && verticalRail]} />
+      <span data-slot='track' x-class={[rangeRail, vertical && verticalRail]} />
       <span
+        data-slot='fill'
         x-class={[rangeFill, vertical && verticalFill]}
         style={
           vertical
@@ -649,6 +711,7 @@ export default function SliderCore({
       <input
         ref={ref}
         type='range'
+        data-slot='input'
         x-class={[base, rangeInput, vertical && verticalInput]}
         value={low}
         aria-label={thumbLabels[0]}
@@ -663,6 +726,7 @@ export default function SliderCore({
       />
       <input
         type='range'
+        data-slot='input'
         x-class={[base, rangeInput, vertical && verticalInput]}
         value={high}
         aria-label={thumbLabels[1]}

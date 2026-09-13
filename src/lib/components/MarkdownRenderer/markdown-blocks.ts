@@ -20,19 +20,19 @@ export function parseMarkdown(src: string): string {
 
   // code blocks
   html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_m, lang, code) => {
-    return `<pre><code class="lang-${lang}">${escapeHtml((code as string).trim())}</code></pre>`;
+    return `<pre><code class="lang-${lang}" data-slot="code">${escapeHtml((code as string).trim())}</code></pre>`;
   });
 
   // inline code
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
   // headings
-  html = html.replace(/^######\s+(.+)$/gm, '<h6>$1</h6>');
-  html = html.replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>');
-  html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
-  html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+  html = html.replace(/^######\s+(.+)$/gm, '<h6 data-slot="heading">$1</h6>');
+  html = html.replace(/^#####\s+(.+)$/gm, '<h5 data-slot="heading">$1</h5>');
+  html = html.replace(/^####\s+(.+)$/gm, '<h4 data-slot="heading">$1</h4>');
+  html = html.replace(/^###\s+(.+)$/gm, '<h3 data-slot="heading">$1</h3>');
+  html = html.replace(/^##\s+(.+)$/gm, '<h2 data-slot="heading">$1</h2>');
+  html = html.replace(/^#\s+(.+)$/gm, '<h1 data-slot="heading">$1</h1>');
 
   // bold and italic
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
@@ -43,13 +43,13 @@ export function parseMarkdown(src: string): string {
   html = html.replace(/^>\s+(.+)$/gm, '<blockquote>$1</blockquote>');
 
   // unordered list
-  html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
-  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+  html = html.replace(/^[-*]\s+(.+)$/gm, '<li data-slot="item">$1</li>');
+  html = html.replace(/((?:<li [^>]*>.*<\/li>\n?)+)/g, '<ul data-slot="list">$1</ul>');
 
   // ordered list
-  html = html.replace(/^\d+\.\s+(.+)$/gm, '<oli>$1</oli>');
-  html = html.replace(/((?:<oli>.*<\/oli>\n?)+)/g, (m) => {
-    return '<ol>' + m.replace(/<\/?oli>/g, (t) => t.replace('oli', 'li')) + '</ol>';
+  html = html.replace(/^\d+\.\s+(.+)$/gm, '<oli data-slot="item">$1</oli>');
+  html = html.replace(/((?:<oli [^>]*>.*<\/oli>\n?)+)/g, (m) => {
+    return '<ol data-slot="list">' + m.replace(/<\/?oli[^>]*>/g, (t) => t.replace('oli', 'li')) + '</ol>';
   });
 
   // horizontal rule

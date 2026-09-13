@@ -98,17 +98,17 @@ export default function ApprovalCard({
   const approveLabel = approveText ?? strings.approve;
   const denyLabel = denyText ?? strings.deny;
   return (
-    <div x-class={[card, className]}>
-      <div x-class={[header]}>{titleLabel}</div>
-      <div x-class={[body]}>
-        {description && <div x-class={[desc]}>{description}</div>}
-        {children && <div x-class={[content]}>{children}</div>}
+    <div data-slot='approval-card' x-class={[card, className]}>
+      <div data-slot='title' x-class={[header]}>{titleLabel}</div>
+      <div data-slot='body' x-class={[body]}>
+        {description && <div data-slot='description' x-class={[desc]}>{description}</div>}
+        {children && <div data-slot='content' x-class={[content]}>{children}</div>}
       </div>
-      <div x-class={[actions]}>
-        <button x-class={[btn, denyBtn]} type="button" onClick={onDeny}>
+      <div data-slot='actions' x-class={[actions]}>
+        <button data-slot='deny-button' x-class={[btn, denyBtn]} type="button" onClick={onDeny}>
           {denyLabel}
         </button>
-        <button x-class={[btn, approveBtn]} type="button" onClick={onApprove}>
+        <button data-slot='approve-button' x-class={[btn, approveBtn]} type="button" onClick={onApprove}>
           {approveLabel}
         </button>
       </div>

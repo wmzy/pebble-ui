@@ -154,7 +154,7 @@ export default function DropdownMenu({
         floating,
       }}
     >
-      <div x-class={[wrapper, className]}>
+      <div data-slot='dropdown-menu' x-class={[wrapper, className]}>
         {items !== undefined ? (
           <>
             <DropdownMenuTrigger>⋯</DropdownMenuTrigger>

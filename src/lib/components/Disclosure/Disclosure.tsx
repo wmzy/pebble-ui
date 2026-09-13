@@ -88,9 +88,9 @@ export default function Disclosure({
   }, [open]);
 
   return (
-    <details ref={ref} x-class={[details, className]}>
-      <summary className={summaryStyle}>{summary}</summary>
-      <div className={content}>{children}</div>
+    <details ref={ref} data-slot='disclosure' x-class={[details, className]}>
+      <summary data-slot='trigger' className={summaryStyle}>{summary}</summary>
+      <div data-slot='content' className={content}>{children}</div>
     </details>
   );
 }

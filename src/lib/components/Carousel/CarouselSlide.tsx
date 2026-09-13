@@ -16,6 +16,7 @@ const slide = css`
 export default function CarouselSlide({className, children, ...rest}: CarouselSlideProps) {
   return (
     <div
+      data-slot='slide'
       x-class={[slide, className]}
       role='group'
       aria-roledescription='slide'

@@ -57,6 +57,7 @@ export default forwardRef<HTMLAnchorElement, NavLinkProps>(function NavLink(
   return (
     <a
       ref={ref}
+      data-slot='nav-link'
       x-class={[link, isActive && activeLink, className]}
       href={href}
       aria-current={isActive ? 'page' : ariaCurrent}

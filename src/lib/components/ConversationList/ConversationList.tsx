@@ -16,7 +16,7 @@ const list = css`
 
 export default function ConversationList({ children, className }: ConversationListProps) {
   return (
-    <div x-class={[list, className]}>
+    <div data-slot='conversation-list' x-class={[list, className]}>
       {children}
     </div>
   );

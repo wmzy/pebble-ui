@@ -42,6 +42,10 @@ export default function App() {
             component: () => import('./Guides/Migration')
           },
           {
+            path: '/tokens',
+            component: () => import('./Tokens')
+          },
+          {
             path: '/components',
             component: () => import('./ComponentDoc')
           },
@@ -60,6 +64,10 @@ export default function App() {
           {
             path: '/changelog',
             component: () => import('./Changelog')
+          },
+          {
+            path: '/help',
+            component: () => import('./Help')
           },
           {
             path: '/about',

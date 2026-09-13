@@ -115,6 +115,20 @@ const overlay = css`
       opacity: 0;
     }
   }
+
+  /* Forced-colors: the panel's opaque background flattens onto Canvas
+     and the drawer declares border:none — an open drawer would blend
+     into the page. A CanvasText boundary separates the panel from the
+     Canvas behind it; the squashed focus ring is replaced by a
+     Highlight outline. */
+  @media (forced-colors: active) {
+    border: 1px solid CanvasText;
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
 `;
 
 /* physical: placement is a physical API ('left'/'right' edge of the
@@ -245,6 +259,7 @@ export default function Drawer({
   return (
     <dialog
       ref={setDialogRef}
+      data-slot='content'
       data-state={open ? 'open' : 'closed'}
       x-class={[overlay, placements[placement], className]}
       onClose={() => {

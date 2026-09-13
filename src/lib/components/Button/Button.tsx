@@ -33,6 +33,7 @@ export default function Button({
   return (
     <button
       type='button'
+      data-slot='button'
       x-class={[base, variants[variant], sizeClass, className]}
       {...rest}
     />

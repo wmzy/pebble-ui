@@ -122,20 +122,22 @@ export default function Descriptions({
   const sizeClass = size === 'sm' ? sizeSm : sizeMd;
 
   return (
-    <div x-class={[root, className]} style={style} {...rest}>
-      {title && <div x-class={[titleStyle]}>{title}</div>}
+    <div data-slot="descriptions" x-class={[root, className]} style={style} {...rest}>
+      {title && <div data-slot="title" x-class={[titleStyle]}>{title}</div>}
       <dl
+        data-slot="list"
         x-class={[bordered ? listBordered : listDefault]}
         style={{ gridTemplateColumns: `repeat(${columnCount}, auto minmax(0, 1fr))` }}
       >
         {items.map(({ key, label, children, span = 1 }) => {
           const spanned = Math.min(Math.max(span, 1), columnCount);
           return (
-            <div x-class={[group]} key={key}>
-              <dt x-class={[labelCell, sizeClass, bordered && labelCellBordered]}>
+            <div data-slot="group" x-class={[group]} key={key}>
+              <dt data-slot="label" x-class={[labelCell, sizeClass, bordered && labelCellBordered]}>
                 {label}
               </dt>
               <dd
+                data-slot="content"
                 x-class={[valueCell, sizeClass, bordered && valueCellBordered]}
                 style={{ gridColumn: `span ${spanned * 2 - 1}` }}
               >

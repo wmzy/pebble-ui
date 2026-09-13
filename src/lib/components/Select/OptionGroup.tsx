@@ -16,7 +16,7 @@ type OptionGroupProps = {
  */
 export default function OptionGroup({ label, children, ...rest }: OptionGroupProps) {
   return (
-    <optgroup label={label} {...rest}>
+    <optgroup label={label} data-slot='group' {...rest}>
       {children}
     </optgroup>
   );

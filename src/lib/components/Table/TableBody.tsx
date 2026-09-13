@@ -16,7 +16,7 @@ const body = css`
 `;
 
 export default function TableBody({ className, children }: TableBodyProps) {
-  return <tbody x-class={[body, className]}>{children}</tbody>;
+  return <tbody data-slot="body" x-class={[body, className]}>{children}</tbody>;
 }
 
 export type { TableBodyProps };

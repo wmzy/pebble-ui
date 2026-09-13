@@ -326,7 +326,7 @@ function highlightLabel(label: string, query: string): ReactNode {
   return (
     <>
       {label.slice(0, index)}
-      <mark x-class={[matchMark]}>{label.slice(index, index + query.length)}</mark>
+      <mark data-slot='match' x-class={[matchMark]}>{label.slice(index, index + query.length)}</mark>
       {label.slice(index + query.length)}
     </>
   );
@@ -642,6 +642,7 @@ export default function Combobox({
   const triggerInput = (
     <input
       ref={setInputRef}
+      data-slot='input'
       role="combobox"
       style={multiple ? undefined : floating.triggerStyle}
       aria-expanded={open}
@@ -667,6 +668,7 @@ export default function Combobox({
       {multiple ? (
         <div
           ref={boxRef}
+          data-slot='trigger'
           style={floating.triggerStyle}
           x-class={multiBox}
           // Open on click (via the suppression-aware toggle), never on
@@ -680,6 +682,7 @@ export default function Combobox({
           {selected.map((v) => (
             <span
               key={v}
+              data-slot='item'
               // Swallow the box's toggle so removing a chip never closes
               // (or opens) the panel. Pointerdown still bubbles: floating
               // attributes the gesture to the trigger, keeping light
@@ -717,6 +720,7 @@ export default function Combobox({
         {loading ? (
           <div
             role="option"
+            data-slot='loading'
             aria-selected={false}
             aria-disabled="true"
             x-class={[stateRow]}
@@ -726,6 +730,7 @@ export default function Combobox({
         ) : listItems.length === 0 ? (
           <div
             role="option"
+            data-slot='empty'
             aria-selected={false}
             aria-disabled="true"
             x-class={[stateRow]}
@@ -751,7 +756,7 @@ export default function Combobox({
                       startIndex: s.rows[0]?.index ?? 0,
                       key: s.key,
                       render: () => (
-                        <div x-class={[groupHeadingText]}>{s.label}</div>
+                        <div data-slot='group-label' x-class={[groupHeadingText]}>{s.label}</div>
                       ),
                     }))
                 : undefined

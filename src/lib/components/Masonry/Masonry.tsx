@@ -76,18 +76,20 @@ export default function Masonry({
 
   return (
     <div
+      data-slot="masonry"
       x-class={[base, className]}
       style={{ gap: `var(--haze-space-${gap})` }}
       {...rest}
     >
       {distribution.map((indices, columnIndex) => (
-        <div key={columnIndex} x-class={[column]}>
+        <div key={columnIndex} data-slot="column" x-class={[column]}>
           {indices.map((index) => {
             const child = items[index];
             if (child == null) return null;
             return (
               <div
                 key={isValidElement(child) ? child.key : index}
+                data-slot="item"
                 x-class={[item]}
               >
                 {child}

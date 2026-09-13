@@ -28,6 +28,7 @@ export default function TabPanel({
 
   return (
     <div
+      data-slot='tab-panel'
       role='tabpanel'
       id={`tabpanel-${value}`}
       x-class={[base, !isActive && hidden, className, classNames?.panel]}

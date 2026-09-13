@@ -20,6 +20,11 @@ const panel = css`
   border-radius: var(--haze-radius-lg);
   background: var(--haze-color-bg);
   box-shadow: var(--haze-shadow-lg);
+
+  /* Forced-colors: CanvasText boundary restated (see the Menu panel). */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
 `;
 
 /**

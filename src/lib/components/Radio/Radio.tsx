@@ -58,6 +58,33 @@ const radioInput = css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  /* Forced-colors: the UA flattens the checked dot onto Canvas — the
+     selection would vanish. The ring keeps a CanvasText boundary and
+     the dot renders CanvasText when checked (Windows-native radio
+     rendering); disabled radios render GrayText. The box-shadow focus
+     ring is dropped by the UA — a Highlight outline replaces it. */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+
+    &:checked::after {
+      background: CanvasText;
+    }
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 1;
+      border-color: GrayText;
+
+      &::after {
+        background: GrayText;
+      }
+    }
+  }
 `;
 
 const labelStyle = css`
@@ -80,10 +107,11 @@ export default function Radio({
   const ctx = useRadioContext();
 
   return (
-    <label x-class={[labelStyle, className]}>
+    <label data-slot='label' x-class={[labelStyle, className]}>
       <input
         ref={ref}
         type='radio'
+        data-slot='radio'
         className={radioInput}
         name={ctx?.name}
         value={value}

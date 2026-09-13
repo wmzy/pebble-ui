@@ -49,6 +49,18 @@ const item = css`
     box-shadow: inset 0 0 0 2px var(--haze-color-focus-ring);
   }
 
+  /* Forced-colors: the inset focus ring is a box-shadow — dropped by
+     the UA — and the subtle background flattens onto Canvas, so the
+     keyboard-focused item would vanish. An inset Highlight outline
+     restores the focus indication (the selection dot draws in
+     CanvasText through currentColor). */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -76,23 +88,24 @@ export default function MenuRadioItem({
     <button
       type='button'
       role='menuitemradio'
+      data-slot='menu-radio-item'
       aria-checked={checked}
       tabIndex={-1}
       x-class={[item, danger && menuItemDanger, className]}
       disabled={disabled}
       onClick={select}
     >
-      <span x-class={menuItemIndicator} aria-hidden='true'>
+      <span data-slot='indicator' x-class={menuItemIndicator} aria-hidden='true'>
         {checked && (
           <svg width='1em' height='1em' viewBox='0 0 16 16' fill='none'>
             <circle cx='8' cy='8' r='3.5' fill='currentColor' />
           </svg>
         )}
       </span>
-      {icon !== undefined && <span x-class={menuItemIcon}>{icon}</span>}
+      {icon !== undefined && <span data-slot='icon' x-class={menuItemIcon}>{icon}</span>}
       {children}
       {kbdLabel !== undefined && (
-        <span x-class={menuItemKbd} aria-hidden='true'>{kbdLabel}</span>
+        <span data-slot='kbd' x-class={menuItemKbd} aria-hidden='true'>{kbdLabel}</span>
       )}
     </button>
   );

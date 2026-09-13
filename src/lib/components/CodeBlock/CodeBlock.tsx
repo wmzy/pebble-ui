@@ -104,13 +104,13 @@ export default function CodeBlock({ children, language, highlight, className }: 
         : null;
 
   return (
-    <div x-class={[block, className]}>
-      {language && <span x-class={[lang]}>{language}</span>}
-      <pre x-class={[pre]}>
+    <div data-slot="code-block" x-class={[block, className]}>
+      {language && <span data-slot="language-label" x-class={[lang]}>{language}</span>}
+      <pre data-slot="code" x-class={[pre]}>
         {highlighted !== null ? (
-          <code dangerouslySetInnerHTML={{ __html: highlighted }} />
+          <code data-slot="code-text" dangerouslySetInnerHTML={{ __html: highlighted }} />
         ) : (
-          <code>{children}</code>
+          <code data-slot="code-text">{children}</code>
         )}
       </pre>
     </div>

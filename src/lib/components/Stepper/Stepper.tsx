@@ -31,7 +31,7 @@ export default function Stepper({
 
   return (
     <StepperProvider value={{ activeStep, setActiveStep, totalSteps }}>
-      <div x-class={[stepper, className]} role="list">
+      <div data-slot='stepper' x-class={[stepper, className]} role="list">
         {Children.map(children, (child, index) =>
           isValidElement(child) ? cloneElement(child as React.ReactElement<{ index?: number }>, { index }) : child
         )}

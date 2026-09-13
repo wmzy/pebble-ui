@@ -392,6 +392,7 @@ export default function TreeItem({
     <div>
       <div
         role='treeitem'
+        data-slot='item'
         tabIndex={tabIndex}
         data-tree-key={node.key}
         aria-selected={selected}
@@ -413,6 +414,7 @@ export default function TreeItem({
         {indentLevels.map((indentItem, i) => (
           <span
             key={i}
+            data-slot='indent'
             x-class={[indentLine, indentItem.showLine && indentLineWithBorder]}
           />
         ))}
@@ -420,6 +422,7 @@ export default function TreeItem({
         {!isLeaf && (
           <span
             role='button'
+            data-slot='expand-button'
             aria-label={expanded ? strings.collapse : strings.expand}
             x-class={[switcher, expanded && switcherExpanded]}
             onClick={(e) => {
@@ -428,7 +431,7 @@ export default function TreeItem({
             }}
           >
             {loading ? (
-              <span className={loadingIcon}>
+              <span data-slot='spinner' className={loadingIcon}>
                 {loadingIconProp ?? <SpinnerIcon />}
               </span>
             ) : switcherIcon ? (
@@ -439,11 +442,12 @@ export default function TreeItem({
           </span>
         )}
 
-        {isLeaf && <span x-class={indentLine} />}
+        {isLeaf && <span data-slot='indent' x-class={indentLine} />}
 
         {checkable && (
           <span
             role='checkbox'
+            data-slot='checkbox'
             aria-checked={
               checked === 'halfChecked' ? 'mixed' : checked === 'checked'
             }
@@ -465,7 +469,7 @@ export default function TreeItem({
         )}
 
         {(showIcon || iconContent) && (
-          <span className={nodeIcon}>
+          <span data-slot='icon' className={nodeIcon}>
             {iconContent ??
               (isLeaf ? (
                 <FileIcon />
@@ -477,11 +481,12 @@ export default function TreeItem({
           </span>
         )}
 
-        <span className={title} id={titleId}>{titleContent}</span>
+        <span data-slot='title' className={title} id={titleId}>{titleContent}</span>
 
         {loadFailed && (
           <span
             role='button'
+            data-slot='retry-button'
             x-class={loadFailedNote}
             onClick={(e) => {
               e.stopPropagation();

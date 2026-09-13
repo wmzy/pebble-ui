@@ -22,17 +22,22 @@ import {
 import { MatchText } from './SidebarSearch';
 import { ALIASES, COMPONENT_GROUPS, type ComponentItem } from './component-groups';
 import { filterComponents } from './search-score';
+import { MAX_DOC_RESULTS, SEARCH_INDEX, searchDocs } from './search-index';
 
 /*
  * Global ⌘K/Ctrl+K command palette for the docs header: opens via the
- * search button or the `mod+k` hotkey, fuzzy-filters every component by
- * name/alias (same 4-tier scoring as the sidebar search — ./search-score)
- * and navigates to the component's doc route through the app router.
+ * search button or the `mod+k` hotkey and navigates through the app
+ * router.
  *
  * Filtering is external (`shouldFilter={false}` on Command) so the ranked
- * order survives: an empty query keeps the grouped sidebar structure,
- * a query renders one flat rank-ordered list with the group as trailing
- * label on each row.
+ * order survives. An empty query keeps the grouped sidebar structure.
+ * A query renders two tiers: components first — fuzzy-filtered by
+ * name/alias with the same 4-tier scoring as the sidebar search
+ * (./search-score) — then a trailing "Docs" group of full-text hits from
+ * the build-time index (./search-index.ts: pages, demo section titles,
+ * prop descriptions), substring-matched case-insensitively. Both tiers
+ * are options of the single CommandList listbox, so the roving arrow
+ * keys and Enter cross them seamlessly.
  */
 
 type PaletteEntry = { item: ComponentItem; group: string };
@@ -86,6 +91,23 @@ const matchGroup = css`
   color: var(--haze-color-text-muted);
   font-size: var(--haze-text-xs);
   white-space: nowrap;
+`;
+
+/* Docs-tier row: highlighted label with the owner/description context as
+ * a muted, single-line-ellipsized second line. */
+const docRow = css`
+  display: flex;
+  flex-direction: column;
+  gap: var(--haze-space-1);
+  min-width: 0;
+`;
+
+const docSub = css`
+  color: var(--haze-color-text-muted);
+  font-size: var(--haze-text-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 /* Mirrors CommandList's own empty option (shouldFilter={false} disables
@@ -162,10 +184,15 @@ export default function CommandPalette() {
       ),
     [query]
   );
+  const docsMatches = useMemo(
+    () => (searching ? searchDocs(SEARCH_INDEX, query, MAX_DOC_RESULTS) : []),
+    [query, searching]
+  );
 
+  // Full app route ('/components/button', '/guides/dark-mode', …).
   const go = useCallback(
     (route: string) => {
-      void navigate(router, `/components/${route}`);
+      void navigate(router, route);
     },
     [router]
   );
@@ -197,14 +224,14 @@ export default function CommandPalette() {
           <CommandInput ref={inputRef} placeholder='Search components…' />
           <CommandList>
             {searching ? (
-              matches.length > 0 ? (
-                matches.map((match) => {
+              <>
+                {matches.map((match) => {
                   const entry = ENTRY_BY_NAME.get(match.name);
                   if (!entry) return null;
                   return (
                     <CommandItem
                       key={entry.item.route}
-                      onSelect={() => go(entry.item.route)}
+                      onSelect={() => go(`/components/${entry.item.route}`)}
                     >
                       <span className={matchRow}>
                         <MatchText
@@ -215,24 +242,45 @@ export default function CommandPalette() {
                       </span>
                     </CommandItem>
                   );
-                })
-              ) : (
-                <div
-                  role='option'
-                  aria-selected={false}
-                  aria-disabled='true'
-                  className={emptyRow}
-                >
-                  No components match “{query.trim()}”
-                </div>
-              )
+                })}
+                {docsMatches.length > 0 && (
+                  <CommandGroup heading='Docs'>
+                    {docsMatches.map((hit, i) => (
+                      <CommandItem
+                        key={`${hit.entry.route}#${hit.entry.label}#${i}`}
+                        onSelect={() => go(hit.entry.route)}
+                      >
+                        <span className={docRow}>
+                          <MatchText
+                            text={hit.entry.label}
+                            indices={hit.indices}
+                          />
+                          {hit.entry.sublabel !== undefined && (
+                            <span className={docSub}>{hit.entry.sublabel}</span>
+                          )}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {matches.length === 0 && docsMatches.length === 0 && (
+                  <div
+                    role='option'
+                    aria-selected={false}
+                    aria-disabled='true'
+                    className={emptyRow}
+                  >
+                    No results match “{query.trim()}”
+                  </div>
+                )}
+              </>
             ) : (
               COMPONENT_GROUPS.map((group) => (
                 <CommandGroup key={group.group} heading={group.group}>
                   {group.items.map((item) => (
                     <CommandItem
                       key={item.route}
-                      onSelect={() => go(item.route)}
+                      onSelect={() => go(`/components/${item.route}`)}
                     >
                       {item.name}
                     </CommandItem>

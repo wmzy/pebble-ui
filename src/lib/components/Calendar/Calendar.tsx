@@ -997,6 +997,7 @@ export default function Calendar({
   const monthTitle = (
     <button
       ref={monthTitleRef}
+      data-slot='title'
       type='button'
       x-class={[titleBtn, headerTitle]}
       aria-haspopup='grid'
@@ -1009,6 +1010,7 @@ export default function Calendar({
   const yearTitle = (
     <button
       ref={yearTitleRef}
+      data-slot='title'
       type='button'
       x-class={[titleBtn, headerTitle]}
       aria-haspopup='grid'
@@ -1044,20 +1046,21 @@ export default function Calendar({
     return (
       <div
         ref={paneRef}
+        data-slot='month'
         x-class={[grid]}
         style={showWeekColumn ? { gridTemplateColumns: 'repeat(8, 1fr)' } : undefined}
         role='grid'
         aria-label={paneLabel}
         onKeyDown={handleKeyDown}
       >
-        <div role='row' x-class={[rowContents]}>
+        <div role='row' data-slot='weekday-row' x-class={[rowContents]}>
           {showWeekColumn && (
-            <span role='columnheader' x-class={[weekday]}>
+            <span role='columnheader' data-slot='week-number' x-class={[weekday]}>
               {strings.weekNumber}
             </span>
           )}
           {weekdayLabels.map((label, i) => (
-            <span key={i} role='columnheader' x-class={[weekday]}>
+            <span key={i} role='columnheader' data-slot='weekday' x-class={[weekday]}>
               {label}
             </span>
           ))}
@@ -1081,6 +1084,7 @@ export default function Calendar({
               {showWeekColumn && (
                 <span
                   role='gridcell'
+                  data-slot='week-number'
                   x-class={[weekNumber, rowSelected && weekNumberSelected]}
                 >
                   {rowWeek.week}
@@ -1105,6 +1109,7 @@ export default function Calendar({
                   >
                     <button
                       type='button'
+                      data-slot='day'
                       data-haze-day={dateStr}
                       x-class={[
                         dayBtn,
@@ -1156,6 +1161,7 @@ export default function Calendar({
   ) => (
     <div
       ref={quickGridRef}
+      data-slot='year-grid'
       x-class={[quickGrid]}
       role='grid'
       aria-label={strings.selectYear}
@@ -1176,6 +1182,7 @@ export default function Calendar({
               >
                 <button
                   type='button'
+                  data-slot='year-cell'
                   data-haze-year={year}
                   x-class={[dayBtn, current && daySelected]}
                   disabled={isYearCellDisabled(year)}
@@ -1204,8 +1211,9 @@ export default function Calendar({
   const yearsDrillView =
     panelView === 'years' ? (
       <div x-class={[quickSelect]} onKeyDown={onQuickKeyDown}>
-        <div x-class={[quickToolbar]}>
+        <div data-slot='toolbar' x-class={[quickToolbar]}>
           <button
+            data-slot='prev'
             type='button'
             x-class={[headerBtn]}
             onClick={() => setYearsAnchor((year) => year - 10)}
@@ -1213,10 +1221,11 @@ export default function Calendar({
           >
             ‹
           </button>
-          <span x-class={[headerTitle]}>
+          <span data-slot='title' x-class={[headerTitle]}>
             {yearsDecadeStart} – {yearsDecadeStart + 11}
           </span>
           <button
+            data-slot='next'
             type='button'
             x-class={[headerBtn]}
             onClick={() => setYearsAnchor((year) => year + 10)}
@@ -1237,8 +1246,9 @@ export default function Calendar({
   const monthsDrillView =
     panelView === 'months' ? (
       <div x-class={[quickSelect]} onKeyDown={onQuickKeyDown}>
-        <div x-class={[quickToolbar]}>
+        <div data-slot='toolbar' x-class={[quickToolbar]}>
           <button
+            data-slot='prev'
             type='button'
             x-class={[headerBtn]}
             onClick={() => setQuickYear((year) => year - 1)}
@@ -1249,6 +1259,7 @@ export default function Calendar({
           {/* The year drills into a decade grid (the picker="year"
               layout); picking a year lands back on this month grid. */}
           <button
+            data-slot='title'
             type='button'
             x-class={[titleBtn, headerTitle]}
             aria-haspopup='grid'
@@ -1257,6 +1268,7 @@ export default function Calendar({
             {quickYear}
           </button>
           <button
+            data-slot='next'
             type='button'
             x-class={[headerBtn]}
             onClick={() => setQuickYear((year) => year + 1)}
@@ -1267,6 +1279,7 @@ export default function Calendar({
         </div>
         <div
           ref={quickGridRef}
+          data-slot='month-grid'
           x-class={[quickGrid]}
           role='grid'
           aria-label={strings.selectMonth}
@@ -1290,6 +1303,7 @@ export default function Calendar({
                   >
                     <button
                       type='button'
+                      data-slot='month-cell'
                       data-haze-month={month}
                       x-class={[dayBtn, current && daySelected]}
                       onClick={() => chooseMonth(month)}
@@ -1369,6 +1383,7 @@ export default function Calendar({
     ) : picker === 'month' ? (
       <div
         ref={modeGridRef}
+        data-slot='month-grid'
         x-class={[quickGrid]}
         role='grid'
         aria-label={strings.selectMonth}
@@ -1392,6 +1407,7 @@ export default function Calendar({
                 >
                   <button
                     type='button'
+                    data-slot='month-cell'
                     data-haze-month={month}
                     x-class={[dayBtn, selected && daySelected]}
                     disabled={isMonthCellDisabled(viewYear, month)}
@@ -1417,6 +1433,7 @@ export default function Calendar({
     ) : picker === 'quarter' ? (
       <div
         ref={modeGridRef}
+        data-slot='quarter-grid'
         x-class={[quarterGrid]}
         role='grid'
         aria-label={strings.selectQuarter}
@@ -1438,6 +1455,7 @@ export default function Calendar({
               >
                 <button
                   type='button'
+                  data-slot='quarter-cell'
                   data-haze-quarter={quarter}
                   x-class={[dayBtn, selected && daySelected]}
                   disabled={isQuarterCellDisabled(viewYear, quarter)}
@@ -1462,6 +1480,7 @@ export default function Calendar({
     ) : (
       <div
         ref={modeGridRef}
+        data-slot='year-grid'
         x-class={[quickGrid]}
         role='grid'
         aria-label={strings.selectYear}
@@ -1482,6 +1501,7 @@ export default function Calendar({
                 >
                   <button
                     type='button'
+                    data-slot='year-cell'
                     data-haze-year={year}
                     x-class={[dayBtn, selected && daySelected]}
                     disabled={isYearCellDisabled(year)}
@@ -1505,9 +1525,10 @@ export default function Calendar({
     );
 
     return (
-      <div ref={rootRef} x-class={[calendarWrapper, className]} {...rest}>
-        <div x-class={[header]}>
+      <div ref={rootRef} data-slot='calendar' x-class={[calendarWrapper, className]} {...rest}>
+        <div data-slot='header' x-class={[header]}>
           <button
+            data-slot='prev'
             type='button'
             x-class={[headerBtn]}
             onClick={() =>
@@ -1520,11 +1541,11 @@ export default function Calendar({
             ‹
           </button>
           {drilled ? (
-            <span x-class={[headerTitle]}>
+            <span data-slot='title' x-class={[headerTitle]}>
               {modeYearsDecadeStart} – {modeYearsDecadeStart + 11}
             </span>
           ) : picker === 'year' ? (
-            <span x-class={[headerTitle]}>
+            <span data-slot='title' x-class={[headerTitle]}>
               {decadeStart} – {decadeStart + 11}
             </span>
           ) : (
@@ -1532,6 +1553,7 @@ export default function Calendar({
                 date mode's year title does the same from its header). */
             <button
               ref={yearTitleRef}
+              data-slot='title'
               type='button'
               x-class={[titleBtn, headerTitle]}
               aria-haspopup='grid'
@@ -1541,8 +1563,9 @@ export default function Calendar({
               {viewYear}
             </button>
           )}
-          <span x-class={[headerTrailing]}>
+          <span data-slot='actions' x-class={[headerTrailing]}>
             <button
+              data-slot='today-button'
               type='button'
               x-class={[headerBtn]}
               onClick={() => {
@@ -1553,6 +1576,7 @@ export default function Calendar({
               {strings.today}
             </button>
             <button
+              data-slot='next'
               type='button'
               x-class={[headerBtn]}
               onClick={() =>
@@ -1572,9 +1596,10 @@ export default function Calendar({
   }
 
   return (
-    <div ref={rootRef} x-class={[calendarWrapper, className]} {...rest}>
-      <div x-class={[header]}>
+    <div ref={rootRef} data-slot='calendar' x-class={[calendarWrapper, className]} {...rest}>
+      <div data-slot='header' x-class={[header]}>
         <button
+          data-slot='prev'
           type='button'
           x-class={[headerBtn]}
           onClick={goPrevMonth}
@@ -1599,11 +1624,12 @@ export default function Calendar({
             </>
           )}
         </span>
-        <span x-class={[headerTrailing]}>
-          <button type='button' x-class={[headerBtn]} onClick={goToday}>
+        <span data-slot='actions' x-class={[headerTrailing]}>
+          <button data-slot='today-button' type='button' x-class={[headerBtn]} onClick={goToday}>
             {strings.today}
           </button>
           <button
+            data-slot='next'
             type='button'
             x-class={[headerBtn]}
             onClick={goNextMonth}
@@ -1617,17 +1643,17 @@ export default function Calendar({
         ? (yearsDrillView ?? monthsDrillView)
         : months === 2
           ? (
-              <div x-class={[monthPanels]}>
-                <div x-class={[monthPanel]}>
+              <div data-slot='months' x-class={[monthPanels]}>
+                <div data-slot='month-panel' x-class={[monthPanel]}>
                   {renderMonthPane(
                     { year: viewYear, month: viewMonth },
                     gridRef,
                     handleGridKeyDown
                   )}
                 </div>
-                <div x-class={[monthPanel]}>
-                  <div x-class={[paneHeader]}>
-                    <span x-class={[headerTitle]}>
+                <div data-slot='month-panel' x-class={[monthPanel]}>
+                  <div data-slot='header' x-class={[paneHeader]}>
+                    <span data-slot='title' x-class={[headerTitle]}>
                       {titleFormatter.format(
                         new Date(secondPane.year, secondPane.month)
                       )}

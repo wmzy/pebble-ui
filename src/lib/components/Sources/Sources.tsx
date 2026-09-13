@@ -211,13 +211,14 @@ export default function Sources({
   );
   if (compact) {
     return (
-      <nav aria-label={resolvedLabel} x-class={[compactNav, className]} {...rest}>
+      <nav data-slot='sources' aria-label={resolvedLabel} x-class={[compactNav, className]} {...rest}>
         {items.map((source, index) => {
           const number = index + 1;
           const badgeLabel = compactBadgeLabel(source.title, number);
           return source.url ? (
             <a
               key={source.id}
+              data-slot='source-item'
               href={source.url}
               target='_blank'
               rel='noopener noreferrer'
@@ -227,7 +228,7 @@ export default function Sources({
               [{number}]
             </a>
           ) : (
-            <span key={source.id} aria-label={badgeLabel} x-class={[compactBadge]}>
+            <span key={source.id} data-slot='source-item' aria-label={badgeLabel} x-class={[compactBadge]}>
               [{number}]
             </span>
           );
@@ -244,7 +245,7 @@ export default function Sources({
   };
 
   return (
-    <ol aria-label={resolvedLabel} x-class={[list, className]} {...rest}>
+    <ol data-slot='sources' aria-label={resolvedLabel} x-class={[list, className]} {...rest}>
       {items.map((source, index) => {
         const number = index + 1;
         const snippetId = `${listId}-snippet-${source.id}`;
@@ -252,15 +253,17 @@ export default function Sources({
         return (
           <li
             key={source.id}
+            data-slot='source-item'
             data-haze-sources-item=''
             data-state={itemExpanded ? 'expanded' : 'collapsed'}
             x-class={[item]}
           >
-            <span x-class={[badge]} aria-hidden='true'>
+            <span data-slot='index' x-class={[badge]} aria-hidden='true'>
               [{number}]
             </span>
             {source.url ? (
               <a
+                data-slot='link'
                 href={source.url}
                 target='_blank'
                 rel='noopener noreferrer'
@@ -269,12 +272,13 @@ export default function Sources({
                 {source.title}
               </a>
             ) : (
-              <span x-class={[title]}>{source.title}</span>
+              <span data-slot='title' x-class={[title]}>{source.title}</span>
             )}
             {source.snippet != null && (
               <>
                 <button
                   type='button'
+                  data-slot='expand-button'
                   aria-expanded={itemExpanded}
                   aria-controls={snippetId}
                   aria-label={itemExpanded ? resolvedCollapseLabel : resolvedExpandLabel}
@@ -285,6 +289,7 @@ export default function Sources({
                 </button>
                 <div
                   id={snippetId}
+                  data-slot='snippet'
                   x-class={[
                     snippetBase,
                     itemExpanded ? snippetShown : snippetHidden,

@@ -76,6 +76,7 @@ export default function TabList({ className, children }: TabListProps) {
   return (
     <div
       ref={listRef}
+      data-slot='tab-list'
       role='tablist'
       onKeyDown={handleKeyDown}
       x-class={[base, className, classNames?.list]}

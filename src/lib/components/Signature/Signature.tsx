@@ -336,8 +336,9 @@ export default function Signature({
 
   if (unsupported) {
     return (
-      <div x-class={[root, className]} {...rest}>
+      <div data-slot='signature' x-class={[root, className]} {...rest}>
         <div
+          data-slot='unsupported-notice'
           x-class={[unsupportedNotice]}
           style={{ width: `${width}px`, height: `${height}px` }}
           role='status'
@@ -349,10 +350,11 @@ export default function Signature({
   }
 
   return (
-    <div x-class={[root, className]} {...rest}>
-      <div x-class={[canvasFrame]}>
+    <div data-slot='signature' x-class={[root, className]} {...rest}>
+      <div data-slot='canvas-frame' x-class={[canvasFrame]}>
         <canvas
           ref={canvasRef}
+          data-slot='canvas'
           x-class={[canvasClass]}
           style={{ width: `${width}px`, height: `${height}px` }}
           data-disabled={disabled}
@@ -362,14 +364,16 @@ export default function Signature({
           onPointerCancel={endStroke}
         />
       </div>
-      <div x-class={[toolbar]}>
+      <div data-slot='actions' x-class={[toolbar]}>
         <button
           type='button'
+          data-slot='undo-button'
           x-class={[toolButton]}
           onClick={handleUndo}
           disabled={disabled || strokeCount === 0}
         >
           <svg
+            data-slot='icon'
             width='14'
             height='14'
             viewBox='0 0 24 24'
@@ -387,11 +391,13 @@ export default function Signature({
         </button>
         <button
           type='button'
+          data-slot='clear-button'
           x-class={[toolButton]}
           onClick={handleClear}
           disabled={disabled || strokeCount === 0}
         >
           <svg
+            data-slot='icon'
             width='14'
             height='14'
             viewBox='0 0 24 24'

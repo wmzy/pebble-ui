@@ -66,6 +66,21 @@ const btn = css`
     outline: none;
     box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
   }
+
+  /* Forced-colors: the box-shadow focus ring is dropped by the UA —
+     an inset Highlight outline replaces it; disabled pages drop the
+     dim and render GrayText. */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+
+    &:disabled {
+      opacity: 1;
+      color: GrayText;
+    }
+  }
 `;
 
 const activeBtn = css`
@@ -76,6 +91,21 @@ const activeBtn = css`
   &:hover:not(:disabled) {
     background: var(--haze-color-primary-hover);
     border-color: var(--haze-color-primary-hover);
+  }
+
+  /* Forced-colors: the primary fill flattens onto Canvas — the
+     current page would be indistinguishable from its siblings. The
+     Windows-native Highlight chip renders instead (held stable on
+     hover, which the UA would flatten back to Canvas). */
+  @media (forced-colors: active) {
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+
+    &:hover:not(:disabled) {
+      background: Highlight;
+      border-color: Highlight;
+    }
   }
 `;
 
@@ -106,6 +136,20 @@ const ellipsisJumpBtn = css`
     outline: none;
     box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
   }
+
+  /* Forced-colors: a transparent no-border button gets nothing from
+     the UA — an inset CanvasText outline adds the boundary without
+     shifting layout, upgrading to the Highlight ring on keyboard
+     focus. */
+  @media (forced-colors: active) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
 `;
 
 /* Shared secondary copy: showTotal summary, jumper affixes, simple-mode
@@ -130,6 +174,14 @@ const control = css`
     outline: none;
     box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
   }
+
+  /* Forced-colors: the box-shadow focus ring is dropped by the UA —
+     a Highlight outline replaces it. */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+    }
+  }
 `;
 
 const jumperInput = css`
@@ -148,6 +200,14 @@ const jumperInput = css`
   &:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
+  }
+
+  /* Forced-colors: the box-shadow focus ring is dropped by the UA —
+     a Highlight outline replaces it. */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+    }
   }
 `;
 
@@ -241,13 +301,14 @@ export default function Pagination({
     : [...baseOptions, pageSize].sort((a, b) => a - b);
 
   return (
-    <nav x-class={[nav, sizes[size], className]} {...rest}>
+    <nav data-slot='pagination' x-class={[nav, sizes[size], className]} {...rest}>
       {showTotal ? (
-        <span x-class={[auxText]}>
+        <span data-slot='total' x-class={[auxText]}>
           {showTotal(total, [rangeStart, rangeEnd])}
         </span>
       ) : null}
       <button
+        data-slot='prev'
         type="button"
         x-class={[btn]}
         disabled={page <= 1}
@@ -259,6 +320,7 @@ export default function Pagination({
       {simple ? (
         <>
           <input
+            data-slot='input'
             type="text"
             x-class={[jumperInput]}
             value={draft}
@@ -268,7 +330,7 @@ export default function Pagination({
               if (e.key === 'Enter') commitDraft();
             }}
           />
-          <span x-class={[auxText]}>/ {totalPages}</span>
+          <span data-slot='total' x-class={[auxText]}>/ {totalPages}</span>
         </>
       ) : (
         pages.map((p, i) =>
@@ -276,6 +338,7 @@ export default function Pagination({
             ellipsisJump ? (
               <button
                 key={`e${i}`}
+                data-slot='ellipsis'
                 type="button"
                 x-class={[ellipsis, ellipsisJumpBtn]}
                 aria-label={formatString(
@@ -294,11 +357,12 @@ export default function Pagination({
                 …
               </button>
             ) : (
-              <span key={`e${i}`} x-class={[ellipsis]}>…</span>
+              <span key={`e${i}`} data-slot='ellipsis' x-class={[ellipsis]}>…</span>
             )
           ) : (
             <button
               key={p}
+              data-slot='item'
               type="button"
               x-class={[btn, p === page && activeBtn]}
               aria-current={p === page ? 'page' : undefined}
@@ -310,6 +374,7 @@ export default function Pagination({
         )
       )}
       <button
+        data-slot='next'
         type="button"
         x-class={[btn]}
         disabled={page >= totalPages}
@@ -320,13 +385,14 @@ export default function Pagination({
       </button>
       {showSizeChanger ? (
         <select
+          data-slot='size-changer'
           x-class={[control]}
           value={String(pageSize)}
           aria-label={strings.sizeLabel}
           onChange={(e) => navigate(1, parseInt(e.target.value, 10))}
         >
           {sizeOptions.map((option) => (
-            <option key={option} value={String(option)}>
+            <option key={option} data-slot='option' value={String(option)}>
               {formatString(strings.sizeOption, { count: option })}
             </option>
           ))}
@@ -335,9 +401,10 @@ export default function Pagination({
       {showQuickJumper && !simple ? (
         <>
           {strings.jumperPrefix ? (
-            <span x-class={[auxText]}>{strings.jumperPrefix}</span>
+            <span data-slot='prefix' x-class={[auxText]}>{strings.jumperPrefix}</span>
           ) : null}
           <input
+            data-slot='input'
             type="text"
             x-class={[jumperInput]}
             value={draft}
@@ -348,7 +415,7 @@ export default function Pagination({
             }}
           />
           {strings.jumperSuffix ? (
-            <span x-class={[auxText]}>{strings.jumperSuffix}</span>
+            <span data-slot='suffix' x-class={[auxText]}>{strings.jumperSuffix}</span>
           ) : null}
         </>
       ) : null}

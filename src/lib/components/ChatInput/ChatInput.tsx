@@ -143,9 +143,10 @@ export default function ChatInput({
   };
 
   return (
-    <div x-class={[wrapper, className]}>
+    <div data-slot='chat-input' x-class={[wrapper, className]}>
       <textarea
         ref={ref}
+        data-slot='input'
         x-class={[textarea]}
         value={value}
         onChange={handleChange}
@@ -156,6 +157,7 @@ export default function ChatInput({
         rows={1}
       />
       <button
+        data-slot={generating ? 'stop-button' : 'send-button'}
         x-class={[sendBtn]}
         type="button"
         onClick={handleSend}

@@ -1,7 +1,7 @@
 # Haze UI — Full API Reference
 
-> Complete props reference for all 121 Haze UI components in one
-> file (224 type tables), generated from the library source. Do not
+> Complete props reference for all 122 Haze UI components in one
+> file (226 type tables), generated from the library source. Do not
 > edit by hand — regenerate with `node scripts/generate-llms-full.mjs`. For the
 > curated index with overviews, design tokens and architecture notes, see
 > [llms.txt](llms.txt).
@@ -338,7 +338,7 @@ import { Calendar } from 'haze-ui';
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `picker` | `CalendarPickerMode` | — |  |
+| `picker` | `CalendarPickerMode` | `'date'` | Granularity: 'date' (default), 'week' (whole-ISO-week rows, Monday-first grid, week column forced on), 'month', 'quarter' or 'year' |
 | `value` | `ControlOrValue<string>` | — |  |
 | `min` | `string` | — |  |
 | `max` | `string` | — |  |
@@ -350,7 +350,7 @@ import { Calendar } from 'haze-ui';
 | `rangeStart` | `string` | — | Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting |
 | `rangeEnd` | `string` | — | Highlight a range endpoint/in-between span (YYYY-MM-DD) without selecting |
 | `onSelect` | `(date: string) => void` | — |  |
-| `cellRender` | `CalendarCellRender` | — |  |
+| `cellRender` | `CalendarCellRender` | — | Appends custom content inside every picker cell (day numbers, month/quarter/year labels, drill-down grids) — receives the cell's civil date and the mode it renders in |
 
 ## Card
 
@@ -746,6 +746,19 @@ import { Command, CommandInput, CommandList, CommandItem, CommandGroup, CommandD
 | `children` | `ReactNode` | — | CommandInput, CommandList, and CommandItem elements |
 | `className` | `string` | — | Additional CSS class |
 
+## ConfigProvider
+
+```jsx
+import { default, useConfigDefaults } from 'haze-ui';
+```
+
+### ConfigProviderProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `defaults` | `HazeConfig` | — | Component defaults keyed by exported component name (Button / ButtonLink / Toast / Tooltip / HoverCard); nested providers shallow-merge per section, inner wins, explicit props always beat config |
+| `children` | `ReactNode` | — | Subtree reading the defaults |
+
 ## ConfirmDialog
 
 ```jsx
@@ -982,11 +995,14 @@ import { Datepicker, DatepickerCore } from 'haze-ui';
 | `max` | `string` | — |  |
 | `disabledDate` | `(date: Date) => boolean` | — |  |
 | `presets` | `DatepickerPreset[]` | — |  |
-| `showTime` | `boolean` | — |  |
+| `showTime` | `boolean \| { seconds?: boolean \| undefined; }` | — |  |
+| `format` | `(date: Date) => string` | — |  |
+| `parse` | `(text: string) => Date \| null` | — |  |
 | `locale` | `string` | — |  |
 | `weekStartsOn` | `0 \| 1` | — |  |
 | `placeholder` | `string` | — |  |
 | `className` | `string` | — |  |
+| `cellRender` | `CalendarCellRender` | — |  |
 | `ref` | `Ref<HTMLInputElement>` | — |  |
 
 ### DatepickerProps
@@ -995,12 +1011,15 @@ import { Datepicker, DatepickerCore } from 'haze-ui';
 | --- | --- | --- | --- |
 | `value` | `ControlOrValue<string>` | — | Selected date (ISO format YYYY-MM-DD) |
 | `open` | `ControlOrValue<boolean>` | — | Dropdown open state (controllable) |
-| `picker` | `CalendarPickerMode` | — |  |
+| `picker` | `CalendarPickerMode` | `'date'` | Calendar granularity: 'date' (default), ISO-week 'week', 'month', 'quarter' or 'year'; value serializes per mode (YYYY-MM-DD / YYYY-Www / YYYY-MM / YYYY-Qn / YYYY) |
 | `min` | `string` | — | Minimum selectable date |
 | `max` | `string` | — | Maximum selectable date |
 | `disabledDate` | `(date: Date) => boolean` | — |  |
 | `presets` | `DatepickerPreset[]` | — |  |
-| `showTime` | `boolean` | — |  |
+| `showTime` | `boolean \| { seconds?: boolean \| undefined; }` | — | Adds a time input below the calendar; value serializes as 'YYYY-MM-DD HH:mm' (or 'YYYY-MM-DD HH:mm:ss' with { seconds: true }). Date granularity only |
+| `format` | `(date: Date) => string` | — | Custom serialization for picks, replacing the built-in value format; pair with parse so controlled values round-trip into the calendar |
+| `parse` | `(text: string) => Date \| null` | — | Reads a custom-formatted value back into the calendar (month anchor, day highlight, time input); null leaves the panel unanchored |
+| `cellRender` | `CalendarCellRender` | — | Appends custom content inside the panel's picker cells (see Calendar's cellRender) |
 | `locale` | `string` | — | BCP 47 locale for month and weekday formatting (e.g. "zh-CN") |
 | `weekStartsOn` | `0 \| 1` | — | First day of the week (0 = Sunday, 1 = Monday); defaults to the locale week info |
 | `placeholder` | `string` | `'Select date'` | Input placeholder |
@@ -1363,7 +1382,10 @@ import { Grid, GridItem } from 'haze-ui';
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `span` | `number` | `1` | Number of columns to span |
-| `start` | `number` | — | Grid column start position |
+| `start` | `number` | — | Grid column start line; preserved across sm/md/lg breakpoints (queries override only the span) |
+| `sm` | `1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 7 \| 8 \| 9 \| 10 \| 11 \| 12` | — | Columns to span once the grid container is at least 384px wide; only takes effect inside a responsive Grid, otherwise degrades to span |
+| `md` | `1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 7 \| 8 \| 9 \| 10 \| 11 \| 12` | — | Columns to span once the grid container is at least 576px wide; only takes effect inside a responsive Grid, otherwise degrades to span |
+| `lg` | `1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 7 \| 8 \| 9 \| 10 \| 11 \| 12` | — | Columns to span once the grid container is at least 768px wide; only takes effect inside a responsive Grid, otherwise degrades to span |
 | `className` | `string` | — | Additional CSS class |
 | `children` | `ReactNode` | — | Grid item content |
 
@@ -1373,6 +1395,7 @@ import { Grid, GridItem } from 'haze-ui';
 | --- | --- | --- | --- |
 | `columns` | `number` | `12` | Number of grid columns |
 | `gap` | `number` | `4` | Gap token index (--haze-space-N) |
+| `responsive` | `boolean` | `false` | Enable a container-query context (container-type: inline-size) so GridItem sm/md/lg breakpoints respond to the grid's own width instead of the viewport |
 | `className` | `string` | — | Additional CSS class |
 | `children` | `ReactNode` | — | GridItem elements |
 
@@ -2916,7 +2939,7 @@ import { Tooltip } from 'haze-ui';
 | --- | --- | --- | --- |
 | `content` | `ReactNode` | — | Tooltip content |
 | `position` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | Tooltip placement |
-| `delay` | `number` | — |  |
+| `delay` | `number` | `150` | Hover delay in ms before showing; defaults to 150 or the ConfigProvider defaults.Tooltip.delay value |
 | `open` | `ControlOrValue<boolean>` | — |  |
 | `collisionPadding` | `CollisionPadding` | — |  |
 | `className` | `string` | — | Additional CSS class |
@@ -2975,8 +2998,38 @@ import { Transfer, TransferCore } from 'haze-ui';
 ## Tree
 
 ```jsx
-import { Tree } from 'haze-ui';
+import { Tree, SortableTree } from 'haze-ui';
 ```
+
+### SortableTreeProps
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `onMove` | `(info: SortableTreeMoveInfo) => void` | — |  |
+| `dragHandle` | `boolean` | — |  |
+| `className` | `string` | — |  |
+| `onSelect` | `(selectedKeys: string[], info: { selected: boolean; selectedNodes: TreeNodeData[]; node: TreeNodeData; }) => void` | — |  |
+| `disabled` | `boolean` | — |  |
+| `multiple` | `boolean` | — |  |
+| `treeData` | `TreeNodeData[]` | — |  |
+| `checkable` | `boolean` | — |  |
+| `checkStrictly` | `boolean` | — |  |
+| `selectable` | `boolean` | — |  |
+| `blockNode` | `boolean` | — |  |
+| `showLine` | `boolean` | — |  |
+| `showIcon` | `boolean` | — |  |
+| `switcherIcon` | `ReactNode` | — |  |
+| `loadingIcon` | `ReactNode` | — |  |
+| `titleRender` | `(node: TreeNodeData) => ReactNode` | — |  |
+| `iconRender` | `(node: TreeNodeData) => ReactNode` | — |  |
+| `virtualized` | `boolean \| TreeVirtualizedConfig` | — |  |
+| `loadData` | `(node: TreeNodeData) => Promise<TreeNodeData[]>` | — |  |
+| `searchValue` | `string` | — |  |
+| `expandedKeys` | `ControlOrValue<string[]>` | — |  |
+| `selectedKeys` | `ControlOrValue<string[]>` | — |  |
+| `checkedKeys` | `ControlOrValue<string[]>` | — |  |
+| `onExpand` | `(expandedKeys: string[], info: { expanded: boolean; node: TreeNodeData; }) => void` | — |  |
+| `onCheck` | `(checkedKeys: string[] \| { checked: string[]; halfChecked: string[]; }, info: { checked: boolean; checkedNodes: TreeNodeData[]; node: TreeNodeData; halfCheckedKeys: string[]; }) => void` | — |  |
 
 ### TreeProps
 
@@ -2998,6 +3051,8 @@ import { Tree } from 'haze-ui';
 | `virtualized` | `boolean \| TreeVirtualizedConfig` | — |  |
 | `loadData` | `(node: TreeNodeData) => Promise<TreeNodeData[]>` | — |  |
 | `searchValue` | `string` | — |  |
+| `rowWrap` | `(row: ReactNode, node: TreeNodeData) => ReactNode` | — |  |
+| `keyboardNavigation` | `boolean` | — |  |
 | `expandedKeys` | `ControlOrValue<string[]>` | — | Controlled expanded node keys |
 | `selectedKeys` | `ControlOrValue<string[]>` | — | Controlled selected node keys |
 | `checkedKeys` | `ControlOrValue<string[]>` | — | Controlled checked node keys |
@@ -3141,7 +3196,7 @@ import { Upload, UploadCore } from 'haze-ui';
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `value` | `ControlOrValue<UploadValueItem[]>` | — |  |
+| `value` | `ControlOrValue<UploadValueItem[]>` | — | Selected files — local File picks mixed freely with UploadFile echo entries (files already on the server); uncontrolled (accumulating internally) when omitted |
 | `accept` | `string` | — | Accepted file types |
 | `droppable` | `boolean` | — |  |
 | `beforeUpload` | `(file: File) => boolean \| Promise<boolean>` | — |  |
@@ -3154,13 +3209,13 @@ import { Upload, UploadCore } from 'haze-ui';
 | `name` | `string` | — |  |
 | `data` | `Record<string, string \| Blob>` | — |  |
 | `manual` | `boolean` | — |  |
-| `showUploadList` | `boolean \| { itemRender?: UploadListItemRender \| undefined; }` | — |  |
-| `listType` | `'picture' \| 'text' \| 'picture-card'` | — |  |
-| `onPreview` | `(file: UploadValueItem) => void` | — |  |
+| `showUploadList` | `boolean \| { itemRender?: UploadListItemRender \| undefined; }` | `false` | Renders the built-in file list below the zone: live progress, cancel while uploading, retry + remove on error, per-state actions |
+| `listType` | `'picture' \| 'text' \| 'picture-card'` | `'text'` | Rendering style of the built-in list: text rows; picture — text rows with a 32px inline thumbnail; picture-card — a grid of square thumbnail cards |
+| `onPreview` | `(file: UploadValueItem) => void` | — | Click handler for picture / picture-card thumbnails — the natural spot to open a lightbox (wire it to Image/ImagePreview); remove/retry/cancel buttons stay independent |
 | `removeLabel` | `string` | — |  |
 | `directory` | `boolean` | — |  |
 | `onStatusChange` | `(files: UploadFileStatus[]) => void` | — |  |
-| `onChange` | `(files: File[]) => void` | — | Called when files are selected |
+| `onChange` | `(files: File[]) => void` | — | Fires with the freshly picked local Files only — the accumulated list (echo entries included) is the value channel |
 | `className` | `string` | — | Additional CSS class |
 | `children` | `ReactNode` | — | Custom dropzone content |
 | `ref` | `Ref<UploadHandle>` | — |  |
@@ -3177,12 +3232,12 @@ import { VirtualList } from 'haze-ui';
 | --- | --- | --- | --- |
 | `items` | `T[]` | — | Array of items to render |
 | `height` | `number` | — | Container height in px |
-| `width` | `number` | — |  |
-| `itemHeight` | `number` | — | Height of each item in px |
+| `width` | `number` | — | Scrollport width in px — horizontal orientation only: fixes the port width and acts as the main-axis extent until the real clientWidth is measured |
+| `itemHeight` | `number` | — | Extent of one item along the scroll axis: row height in vertical lists, item width with orientation='horizontal', row height in grid mode |
 | `estimatedItemHeight` | `number` | — |  |
-| `columns` | `number` | — |  |
-| `columnWidth` | `number` | — |  |
-| `orientation` | `VirtualListOrientation` | — |  |
+| `columns` | `number` | — | Grid mode: lay items out in a row-major grid with this many columns, virtualizing both axes (rows like a vertical list, columns against the rendered width). Vertical orientation only — a dev error is logged and columns ignored otherwise |
+| `columnWidth` | `number` | `itemHeight` | Column width in px (grid mode only) |
+| `orientation` | `VirtualListOrientation` | `'vertical'` | Scroll axis of the list; 'horizontal' mirrors windowing, dynamic measurement, scrollToIndex, reverse and sticky group headers onto the x axis with logical (RTL-aware) offsets |
 | `groups` | `VirtualListGroup[]` | — |  |
 | `renderItem` | `(item: T, index: number) => ReactNode` | — | Item renderer |
 | `overscan` | `number` | `5` | Extra items to render outside viewport |

@@ -840,7 +840,7 @@
     {
       "name": "defaults",
       "type": "HazeConfig",
-      "description": "Component defaults keyed by exported component name (Button / ButtonLink / Toast / Tooltip); nested providers shallow-merge per section, inner wins, explicit props always beat config"
+      "description": "Component defaults keyed by exported component name (Button / ButtonLink / Toast / Tooltip / HoverCard); nested providers shallow-merge per section, inner wins, explicit props always beat config"
     },
     {
       "name": "children",
@@ -1319,6 +1319,26 @@
       "description": "Flex children"
     }
   ],
+  "FormItemProps": [
+    {
+      "name": "layout",
+      "type": "'vertical' | 'horizontal' | 'inline'",
+      "default": "'vertical'",
+      "description": "Item layout. 'vertical' (default) stacks the label above the control — the exact historical rendering. 'horizontal' pairs a fixed label column with the control, the error message slotting under the control column so sibling rows keep their controls aligned. 'inline' flows label + control + error on one row with an automatic inter-item margin-inline-end."
+    },
+    {
+      "name": "labelWidth",
+      "type": "number | string",
+      "default": "auto",
+      "description": "Width of the label column in the 'horizontal' layout: a number is treated as pixels, a string is used verbatim as a CSS width (e.g. '8em'). Omit for auto (content-driven). Ignored in the other layouts."
+    },
+    {
+      "name": "labelAlign",
+      "type": "'left' | 'right'",
+      "default": "'right'",
+      "description": "Text alignment inside the label column in the 'horizontal' layout — 'right' (the AntD convention, labels hugging their controls) or 'left'. Ignored in the other layouts."
+    }
+  ],
   "FullscreenProps": [
     {
       "name": "fullscreen",
@@ -1353,7 +1373,22 @@
     {
       "name": "start",
       "type": "number",
-      "description": "Grid column start position"
+      "description": "Grid column start line; preserved across sm/md/lg breakpoints (queries override only the span)"
+    },
+    {
+      "name": "sm",
+      "type": "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+      "description": "Columns to span once the grid container is at least 384px wide; only takes effect inside a responsive Grid, otherwise degrades to span"
+    },
+    {
+      "name": "md",
+      "type": "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+      "description": "Columns to span once the grid container is at least 576px wide; only takes effect inside a responsive Grid, otherwise degrades to span"
+    },
+    {
+      "name": "lg",
+      "type": "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+      "description": "Columns to span once the grid container is at least 768px wide; only takes effect inside a responsive Grid, otherwise degrades to span"
     },
     {
       "name": "className",
@@ -1378,6 +1413,12 @@
       "type": "number",
       "default": "4",
       "description": "Gap token index (--haze-space-N)"
+    },
+    {
+      "name": "responsive",
+      "type": "boolean",
+      "default": "false",
+      "description": "Enable a container-query context (container-type: inline-size) so GridItem sm/md/lg breakpoints respond to the grid's own width instead of the viewport"
     },
     {
       "name": "className",

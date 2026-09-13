@@ -60,6 +60,7 @@ export default function BackToTop({ threshold = 300, children = '↑', className
 
   return (
     <button
+      data-slot='back-to-top'
       x-class={[button, !visible && hidden, className]}
       onClick={scrollToTop}
       aria-label={strings.label}

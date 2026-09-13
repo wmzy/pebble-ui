@@ -63,6 +63,7 @@ export const RSC_SAFE_MODULES = new Set([
   'components/Flex/index.ts',
   'components/Grid/Grid.tsx',
   'components/Grid/GridItem.tsx',
+  'components/Grid/grid-item-styles.ts',
   'components/Grid/index.ts',
   'components/Icon/Icon.tsx',
   'components/Icon/index.ts',

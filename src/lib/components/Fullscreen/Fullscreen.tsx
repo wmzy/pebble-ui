@@ -69,15 +69,21 @@ export default function Fullscreen({
     onChange?.(isFullscreen);
   }, [isFullscreen, setFullscreen, onChange]);
 
-  const trigger = Children.only(
-    children
-  ) as ReactElement<{ onClick?: MouseEventEventHandler }>;
+  // The trigger is the consumer's element (cloneElement, no wrapper DOM):
+  // brand it with the trigger slot the way shadcn's Slot composition does.
+  // An explicit data-slot on the child wins — the sanctioned prop-forwarded
+  // override, same contract as DataTable/TableCell.
+  const trigger = Children.only(children) as ReactElement<{
+    onClick?: MouseEventEventHandler;
+    'data-slot'?: string;
+  }>;
 
   return cloneElement(trigger, {
     onClick: (event: MouseEvent<HTMLElement>) => {
       trigger.props.onClick?.(event);
       setFullscreen((prev) => !prev);
     },
+    'data-slot': trigger.props['data-slot'] ?? 'trigger',
   });
 }
 

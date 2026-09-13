@@ -227,10 +227,11 @@ export default function InlineCompletion({
   };
 
   return (
-    <div x-class={[wrapper, className]}>
+    <div data-slot='inline-completion' x-class={[wrapper, className]}>
       {active && (
         <div
           ref={ghostRef}
+          data-slot='ghost-text'
           aria-hidden='true'
           x-class={[ghost, multiline && ghostMultiline]}
         >
@@ -243,13 +244,14 @@ export default function InlineCompletion({
           element-typed flavors formally incompatible), hence the one cast. */}
       {multiline ? (
         <textarea
+          data-slot='input'
           x-class={[host]}
           rows={rows ?? 3}
           {...sharedHandlers}
           {...(rest as ComponentPropsWithoutRef<'textarea'>)}
         />
       ) : (
-        <input x-class={[host]} {...sharedHandlers} {...rest} />
+        <input data-slot='input' x-class={[host]} {...sharedHandlers} {...rest} />
       )}
       {active && (
         <span id={hintId} x-class={[srOnly]}>

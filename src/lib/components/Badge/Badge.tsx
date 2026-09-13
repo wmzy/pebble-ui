@@ -22,7 +22,7 @@ export default function Badge({
   children,
 }: BadgeProps) {
   return (
-    <span x-class={[base, variants[variant], sizes[size], className]} style={style}>
+    <span data-slot="badge" x-class={[base, variants[variant], sizes[size], className]} style={style}>
       {children}
     </span>
   );

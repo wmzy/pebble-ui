@@ -53,6 +53,29 @@ export const base = css`
     cursor: not-allowed;
     pointer-events: none;
   }
+
+  /* Windows high contrast (forced-colors): the UA squashes every
+     author color, drops box-shadows and forces existing borders to the
+     text color. The base's transparent 1px border therefore survives
+     as a ButtonText boundary already — restating it keeps ghost/link
+     buttons deterministic instead of relying on the UA default. The
+     box-shadow focus ring is dropped by the UA, so keyboard focus
+     moves to a real outline in the Highlight system color. Disabled
+     surfaces render in GrayText at full opacity (the 0.5 dim reads as
+     noise against a two-color canvas). */
+  @media (forced-colors: active) {
+    border-color: ButtonText;
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 1;
+      color: GrayText;
+    }
+  }
 `;
 
 export const variants = {

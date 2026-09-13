@@ -74,6 +74,7 @@ export default function DropdownMenuRadioItem({
 
   return (
     <button
+      data-slot='menu-radio-item'
       x-class={[item, danger && dropdownMenuItemDanger, className]}
       type="button"
       role="menuitemradio"
@@ -82,17 +83,17 @@ export default function DropdownMenuRadioItem({
       disabled={disabled}
       onClick={select}
     >
-      <span x-class={dropdownMenuItemIndicator} aria-hidden="true">
+      <span data-slot='indicator' x-class={dropdownMenuItemIndicator} aria-hidden="true">
         {checked && (
           <svg width="1em" height="1em" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="3.5" fill="currentColor" />
           </svg>
         )}
       </span>
-      {icon !== undefined && <span x-class={dropdownMenuItemIcon}>{icon}</span>}
+      {icon !== undefined && <span data-slot='icon' x-class={dropdownMenuItemIcon}>{icon}</span>}
       {children}
       {kbdLabel !== undefined && (
-        <span x-class={dropdownMenuItemKbd} aria-hidden="true">{kbdLabel}</span>
+        <span data-slot='kbd' x-class={dropdownMenuItemKbd} aria-hidden="true">{kbdLabel}</span>
       )}
     </button>
   );

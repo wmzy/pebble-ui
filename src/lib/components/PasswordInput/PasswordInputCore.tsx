@@ -80,9 +80,10 @@ export default function PasswordInputCore({
   const strings = useStrings('passwordInput');
 
   return (
-    <div x-class={[wrapper, className]}>
+    <div data-slot="password-input" x-class={[wrapper, className]}>
       <input
         ref={ref}
+        data-slot="input"
         x-class={[input]}
         type={visible ? 'text' : 'password'}
         aria-label={strings.label}
@@ -92,6 +93,7 @@ export default function PasswordInputCore({
         disabled={disabled}
       />
       <button
+        data-slot="toggle-visibility"
         x-class={[toggle]}
         type="button"
         onClick={() => setVisible(!visible)}

@@ -118,10 +118,10 @@ export default function ChatContainer({
   }, [autoScroll]);
 
   return (
-    <div ref={ref} x-class={[container, className]} {...rest}>
+    <div ref={ref} data-slot='chat-container' x-class={[container, className]} {...rest}>
       {children}
       {autoScroll && showJump && (
-        <button type='button' x-class={[jumpPill]} onClick={jumpToBottom}>
+        <button type='button' data-slot='jump-button' x-class={[jumpPill]} onClick={jumpToBottom}>
           <span aria-hidden='true'>&darr;</span>
           {unreadLabel ?? strings.newMessages}
         </button>

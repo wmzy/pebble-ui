@@ -77,8 +77,9 @@ export default function QRCode({
   const path = useMemo(() => modulesToPath(modules), [modules]);
 
   return (
-    <div x-class={[wrapper, bordered && borderedStyle, className]} {...rest}>
+    <div data-slot="qrcode" x-class={[wrapper, bordered && borderedStyle, className]} {...rest}>
       <svg
+        data-slot="img"
         width={size}
         height={size}
         viewBox={`0 0 ${modules.size} ${modules.size}`}

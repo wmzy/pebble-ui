@@ -74,7 +74,7 @@ export default function RadioGroupCore({
   }, [value, attachRadio]);
 
   return (
-    <fieldset ref={setFieldsetRef} x-class={[base, className]}>
+    <fieldset data-slot='radio-group' ref={setFieldsetRef} x-class={[base, className]}>
       <RadioProvider value={{ name: name ?? autoName, value, setValue: onChange }}>
         {children}
       </RadioProvider>

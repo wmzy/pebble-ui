@@ -52,6 +52,7 @@ export default function TimePickerCore({
   return (
     <input
       ref={ref}
+      data-slot='input'
       type="time"
       x-class={[input, className]}
       value={value}

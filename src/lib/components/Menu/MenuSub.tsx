@@ -36,7 +36,7 @@ export default function MenuSub({
   const sub = useSubmenu({ open, onOpenChange });
   return (
     <SubmenuProvider value={sub}>
-      <div x-class={[wrapper, className]}>{children}</div>
+      <div data-slot='menu-sub' x-class={[wrapper, className]}>{children}</div>
     </SubmenuProvider>
   );
 }

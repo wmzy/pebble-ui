@@ -71,6 +71,7 @@ export default function ComboboxOption({
   return (
     <div
       ref={ref}
+      data-slot='option'
       role='option'
       id={id}
       // ARIA 1.2 combobox: both the keyboard-highlighted (visual focus)

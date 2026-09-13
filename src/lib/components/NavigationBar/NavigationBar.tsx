@@ -44,10 +44,10 @@ const endSlot = css`
 
 export default function NavigationBar({ brand: brandNode, children, end, className }: NavigationBarProps) {
   return (
-    <nav x-class={[nav, className]}>
-      {brandNode && <div x-class={[brand]}>{brandNode}</div>}
-      <div x-class={[links]}>{children}</div>
-      {end && <div x-class={[endSlot]}>{end}</div>}
+    <nav data-slot='navigation-bar' x-class={[nav, className]}>
+      {brandNode && <div data-slot='brand' x-class={[brand]}>{brandNode}</div>}
+      <div data-slot='links' x-class={[links]}>{children}</div>
+      {end && <div data-slot='end' x-class={[endSlot]}>{end}</div>}
     </nav>
   );
 }

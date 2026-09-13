@@ -23,7 +23,7 @@ export default function ContextMenuTrigger({ children, className }: ContextMenuT
   };
 
   return (
-    <div x-class={[trigger, className]} onContextMenu={handleContextMenu}>
+    <div data-slot='trigger' x-class={[trigger, className]} onContextMenu={handleContextMenu}>
       {children}
     </div>
   );

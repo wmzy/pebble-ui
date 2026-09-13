@@ -225,7 +225,7 @@ const CASES: [name: string, element: ReactElement, expects: string[]][] = [
   [
     'MarkdownRenderer',
     <MarkdownRenderer content={'# Title\n\nSome **bold** text'} />,
-    ['<h1>Title</h1>', '<strong>bold</strong>'],
+    ['<h1 data-slot="heading">Title</h1>', '<strong>bold</strong>'],
   ],
   [
     'StreamingText',

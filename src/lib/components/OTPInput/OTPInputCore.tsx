@@ -92,10 +92,11 @@ export default function OTPInputCore({
   );
 
   return (
-    <div x-class={[container, className]}>
+    <div data-slot="otp-input" x-class={[container, className]}>
       {Array.from({ length }, (_, i) => (
         <input
           key={i}
+          data-slot="segment"
           ref={(el) => {
             refs.current[i] = el;
             if (i === 0) setFirstCellRef(el);

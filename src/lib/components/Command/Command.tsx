@@ -118,6 +118,7 @@ export default function Command({
   return (
     <CommandContext.Provider value={value}>
       <div
+        data-slot='command'
         x-class={[base, className]}
         role="combobox"
         // The palette list is always rendered, so the combobox is always
@@ -164,6 +165,7 @@ export function CommandInput({ placeholder, className, ref }: CommandInputProps)
   return (
     <input
       ref={mergeRefs(inputRef, ref)}
+      data-slot='input'
       x-class={[inputStyle, className]}
       type="text"
       placeholder={placeholder}
@@ -233,6 +235,7 @@ export function CommandList({ children, empty, className }: CommandListProps) {
   return (
     <div
       ref={listRef}
+      data-slot='list'
       x-class={[listStyle, className]}
       role="listbox"
       id={listId}
@@ -242,7 +245,7 @@ export function CommandList({ children, empty, className }: CommandListProps) {
       {showEmpty && (
         // Same shape as Combobox's empty row: a disabled option keeps
         // the listbox non-empty for assistive tech.
-        <div role="option" aria-selected={false} aria-disabled="true" x-class={[emptyStyle]}>
+        <div data-slot='empty' role="option" aria-selected={false} aria-disabled="true" x-class={[emptyStyle]}>
           {empty ?? strings.noResults}
         </div>
       )}
@@ -297,12 +300,13 @@ export function CommandGroup({ heading, children, className }: CommandGroupProps
 
   return (
     <div
+      data-slot='group'
       role="group"
       aria-labelledby={heading !== undefined ? headingId : undefined}
       x-class={[className]}
     >
       {heading !== undefined && (
-        <div id={headingId} x-class={[groupHeading]}>
+        <div id={headingId} data-slot='group-label' x-class={[groupHeading]}>
           {heading}
         </div>
       )}
@@ -386,6 +390,7 @@ export function CommandItem({
 
   return (
     <div
+      data-slot='item'
       x-class={[itemStyle, shortcut !== undefined && itemWithShortcut, className]}
       role="option"
       tabIndex={-1}

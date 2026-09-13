@@ -11,7 +11,7 @@ const separator = css`
 `;
 
 export default function DropdownMenuSeparator({ className }: DropdownMenuSeparatorProps) {
-  return <div x-class={[separator, className]} role="separator" />;
+  return <div data-slot='separator' x-class={[separator, className]} role="separator" />;
 }
 
 export type { DropdownMenuSeparatorProps };

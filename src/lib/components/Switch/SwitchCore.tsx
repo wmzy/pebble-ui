@@ -34,10 +34,52 @@ const track = css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  /* Forced-colors: the UA flattens both the muted and the primary
+     track onto Canvas and the white thumb onto Canvas — the switch
+     would disappear. The track keeps a CanvasText boundary with a
+     CanvasText thumb; when on, the Windows-native rendering takes
+     over (Highlight track, HighlightText thumb). Disabled tracks drop
+     the dim and render GrayText. */
+  @media (forced-colors: active) {
+    border: 1px solid CanvasText;
+
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 1;
+      border-color: GrayText;
+
+      & [data-slot='thumb'] {
+        background: GrayText;
+      }
+    }
+  }
 `;
 
 const trackChecked = css`
   background: var(--haze-color-primary);
+
+  @media (forced-colors: active) {
+    background: Highlight;
+    border-color: Highlight;
+
+    & [data-slot='thumb'] {
+      background: HighlightText;
+    }
+
+    &:disabled {
+      background: GrayText;
+      border-color: GrayText;
+
+      & [data-slot='thumb'] {
+        background: Canvas;
+      }
+    }
+  }
 `;
 
 const thumb = css`
@@ -122,6 +164,7 @@ export default function SwitchCore({
       ref={ref}
       type='button'
       role='switch'
+      data-slot='switch'
       aria-checked={checked}
       x-class={[track, trackSizes[size], checked && trackChecked, className]}
       onClick={(e) => {
@@ -131,6 +174,7 @@ export default function SwitchCore({
       {...rest}
     >
       <span
+        data-slot='thumb'
         x-class={[thumb, thumbSizes[size], checked && thumbCheckedSizes[size]]}
       />
     </button>

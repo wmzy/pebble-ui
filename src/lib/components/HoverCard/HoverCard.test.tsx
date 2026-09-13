@@ -5,6 +5,8 @@ import type { HoverCardProps } from './HoverCard';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useControl } from 'react-use-control';
 
+import ConfigProvider from '../ConfigProvider/ConfigProvider';
+
 import HoverCard from './HoverCard';
 
 /**
@@ -254,6 +256,109 @@ describe('HoverCard', () => {
       rules: { region: { enabled: false } },
     });
     expect(results.violations).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ConfigProvider priority chain: explicit prop → config default → built-in
+// (200 open / 120 close). A provider that names neither delay must not
+// disturb the built-ins either.
+// ---------------------------------------------------------------------------
+
+describe('HoverCard (ConfigProvider delay precedence)', () => {
+  it('uses the config delays when the props are omitted', () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ConfigProvider defaults={{HoverCard: {openDelay: 320, closeDelay: 60}}}>
+          <HoverCardHarness content="Card" />
+        </ConfigProvider>
+      );
+      hover();
+      act(() => {
+        vi.advanceTimersByTime(319);
+      });
+      expect(openState()).toBe('false');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(openState()).toBe('true');
+      leave();
+      act(() => {
+        vi.advanceTimersByTime(60);
+      });
+      expect(openState()).toBe('false');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('lets an explicit openDelay beat the config', () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ConfigProvider defaults={{HoverCard: {openDelay: 320}}}>
+          <HoverCardHarness content="Card" openDelay={80} />
+        </ConfigProvider>
+      );
+      hover();
+      act(() => {
+        vi.advanceTimersByTime(80);
+      });
+      expect(openState()).toBe('true');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('lets an explicit closeDelay beat the config', () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ConfigProvider defaults={{HoverCard: {openDelay: 0, closeDelay: 400}}}>
+          <HoverCardHarness content="Card" closeDelay={150} />
+        </ConfigProvider>
+      );
+      hover();
+      act(() => {
+        vi.advanceTimersByTime(0);
+      });
+      expect(openState()).toBe('true');
+      leave();
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
+      expect(openState()).toBe('false');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps the built-in delays when the config omits them', () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ConfigProvider defaults={{Tooltip: {delay: 999}}}>
+          <HoverCardHarness content="Card" />
+        </ConfigProvider>
+      );
+      hover();
+      act(() => {
+        vi.advanceTimersByTime(199);
+      });
+      expect(openState()).toBe('false');
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(openState()).toBe('true');
+      leave();
+      act(() => {
+        vi.advanceTimersByTime(120);
+      });
+      expect(openState()).toBe('false');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

@@ -63,14 +63,15 @@ export default function AvatarGroup({
   const overflowCount = total ?? items.length - limit;
 
   return (
-    <div x-class={[base, className]} {...rest}>
+    <div data-slot="avatar-group" x-class={[base, className]} {...rest}>
       {visible.map((child, index) => (
-        <span key={index} x-class={[item, index > 0 && itemStacked]}>
+        <span key={index} data-slot="item" x-class={[item, index > 0 && itemStacked]}>
           {child}
         </span>
       ))}
       {truncating && (
         <span
+          data-slot="overflow-badge"
           x-class={[item, overflowChip, visible.length > 0 && itemStacked]}
         >
           {formatString(strings.more, { count: overflowCount })}

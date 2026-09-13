@@ -26,8 +26,8 @@ export default function AspectRatio({ ratio = 16 / 9, children, className }: Asp
   const paddingBottom = `${(1 / ratio) * 100}%`;
 
   return (
-    <div x-class={[wrapper, className]} style={{ paddingBottom }}>
-      <div x-class={[inner]}>
+    <div data-slot='aspect-ratio' x-class={[wrapper, className]} style={{ paddingBottom }}>
+      <div data-slot='content' x-class={[inner]}>
         {children}
       </div>
     </div>

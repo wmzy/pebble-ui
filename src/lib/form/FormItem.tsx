@@ -18,8 +18,17 @@ import type {
 
 
 import {useContext, useId} from 'react';
-import {css} from '@linaria/core';
 import {FormContext, useField} from 'react-f0rm';
+
+import {
+  controlColumn,
+  errorText,
+  item,
+  itemHorizontal,
+  itemInline,
+  labelColumn,
+  labelText
+} from './form-item-styles';
 
 
 /**
@@ -149,6 +158,29 @@ export type FormItemOwnProps<
   form?: FormInstance<TValues>;
   name: P;
   label?: ReactNode;
+  /**
+   * Layout mode of the item. `'vertical'` (default) stacks the label
+   * above the control — the exact historical rendering. `'horizontal'`
+   * puts the label in a left column and the control in a right one,
+   * with the error message placed under the control column so sibling
+   * items keep their controls vertically aligned. `'inline'` flows
+   * label + control + error on a single row and adds a trailing
+   * `margin-inline-end` so consecutive inline items space themselves.
+   */
+  layout?: 'vertical' | 'horizontal' | 'inline';
+  /**
+   * Width of the label column in the `'horizontal'` layout: a number is
+   * treated as pixels, a string is used verbatim as a CSS width (e.g.
+   * `'8em'`). Omit for `auto` (content-driven). Ignored in the other
+   * layouts.
+   */
+  labelWidth?: number | string;
+  /**
+   * Text alignment inside the label column in the `'horizontal'`
+   * layout: `'right'` (default — the AntD convention, labels hugging
+   * their controls) or `'left'`. Ignored in the other layouts.
+   */
+  labelAlign?: 'left' | 'right';
   /** Field-level validator, registered through react-f0rm's own
    * `useField` channel — validated per the form's `mode` and on submit.
    * With a typed form the value argument is `PathValueOf<TValues, P>`. */
@@ -297,23 +329,6 @@ export type FormItemProps<
       }
   );
 
-const item = css`
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--haze-space-1);
-`;
-
-const labelText = css`
-  font-size: var(--haze-text-sm);
-  color: var(--haze-color-text);
-`;
-
-const errorText = css`
-  font-size: var(--haze-text-sm);
-  color: var(--haze-color-danger);
-`;
-
 /**
  * Glue a single field of a react-f0rm form to a haze-ui controlled core.
  * The binding layer is react-f0rm's own headless `useField` hook — the
@@ -398,6 +413,13 @@ const errorText = css`
  * When the field has errors, the first error's message is rendered into a
  * `<span id={errorId} role='alert'>` next to the control; with no errors
  * no extra element is rendered.
+ *
+ * Layout: the default `layout='vertical'` stacks label above control;
+ * `layout='horizontal'` pairs a fixed label column (`labelWidth`,
+ * `labelAlign='right'` by default) with the control, the error slotting
+ * under the control column; `layout='inline'` flows label + control +
+ * error on one row with an automatic inter-item `margin-inline-end`.
+ * The id/label/aria wiring is identical in all three layouts.
  */
 export default function FormItem<
   TValues extends Record<string, any> = any,
@@ -410,6 +432,9 @@ export default function FormItem<
   form,
   name,
   label,
+  layout = 'vertical',
+  labelWidth,
+  labelAlign = 'right',
   validate,
   mode,
   validateDebounce,
@@ -511,67 +536,104 @@ export default function FormItem<
     | FormItemRawElement
     | undefined;
 
+  // The label column's runtime geometry — width and text alignment are
+  // per-instance values, so they ride an inline style instead of a
+  // class; only the horizontal layout consumes them.
+  const horizontal = layout === 'horizontal';
+  const labelStyle = horizontal
+    ? {
+        width: typeof labelWidth === 'number' ? `${labelWidth}px` : labelWidth,
+        textAlign: labelAlign
+      }
+    : undefined;
+
+  const labelNode = label !== undefined && (
+    <label
+      x-class={[labelText, horizontal && labelColumn]}
+      htmlFor={id}
+      style={labelStyle}
+    >
+      {label}
+    </label>
+  );
+
+  const control = InputComponent ? (
+    <InputComponent
+      // forwarded props first — the wiring below is the bridge's
+      // contract and always wins (they're excluded from the forwarded
+      // type, so a typed caller can never hit the clash)
+      {...(inputProps as Record<string, any>)}
+      id={id}
+      aria-invalid={invalid || undefined}
+      aria-describedby={invalid ? errorId : undefined}
+      // the focus channel rides the control's ref (raw DOM elements
+      // and haze cores both accept a callback ref there)
+      ref={focusRef}
+      onBlur={onBlur}
+      onChange={(e: any) => onChange(toValue(e) as PathValueOf<TValues, P>)}
+      {...(valueToProps ? valueToProps(value) : {value})}>
+      {children as ReactNode}
+    </InputComponent>
+  ) : As ? (
+    <As
+      // asProps first — the wiring below is the bridge's contract
+      // and always wins, the same precedence as the input channel
+      // (asProps is untyped, so a collision is a silent runtime
+      // override by the wiring, never a compile error); the value
+      // props still land last
+      {...asProps}
+      id={id}
+      aria-invalid={invalid || undefined}
+      aria-describedby={invalid ? errorId : undefined}
+      // the focus channel rides the control's ref (raw DOM elements
+      // and haze cores both accept a callback ref there)
+      ref={focusRef}
+      onBlur={onBlur}
+      onChange={(e: any) => onChange(toValue(e) as PathValueOf<TValues, P>)}
+      {...(valueToProps ? valueToProps(value) : {value})}
+    />
+  ) : (
+    (children as (binding: FormItemBinding<TValues, P>) => ReactNode)({
+      id,
+      errorId,
+      invalid,
+      errors,
+      onBlur,
+      value: value as PathValueOf<TValues, P>,
+      onChange,
+      focusRef
+    })
+  );
+
+  const errorNode = invalid && (
+    <span id={errorId} role='alert' x-class={errorText}>
+      {renderError
+        ? renderError(errors[0]!.message, errorId)
+        : errors[0]!.message}
+    </span>
+  );
+
+  // Horizontal wraps the control and its error in a column so the error
+  // sits under the control — the label rail keeps every row's controls
+  // aligned. Vertical (default) and inline share the flat child order;
+  // vertical renders the exact historical DOM.
+  if (horizontal) {
+    return (
+      <div x-class={[itemHorizontal, className]}>
+        {labelNode}
+        <div x-class={controlColumn}>
+          {control}
+          {errorNode}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div x-class={[item, className]}>
-      {label !== undefined && (
-        <label x-class={labelText} htmlFor={id}>
-          {label}
-        </label>
-      )}
-      {InputComponent ? (
-        <InputComponent
-          // forwarded props first — the wiring below is the bridge's
-          // contract and always wins (they're excluded from the
-          // forwarded type, so a typed caller can never hit the clash)
-          {...(inputProps as Record<string, any>)}
-          id={id}
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? errorId : undefined}
-          // the focus channel rides the control's ref (raw DOM elements
-          // and haze cores both accept a callback ref there)
-          ref={focusRef}
-          onBlur={onBlur}
-          onChange={(e: any) => onChange(toValue(e) as PathValueOf<TValues, P>)}
-          {...(valueToProps ? valueToProps(value) : {value})}>
-          {children as ReactNode}
-        </InputComponent>
-      ) : As ? (
-        <As
-          // asProps first — the wiring below is the bridge's contract
-          // and always wins, the same precedence as the input channel
-          // (asProps is untyped, so a collision is a silent runtime
-          // override by the wiring, never a compile error); the value
-          // props still land last
-          {...asProps}
-          id={id}
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? errorId : undefined}
-          // the focus channel rides the control's ref (raw DOM elements
-          // and haze cores both accept a callback ref there)
-          ref={focusRef}
-          onBlur={onBlur}
-          onChange={(e: any) => onChange(toValue(e) as PathValueOf<TValues, P>)}
-          {...(valueToProps ? valueToProps(value) : {value})}
-        />
-      ) : (
-        (children as (binding: FormItemBinding<TValues, P>) => ReactNode)({
-          id,
-          errorId,
-          invalid,
-          errors,
-          onBlur,
-          value: value as PathValueOf<TValues, P>,
-          onChange,
-          focusRef
-        })
-      )}
-      {invalid && (
-        <span id={errorId} role='alert' x-class={errorText}>
-          {renderError
-            ? renderError(errors[0]!.message, errorId)
-            : errors[0]!.message}
-        </span>
-      )}
+    <div x-class={[layout === 'inline' ? itemInline : item, className]}>
+      {labelNode}
+      {control}
+      {errorNode}
     </div>
   );
 }

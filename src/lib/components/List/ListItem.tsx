@@ -12,7 +12,7 @@ const item = css`
 `;
 
 export default function ListItem({ className, children }: ListItemProps) {
-  return <li x-class={[item, className]}>{children}</li>;
+  return <li data-slot="item" x-class={[item, className]}>{children}</li>;
 }
 
 export type { ListItemProps };

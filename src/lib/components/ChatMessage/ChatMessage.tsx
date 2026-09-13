@@ -232,29 +232,31 @@ export default function ChatMessage({
 
   return (
     <div
+      data-slot='chat-message'
       x-class={[wrapper, isUser && wrapperUser, className]}
       data-chat-actions={showActions ? true : undefined}
     >
       {role !== 'system' && (
-        <div x-class={[avatarSlot]}>
+        <div data-slot='avatar' x-class={[avatarSlot]}>
           {avatar || (role === 'user' ? 'U' : 'A')}
         </div>
       )}
-      <div x-class={[body]}>
+      <div data-slot='body' x-class={[body]}>
         {(name || timestamp) && (
-          <div x-class={[header, isUser && headerUser]}>
-            {name && <span>{name}</span>}
-            {timestamp && <span>{timestamp}</span>}
+          <div data-slot='header' x-class={[header, isUser && headerUser]}>
+            {name && <span data-slot='name'>{name}</span>}
+            {timestamp && <span data-slot='timestamp'>{timestamp}</span>}
           </div>
         )}
-        <div x-class={[bubble, roleMap[role]]} ref={bubbleRef}>
+        <div data-slot='bubble' x-class={[bubble, roleMap[role]]} ref={bubbleRef}>
           {children}
         </div>
         {showActions && (
-          <div x-class={[actionsRow]}>
+          <div data-slot='actions' x-class={[actionsRow]}>
             {copyable && (
               <button
                 type='button'
+                data-slot='copy-button'
                 x-class={[actionBtn, copied && actionBtnCopied]}
                 onClick={handleCopy}
                 aria-label={chatStrings.copy}
@@ -266,7 +268,7 @@ export default function ChatMessage({
           </div>
         )}
         {status && (
-          <div x-class={[statusText, status === 'error' && statusError]}>
+          <div data-slot='status' x-class={[statusText, status === 'error' && statusError]}>
             {status === 'sending' && strings.sending}
             {status === 'sent' && strings.sent}
             {status === 'error' && strings.failedToSend}

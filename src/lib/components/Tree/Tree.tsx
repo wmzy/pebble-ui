@@ -563,10 +563,12 @@ export default function Tree({
       );
 
       return (
-        <div key={node.key} role='group' x-class={group}>
+        <div key={node.key} role='group' data-slot='group' x-class={group}>
           {rowWrap ? rowWrap(row, node) : row}
           {hasChildren && isExpanded && (
-            <div>{renderNodes(node.children!, level + 1, currentIsLast)}</div>
+            <div data-slot='list'>
+              {renderNodes(node.children!, level + 1, currentIsLast)}
+            </div>
           )}
         </div>
       );
@@ -622,12 +624,13 @@ export default function Tree({
     return (
       <div
         role='tree'
+        data-slot='tree'
         ref={rootRef}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         x-class={[base, className]}
       >
-        <div x-class={emptyBlock}>{strings.noMatch}</div>
+        <div data-slot='empty' x-class={emptyBlock}>{strings.noMatch}</div>
       </div>
     );
   }
@@ -636,6 +639,7 @@ export default function Tree({
     return (
       <div
         role='tree'
+        data-slot='tree'
         ref={rootRef}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
@@ -657,6 +661,7 @@ export default function Tree({
   return (
     <div
       role='tree'
+      data-slot='tree'
       ref={rootRef}
       onKeyDown={handleKeyDown}
       onFocus={handleFocus}

@@ -263,8 +263,8 @@ function JsonNode({
   const keyPrefix =
     name === null ? null : (
       <>
-        <span x-class={[keyStyle]}>{name}</span>
-        <span x-class={[punct]}>: </span>
+        <span data-slot="key" x-class={[keyStyle]}>{name}</span>
+        <span data-slot="punctuation" x-class={[punct]}>: </span>
       </>
     );
 
@@ -272,9 +272,9 @@ function JsonNode({
   if (!isBranch) {
     const leafKind = kind;
     return (
-      <div x-class={[line]}>
+      <div data-slot="line" x-class={[line]}>
         {keyPrefix}
-        <span x-class={[leafColors[leafKind]]}>{formatJsonLeaf(value, leafKind)}</span>
+        <span data-slot="value" x-class={[leafColors[leafKind]]}>{formatJsonLeaf(value, leafKind)}</span>
       </div>
     );
   }
@@ -282,9 +282,9 @@ function JsonNode({
   // A cycle renders as an ellipsis instead of recursing forever.
   if (ancestors.includes(value)) {
     return (
-      <div x-class={[line]}>
+      <div data-slot="line" x-class={[line]}>
         {keyPrefix}
-        <span x-class={[leafNullish]}>…</span>
+        <span data-slot="value" x-class={[leafNullish]}>…</span>
       </div>
     );
   }
@@ -296,9 +296,9 @@ function JsonNode({
   // Empty branches have nothing to disclose — plain `key: {}`.
   if (entries.length === 0) {
     return (
-      <div x-class={[line]}>
+      <div data-slot="line" x-class={[line]}>
         {keyPrefix}
-        <span x-class={[punct]}>
+        <span data-slot="punctuation" x-class={[punct]}>
           {open}
           {close}
         </span>
@@ -311,18 +311,19 @@ function JsonNode({
 
   if (collapsed) {
     return (
-      <div x-class={[line]}>
+      <div data-slot="line" x-class={[line]}>
         <button
           type='button'
+          data-slot="expand-button"
           x-class={[toggle]}
           aria-expanded={false}
           onClick={() => onToggle(path, defaultCollapsed)}
         >
-          <span x-class={[chevron, chevronCollapsed]}>
+          <span data-slot="icon" x-class={[chevron, chevronCollapsed]}>
             <ChevronGlyph />
           </span>
           {keyPrefix}
-          <span x-class={[punct]}>
+          <span data-slot="punctuation" x-class={[punct]}>
             {open} … {close}
           </span>
         </button>
@@ -334,23 +335,24 @@ function JsonNode({
   const childAncestors = [...ancestors, value];
 
   return (
-    <div>
-      <div x-class={[line]}>
+    <div data-slot="node">
+      <div data-slot="line" x-class={[line]}>
         <button
           type='button'
+          data-slot="expand-button"
           x-class={[toggle]}
           aria-expanded={true}
           aria-controls={childrenId}
           onClick={() => onToggle(path, defaultCollapsed)}
         >
-          <span x-class={[chevron, chevronExpanded]}>
+          <span data-slot="icon" x-class={[chevron, chevronExpanded]}>
             <ChevronGlyph />
           </span>
           {keyPrefix}
-          <span x-class={[punct]}>{open}</span>
+          <span data-slot="punctuation" x-class={[punct]}>{open}</span>
         </button>
       </div>
-      <div id={childrenId} x-class={[childrenBlock]}>
+      <div id={childrenId} data-slot="content" x-class={[childrenBlock]}>
         {visible.map(([childKey, childValue]) => (
           <JsonNode
             key={childKey}
@@ -366,11 +368,11 @@ function JsonNode({
           />
         ))}
         {hiddenCount > 0 && (
-          <div x-class={[line, moreRow]}>… {moreLabel(hiddenCount)}</div>
+          <div data-slot="more-row" x-class={[line, moreRow]}>… {moreLabel(hiddenCount)}</div>
         )}
       </div>
-      <div x-class={[line]}>
-        <span x-class={[punct]}>{close}</span>
+      <div data-slot="line" x-class={[line]}>
+        <span data-slot="punctuation" x-class={[punct]}>{close}</span>
       </div>
     </div>
   );
@@ -416,10 +418,11 @@ export default function JsonView({
   };
 
   return (
-    <div x-class={[wrapper, className]} {...rest}>
+    <div data-slot="json-view" x-class={[wrapper, className]} {...rest}>
       {copyable && (
         <button
           type='button'
+          data-slot="copy-button"
           x-class={[copyBtn, copied && copyBtnCopied]}
           aria-label={copyLabel ?? strings.copy}
           onClick={handleCopy}

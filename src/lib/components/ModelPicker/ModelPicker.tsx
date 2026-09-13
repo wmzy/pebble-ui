@@ -75,10 +75,10 @@ export default function ModelPicker({
   };
 
   return (
-    <div x-class={[wrapper, className]}>
-      <select x-class={[select]} aria-label={strings.label} value={value} onChange={handleChange} disabled={disabled}>
+    <div data-slot='model-picker' x-class={[wrapper, className]}>
+      <select data-slot='trigger' x-class={[select]} aria-label={strings.label} value={value} onChange={handleChange} disabled={disabled}>
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
+          <option key={opt.value} value={opt.value} data-slot='option'>
             {opt.label}{opt.contextLength ? ` (${opt.contextLength})` : ''}
           </option>
         ))}

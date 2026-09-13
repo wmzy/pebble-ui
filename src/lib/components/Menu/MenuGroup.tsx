@@ -26,8 +26,8 @@ const group = css`
 export default function MenuGroup({ label, className, children }: MenuGroupProps) {
   const labelId = useId();
   return (
-    <div role='group' aria-labelledby={labelId} x-class={[group, className]}>
-      <div id={labelId} x-class={menuGroupLabel}>
+    <div data-slot='group' role='group' aria-labelledby={labelId} x-class={[group, className]}>
+      <div id={labelId} data-slot='group-label' x-class={menuGroupLabel}>
         {label}
       </div>
       {children}

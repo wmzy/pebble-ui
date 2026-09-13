@@ -34,7 +34,7 @@ const sizes = {
 } as const;
 
 export default function Kbd({ size = 'md', className, ...rest }: KbdProps) {
-  return <kbd x-class={[base, sizes[size], className]} {...rest} />;
+  return <kbd data-slot="kbd" x-class={[base, sizes[size], className]} {...rest} />;
 }
 
 export type { KbdProps };

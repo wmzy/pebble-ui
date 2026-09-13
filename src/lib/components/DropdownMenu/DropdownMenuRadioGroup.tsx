@@ -42,12 +42,13 @@ export default function DropdownMenuRadioGroup({
   return (
     <MenuRadioGroupProvider value={state}>
       <div
+        data-slot='group'
         role="group"
         aria-labelledby={label !== undefined ? labelId : undefined}
         x-class={[group, className]}
       >
         {label !== undefined && (
-          <div id={labelId} x-class={dropdownMenuGroupLabel}>
+          <div id={labelId} data-slot='group-label' x-class={dropdownMenuGroupLabel}>
             {label}
           </div>
         )}

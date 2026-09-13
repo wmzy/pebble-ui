@@ -1053,11 +1053,14 @@ export default function DataTable<TData extends RowData>({
 
   const colgroup =
     virtual || hasColumnWidths || resizable ? (
-      <colgroup>
-        {selectable && <col style={{ width: SELECTION_COL_WIDTH }} />}
+      <colgroup data-slot="colgroup">
+        {selectable && (
+          <col data-slot="col" style={{ width: SELECTION_COL_WIDTH }} />
+        )}
         {leafHeaders.map((header, index) => (
           <col
             key={header.id}
+            data-slot="col"
             style={
               leafWidths[index] ? { width: leafWidths[index] } : undefined
             }
@@ -1087,10 +1090,11 @@ export default function DataTable<TData extends RowData>({
   const header = (
     <TableHead className={stickyHeader ? stickyHead : undefined}>
       {headerGroups.map((headerGroup, groupIndex) => (
-        <tr key={headerGroup.id}>
+        <tr key={headerGroup.id} data-slot="row">
           {selectable && groupIndex === 0 && (
             <TableCell
               as='th'
+              data-slot="select-cell"
               x-class={[
                 checkCellStyle,
                 selectionFixedSpec && fixedCell,
@@ -1117,6 +1121,7 @@ export default function DataTable<TData extends RowData>({
                 <TableCell
                   as='th'
                   key={header.placeholderId ?? header.id}
+                  data-slot="cell"
                 >
                   {null}
                 </TableCell>
@@ -1137,6 +1142,7 @@ export default function DataTable<TData extends RowData>({
               <TableCell
                 as='th'
                 key={header.id}
+                data-slot="cell"
                 colSpan={header.colSpan > 1 ? header.colSpan : undefined}
                 rowSpan={header.rowSpan > 1 ? header.rowSpan : undefined}
                 x-class={[
@@ -1156,11 +1162,12 @@ export default function DataTable<TData extends RowData>({
                 {header.column.getCanSort() ? (
                   <button
                     type='button'
+                    data-slot="sort-button"
                     x-class={[sortButton]}
                     onClick={header.column.getToggleSortingHandler()}
                   >
                     <table.FlexRender header={header} />
-                    <span x-class={[sortIcon]} aria-hidden='true'>
+                    <span data-slot="icon" x-class={[sortIcon]} aria-hidden='true'>
                       {sorted === 'asc' ? '↑' : sorted === 'desc' ? '↓' : '↕'}
                     </span>
                   </button>
@@ -1170,6 +1177,7 @@ export default function DataTable<TData extends RowData>({
                 {canResize && (
                   <div
                     role='separator'
+                    data-slot="resize-handle"
                     aria-orientation='vertical'
                     aria-label={`Resize ${columnLabel(header.column)}`}
                     tabIndex={0}
@@ -1215,6 +1223,7 @@ export default function DataTable<TData extends RowData>({
     <Fragment key={row.id}>
       <tr
         key={row.id}
+        data-slot="row"
         x-class={[
           rowHover,
           row.getIsSelected() && rowSelected,
@@ -1228,6 +1237,7 @@ export default function DataTable<TData extends RowData>({
       >
         {selectable && (
           <TableCell
+            data-slot="select-cell"
             x-class={[
               checkCellStyle,
               selectionFixedSpec && fixedCell,
@@ -1266,6 +1276,7 @@ export default function DataTable<TData extends RowData>({
           return (
             <TableCell
               key={cell.id}
+              data-slot="cell"
               x-class={[
                 fixedSpec && fixedCell,
                 fixedSpec?.edge &&
@@ -1327,6 +1338,7 @@ export default function DataTable<TData extends RowData>({
                   {cellIndex === 0 && row.getCanExpand() && (
                     <button
                       type='button'
+                      data-slot="expand-button"
                       x-class={[expander]}
                       aria-expanded={row.getIsExpanded()}
                       aria-controls={
@@ -1341,7 +1353,7 @@ export default function DataTable<TData extends RowData>({
                       }
                       onClick={row.getToggleExpandedHandler()}
                     >
-                      <span x-class={[expanderIcon]} aria-hidden='true'>
+                      <span data-slot="icon" x-class={[expanderIcon]} aria-hidden='true'>
                         ▸
                       </span>
                     </button>
@@ -1356,9 +1368,10 @@ export default function DataTable<TData extends RowData>({
       {renderExpandedRow !== undefined &&
         row.getCanExpand() &&
         row.getIsExpanded() && (
-          <tr key={`${row.id}-panel`}>
+          <tr key={`${row.id}-panel`} data-slot="panel-row">
             <TableCell
               colSpan={columnCount}
+              data-slot="panel-cell"
               x-class={[panelCell]}
               id={panelId(row.id)}
             >
@@ -1370,9 +1383,10 @@ export default function DataTable<TData extends RowData>({
   );
 
   const renderSkeletonRow = (rowIndex: number) => (
-    <tr key={`skeleton-${rowIndex}`}>
+    <tr key={`skeleton-${rowIndex}`} data-slot="row">
       {selectable && (
         <TableCell
+          data-slot="select-cell"
           x-class={[
             checkCellStyle,
             selectionFixedSpec && fixedCell,
@@ -1388,6 +1402,7 @@ export default function DataTable<TData extends RowData>({
         return (
           <TableCell
             key={header.id}
+            data-slot="cell"
             x-class={[
               fixedSpec && fixedCell,
               fixedSpec?.edge &&
@@ -1408,8 +1423,8 @@ export default function DataTable<TData extends RowData>({
   );
 
   const emptyRow = (
-    <tr>
-      <TableCell colSpan={columnCount} x-class={[emptyCell]}>
+    <tr data-slot="row">
+      <TableCell colSpan={columnCount} data-slot="cell" x-class={[emptyCell]}>
         {empty ?? <Empty />}
       </TableCell>
     </tr>
@@ -1423,10 +1438,10 @@ export default function DataTable<TData extends RowData>({
   // header table above the scrolling rows.
   const filterBody = filterable ? (
     <TableBody>
-      <tr>
-        {selectable && <TableCell>{null}</TableCell>}
+      <tr data-slot="filter-row">
+        {selectable && <TableCell data-slot="select-cell">{null}</TableCell>}
         {leafHeaders.map((header) => (
-          <TableCell key={`filter-${header.id}`}>
+          <TableCell key={`filter-${header.id}`} data-slot="cell">
             {header.column.getCanFilter() ? (
               <Input
                 size='sm'
@@ -1456,14 +1471,14 @@ export default function DataTable<TData extends RowData>({
       : undefined;
   const summaryTfoot =
     summaryRows !== undefined && summaryRows.length > 0 ? (
-      <tfoot x-class={[summaryFoot, stickyFooter && stickyFoot]}>
+      <tfoot data-slot="summary" x-class={[summaryFoot, stickyFooter && stickyFoot]}>
         {summaryRows.map((summaryRow, rowIndex) => (
-          <tr key={`summary-${rowIndex}`} aria-label={summaryRow.label}>
-            {selectable && <TableCell>{null}</TableCell>}
+          <tr key={`summary-${rowIndex}`} data-slot="row" aria-label={summaryRow.label}>
+            {selectable && <TableCell data-slot="select-cell">{null}</TableCell>}
             {leafHeaders.map((header, cellIndex) => {
               const cell = summaryRow.cells[cellIndex];
               return (
-                <TableCell key={header.id}>
+                <TableCell key={header.id} data-slot="cell">
                   {typeof cell === 'function'
                     ? cell(summaryRowsArguments)
                     : cell}
@@ -1489,7 +1504,7 @@ export default function DataTable<TData extends RowData>({
           .getAllLeafColumns()
           .filter((column) => column.getCanHide())
           .map((column) => (
-            <label key={column.id} x-class={[toggleRow]}>
+            <label key={column.id} data-slot="column-toggle-item" x-class={[toggleRow]}>
               <CheckboxCore
                 role='menuitemcheckbox'
                 aria-checked={column.getIsVisible()}
@@ -1497,7 +1512,7 @@ export default function DataTable<TData extends RowData>({
                 onChange={() => column.toggleVisibility()}
                 aria-label={`Show ${columnLabel(column)}`}
               />
-              <span>{columnLabel(column)}</span>
+              <span data-slot="label">{columnLabel(column)}</span>
             </label>
           ))}
       </DropdownMenuContent>
@@ -1505,19 +1520,19 @@ export default function DataTable<TData extends RowData>({
   ) : undefined;
 
   return (
-    <div x-class={[root, className]}>
+    <div data-slot="data-table" x-class={[root, className]}>
       {columnMenu && pageSize === undefined && (
-        <div x-class={[toolbar]}>{columnMenu}</div>
+        <div data-slot="toolbar" x-class={[toolbar]}>{columnMenu}</div>
       )}
       {virtual ? (
-        <div ref={virtualAreaRef} x-class={[virtualArea]}>
-          <table x-class={[tableBase, fixedLayout]} {...rest}>
+        <div ref={virtualAreaRef} data-slot="scroll-area" x-class={[virtualArea]}>
+          <table data-slot="table" x-class={[tableBase, fixedLayout]} {...rest}>
             {colgroup}
             {header}
             {filterBody}
           </table>
           {loading ? (
-            <table x-class={[tableBase, fixedLayout]}>
+            <table data-slot="table" x-class={[tableBase, fixedLayout]}>
               {colgroup}
               <TableBody>{skeletonRows}</TableBody>
             </table>
@@ -1532,28 +1547,28 @@ export default function DataTable<TData extends RowData>({
               estimatedItemHeight={expandable ? rowHeight : undefined}
               overscan={overscan}
               renderItem={(row) => (
-                <table x-class={[tableBase, fixedLayout, virtualRowTable]}>
+                <table data-slot="table" x-class={[tableBase, fixedLayout, virtualRowTable]}>
                   {colgroup}
                   <TableBody>{renderRow(row)}</TableBody>
                 </table>
               )}
             />
           ) : (
-            <table x-class={[tableBase, fixedLayout]}>
+            <table data-slot="table" x-class={[tableBase, fixedLayout]}>
               {colgroup}
               <TableBody>{emptyRow}</TableBody>
             </table>
           )}
           {summaryTfoot !== undefined && (
-            <table x-class={[tableBase, fixedLayout]}>
+            <table data-slot="table" x-class={[tableBase, fixedLayout]}>
               {colgroup}
               {summaryTfoot}
             </table>
           )}
         </div>
       ) : (
-        <div x-class={[stickyHeader ? stickyScrollArea : scrollArea]}>
-          <table x-class={[tableBase]} {...rest}>
+        <div data-slot="scroll-area" x-class={[stickyHeader ? stickyScrollArea : scrollArea]}>
+          <table data-slot="table" x-class={[tableBase]} {...rest}>
             {colgroup}
             {header}
             {filterBody}
@@ -1572,7 +1587,7 @@ export default function DataTable<TData extends RowData>({
         </div>
       )}
       {pageSize !== undefined && (
-        <div x-class={[footer]}>
+        <div data-slot="pagination" x-class={[footer]}>
           {columnMenu}
           {/* Manual mode: the server owns the row total, so the footer's
            * page math must come from `pageCount` (fed as

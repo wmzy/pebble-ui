@@ -106,11 +106,12 @@ export default function Image({
 
   return (
     <>
-      <span x-class={[wrapper, className]} style={{ aspectRatio }}>
+      <span data-slot="image" x-class={[wrapper, className]} style={{ aspectRatio }}>
         {error && fallback ? (
-          <span className={fallbackStyle}>{fallback}</span>
+          <span data-slot="error" className={fallbackStyle}>{fallback}</span>
         ) : (
           <img
+            data-slot="img"
             x-class={[imgStyle, previewEnabled && previewTrigger]}
             tabIndex={previewEnabled ? -1 : undefined}
             {...rest}

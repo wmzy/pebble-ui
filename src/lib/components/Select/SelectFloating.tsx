@@ -816,6 +816,7 @@ export default function SelectFloating({
     return (
       <div
         key={option.value}
+        data-slot='option'
         ref={i === activeIndex ? activeOptionRef : undefined}
         role='option'
         id={optionId(i)}
@@ -833,6 +834,7 @@ export default function SelectFloating({
         {multiple && (
           <span
             aria-hidden='true'
+            data-slot='indicator'
             x-class={[checkboxVisual, isSelected && checkboxChecked]}
           />
         )}
@@ -846,6 +848,7 @@ export default function SelectFloating({
   const clearAffordance = showClear ? (
     <span
       aria-hidden='true'
+      data-slot='clear-button'
       title={strings.clear}
       x-class={clearBtn}
       onClick={(e) => {
@@ -864,7 +867,7 @@ export default function SelectFloating({
 
   const triggerBody = multiple ? (
     selected.length === 0 ? (
-      <span x-class={placeholderText}>
+      <span data-slot='placeholder' x-class={placeholderText}>
         {placeholder ?? strings.placeholder}
       </span>
     ) : (
@@ -873,10 +876,11 @@ export default function SelectFloating({
           ? selected
           : selected.slice(0, Math.max(maxTagCount, 0))
         ).map((v) => (
-          <span x-class={chipItem} key={v}>
+          <span data-slot='item' x-class={chipItem} key={v}>
             <Chip color='primary'>{labelFor(v)}</Chip>
             <span
               aria-hidden='true'
+              data-slot='item-remove'
               x-class={chipRemove}
               onClick={(e) => {
                 // Keep the trigger's open toggle out of this click —
@@ -891,6 +895,7 @@ export default function SelectFloating({
         ))}
         {maxTagCount !== undefined && selected.length > Math.max(maxTagCount, 0) && (
           <span
+            data-slot='overflow-badge'
             x-class={overflowBadge}
             title={selected
               .slice(Math.max(maxTagCount, 0))
@@ -905,9 +910,9 @@ export default function SelectFloating({
       </>
     )
   ) : selectedValue === '' ? (
-    <span x-class={placeholderText}>{placeholder ?? strings.placeholder}</span>
+    <span data-slot='placeholder' x-class={placeholderText}>{placeholder ?? strings.placeholder}</span>
   ) : (
-    <span x-class={triggerLabel}>{labelFor(selectedValue)}</span>
+    <span data-slot='value' x-class={triggerLabel}>{labelFor(selectedValue)}</span>
   );
 
   // The options area of the panel. An empty visible list (loading, or a
@@ -931,7 +936,7 @@ export default function SelectFloating({
                       startIndex: entryOffsets[ei] ?? 0,
                       key: `group-${entry.label}-${entryOffsets[ei] ?? 0}`,
                       render: () => (
-                        <div x-class={groupLabelText}>{entry.label}</div>
+                        <div data-slot='group-label' x-class={groupLabelText}>{entry.label}</div>
                       ),
                     },
                   ]
@@ -951,8 +956,8 @@ export default function SelectFloating({
         return renderOption(entry.option, base);
       }
       return (
-        <div key={`group-${entry.label}`} role='group' aria-label={entry.label}>
-          <div x-class={[groupLabelRow, groupLabelText]}>{entry.label}</div>
+        <div key={`group-${entry.label}`} data-slot='group' role='group' aria-label={entry.label}>
+          <div data-slot='group-label' x-class={[groupLabelRow, groupLabelText]}>{entry.label}</div>
           {entry.options.map((option, i) => renderOption(option, base + i))}
         </div>
       );
@@ -960,12 +965,12 @@ export default function SelectFloating({
   );
 
   const listboxBody = loading ? (
-    <div x-class={loadingBlock}>
+    <div data-slot='loading' x-class={loadingBlock}>
       <Spinner size='sm' />
       <span>{strings.loading}</span>
     </div>
   ) : (
-    <div x-class={emptyBlock}>{strings.noMatch}</div>
+    <div data-slot='empty' x-class={emptyBlock}>{strings.noMatch}</div>
   );
 
   return (
@@ -976,6 +981,7 @@ export default function SelectFloating({
         // entirely (same rationale as SelectCore's onChange ordering).
         {...rest}
         ref={setTriggerRef}
+        data-slot='trigger'
         type='button'
         style={floating.triggerStyle}
         role='combobox'
@@ -991,7 +997,7 @@ export default function SelectFloating({
       >
         {triggerBody}
         {clearAffordance}
-        <span x-class={caret} aria-hidden='true'>
+        <span data-slot='icon' x-class={caret} aria-hidden='true'>
           <ChevronDown />
         </span>
       </button>
@@ -1005,6 +1011,7 @@ export default function SelectFloating({
         >
           <input
             ref={searchRef}
+            data-slot='input'
             type='text'
             aria-label={strings.searchLabel}
             placeholder={strings.searchPlaceholder}
@@ -1024,6 +1031,7 @@ export default function SelectFloating({
           {hasVisibleOptions ? (
             <div
               id={listboxId}
+              data-slot='list'
               role='listbox'
               aria-multiselectable={multiple || undefined}
               aria-label={strings.listboxLabel}

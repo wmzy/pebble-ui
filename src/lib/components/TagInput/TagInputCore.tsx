@@ -192,7 +192,7 @@ export default function TagInputCore({
   );
 
   const tagList = (
-    <ul x-class={[listWrap]}>
+    <ul data-slot="list" x-class={[listWrap]}>
       {tags.map((t, i) =>
         renderTag ? (
           renderTag({
@@ -202,9 +202,10 @@ export default function TagInputCore({
             onRemove: () => removeTag(i),
           })
         ) : (
-          <li key={i} x-class={[tag]}>
+          <li key={i} data-slot="item" x-class={[tag]}>
             {t}
             <button
+              data-slot="remove-button"
               x-class={[removeBtn]}
               type="button"
               onClick={() => removeTag(i)}
@@ -229,7 +230,7 @@ export default function TagInputCore({
   );
 
   return (
-    <div ref={containerRef} x-class={[container, className]}>
+    <div ref={containerRef} data-slot="tag-input" x-class={[container, className]}>
       {/* Tags form the list; the input is a sibling so the list's
           children are only listitems (axe aria-required-children) and
           screen readers hear one listitem per tag. */}
@@ -238,6 +239,7 @@ export default function TagInputCore({
         : tagList}
       <input
         ref={setInputRef}
+        data-slot="input"
         x-class={[inputEl]}
         id={id}
         aria-invalid={ariaInvalid}

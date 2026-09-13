@@ -453,6 +453,7 @@ export default function Carousel({
   return (
     <div
       ref={wrapperRef}
+      data-slot='carousel'
       x-class={[wrapper, className]}
       role='region'
       aria-roledescription='carousel'
@@ -481,6 +482,7 @@ export default function Carousel({
     >
       <div
         ref={trackRef}
+        data-slot='track'
         x-class={[fade ? fadeTrack : track]}
         onPointerDown={handleTrackPointerDown}
         onPointerMove={handleTrackPointerMove}
@@ -495,6 +497,7 @@ export default function Carousel({
         <>
           <button
             type='button'
+            data-slot='prev'
             x-class={[navBtn, prevBtn]}
             onClick={goPrev}
             aria-label={strings.previousSlide}
@@ -503,17 +506,19 @@ export default function Carousel({
           </button>
           <button
             type='button'
+            data-slot='next'
             x-class={[navBtn, nextBtn]}
             onClick={goNext}
             aria-label={strings.nextSlide}
           >
             ›
           </button>
-          <div className={indicators}>
+          <div data-slot='dots' className={indicators}>
             {Array.from({ length: count }, (_, i) => (
               <button
                 key={i}
                 type='button'
+                data-slot='dot'
                 x-class={[dot, i === current && dotActive]}
                 onClick={() => setCurrent(i)}
                 aria-label={formatString(strings.goToSlide, { index: i + 1 })}

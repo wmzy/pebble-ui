@@ -20,6 +20,12 @@ const content = css`
   border: 1px solid var(--haze-color-border);
   border-radius: var(--haze-radius-md);
   box-shadow: var(--haze-shadow-md);
+
+  /* Forced-colors: CanvasText boundary restated (see
+     DropdownMenuContent). */
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
 `;
 
 /**

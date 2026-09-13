@@ -11,7 +11,7 @@ const separator = css`
 `;
 
 export default function ContextMenuSeparator({ className }: ContextMenuSeparatorProps) {
-  return <div x-class={[separator, className]} role="separator" />;
+  return <div data-slot='separator' x-class={[separator, className]} role="separator" />;
 }
 
 export type { ContextMenuSeparatorProps };

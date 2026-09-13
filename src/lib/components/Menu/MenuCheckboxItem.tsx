@@ -51,6 +51,18 @@ const item = css`
     box-shadow: inset 0 0 0 2px var(--haze-color-focus-ring);
   }
 
+  /* Forced-colors: the inset focus ring is a box-shadow — dropped by
+     the UA — and the subtle background flattens onto Canvas, so the
+     keyboard-focused item would vanish. An inset Highlight outline
+     restores the focus indication (the check glyph itself draws in
+     CanvasText through currentColor). */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -79,6 +91,7 @@ export default function MenuCheckboxItem({
     <button
       type='button'
       role='menuitemcheckbox'
+      data-slot='menu-checkbox-item'
       aria-checked={checked}
       tabIndex={-1}
       x-class={[item, danger && menuItemDanger, className]}
@@ -89,7 +102,7 @@ export default function MenuCheckboxItem({
         onCheckedChange?.(next);
       }}
     >
-      <span x-class={menuItemIndicator} aria-hidden='true'>
+      <span data-slot='indicator' x-class={menuItemIndicator} aria-hidden='true'>
         {checked && (
           <svg width='1em' height='1em' viewBox='0 0 16 16' fill='none'>
             <path
@@ -102,10 +115,10 @@ export default function MenuCheckboxItem({
           </svg>
         )}
       </span>
-      {icon !== undefined && <span x-class={menuItemIcon}>{icon}</span>}
+      {icon !== undefined && <span data-slot='icon' x-class={menuItemIcon}>{icon}</span>}
       {children}
       {kbdLabel !== undefined && (
-        <span x-class={menuItemKbd} aria-hidden='true'>{kbdLabel}</span>
+        <span data-slot='kbd' x-class={menuItemKbd} aria-hidden='true'>{kbdLabel}</span>
       )}
     </button>
   );

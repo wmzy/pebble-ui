@@ -101,7 +101,7 @@ export default function CountUp({
   }, [to, from, duration, reducedMotion, autostart]);
 
   return (
-    <span x-class={[base, className]} {...rest}>
+    <span data-slot="count-up" x-class={[base, className]} {...rest}>
       {format ? format(displayed) : defaultFormat(displayed, decimals)}
     </span>
   );

@@ -6,7 +6,7 @@ type TableRowProps = {
 };
 
 export default function TableRow({className, children}: TableRowProps) {
-  return <tr x-class={[className]}>{children}</tr>;
+  return <tr data-slot="row" x-class={[className]}>{children}</tr>;
 }
 
 export type {TableRowProps};

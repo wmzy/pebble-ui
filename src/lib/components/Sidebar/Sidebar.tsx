@@ -85,11 +85,12 @@ export default function Sidebar({
   return (
     <SidebarContext.Provider value={{ collapsed, setCollapsed, navId }}>
       <aside
+        data-slot="sidebar"
         x-class={[sidebar, className]}
         data-state={collapsed ? 'collapsed' : 'expanded'}
         {...rest}
       >
-        <nav id={navId} x-class={nav}>
+        <nav data-slot="viewport" id={navId} x-class={nav}>
           {children}
         </nav>
       </aside>
@@ -128,8 +129,8 @@ export function SidebarGroup({ title, className, children, ...rest }: SidebarGro
   const { collapsed } = useSidebarContext();
 
   return (
-    <div x-class={[group, className]} {...rest}>
-      {title && !collapsed && <div x-class={groupTitle}>{title}</div>}
+    <div data-slot="group" x-class={[group, className]} {...rest}>
+      {title && !collapsed && <div data-slot="group-label" x-class={groupTitle}>{title}</div>}
       {children}
     </div>
   );
@@ -261,6 +262,7 @@ export const SidebarItem = forwardRef<HTMLAnchorElement, SidebarItemProps>(
     const anchor = (
       <a
         ref={ref}
+        data-slot="item"
         x-class={[item, isActive && itemActive, className]}
         href={href}
         aria-current={isActive ? 'page' : ariaCurrent}
@@ -275,11 +277,11 @@ export const SidebarItem = forwardRef<HTMLAnchorElement, SidebarItemProps>(
         {...rest}
       >
         {icon && (
-          <span x-class={itemIcon} aria-hidden="true">
+          <span data-slot="icon" x-class={itemIcon} aria-hidden="true">
             {icon}
           </span>
         )}
-        <span x-class={itemLabel}>{children}</span>
+        <span data-slot="label" x-class={itemLabel}>{children}</span>
       </a>
     );
 
@@ -315,7 +317,7 @@ const footer = css`
 
 export function SidebarFooter({ className, children, ...rest }: SidebarFooterProps) {
   return (
-    <div x-class={[footer, className]} {...rest}>
+    <div data-slot="footer" x-class={[footer, className]} {...rest}>
       {children}
     </div>
   );
@@ -370,6 +372,7 @@ const toggleIcon = css`
 
 const ChevronTowardsStart = () => (
   <svg
+    data-slot="icon"
     x-class={toggleIcon}
     viewBox="0 0 24 24"
     fill="none"
@@ -390,6 +393,7 @@ export function SidebarToggle({ onClick, className, ...rest }: SidebarToggleProp
   return (
     <button
       type="button"
+      data-slot="toggle-button"
       x-class={[toggle, className]}
       aria-label={collapsed ? strings.expand : strings.collapse}
       aria-expanded={!collapsed}

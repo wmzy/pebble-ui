@@ -32,11 +32,28 @@ function ComponentDocStub() {
   return <div>doc-view:{params.name ?? ''}</div>;
 }
 
+function PageStub() {
+  return <div>page-view</div>;
+}
+
+function GuideStub() {
+  const { params } = useMatched();
+  return <div>guide-view:{params.guide ?? ''}</div>;
+}
+
 const routes = [
   { path: '/', component: () => Promise.resolve({ default: HomeStub }) },
   {
     path: '/components/:name',
     component: () => Promise.resolve({ default: ComponentDocStub }),
+  },
+  {
+    path: '/getting-started',
+    component: () => Promise.resolve({ default: PageStub }),
+  },
+  {
+    path: '/guides/:guide',
+    component: () => Promise.resolve({ default: GuideStub }),
   },
 ] as Route[];
 
@@ -148,7 +165,7 @@ describe('CommandPalette', () => {
 
     await user.type(input, 'zzz');
     expect(
-      screen.getByText('No components match “zzz”')
+      screen.getByText('No results match “zzz”')
     ).toBeInTheDocument();
   });
 
@@ -168,6 +185,89 @@ describe('CommandPalette', () => {
     expect(await screen.findByText('doc-view:button')).toBeInTheDocument();
     const dialog = screen.getByRole('dialog', { name: 'Search components' });
     await waitFor(() => expect(dialog).not.toHaveAttribute('open'));
+  });
+
+  it('surfaces Docs-tier prop hits and navigates to the owning page', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await screen.findByText('home-view');
+    await user.click(screen.getByRole('button', { name: 'Search components' }));
+    const input = await screen.findByRole('textbox');
+
+    // "label width" matches no component name, but the FormItem docs
+    // table row labelWidth does (multi-term AND across label/sublabel).
+    await user.type(input, 'label width');
+    const dialog = screen.getByRole('dialog', { name: 'Search components' });
+    const docsGroup = within(dialog).getByRole('group', { name: 'Docs' });
+    const row = within(docsGroup).getByRole('option', {
+      name: /labelWidth/,
+    });
+    expect(
+      within(row).getByText(/^FormItem — Horizontal label column width/)
+    ).toBeInTheDocument();
+
+    await user.click(row);
+    expect(await screen.findByText('doc-view:form')).toBeInTheDocument();
+  });
+
+  it('surfaces guide pages in the Docs tier and navigates to the guide', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await screen.findByText('home-view');
+    await user.click(screen.getByRole('button', { name: 'Search components' }));
+    const input = await screen.findByRole('textbox');
+
+    await user.type(input, 'density');
+    const dialog = screen.getByRole('dialog', { name: 'Search components' });
+    await user.click(
+      within(dialog).getByRole('option', { name: /Density \(compact\)/ })
+    );
+    expect(await screen.findByText('guide-view:density')).toBeInTheDocument();
+  });
+
+  it('Enter activates the focused Docs row', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await screen.findByText('home-view');
+    await user.click(screen.getByRole('button', { name: 'Search components' }));
+    const input = await screen.findByRole('textbox');
+
+    // Docs-only query: the first option is the Getting Started page.
+    await user.type(input, 'getting started');
+    await user.keyboard('[ArrowDown]');
+    expect(document.activeElement).toBe(
+      screen.getAllByRole('option')[0]
+    );
+    await user.keyboard('[Enter]');
+
+    expect(await screen.findByText('page-view')).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog', { name: 'Search components' });
+    await waitFor(() => expect(dialog).not.toHaveAttribute('open'));
+  });
+
+  it('arrow keys traverse from the component tier into the Docs group', async () => {
+    const user = userEvent.setup();
+    renderApp();
+    await screen.findByText('home-view');
+    await user.click(screen.getByRole('button', { name: 'Search components' }));
+    const input = await screen.findByRole('textbox');
+
+    // Both tiers hit: Dialog (component) + a Docs group below it.
+    await user.type(input, 'dialog');
+    const dialog = screen.getByRole('dialog', { name: 'Search components' });
+    const docsGroup = within(dialog).getByRole('group', { name: 'Docs' });
+    const docsFirst = within(docsGroup).getAllByRole('option')[0]!;
+    const index = within(dialog)
+      .getAllByRole('option')
+      .indexOf(docsFirst);
+
+    // One ArrowDown per option from the input, landing on the first
+    // Docs row — focus crossed the tier boundary inside the listbox.
+    await user.keyboard('[ArrowDown]'.repeat(index + 1));
+    expect(document.activeElement).toBe(docsFirst);
+
+    await user.keyboard('[Enter]');
+    expect(await screen.findByText(/doc-view:/)).toBeInTheDocument();
   });
 
   it('has no axe violations while open', async () => {

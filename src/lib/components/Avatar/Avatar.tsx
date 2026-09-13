@@ -59,16 +59,17 @@ export default function Avatar({
   const [error, setError] = useState(false);
 
   return (
-    <span x-class={[base, sizes[size], className]}>
+    <span data-slot="avatar" x-class={[base, sizes[size], className]}>
       {src && !error ? (
         <img
+          data-slot="img"
           className={imgStyle}
           src={src}
           alt={alt ?? ''}
           onError={() => setError(true)}
         />
       ) : (
-        (fallback ?? <span>{alt?.charAt(0).toUpperCase() ?? '?'}</span>)
+        (fallback ?? <span data-slot="img">{alt?.charAt(0).toUpperCase() ?? '?'}</span>)
       )}
     </span>
   );

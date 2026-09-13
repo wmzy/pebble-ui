@@ -68,7 +68,7 @@ export function Collapsible({
 
   return (
     <CollapsibleContext.Provider value={{ open, toggle, classNames }}>
-      <div x-class={[base, className, classNames?.root]}>
+      <div data-slot='collapsible' x-class={[base, className, classNames?.root]}>
         {children}
       </div>
     </CollapsibleContext.Provider>
@@ -89,7 +89,12 @@ const triggerStyle = css`
 export function CollapsibleTrigger({ children, className }: CollapsibleTriggerProps) {
   const { toggle, classNames } = useCollapsibleContext();
   return (
-    <button type="button" x-class={[triggerStyle, className, classNames?.trigger]} onClick={toggle}>
+    <button
+      type="button"
+      data-slot='trigger'
+      x-class={[triggerStyle, className, classNames?.trigger]}
+      onClick={toggle}
+    >
       {children}
     </button>
   );
@@ -132,7 +137,7 @@ export function CollapsibleContent({ children, className }: CollapsibleContentPr
   const { open, classNames } = useCollapsibleContext();
   return (
     <Presence present={open}>
-      <div x-class={[contentOuter, className, classNames?.content]}>
+      <div data-slot='content' x-class={[contentOuter, className, classNames?.content]}>
         <div x-class={contentInner}>{children}</div>
       </div>
     </Presence>

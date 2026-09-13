@@ -91,10 +91,11 @@ export default function SwipeAction({
   }, [threshold, onSwipeLeft, onSwipeRight]);
 
   return (
-    <div x-class={[wrapper, className]}>
+    <div data-slot='swipe-action' x-class={[wrapper, className]}>
       {left && <div x-class={[actionsLeft]}>{left}</div>}
       {right && <div x-class={[actionsRight]}>{right}</div>}
       <div
+        data-slot='content'
         x-class={[content]}
         style={{ transform: `translateX(${offset}px)` }}
         onPointerDown={(e) => handleStart(e.clientX)}

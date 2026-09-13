@@ -50,6 +50,7 @@ export default function ToolbarButton({
   return (
     <button
       type="button"
+      data-slot="toolbar-button"
       data-haze-toolbar-item=""
       tabIndex={-1}
       x-class={[base, variants[variant], sizeClass, toolbarItem, className]}

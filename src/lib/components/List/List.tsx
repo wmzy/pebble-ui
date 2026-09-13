@@ -38,7 +38,7 @@ export default function List({
   const Tag = variant === 'ordered' ? 'ol' : 'ul';
 
   return (
-    <Tag x-class={[base, variantStyles[variant], className]}>{children}</Tag>
+    <Tag data-slot="list" x-class={[base, variantStyles[variant], className]}>{children}</Tag>
   );
 }
 

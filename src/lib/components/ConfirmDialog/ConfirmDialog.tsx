@@ -195,6 +195,7 @@ export default function ConfirmDialog({
   return (
     <Presence present={open}>
       <div
+        data-slot='mask'
         x-class={[overlay, className]}
         onClick={() => {
           // 退场期间（已 setOpen(false)、Presence 尚未卸载）不再重复关闭
@@ -206,6 +207,7 @@ export default function ConfirmDialog({
       >
         <div
           ref={setScope}
+          data-slot='content'
           role="dialog"
           aria-modal="true"
           aria-labelledby={title !== undefined ? titleId : undefined}
@@ -214,16 +216,16 @@ export default function ConfirmDialog({
           onClick={(e) => e.stopPropagation()}
         >
           {title && (
-            <div id={titleId} x-class={[header]}>
+            <div id={titleId} data-slot='title' x-class={[header]}>
               {title}
             </div>
           )}
-          <div x-class={[body]}>{children}</div>
-          <div x-class={[footer]}>
-            <button x-class={[btn, cancelBtn]} type="button" onClick={handleCancel}>
+          <div data-slot='description' x-class={[body]}>{children}</div>
+          <div data-slot='footer' x-class={[footer]}>
+            <button data-slot='cancel-button' x-class={[btn, cancelBtn]} type="button" onClick={handleCancel}>
               {cancelLabel}
             </button>
-            <button x-class={[btn, variant === 'danger' ? dangerBtn : confirmBtn]} type="button" onClick={handleConfirm}>
+            <button data-slot='confirm-button' x-class={[btn, variant === 'danger' ? dangerBtn : confirmBtn]} type="button" onClick={handleConfirm}>
               {confirmLabel}
             </button>
           </div>

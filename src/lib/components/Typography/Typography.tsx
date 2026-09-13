@@ -27,7 +27,7 @@ const titleLevels = {
 export function Title({ level = 1, className, children }: TitleProps) {
   const Tag = `h${level}` as keyof JSX.IntrinsicElements;
   return (
-    <Tag x-class={[titleBase, titleLevels[level], className]}>
+    <Tag data-slot="title" x-class={[titleBase, titleLevels[level], className]}>
       {children}
     </Tag>
   );
@@ -136,6 +136,7 @@ export function Text({
 
   return (
     <Tag
+      data-slot="text"
       x-class={[
         textBase,
         textTypes[type],
@@ -175,6 +176,7 @@ export function Paragraph({ ellipsis, className, children }: ParagraphProps) {
 
   return (
     <p
+      data-slot="paragraph"
       x-class={[
         paragraphBase,
         clamped && lines === 1 && ellipsisSingle,

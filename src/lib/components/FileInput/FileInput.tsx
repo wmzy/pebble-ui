@@ -57,8 +57,14 @@ export default function FileInput({
   const strings = useStrings('fileInput');
 
   return (
-    <label x-class={[trigger, className]}>
-      <input ref={ref} type='file' className={hiddenInput} {...rest} />
+    <label data-slot='file-input' x-class={[trigger, className]}>
+      <input
+        ref={ref}
+        data-slot='input'
+        type='file'
+        className={hiddenInput}
+        {...rest}
+      />
       {children ?? strings.label}
     </label>
   );

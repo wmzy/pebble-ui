@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { css } from '@linaria/core';
 import { useControl } from 'react-use-control';
 
@@ -10,6 +12,7 @@ import {
 } from '@/lib';
 
 import { buildStackblitzProject } from './stackblitz';
+import { highlightTsx } from './highlight';
 
 /** 打开 StackBlitz 工程；弹窗被拦截 / sdk 加载失败时静默放弃，不 crash。 */
 async function openInStackBlitz(name: string, source: string): Promise<void> {
@@ -126,15 +129,21 @@ const codeStyle = css`
 
 /**
  * 当前 route 对应 demo 的源码区块：可折叠（默认展开），标题栏带 tsx 语言
- * 标签与 Copy 按钮，主体 <pre><code> 展示原始源码。
+ * 标签与 Copy 按钮，主体 <pre><code> 用零依赖 tokenizer 做语法高亮
+ * （span 文本内容与原始源码逐字节一致，Copy/选中仍是纯源码）。
  * demo 不在 demos 目录（如 'form'）时整个区块不渲染。
  */
 export default function DemoSource({ name }: { name: string }) {
   const [open, , openControl] = useControl(true);
   const { copied, copy } = useClipboard();
   const demo = resolveDemo(name);
+  // demo entries are module constants — tokenizing once per mounted block.
+  const highlighted = useMemo(
+    () => (demo ? highlightTsx(demo.source) : null),
+    [demo]
+  );
 
-  if (!demo) return null;
+  if (!demo || !highlighted) return null;
 
   return (
     <div className={wrapper} data-state={open ? 'open' : 'closed'}>
@@ -164,7 +173,7 @@ export default function DemoSource({ name }: { name: string }) {
         </div>
         <CollapsibleContent>
           <pre className={codeStyle}>
-            <code>{demo.source}</code>
+            <code>{highlighted}</code>
           </pre>
         </CollapsibleContent>
       </Collapsible>

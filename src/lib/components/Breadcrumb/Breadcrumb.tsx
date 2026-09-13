@@ -41,16 +41,17 @@ export default function Breadcrumb({
   const items = Children.toArray(children);
 
   return (
-    <nav aria-label={strings.label} x-class={[nav, className]}>
-      <ol className={list}>
+    <nav data-slot='breadcrumb' aria-label={strings.label} x-class={[nav, className]}>
+      <ol data-slot='list' className={list}>
         {items.map((child, i) => (
           <li
             key={i}
+            data-slot='item'
             aria-current={i === items.length - 1 ? 'page' : undefined}
           >
             {child}
             {i < items.length - 1 && (
-              <span className={sep} aria-hidden='true'>
+              <span data-slot='separator' className={sep} aria-hidden='true'>
                 {separator}
               </span>
             )}

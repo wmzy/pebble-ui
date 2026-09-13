@@ -78,6 +78,15 @@ const closeBtn = css`
     box-shadow: 0 0 0 3px var(--haze-color-focus-ring);
     border-radius: var(--haze-radius-sm);
   }
+
+  /* Forced-colors: the box-shadow focus ring is dropped by the UA —
+     a Highlight outline replaces it (media-gated, normal rendering
+     untouched). */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+    }
+  }
 `;
 
 export default function Alert({
@@ -99,11 +108,12 @@ export default function Alert({
   };
 
   return (
-    <div role='alert' x-class={[base, variants[variant], className]}>
-      <div className={contentStyle}>{children}</div>
+    <div role='alert' data-slot='alert' x-class={[base, variants[variant], className]}>
+      <div data-slot='content' className={contentStyle}>{children}</div>
       {closable && (
         <button
           type='button'
+          data-slot='close'
           className={closeBtn}
           aria-label={strings.close}
           onClick={handleClose}

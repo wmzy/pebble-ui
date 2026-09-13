@@ -565,6 +565,7 @@ export default function VirtualList<T>({
       views.push(
         <div
           key={group.key}
+          data-slot='group-header'
           data-group-key={group.key}
           x-class={[horizontal ? groupHeaderHorizontal : groupHeader]}
           style={anchorStyle}
@@ -704,11 +705,13 @@ export default function VirtualList<T>({
   return (
     <div
       ref={containerRef}
+      data-slot='virtual-list'
       x-class={[horizontal ? containerHorizontal : container, className]}
       style={portStyle}
       {...rest}
     >
       <div
+        data-slot='viewport'
         x-class={[horizontal ? viewportHorizontal : viewport]}
         style={spacerStyle}
       >
@@ -737,6 +740,7 @@ export default function VirtualList<T>({
                 cells.push(
                   <div
                     key={col}
+                    data-slot='item'
                     data-cell={index}
                     style={{ flex: 'none', width: cellWidth }}
                   >
@@ -745,7 +749,7 @@ export default function VirtualList<T>({
                 );
               }
               return (
-                <div key={row} data-index={row} style={rowStyle}>
+                <div key={row} data-slot='row' data-index={row} style={rowStyle}>
                   {/* Windowed columns are offset from the row's inline-start
                       edge; the logical margin keeps RTL geometry correct. */}
                   <div
@@ -788,7 +792,7 @@ export default function VirtualList<T>({
                 unitStyle.height = itemHeight;
               }
               return (
-                <div key={index} data-index={index} style={unitStyle}>
+                <div key={index} data-slot='item' data-index={index} style={unitStyle}>
                   {renderItem(item, index)}
                 </div>
               );

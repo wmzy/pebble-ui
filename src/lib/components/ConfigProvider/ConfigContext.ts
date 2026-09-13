@@ -41,6 +41,16 @@ type HazeConfig = {
     /** Hover/focus delay in ms before the tooltip appears (150). */
     delay?: number;
   };
+  /** `HoverCard` prop defaults. */
+  HoverCard?: {
+    /** Hover/focus dwell in ms before the card opens (200). */
+    openDelay?: number;
+    /**
+     * Grace period in ms after the pointer leaves before the card
+     * closes — the travel window into the panel (120).
+     */
+    closeDelay?: number;
+  };
 };
 
 /**
@@ -70,6 +80,7 @@ function mergeConfig(
     ButtonLink: { ...(outer.ButtonLink ?? {}), ...(inner.ButtonLink ?? {}) },
     Toast: { ...(outer.Toast ?? {}), ...(inner.Toast ?? {}) },
     Tooltip: { ...(outer.Tooltip ?? {}), ...(inner.Tooltip ?? {}) },
+    HoverCard: { ...(outer.HoverCard ?? {}), ...(inner.HoverCard ?? {}) },
   };
 }
 

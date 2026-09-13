@@ -85,7 +85,7 @@ export default function Chart<T>({
   const resolvedSeries = useMemo(() => resolveChartSeries(series), [series]);
 
   return (
-    <div x-class={[root, className]} style={{ height, ...style }} {...rest}>
+    <div data-slot='chart' x-class={[root, className]} style={{ height, ...style }} {...rest}>
       {chartTree({
         type,
         data,

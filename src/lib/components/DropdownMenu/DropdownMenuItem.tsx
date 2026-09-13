@@ -74,6 +74,7 @@ export default function DropdownMenuItem({
 
   return (
     <button
+      data-slot='menu-item'
       x-class={[item, danger && dropdownMenuItemDanger, className]}
       type="button"
       role="menuitem"
@@ -81,10 +82,10 @@ export default function DropdownMenuItem({
       onClick={handleClick}
       disabled={disabled}
     >
-      {icon !== undefined && <span x-class={dropdownMenuItemIcon}>{icon}</span>}
+      {icon !== undefined && <span data-slot='icon' x-class={dropdownMenuItemIcon}>{icon}</span>}
       {children}
       {kbdLabel !== undefined && (
-        <span x-class={dropdownMenuItemKbd} aria-hidden="true">{kbdLabel}</span>
+        <span data-slot='kbd' x-class={dropdownMenuItemKbd} aria-hidden="true">{kbdLabel}</span>
       )}
     </button>
   );

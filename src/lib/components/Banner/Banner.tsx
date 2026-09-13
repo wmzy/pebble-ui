@@ -22,6 +22,14 @@ const banner = css`
   font-family: var(--haze-font-sans);
   font-size: var(--haze-text-sm);
   border-radius: var(--haze-radius-md);
+
+  /* Forced-colors: the tinted variant backgrounds flatten onto Canvas
+     with no border declared — a full-width banner would dissolve into
+     the page. A CanvasText boundary keeps the prominent-message
+     shape. */
+  @media (forced-colors: active) {
+    border: 1px solid CanvasText;
+  }
 `;
 
 const variants: Record<string, string> = {
@@ -58,6 +66,16 @@ const closeBtn = css`
   &:hover {
     opacity: 1;
   }
+
+  /* Forced-colors: the × glyph keeps its CanvasText rendering through
+     color:inherit; the UA drops nothing here except a focus ring this
+     button never had — give keyboard focus a media-gated Highlight
+     outline (normal rendering untouched). */
+  @media (forced-colors: active) {
+    &:focus-visible {
+      outline: 2px solid Highlight;
+    }
+  }
 `;
 
 const content = css`
@@ -82,10 +100,10 @@ export default function Banner({
   };
 
   return (
-    <div x-class={[banner, variants[variant], className]} role="alert">
-      <div x-class={[content]}>{children}</div>
+    <div data-slot='banner' x-class={[banner, variants[variant], className]} role="alert">
+      <div data-slot='content' x-class={[content]}>{children}</div>
       {onClose && (
-        <button x-class={[closeBtn]} type="button" onClick={handleClose} aria-label={strings.close}>
+        <button data-slot='close' x-class={[closeBtn]} type="button" onClick={handleClose} aria-label={strings.close}>
           x
         </button>
       )}

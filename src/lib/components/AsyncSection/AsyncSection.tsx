@@ -130,9 +130,9 @@ export default function AsyncSection({
   const retryLabel = retryText ?? strings.retry;
   if (loading) {
     return (
-      <section x-class={[base, className]} aria-busy="true">
-        <div x-class={[placeholder]} role="status">
-          <span x-class={[spin]} aria-hidden="true">
+      <section data-slot='async-section' x-class={[base, className]} aria-busy="true">
+        <div data-slot='loading' x-class={[placeholder]} role="status">
+          <span data-slot='spinner' x-class={[spin]} aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle
                 cx="12"
@@ -161,11 +161,11 @@ export default function AsyncSection({
       (error instanceof Error && error.message ? error.message : undefined) ??
       strings.error;
     return (
-      <section x-class={[base, className]}>
-        <div x-class={[errorBox]} role="alert">
-          <p x-class={[errorMessage]}>{message}</p>
+      <section data-slot='async-section' x-class={[base, className]}>
+        <div data-slot='error' x-class={[errorBox]} role="alert">
+          <p data-slot='message' x-class={[errorMessage]}>{message}</p>
           {onRetry && (
-            <button type="button" x-class={[retryButton]} onClick={onRetry}>
+            <button data-slot='retry-button' type="button" x-class={[retryButton]} onClick={onRetry}>
               {retryLabel}
             </button>
           )}
@@ -175,7 +175,7 @@ export default function AsyncSection({
   }
 
   return (
-    <section x-class={[base, className]}>
+    <section data-slot='async-section' x-class={[base, className]}>
       {children}
     </section>
   );

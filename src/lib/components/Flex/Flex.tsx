@@ -37,7 +37,7 @@ export default function Flex({
   };
 
   return (
-    <div x-class={[base, className]} style={style}>
+    <div data-slot='flex' x-class={[base, className]} style={style}>
       {children}
     </div>
   );

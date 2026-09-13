@@ -53,6 +53,7 @@ export default function ToolbarToggle({
   return (
     <button
       type="button"
+      data-slot="toolbar-toggle"
       data-haze-toolbar-item=""
       tabIndex={-1}
       aria-pressed={pressed}

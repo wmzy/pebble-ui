@@ -168,14 +168,16 @@ export default function DateRangePickerCore({
   const inputs = (
     <>
       <input
+        data-slot='start-input'
         type="date"
         x-class={[input]}
         aria-label={strings.startDate}
         value={startDate}
         onChange={(e) => onStartChange(e.target.value)}
       />
-      <span x-class={[sep]}>{separator}</span>
+      <span data-slot='separator' x-class={[sep]}>{separator}</span>
       <input
+        data-slot='end-input'
         type="date"
         x-class={[input]}
         aria-label={strings.endDate}
@@ -189,21 +191,22 @@ export default function DateRangePickerCore({
   // for presets (shortcut rows above nothing still set both inputs).
   if (months !== 2 && !hasPresets) {
     return (
-      <div x-class={[container, className]}>
+      <div data-slot='date-range-picker' x-class={[container, className]}>
         {inputs}
       </div>
     );
   }
 
   return (
-    <div x-class={[container, stackedContainer, className]}>
-      <div x-class={[inputsRow]}>{inputs}</div>
-      <div x-class={[panel]}>
+    <div data-slot='date-range-picker' x-class={[container, stackedContainer, className]}>
+      <div data-slot='inputs' x-class={[inputsRow]}>{inputs}</div>
+      <div data-slot='panel' x-class={[panel]}>
         {hasPresets && (
-          <div x-class={[presetList]}>
+          <div data-slot='presets' x-class={[presetList]}>
             {presets.map((preset) => (
               <button
                 key={`${preset.label}:${preset.range.join('~')}`}
+                data-slot='preset'
                 type='button'
                 x-class={[presetRow]}
                 onClick={() => {

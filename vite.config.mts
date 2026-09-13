@@ -11,6 +11,7 @@ import wyw from '@wyw-in-js/vite';
 
 import { writeProps } from './scripts/generate-props.mjs';
 import { writeLlmsFull } from './scripts/generate-llms-full.mjs';
+import { writeSearchIndex } from './scripts/generate-search-index.mjs';
 import { writeSizeReport } from './scripts/generate-size-report.mjs';
 import { isRscSafeModule } from './scripts/rsc-safe.mjs';
 
@@ -65,8 +66,10 @@ function jsxPlusPlugin(): Plugin {
 
 // Docs app only: regenerate src/generated/props.json (PropsTable `of` data
 // and the Copy-import index) before the module graph resolves it, then the
-// repo-root llms-full.txt single-file API reference built on top of it.
-// Skipped for lib builds and vitest — neither reads the generated file.
+// repo-root llms-full.txt single-file API reference built on top of it and
+// the ⌘K palette's search-index.json (joins the fresh props.json routes
+// with props-docs.json descriptions — must run after writeProps).
+// Skipped for lib builds and vitest — neither reads the generated files.
 function propsDocgenPlugin(): Plugin {
   return {
     name: 'haze-ui-props-docgen',
@@ -87,6 +90,12 @@ function propsDocgenPlugin(): Plugin {
       if (size.changed) {
         console.log(
           `props-docgen: regenerated size-report.json (${size.familyCount} families)`
+        );
+      }
+      const search = writeSearchIndex(__dirname);
+      if (search.changed) {
+        console.log(
+          `props-docgen: regenerated search-index.json (${search.entryCount} entries)`
         );
       }
     },

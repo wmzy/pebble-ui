@@ -71,16 +71,17 @@ export default function ConversationItem({
 }: ConversationItemProps) {
   return (
     <button
+      data-slot='conversation-item'
       x-class={[item, active && activeItem, className]}
       type="button"
       onClick={onClick}
       aria-current={active ? 'true' : undefined}
     >
       <div x-class={[body]}>
-        <div x-class={[titleStyle]}>{title}</div>
-        {subtitle && <div x-class={[subtitleStyle]}>{subtitle}</div>}
+        <div data-slot='title' x-class={[titleStyle]}>{title}</div>
+        {subtitle && <div data-slot='description' x-class={[subtitleStyle]}>{subtitle}</div>}
       </div>
-      {end && <div x-class={[endSlot]}>{end}</div>}
+      {end && <div data-slot='suffix' x-class={[endSlot]}>{end}</div>}
     </button>
   );
 }

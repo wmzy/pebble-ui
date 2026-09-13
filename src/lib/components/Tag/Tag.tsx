@@ -93,10 +93,11 @@ export default function Tag({
 }: TagProps) {
   const strings = useStrings('tag');
   return (
-    <span x-class={[base, variants[variant], tagSizes[size], className]}>
+    <span data-slot="tag" x-class={[base, variants[variant], tagSizes[size], className]}>
       {children}
       {closable && (
         <button
+          data-slot="remove-button"
           type='button'
           className={closeBtn}
           aria-label={strings.remove}

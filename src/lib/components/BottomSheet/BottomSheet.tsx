@@ -142,6 +142,16 @@ const sheet = css`
       transform: translateY(100%);
     }
   }
+
+  /* Forced-colors: the sheet's opaque background flattens onto Canvas
+     with no border declared — an open sheet would blend into the
+     page. A CanvasText boundary separates it from the Canvas behind
+     (the box-shadow is dropped by the UA); the bottom edge sits flush
+     against the viewport, so it stays borderless. */
+  @media (forced-colors: active) {
+    border: 1px solid CanvasText;
+    border-bottom: none;
+  }
 `;
 
 const handle = css`
@@ -150,6 +160,11 @@ const handle = css`
   background: var(--haze-color-border);
   border-radius: var(--haze-radius-full);
   margin: 0 auto var(--haze-space-4);
+
+  /* Forced-colors: the drag affordance flattens onto Canvas. */
+  @media (forced-colors: active) {
+    background: CanvasText;
+  }
 `;
 
 /* swipeToDismiss 开启时叠加在 sheet 上：touch-action 把纵向平移优先
@@ -416,6 +431,7 @@ export default function BottomSheet({
   return (
     <Presence present={open}>
       <div
+        data-slot='mask'
         x-class={[overlay, className]}
         onClick={() => {
           // 退场期间（已 setOpen(false)、Presence 尚未卸载）不再重复关闭
@@ -427,6 +443,7 @@ export default function BottomSheet({
       >
         <div
           ref={setSheet}
+          data-slot='content'
           role="dialog"
           aria-modal="true"
           x-class={[sheet, swipeToDismiss && swipeable]}
@@ -440,7 +457,7 @@ export default function BottomSheet({
           })}
           onClick={(e) => e.stopPropagation()}
         >
-          <div x-class={[handle]} />
+          <div data-slot='handle' x-class={[handle]} />
           {children}
         </div>
       </div>

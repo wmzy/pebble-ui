@@ -30,6 +30,22 @@ const base = css`
       transform: rotate(360deg);
     }
   }
+
+  /* Forced-colors: the UA flattens both svg strokes onto CanvasText —
+     the arc would merge into the full ring and the glyph would stop
+     reading as loading. System colors survive the override, so the
+     rest ring renders GrayText and the spinning arc CanvasText (the
+     motion still distinguishes them; reduced-motion parks the arc on
+     the rest frame where the two grays keep the circle visible). */
+  @media (forced-colors: active) {
+    & svg circle {
+      stroke: GrayText;
+    }
+
+    & svg path {
+      stroke: CanvasText;
+    }
+  }
 `;
 
 const sizes = {
@@ -53,7 +69,7 @@ export default function Spinner({
 }: SpinnerProps) {
   const strings = useStrings('spinner');
   return (
-    <span role="status" aria-label={strings.loading} x-class={[base, sizes[size], className]}>
+    <span data-slot='spinner' role="status" aria-label={strings.loading} x-class={[base, sizes[size], className]}>
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle
           cx="12"

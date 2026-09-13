@@ -717,6 +717,11 @@
             "name": "onSelect",
             "type": "(date: string) => void",
             "required": false
+          },
+          {
+            "name": "cellRender",
+            "type": "CalendarCellRender",
+            "required": false
           }
         ]
       },
@@ -771,6 +776,16 @@
           {
             "name": "interval",
             "type": "number",
+            "required": false
+          },
+          {
+            "name": "effect",
+            "type": "'slide' | 'fade'",
+            "required": false
+          },
+          {
+            "name": "pauseOnHover",
+            "type": "boolean",
             "required": false
           },
           {
@@ -1306,10 +1321,30 @@
             "required": false
           }
         ],
-        "ColorPickerProps": [
+        "ColorPickerPanelProps": [
           {
             "name": "value",
-            "type": "ControlOrValue<string>",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "onChange",
+            "type": "(value: string) => void",
+            "required": true
+          },
+          {
+            "name": "onCommit",
+            "type": "(value: string) => void",
+            "required": false
+          },
+          {
+            "name": "format",
+            "type": "ColorFormat",
+            "required": false
+          },
+          {
+            "name": "allowAlpha",
+            "type": "boolean",
             "required": false
           },
           {
@@ -1318,8 +1353,55 @@
             "required": false
           },
           {
+            "name": "recentColors",
+            "type": "string[]",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "ColorPickerProps": [
+          {
+            "name": "value",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
             "name": "onChange",
             "type": "(color: string) => void",
+            "required": false
+          },
+          {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "inline",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "format",
+            "type": "ColorFormat",
+            "required": false
+          },
+          {
+            "name": "allowAlpha",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "presets",
+            "type": "string[]",
+            "required": false
+          },
+          {
+            "name": "recent",
+            "type": "boolean",
             "required": false
           },
           {
@@ -1328,8 +1410,13 @@
             "required": false
           },
           {
+            "name": "aria-label",
+            "type": "string",
+            "required": false
+          },
+          {
             "name": "ref",
-            "type": "Ref<HTMLInputElement>",
+            "type": "Ref<HTMLDivElement | HTMLButtonElement>",
             "required": false
           }
         ]
@@ -1678,6 +1765,29 @@
             "name": "className",
             "type": "string",
             "required": false
+          }
+        ]
+      },
+      "otherTypes": {}
+    },
+    "ConfigProvider": {
+      "routeKey": "config-provider",
+      "cssFamily": "config-provider",
+      "imports": [
+        "default",
+        "useConfigDefaults"
+      ],
+      "propsTypes": {
+        "ConfigProviderProps": [
+          {
+            "name": "defaults",
+            "type": "HazeConfig",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
           }
         ]
       },
@@ -2349,7 +2459,17 @@
           },
           {
             "name": "showTime",
-            "type": "boolean",
+            "type": "boolean | { seconds?: boolean | undefined; }",
+            "required": false
+          },
+          {
+            "name": "format",
+            "type": "(date: Date) => string",
+            "required": false
+          },
+          {
+            "name": "parse",
+            "type": "(text: string) => Date | null",
             "required": false
           },
           {
@@ -2370,6 +2490,11 @@
           {
             "name": "className",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "cellRender",
+            "type": "CalendarCellRender",
             "required": false
           },
           {
@@ -2416,7 +2541,22 @@
           },
           {
             "name": "showTime",
-            "type": "boolean",
+            "type": "boolean | { seconds?: boolean | undefined; }",
+            "required": false
+          },
+          {
+            "name": "format",
+            "type": "(date: Date) => string",
+            "required": false
+          },
+          {
+            "name": "parse",
+            "type": "(text: string) => Date | null",
+            "required": false
+          },
+          {
+            "name": "cellRender",
+            "type": "CalendarCellRender",
             "required": false
           },
           {
@@ -2673,12 +2813,58 @@
         "DropdownMenuTrigger",
         "DropdownMenuContent",
         "DropdownMenuItem",
+        "DropdownMenuCheckboxItem",
+        "DropdownMenuRadioGroup",
+        "DropdownMenuRadioItem",
+        "DropdownMenuGroup",
         "DropdownMenuSeparator",
         "DropdownMenuSub",
         "DropdownMenuSubTrigger",
         "DropdownMenuSubContent"
       ],
       "propsTypes": {
+        "DropdownMenuCheckboxItemProps": [
+          {
+            "name": "checked",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "onCheckedChange",
+            "type": "(checked: boolean) => void",
+            "required": false
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "danger",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "kbdLabel",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
         "DropdownMenuContentProps": [
           {
             "name": "children",
@@ -2696,6 +2882,23 @@
             "required": false
           }
         ],
+        "DropdownMenuGroupProps": [
+          {
+            "name": "label",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
         "DropdownMenuItemProps": [
           {
             "name": "children",
@@ -2710,6 +2913,21 @@
           {
             "name": "disabled",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "danger",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "kbdLabel",
+            "type": "ReactNode",
             "required": false
           },
           {
@@ -2735,9 +2953,14 @@
             "required": false
           },
           {
+            "name": "items",
+            "type": "MenuDataItem[]",
+            "required": false
+          },
+          {
             "name": "children",
             "type": "ReactNode",
-            "required": true
+            "required": false
           },
           {
             "name": "className",
@@ -2748,6 +2971,70 @@
             "name": "ref",
             "type": "Ref<DropdownMenuHandle>",
             "required": false
+          }
+        ],
+        "DropdownMenuRadioGroupProps": [
+          {
+            "name": "value",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "onValueChange",
+            "type": "(value: string) => void",
+            "required": false
+          },
+          {
+            "name": "label",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "DropdownMenuRadioItemProps": [
+          {
+            "name": "value",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "danger",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "kbdLabel",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
           }
         ],
         "DropdownMenuSeparatorProps": [
@@ -3165,6 +3452,21 @@
             "required": false
           },
           {
+            "name": "sm",
+            "type": "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+            "required": false
+          },
+          {
+            "name": "md",
+            "type": "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+            "required": false
+          },
+          {
+            "name": "lg",
+            "type": "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -3184,6 +3486,11 @@
           {
             "name": "gap",
             "type": "number",
+            "required": false
+          },
+          {
+            "name": "responsive",
+            "type": "boolean",
             "required": false
           },
           {
@@ -3847,12 +4154,75 @@
       "imports": [
         "Menu",
         "MenuItem",
+        "MenuCheckboxItem",
+        "MenuRadioGroup",
+        "MenuRadioItem",
+        "MenuGroup",
         "MenuDivider",
         "MenuSub",
         "MenuSubTrigger",
         "MenuSubContent"
       ],
       "propsTypes": {
+        "MenuCheckboxItemProps": [
+          {
+            "name": "checked",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
+            "name": "onCheckedChange",
+            "type": "(checked: boolean) => void",
+            "required": false
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "danger",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "kbdLabel",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "MenuGroupProps": [
+          {
+            "name": "label",
+            "type": "ReactNode",
+            "required": true
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
         "MenuItemProps": [
           {
             "name": "onSelect",
@@ -3862,6 +4232,21 @@
           {
             "name": "disabled",
             "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "danger",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "kbdLabel",
+            "type": "ReactNode",
             "required": false
           },
           {
@@ -3883,6 +4268,75 @@
           },
           {
             "name": "trigger",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "items",
+            "type": "MenuDataItem[]",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": false
+          }
+        ],
+        "MenuRadioGroupProps": [
+          {
+            "name": "value",
+            "type": "ControlOrValue<string>",
+            "required": false
+          },
+          {
+            "name": "onValueChange",
+            "type": "(value: string) => void",
+            "required": false
+          },
+          {
+            "name": "label",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "required": true
+          }
+        ],
+        "MenuRadioItemProps": [
+          {
+            "name": "value",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "danger",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "icon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "kbdLabel",
             "type": "ReactNode",
             "required": false
           },
@@ -4223,7 +4677,42 @@
           },
           {
             "name": "pageSize",
-            "type": "number",
+            "type": "ControlOrValue<number>",
+            "required": false
+          },
+          {
+            "name": "pageSizeOptions",
+            "type": "number[]",
+            "required": false
+          },
+          {
+            "name": "showSizeChanger",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showQuickJumper",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showTotal",
+            "type": "(total: number, range: [number, number]) => ReactNode",
+            "required": false
+          },
+          {
+            "name": "simple",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "ellipsisJump",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onPageChange",
+            "type": "(page: number, pageSize: number) => void",
             "required": false
           },
           {
@@ -5347,6 +5836,31 @@
             "required": false
           },
           {
+            "name": "tooltip",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "tooltipFormatter",
+            "type": "(value: number) => ReactNode",
+            "required": false
+          },
+          {
+            "name": "marks",
+            "type": "Record<number, ReactNode>",
+            "required": false
+          },
+          {
+            "name": "vertical",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "step",
+            "type": "number | null",
+            "required": false
+          },
+          {
             "name": "className",
             "type": "string",
             "required": false
@@ -5381,6 +5895,31 @@
           {
             "name": "aria-label",
             "type": "string | [string, string]",
+            "required": false
+          },
+          {
+            "name": "tooltip",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "tooltipFormatter",
+            "type": "(value: number) => ReactNode",
+            "required": false
+          },
+          {
+            "name": "marks",
+            "type": "Record<number, ReactNode>",
+            "required": false
+          },
+          {
+            "name": "vertical",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "step",
+            "type": "number | null",
             "required": false
           },
           {
@@ -6390,8 +6929,48 @@
             "required": false
           },
           {
+            "name": "open",
+            "type": "ControlOrValue<boolean>",
+            "required": false
+          },
+          {
             "name": "onChange",
             "type": "(value: string) => void",
+            "required": false
+          },
+          {
+            "name": "format",
+            "type": "TimePickerFormat",
+            "required": false
+          },
+          {
+            "name": "hourStep",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "minuteStep",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "secondStep",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "use12Hours",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "disabledTime",
+            "type": "(parts: TimeParts) => boolean",
+            "required": false
+          },
+          {
+            "name": "native",
+            "type": "boolean",
             "required": false
           },
           {
@@ -6498,7 +7077,17 @@
         "ToastProps": [
           {
             "name": "variant",
-            "type": "'info' | 'success' | 'warning' | 'danger'",
+            "type": "'info' | 'success' | 'warning' | 'danger' | 'loading'",
+            "required": false
+          },
+          {
+            "name": "action",
+            "type": "ToastAction",
+            "required": false
+          },
+          {
+            "name": "title",
+            "type": "ReactNode",
             "required": false
           },
           {
@@ -6911,9 +7500,137 @@
       "routeKey": "tree",
       "cssFamily": "tree",
       "imports": [
-        "Tree"
+        "Tree",
+        "SortableTree"
       ],
       "propsTypes": {
+        "SortableTreeProps": [
+          {
+            "name": "onMove",
+            "type": "(info: SortableTreeMoveInfo) => void",
+            "required": false
+          },
+          {
+            "name": "dragHandle",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "onSelect",
+            "type": "(selectedKeys: string[], info: { selected: boolean; selectedNodes: TreeNodeData[]; node: TreeNodeData; }) => void",
+            "required": false
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "multiple",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "treeData",
+            "type": "TreeNodeData[]",
+            "required": true
+          },
+          {
+            "name": "checkable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "checkStrictly",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "selectable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "blockNode",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showLine",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showIcon",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "switcherIcon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "loadingIcon",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "titleRender",
+            "type": "(node: TreeNodeData) => ReactNode",
+            "required": false
+          },
+          {
+            "name": "iconRender",
+            "type": "(node: TreeNodeData) => ReactNode",
+            "required": false
+          },
+          {
+            "name": "virtualized",
+            "type": "boolean | TreeVirtualizedConfig",
+            "required": false
+          },
+          {
+            "name": "loadData",
+            "type": "(node: TreeNodeData) => Promise<TreeNodeData[]>",
+            "required": false
+          },
+          {
+            "name": "searchValue",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "expandedKeys",
+            "type": "ControlOrValue<string[]>",
+            "required": false
+          },
+          {
+            "name": "selectedKeys",
+            "type": "ControlOrValue<string[]>",
+            "required": false
+          },
+          {
+            "name": "checkedKeys",
+            "type": "ControlOrValue<string[]>",
+            "required": false
+          },
+          {
+            "name": "onExpand",
+            "type": "(expandedKeys: string[], info: { expanded: boolean; node: TreeNodeData; }) => void",
+            "required": false
+          },
+          {
+            "name": "onCheck",
+            "type": "(checkedKeys: string[] | { checked: string[]; halfChecked: string[]; }, info: { checked: boolean; checkedNodes: TreeNodeData[]; node: TreeNodeData; halfCheckedKeys: string[]; }) => void",
+            "required": false
+          }
+        ],
         "TreeProps": [
           {
             "name": "treeData",
@@ -6993,6 +7710,16 @@
           {
             "name": "searchValue",
             "type": "string",
+            "required": false
+          },
+          {
+            "name": "rowWrap",
+            "type": "(row: ReactNode, node: TreeNodeData) => ReactNode",
+            "required": false
+          },
+          {
+            "name": "keyboardNavigation",
+            "type": "boolean",
             "required": false
           },
           {
@@ -7290,12 +8017,12 @@
         "UploadCoreProps": [
           {
             "name": "value",
-            "type": "File[]",
+            "type": "UploadValueItem[]",
             "required": true
           },
           {
             "name": "onChange",
-            "type": "(files: File[]) => void",
+            "type": "(files: UploadValueItem[]) => void",
             "required": true
           },
           {
@@ -7365,7 +8092,12 @@
           },
           {
             "name": "listType",
-            "type": "'text' | 'picture-card'",
+            "type": "'picture' | 'text' | 'picture-card'",
+            "required": false
+          },
+          {
+            "name": "onPreview",
+            "type": "(file: UploadValueItem) => void",
             "required": false
           },
           {
@@ -7407,7 +8139,7 @@
           },
           {
             "name": "listType",
-            "type": "'text' | 'picture-card'",
+            "type": "'picture' | 'text' | 'picture-card'",
             "required": false
           },
           {
@@ -7421,25 +8153,30 @@
             "required": false
           },
           {
+            "name": "onPreview",
+            "type": "(file: UploadValueItem) => void",
+            "required": false
+          },
+          {
             "name": "onRemove",
-            "type": "(file: File) => void",
+            "type": "(file: UploadValueItem) => void",
             "required": true
           },
           {
             "name": "onRetry",
-            "type": "(file: File) => void",
+            "type": "(file: UploadValueItem) => void",
             "required": true
           },
           {
             "name": "onCancel",
-            "type": "(file: File) => void",
+            "type": "(file: UploadValueItem) => void",
             "required": true
           }
         ],
         "UploadProps": [
           {
             "name": "value",
-            "type": "ControlOrValue<File[]>",
+            "type": "ControlOrValue<UploadValueItem[]>",
             "required": false
           },
           {
@@ -7509,7 +8246,12 @@
           },
           {
             "name": "listType",
-            "type": "'text' | 'picture-card'",
+            "type": "'picture' | 'text' | 'picture-card'",
+            "required": false
+          },
+          {
+            "name": "onPreview",
+            "type": "(file: UploadValueItem) => void",
             "required": false
           },
           {
@@ -7570,6 +8312,11 @@
             "required": true
           },
           {
+            "name": "width",
+            "type": "number",
+            "required": false
+          },
+          {
             "name": "itemHeight",
             "type": "number",
             "required": true
@@ -7577,6 +8324,21 @@
           {
             "name": "estimatedItemHeight",
             "type": "number",
+            "required": false
+          },
+          {
+            "name": "columns",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "columnWidth",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "orientation",
+            "type": "VirtualListOrientation",
             "required": false
           },
           {

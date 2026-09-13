@@ -93,26 +93,26 @@ export default function ToolCallCard({
   };
 
   return (
-    <div x-class={[card, className]}>
-      <div x-class={[header]}>
-        <span x-class={[statusIcon, statusClassMap[status]]} />
-        <span>{name}</span>
-        <span style={{ marginInlineStart: 'auto', color: 'var(--haze-color-text-muted)' }}>
+    <div data-slot='tool-call-card' x-class={[card, className]}>
+      <div data-slot='header' x-class={[header]}>
+        <span data-slot='indicator' x-class={[statusIcon, statusClassMap[status]]} />
+        <span data-slot='tool-name'>{name}</span>
+        <span data-slot='status' style={{ marginInlineStart: 'auto', color: 'var(--haze-color-text-muted)' }}>
           {statusLabelMap[status]}
         </span>
       </div>
       {(input || output) && (
-        <div x-class={[body]}>
+        <div data-slot='body' x-class={[body]}>
           {input && (
-            <div x-class={[section]}>
-              <div x-class={[sectionLabel]}>{strings.inputLabel}</div>
-              <div x-class={[content]}>{input}</div>
+            <div data-slot='params' x-class={[section]}>
+              <div data-slot='label' x-class={[sectionLabel]}>{strings.inputLabel}</div>
+              <div data-slot='content' x-class={[content]}>{input}</div>
             </div>
           )}
           {output && (
-            <div x-class={[section]}>
-              <div x-class={[sectionLabel]}>{strings.outputLabel}</div>
-              <div x-class={[content]}>{output}</div>
+            <div data-slot='result' x-class={[section]}>
+              <div data-slot='label' x-class={[sectionLabel]}>{strings.outputLabel}</div>
+              <div data-slot='content' x-class={[content]}>{output}</div>
             </div>
           )}
         </div>

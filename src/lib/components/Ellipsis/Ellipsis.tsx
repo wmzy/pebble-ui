@@ -96,6 +96,7 @@ export default function Ellipsis({
 
   const text = (
     <span
+      data-slot="content"
       ref={textRef}
       style={
         clamped
@@ -114,11 +115,12 @@ export default function Ellipsis({
   );
 
   return (
-    <span x-class={[root, className]} {...rest}>
+    <span data-slot="ellipsis" x-class={[root, className]} {...rest}>
       {tooltip && clamped ? <Tooltip content={children}>{text}</Tooltip> : text}
       {expandable && isTruncated && (
         <button
           type='button'
+          data-slot="expand-button"
           aria-expanded={expanded}
           onClick={toggle}
           x-class={[expandBtn]}

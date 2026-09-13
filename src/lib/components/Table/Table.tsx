@@ -41,8 +41,9 @@ export default function Table({
   children,
 }: TableProps) {
   return (
-    <div x-class={[wrapper]}>
+    <div x-class={[wrapper]} data-slot="table-container">
       <table
+        data-slot="table"
         x-class={[
           base,
           striped && stripedStyle,
