@@ -31,6 +31,16 @@ export type ChartSeries = {
   key: string;
   label?: string;
   color?: string;
+  /** Cartesian containers only (line/area/bar charts): overrides the
+   * element shape for this one series — bars under a line chart, a line
+   * over an area chart (composed charts). Ignored by pie/radar/scatter,
+   * which have a single series shape each. */
+  type?: CartesianChartType;
+  /** Cartesian containers only: series sharing a `stackId` stack onto the
+   * same baseline (Area and Bar shapes). Line ignores it — compose with a
+   * per-series `type: 'area'` when stacked lines are the goal. Ignored by
+   * pie/radar/scatter. */
+  stackId?: string;
 };
 
 /** A series after Chart's label default is applied — what reaches
@@ -41,6 +51,11 @@ export type ResolvedChartSeries = {
   key: string;
   label: string;
   color?: string;
+  /** Per-series cartesian shape override; `undefined` follows the chart
+   * type (see `ChartSeries.type`). */
+  type?: CartesianChartType;
+  /** Stacking group: Area/Bar series sharing the id stack. */
+  stackId?: string;
 };
 
 /** Cartesian chart shapes; each maps onto a recharts chart container and
@@ -109,7 +124,8 @@ function cycleColor(index: number): string {
 
 /** Applies the per-series default: `label` falls back to `key`. An
  * explicit `color` passes through untouched — the plot elements cycle
- * `SERIES_COLOR_CYCLE` when it is omitted. */
+ * `SERIES_COLOR_CYCLE` when it is omitted. `type` and `stackId` pass
+ * through untouched for the cartesian branch of `chartTree`. */
 export function resolveChartSeries(
   series: readonly ChartSeries[]
 ): ResolvedChartSeries[] {
@@ -117,29 +133,53 @@ export function resolveChartSeries(
     key: entry.key,
     label: entry.label ?? entry.key,
     color: entry.color,
+    type: entry.type,
+    stackId: entry.stackId,
   }));
 }
 
-/** The recharts series element for one resolved entry. Line and Area carry
- * the token color as `stroke` (Area also fills with it — recharts applies
- * its default 0.6 fill opacity), Bar carries it as `fill`. Radar strokes
- * and fills its polygon — translucent, so overlapping polygons stay
- * readable — and Scatter fills its points. */
+/** The recharts series element for one resolved entry — `type` is the
+ * series' own override when set (composed charts), else the chart type.
+ * Line and Area carry the token color as `stroke` (Area also fills with
+ * it — recharts applies its default 0.6 fill opacity), Bar carries it as
+ * `fill`. Radar strokes and fills its polygon — translucent, so
+ * overlapping polygons stay readable — and Scatter fills its points.
+ * `stackId` is forwarded to Area and Bar: recharts stacks every series
+ * sharing an id onto the same baseline. Line ignores it — a stacked line
+ * chart is just a harder-to-read stacked area, so Area/Bar are the
+ * stacking shapes. */
 export function seriesElement(
   type: SeriesChartType,
   entry: ResolvedChartSeries,
   index = 0
 ): ReactElement {
-  const { key, label } = entry;
+  const { key, label, stackId } = entry;
   const color = entry.color ?? cycleColor(index);
   switch (type) {
     case 'area':
       return (
-        <Area key={key} dataKey={key} name={label} stroke={color} fill={color} />
+        <Area
+          key={key}
+          dataKey={key}
+          name={label}
+          stroke={color}
+          fill={color}
+          stackId={stackId}
+        />
       );
     case 'bar':
-      return <Bar key={key} dataKey={key} name={label} fill={color} />;
+      return (
+        <Bar
+          key={key}
+          dataKey={key}
+          name={label}
+          fill={color}
+          stackId={stackId}
+        />
+      );
     case 'line':
+      /* No stackId on Line: it has no baseline to stack onto — compose
+       * with a per-series type 'area' when stacking is the goal. */
       return <Line key={key} dataKey={key} name={label} stroke={color} />;
     case 'radar':
       return (
@@ -329,6 +369,8 @@ export function chartTree(options: {
               <Tooltip contentStyle={TOOLTIP_STYLE} content={tooltipContent} />
             )}
             {showLegend && <Legend wrapperStyle={LEGEND_STYLE} />}
+            {/* Per-series `type` and `stackId` are cartesian-only — each pie
+             * series is one ring regardless, so both are ignored here. */}
             {series.map((entry, index) =>
               pieElement({
                 entry,
@@ -365,6 +407,9 @@ export function chartTree(options: {
               />
             )}
             {showLegend && <Legend wrapperStyle={LEGEND_STYLE} />}
+            {/* Per-series `type` and `stackId` are cartesian-only — radar
+             * renders one polygon per series regardless, so both are
+             * ignored here. */}
             {series.map((entry, index) => seriesElement('radar', entry, index))}
           </>
         )}
@@ -400,6 +445,8 @@ export function chartTree(options: {
               />
             )}
             {showLegend && <Legend wrapperStyle={LEGEND_STYLE} />}
+            {/* Same as radar: `type`/`stackId` are cartesian-only — scatter
+             * renders one point set per series regardless. */}
             {series.map((entry, index) =>
               seriesElement('scatter', entry, index)
             )}
@@ -445,7 +492,15 @@ export function chartTree(options: {
             />
           )}
           {showLegend && <Legend wrapperStyle={LEGEND_STYLE} />}
-          {series.map((entry, index) => seriesElement(type, entry, index))}
+          {/* Composed charts: a per-series `type` overrides that series'
+           * element shape (bar series inside a line chart, a line over an
+           * area chart) while the chart-level `type` picks the container;
+           * `stackId` flows through `seriesElement` to stack the Area/Bar
+           * series sharing an id. Series without a type follow the chart
+           * type. */}
+          {series.map((entry, index) =>
+            seriesElement(entry.type ?? type, entry, index)
+          )}
         </>,
         layout
       )}

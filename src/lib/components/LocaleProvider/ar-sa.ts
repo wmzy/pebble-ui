@@ -240,6 +240,9 @@ const arSA: HazeStrings = {
     expand: 'إظهار المقتطف',
     collapse: 'إخفاء المقتطف',
   },
+  streamingText: {
+    generating: 'جارٍ الإنشاء',
+  },
   tag: {
     remove: 'إزالة',
   },

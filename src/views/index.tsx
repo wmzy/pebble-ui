@@ -1,11 +1,12 @@
-import type { Route} from '@native-router/react';
+import type { Route } from '@native-router/react';
 
-import {View, HistoryRouter as Router} from '@native-router/react';
-import {useMemo} from 'react';
+import { View, HistoryRouter as Router } from '@native-router/react';
+import { useMemo } from 'react';
 
 import Loading from '@/components/Loading';
 import RouterError from '@/components/RouterError';
-import {ThemeProvider} from '@/contexts/theme';
+import { ThemeProvider } from '@/contexts/theme';
+import { SiteLocaleProvider } from '@/views/i18n';
 
 export default function App() {
   return useMemo(() => {
@@ -15,78 +16,88 @@ export default function App() {
         children: [
           {
             path: '/',
-            component: () => import('./Home')
+            component: () => import('./Home'),
           },
           {
             path: '/getting-started',
-            component: () => import('./GettingStarted')
+            component: () => import('./GettingStarted'),
           },
           {
             path: '/recipes',
-            component: () => import('./Recipes')
+            component: () => import('./Recipes'),
           },
           {
             path: '/guides/dark-mode',
-            component: () => import('./Guides/DarkMode')
+            component: () => import('./Guides/DarkMode'),
           },
           {
             path: '/guides/density',
-            component: () => import('./Guides/Density')
+            component: () => import('./Guides/Density'),
           },
           {
             path: '/guides/a11y',
-            component: () => import('./Guides/A11y')
+            component: () => import('./Guides/A11y'),
           },
           {
             path: '/guides/migration',
-            component: () => import('./Guides/Migration')
+            component: () => import('./Guides/Migration'),
+          },
+          {
+            path: '/guides/streaming-a11y',
+            component: () => import('./Guides/StreamingA11y'),
+          },
+          {
+            path: '/guides/motion',
+            component: () => import('./Guides/Motion'),
           },
           {
             path: '/tokens',
-            component: () => import('./Tokens')
+            component: () => import('./Tokens'),
           },
           {
             path: '/components',
-            component: () => import('./ComponentDoc')
+            component: () => import('./ComponentDoc'),
           },
           {
             path: '/components/:name',
-            component: () => import('./ComponentDetail')
+            component: () => import('./ComponentDetail'),
           },
           {
             path: '/ai-showcase',
-            component: () => import('./AIShowcase')
+            component: () => import('./AIShowcase'),
           },
           {
             path: '/theme-editor',
-            component: () => import('./ThemeEditor')
+            component: () => import('./ThemeEditor'),
           },
           {
             path: '/changelog',
-            component: () => import('./Changelog')
+            component: () => import('./Changelog'),
           },
           {
             path: '/help',
-            component: () => import('./Help')
+            component: () => import('./Help'),
           },
           {
             path: '/about',
-            component: () => import('./About')
-          }
-        ]
-      }
+            component: () => import('./About'),
+          },
+        ],
+      },
     ] as Route[];
 
     return (
       <ThemeProvider>
-        <Router
-          routes={routes}
-          baseUrl={import.meta.env.BASE_URL.replace(/\/$/, '')}
-          errorHandler={(e) => <RouterError error={e} />}
-        >
-          <View />
-          <Loading />
-        </Router>
+        <SiteLocaleProvider>
+          <Router
+            routes={routes}
+            baseUrl={import.meta.env.BASE_URL.replace(/\/$/, '')}
+            errorHandler={(e) => <RouterError error={e} />}
+          >
+            <View />
+            <Loading />
+          </Router>
+        </SiteLocaleProvider>
       </ThemeProvider>
     );
   }, []);

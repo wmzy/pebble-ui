@@ -233,6 +233,9 @@ const ruRU: HazeStrings = {
     expand: 'Показать отрывок',
     collapse: 'Скрыть отрывок',
   },
+  streamingText: {
+    generating: 'Генерация',
+  },
   tag: {
     remove: 'Удалить',
   },

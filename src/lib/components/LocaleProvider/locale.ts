@@ -230,6 +230,9 @@ const defaultStrings = {
     expand: 'Show excerpt',
     collapse: 'Hide excerpt',
   },
+  streamingText: {
+    generating: 'Generating',
+  },
   tag: {
     remove: 'Remove',
   },

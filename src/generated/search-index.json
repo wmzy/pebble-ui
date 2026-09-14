@@ -8,7 +8,8 @@
       "install",
       "setup",
       "quickstart",
-      "usage"
+      "usage",
+      "快速上手"
     ]
   },
   {
@@ -20,7 +21,8 @@
       "patterns",
       "examples",
       "member crud",
-      "chat adapter"
+      "chat adapter",
+      "实战示例"
     ]
   },
   {
@@ -32,7 +34,8 @@
       "theme",
       "theming",
       "night",
-      "color scheme"
+      "color scheme",
+      "深色模式"
     ]
   },
   {
@@ -43,7 +46,8 @@
     "keywords": [
       "compact",
       "spacing",
-      "dense"
+      "dense",
+      "密度（紧凑）"
     ]
   },
   {
@@ -56,7 +60,8 @@
       "screen reader",
       "keyboard",
       "axe",
-      "wcag"
+      "wcag",
+      "无障碍"
     ]
   },
   {
@@ -68,7 +73,39 @@
       "antd",
       "shadcn",
       "upgrade",
-      "port"
+      "port",
+      "从 AntD / shadcn 迁移"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Streaming a11y",
+    "sublabel": "Guide",
+    "route": "/guides/streaming-a11y",
+    "keywords": [
+      "streaming",
+      "screen reader",
+      "aria-live",
+      "live region",
+      "announce",
+      "chat",
+      "流式无障碍"
+    ]
+  },
+  {
+    "type": "page",
+    "label": "Motion presets",
+    "sublabel": "Guide",
+    "route": "/guides/motion",
+    "keywords": [
+      "motion",
+      "animation",
+      "transition",
+      "enter",
+      "exit",
+      "data-state",
+      "presence",
+      "动效预设"
     ]
   },
   {
@@ -82,7 +119,8 @@
       "oklch",
       "css variables",
       "spacing",
-      "typography"
+      "typography",
+      "设计令牌"
     ]
   },
   {
@@ -93,7 +131,8 @@
     "keywords": [
       "chat",
       "assistant",
-      "playground"
+      "playground",
+      "AI 演示"
     ]
   },
   {
@@ -105,7 +144,8 @@
       "brand",
       "customize",
       "export theme",
-      "palette editor"
+      "palette editor",
+      "主题编辑器"
     ]
   },
   {
@@ -116,7 +156,8 @@
     "keywords": [
       "releases",
       "version history",
-      "changes"
+      "changes",
+      "更新日志"
     ]
   },
   {
@@ -127,7 +168,8 @@
     "keywords": [
       "faq",
       "support",
-      "troubleshooting"
+      "troubleshooting",
+      "帮助"
     ]
   },
   {
@@ -3028,6 +3070,18 @@
   {
     "type": "section",
     "label": "Chart Props",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Composed chart",
+    "sublabel": "Chart",
+    "route": "/components/chart"
+  },
+  {
+    "type": "section",
+    "label": "Stacked areas",
     "sublabel": "Chart",
     "route": "/components/chart"
   },

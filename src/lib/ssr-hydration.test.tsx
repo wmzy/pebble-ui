@@ -245,7 +245,18 @@ describe('SSR hydration (jsdom)', () => {
 
       expect(messages).toEqual([]);
       expect(recoverable).toEqual([]);
-      expect(container.textContent).toBe(serverText);
+      // The equality contract is about the visible DOM: hydration must
+      // not rewrite what shipped. Hidden live regions may legitimately
+      // speak right after hydration (StreamingText cues its stream the
+      // moment effects run), so their nodes are excluded — the server
+      // side ships them empty, which is what makes both sides comparable.
+      const visible = container.cloneNode(true) as HTMLElement;
+      for (const region of visible.querySelectorAll(
+        "[data-slot='live-region']",
+      )) {
+        region.remove();
+      }
+      expect(visible.textContent).toBe(serverText);
     } finally {
       errorSpy.mockRestore();
       warnSpy.mockRestore();

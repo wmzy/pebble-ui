@@ -260,7 +260,16 @@ describe('SSR render (node environment, no window)', () => {
     // stream restarts on the client (initial state is the empty prefix).
     const html = renderToString(<StreamingText text="Hello world" />);
     expect(html).not.toContain('Hello world');
-    // wrapper <span> with the cursor <span> inside
-    expect(html).toMatch(/<span[^>]*><span[^>]*><\/span><\/span>/);
+    // The announcement channel ships empty too (a live region with
+    // mount-time content would not announce reliably) and the content
+    // area ships aria-busy with only the cursor inside. Node has no DOM,
+    // so the shape is asserted through attribute substrings plus an
+    // order-tolerant empty-span pattern.
+    expect(html).toContain('data-slot="live-region"');
+    expect(html).toContain('role="status"');
+    expect(html).toMatch(/<span[^>]*data-slot="live-region"[^>]*><\/span>/);
+    expect(html).toContain('data-slot="content"');
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain('data-slot="caret"');
   });
 });

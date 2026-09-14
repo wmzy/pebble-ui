@@ -234,6 +234,9 @@ const ptBR: HazeStrings = {
     expand: 'Mostrar trecho',
     collapse: 'Ocultar trecho',
   },
+  streamingText: {
+    generating: 'Gerando',
+  },
   tag: {
     remove: 'Remover',
   },

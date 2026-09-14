@@ -20,14 +20,20 @@ import {
   Select,
   Option,
   Drawer,
+  Segmented,
   useMediaQuery,
 } from '@/lib';
 import { useTheme } from '@/contexts/theme';
+import { fill, useSiteLocale } from '@/views/i18n';
 import { sourceUrl, shortCommit, versionInfo } from '@/views/version-info';
 
 import SidebarSearch, { MatchText } from './SidebarSearch';
 import CommandPalette from './CommandPalette';
-import { ALIASES, COMPONENT_GROUPS, type ComponentItem } from './component-groups';
+import {
+  ALIASES,
+  COMPONENT_GROUPS,
+  type ComponentItem,
+} from './component-groups';
 import { filterComponents } from './search-score';
 
 const rootLayout = css`
@@ -163,6 +169,16 @@ const navLink = css`
   }
 `;
 
+/* 指南链接的一行摘要（仅 zh 模式渲染；en 侧边栏保持原样）。 */
+const navSummary = css`
+  padding: 0 var(--haze-space-4);
+  margin-top: calc(-1 * var(--haze-space-1));
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-xs);
+  line-height: var(--haze-leading-tight);
+  color: var(--haze-color-text-muted);
+`;
+
 const disclosureNav = css`
   border: none;
   border-radius: 0;
@@ -241,6 +257,12 @@ for (const item of ALL_ITEMS) {
 const REPO = 'wmzy/haze-ui';
 const STAR_CACHE_KEY = 'haze-ui-stars';
 
+/* Localized group title: zh overrides sit in the locale dictionary keyed
+ * by the canonical English group name; unknown groups fall back to it. */
+function groupLabel(groups: Record<string, string>, name: string): string {
+  return groups[name] ?? name;
+}
+
 function useStarCount(): number | null {
   const [count, setCount] = useState<number | null>(() => {
     try {
@@ -284,31 +306,41 @@ type SidebarNavProps = {
 };
 
 function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
+  const { locale, t } = useSiteLocale();
   const componentMatches = useMemo(
     () => filterComponents(SEARCH_NAMES, search, SEARCH_ALIASES),
     [search]
   );
   const searching = search.trim() !== '';
 
+  /* 指南摘要行：仅 zh 渲染（en 侧边栏保持零变化），摘要文本走词典。
+   * 放在 Link 外侧，避免污染链接的 accessible name。 */
+  const guideSummary = (summary: string) =>
+    locale === 'zh' ? <div className={navSummary}>{summary}</div> : null;
+
   return (
     <List variant='none'>
       <ListItem>
         <Link className={navLink} to='/' onClick={onNavigate}>
-          Home
+          {t.nav.home}
         </Link>
       </ListItem>
       <ListItem>
         <Link className={navLink} to='/getting-started' onClick={onNavigate}>
-          Getting Started
+          {t.nav.gettingStarted}
         </Link>
       </ListItem>
       <ListItem>
         <Link className={navLink} to='/recipes' onClick={onNavigate}>
-          Recipes
+          {t.nav.recipes}
         </Link>
       </ListItem>
       <ListItem>
-        <Disclosure open={true} summary='Guides' className={disclosureNav}>
+        <Disclosure
+          open={true}
+          summary={t.nav.guides}
+          className={disclosureNav}
+        >
           <List variant='none'>
             <ListItem>
               <Link
@@ -316,8 +348,9 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
                 to='/guides/dark-mode'
                 onClick={onNavigate}
               >
-                Dark mode
+                {t.guides.darkMode}
               </Link>
+              {guideSummary(t.guideSummaries.darkMode)}
             </ListItem>
             <ListItem>
               <Link
@@ -325,17 +358,15 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
                 to='/guides/density'
                 onClick={onNavigate}
               >
-                Density (compact)
+                {t.guides.density}
               </Link>
+              {guideSummary(t.guideSummaries.density)}
             </ListItem>
             <ListItem>
-              <Link
-                className={navLink}
-                to='/guides/a11y'
-                onClick={onNavigate}
-              >
-                Accessibility
+              <Link className={navLink} to='/guides/a11y' onClick={onNavigate}>
+                {t.guides.a11y}
               </Link>
+              {guideSummary(t.guideSummaries.a11y)}
             </ListItem>
             <ListItem>
               <Link
@@ -343,27 +374,44 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
                 to='/guides/migration'
                 onClick={onNavigate}
               >
-                Migrating from AntD / shadcn
+                {t.guides.migration}
               </Link>
+              {guideSummary(t.guideSummaries.migration)}
+            </ListItem>
+            <ListItem>
+              <Link
+                className={navLink}
+                to='/guides/streaming-a11y'
+                onClick={onNavigate}
+              >
+                {t.guides.streamingA11y}
+              </Link>
+              {guideSummary(t.guideSummaries.streamingA11y)}
+            </ListItem>
+            <ListItem>
+              <Link className={navLink} to='/guides/motion' onClick={onNavigate}>
+                {t.guides.motion}
+              </Link>
+              {guideSummary(t.guideSummaries.motion)}
             </ListItem>
           </List>
         </Disclosure>
       </ListItem>
       <ListItem>
         <Link className={navLink} to='/tokens' onClick={onNavigate}>
-          Tokens
+          {t.nav.tokens}
         </Link>
       </ListItem>
       <ListItem>
         <Disclosure
           open={true}
-          summary='Components'
+          summary={t.nav.components}
           className={disclosureNav}
         >
           <List variant='none'>
             <ListItem>
               <Link className={navLink} to='/components' onClick={onNavigate}>
-                Overview
+                {t.nav.overview}
               </Link>
             </ListItem>
             <ListItem>
@@ -381,10 +429,7 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
                         to={`/components/${item.route}`}
                         onClick={onNavigate}
                       >
-                        <MatchText
-                          text={item.name}
-                          indices={match.indices}
-                        />
+                        <MatchText text={item.name} indices={match.indices} />
                       </Link>
                     </ListItem>
                   );
@@ -392,7 +437,9 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
                 {componentMatches.length === 0 && (
                   <ListItem>
                     <div className={noResult}>
-                      No components match “{search.trim()}”
+                      {fill(t.chrome.noComponentsMatch, {
+                        query: search.trim(),
+                      })}
                     </div>
                   </ListItem>
                 )}
@@ -400,7 +447,9 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
             ) : (
               COMPONENT_GROUPS.map((group) => (
                 <div key={group.group} className={groupSection}>
-                  <div className={groupTitle}>{group.group}</div>
+                  <div className={groupTitle}>
+                    {groupLabel(t.componentGroups, group.group)}
+                  </div>
                   {group.items.map((item) => (
                     <Link
                       key={item.route}
@@ -419,27 +468,27 @@ function SidebarNav({ search, onSearchChange, onNavigate }: SidebarNavProps) {
       </ListItem>
       <ListItem>
         <Link className={navLink} to='/ai-showcase' onClick={onNavigate}>
-          AI Showcase
+          {t.nav.aiShowcase}
         </Link>
       </ListItem>
       <ListItem>
         <Link className={navLink} to='/theme-editor' onClick={onNavigate}>
-          Theme Editor
+          {t.nav.themeEditor}
         </Link>
       </ListItem>
       <ListItem>
         <Link className={navLink} to='/changelog' onClick={onNavigate}>
-          Changelog
+          {t.nav.changelog}
         </Link>
       </ListItem>
       <ListItem>
         <Link className={navLink} to='/help' onClick={onNavigate}>
-          Help
+          {t.nav.help}
         </Link>
       </ListItem>
       <ListItem>
         <Link className={navLink} to='/about' onClick={onNavigate}>
-          About
+          {t.nav.about}
         </Link>
       </ListItem>
     </List>
@@ -456,6 +505,7 @@ export default function Layout() {
     setActiveTheme,
     activeCustomThemeStyle,
   } = useTheme();
+  const { locale, setLocale, t } = useSiteLocale();
 
   const stars = useStarCount();
 
@@ -486,14 +536,14 @@ export default function Layout() {
             size='sm'
             square
             variant='ghost'
-            aria-label='Open navigation'
+            aria-label={t.chrome.openNavigation}
             onClick={() => setDrawerOpen(true)}
           >
             <Icon icon={Menu} size='sm' />
           </Button>
         </div>
         <Flex gap='var(--haze-space-1)'>
-          <Tooltip content='Light'>
+          <Tooltip content={t.chrome.light}>
             <Button
               size='sm'
               square
@@ -503,7 +553,7 @@ export default function Layout() {
               <Icon icon={Sun} size='sm' />
             </Button>
           </Tooltip>
-          <Tooltip content='Dark'>
+          <Tooltip content={t.chrome.dark}>
             <Button
               size='sm'
               square
@@ -513,7 +563,7 @@ export default function Layout() {
               <Icon icon={Moon} size='sm' />
             </Button>
           </Tooltip>
-          <Tooltip content='Auto'>
+          <Tooltip content={t.chrome.auto}>
             <Button
               size='sm'
               square
@@ -524,21 +574,32 @@ export default function Layout() {
             </Button>
           </Tooltip>
         </Flex>
+        <Tooltip content={t.chrome.language}>
+          <Segmented
+            size='sm'
+            options={[
+              { value: 'en', label: 'EN' },
+              { value: 'zh', label: '中文' },
+            ]}
+            value={locale}
+            onChange={(next) => setLocale(next === 'zh' ? 'zh' : 'en')}
+          />
+        </Tooltip>
         {customThemes.length > 0 && (
           <Select
             size='sm'
             value={activeCustomThemeId ?? ''}
             onChange={(e) => setActiveTheme(e.target.value || null)}
           >
-            <Option value=''>No custom theme</Option>
-            {customThemes.map((t) => (
-              <Option key={t.id} value={t.id}>
-                {t.name}
+            <Option value=''>{t.chrome.noCustomTheme}</Option>
+            {customThemes.map((cTheme) => (
+              <Option key={cTheme.id} value={cTheme.id}>
+                {cTheme.name}
               </Option>
             ))}
           </Select>
         )}
-        <Tooltip content='Theme Editor'>
+        <Tooltip content={t.chrome.themeEditor}>
           <Link className={headerLink} to='/theme-editor'>
             <Icon icon={Palette} size='sm' />
           </Link>
@@ -552,8 +613,11 @@ export default function Layout() {
           rel='noreferrer'
           title={
             shortCommit
-              ? `View source at ${versionInfo.version} (${shortCommit})`
-              : 'View source on GitHub'
+              ? fill(t.chrome.viewSourceAt, {
+                  version: versionInfo.version,
+                  commit: shortCommit,
+                })
+              : t.chrome.viewSource
           }
         >
           {versionInfo.version}
@@ -565,7 +629,7 @@ export default function Layout() {
           rel='noreferrer'
         >
           <Icon icon={Star} size='sm' />
-          Star on GitHub
+          {t.chrome.starOnGitHub}
           {stars != null && <span className={starCount}>{stars}</span>}
         </a>
       </header>

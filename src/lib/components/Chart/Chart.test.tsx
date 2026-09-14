@@ -171,6 +171,18 @@ describe('resolveChartSeries', () => {
       { key: 'sales', label: 'Revenue', color: 'var(--haze-color-text)' },
     ]);
   });
+
+  it('passes per-series type and stackId through untouched', () => {
+    expect(
+      resolveChartSeries([
+        { key: 'sales', type: 'bar', stackId: 'total' },
+        { key: 'costs', type: 'line' },
+      ])
+    ).toEqual([
+      { key: 'sales', label: 'sales', type: 'bar', stackId: 'total' },
+      { key: 'costs', label: 'costs', type: 'line' },
+    ]);
+  });
 });
 
 describe('seriesElement', () => {
@@ -212,6 +224,34 @@ describe('seriesElement', () => {
     // sixth series wraps back around the five-token palette
     expect(seriesElement('bar', { key: 'a', label: 'a' }, 5).props).toEqual(
       expect.objectContaining({ fill: 'var(--haze-color-primary)' })
+    );
+  });
+
+  it('forwards stackId to area and bar, not to line', () => {
+    expect(
+      seriesElement('area', { ...entry, stackId: 'total' }).props
+    ).toEqual({
+      dataKey: 'sales',
+      name: 'Revenue',
+      stroke: 'var(--haze-color-primary)',
+      fill: 'var(--haze-color-primary)',
+      stackId: 'total',
+    });
+    expect(seriesElement('bar', { ...entry, stackId: 'total' }).props).toEqual(
+      {
+        dataKey: 'sales',
+        name: 'Revenue',
+        fill: 'var(--haze-color-primary)',
+        stackId: 'total',
+      }
+    );
+    // stacking is an Area/Bar concern — Line has no baseline to stack onto
+    expect(seriesElement('line', { ...entry, stackId: 'total' }).props).toEqual(
+      {
+        dataKey: 'sales',
+        name: 'Revenue',
+        stroke: 'var(--haze-color-primary)',
+      }
     );
   });
 
@@ -474,6 +514,103 @@ describe('Chart', () => {
       expect.objectContaining({ fill: 'var(--haze-color-text)' }),
       undefined
     );
+  });
+
+  it('mixes per-series types inside one cartesian container', () => {
+    const { container } = render(
+      <Chart
+        type='line'
+        data={DATA}
+        xKey='month'
+        series={[
+          { key: 'sales', label: 'Revenue', type: 'bar' },
+          { key: 'costs', label: 'Costs' },
+        ]}
+      />
+    );
+    // both element families render inside the single line chart container
+    const bars = container.querySelectorAll('[data-line-chart] [data-bar]');
+    expect(bars).toHaveLength(1);
+    expect(bars[0]).toHaveAttribute('data-key', 'sales');
+    const lines = container.querySelectorAll('[data-line-chart] [data-line]');
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toHaveAttribute('data-key', 'costs');
+    expect(Bar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dataKey: 'sales',
+        name: 'Revenue',
+        fill: 'var(--haze-color-primary)',
+      }),
+      undefined
+    );
+    expect(Line).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dataKey: 'costs',
+        name: 'Costs',
+        stroke: 'var(--haze-color-info)',
+      }),
+      undefined
+    );
+  });
+
+  it('stacks area series sharing a stackId', () => {
+    render(
+      <Chart
+        type='area'
+        data={DATA}
+        xKey='month'
+        series={[
+          { key: 'sales', stackId: 'total' },
+          { key: 'costs', stackId: 'total' },
+        ]}
+      />
+    );
+    expect(Area).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ dataKey: 'sales', stackId: 'total' }),
+      undefined
+    );
+    expect(Area).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ dataKey: 'costs', stackId: 'total' }),
+      undefined
+    );
+  });
+
+  it('leaves stackId unset when no series declares one', () => {
+    render(
+      <Chart type='bar' data={DATA} series={[{ key: 'sales' }]} xKey='month' />
+    );
+    expect(Bar).toHaveBeenCalledTimes(1);
+    const barProps = vi.mocked(Bar).mock.calls[0]?.[0] as Record<
+      string,
+      unknown
+    >;
+    expect(barProps.stackId).toBeUndefined();
+  });
+
+  it('ignores per-series type and stackId in polar charts', () => {
+    const { container } = render(
+      <Chart
+        type='radar'
+        data={DATA}
+        xKey='month'
+        series={[
+          { key: 'sales', type: 'bar', stackId: 'total' },
+          { key: 'costs', type: 'line' },
+        ]}
+      />
+    );
+    // one polygon per series: the cartesian-only overrides change neither
+    // the element shape nor the stacking, and nothing crashes
+    expect(container.querySelectorAll('[data-radar]')).toHaveLength(2);
+    expect(container.querySelector('[data-bar]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-line]')).not.toBeInTheDocument();
+    const radarProps = vi.mocked(Radar).mock.calls[0]?.[0] as Record<
+      string,
+      unknown
+    >;
+    expect(radarProps).not.toHaveProperty('stackId');
   });
 
   it('toggles grid, tooltip and legend', () => {

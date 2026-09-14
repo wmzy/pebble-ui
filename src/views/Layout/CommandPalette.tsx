@@ -19,8 +19,14 @@ import {
   useHotkeys,
 } from '@/lib';
 
+import { fill, useSiteLocale } from '../i18n';
+
 import { MatchText } from './SidebarSearch';
-import { ALIASES, COMPONENT_GROUPS, type ComponentItem } from './component-groups';
+import {
+  ALIASES,
+  COMPONENT_GROUPS,
+  type ComponentItem,
+} from './component-groups';
 import { filterComponents } from './search-score';
 import { MAX_DOC_RESULTS, SEARCH_INDEX, searchDocs } from './search-index';
 
@@ -58,6 +64,11 @@ const ALIASES_BY_NAME: Record<string, string[]> = {};
 for (const entry of ENTRIES) {
   const aliases = ALIASES[entry.item.route];
   if (aliases) ALIASES_BY_NAME[entry.item.name.toLowerCase()] = aliases;
+}
+
+/* Localized group title: canonical English name → zh override when present. */
+function groupLabel(groups: Record<string, string>, name: string): string {
+  return groups[name] ?? name;
 }
 
 /* Same component-token channel CommandDialog uses: strip the Dialog
@@ -149,6 +160,7 @@ const searchBtn = css`
 
 export default function CommandPalette() {
   const router = useRouter();
+  const { t } = useSiteLocale();
   const [open, setOpen, openCtrl] = useControl(undefined, false);
   const [query, setQuery, queryCtrl] = useControl(undefined, '');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -202,17 +214,17 @@ export default function CommandPalette() {
       <button
         type='button'
         className={searchBtn}
-        aria-label='Search components'
+        aria-label={t.chrome.searchComponents}
         onClick={toggle}
       >
         <Icon icon={Search} size='sm' />
-        <span>Search</span>
+        <span>{t.chrome.search}</span>
         <Kbd size='sm'>⌘K</Kbd>
       </button>
       <Dialog
         open={openCtrl}
         onClose={close}
-        title='Search components'
+        title={t.chrome.searchComponents}
         classNames={{ root: panel, header: panelTitle }}
       >
         <Command
@@ -221,7 +233,10 @@ export default function CommandPalette() {
           onItemSelect={close}
           className={palette}
         >
-          <CommandInput ref={inputRef} placeholder='Search components…' />
+          <CommandInput
+            ref={inputRef}
+            placeholder={t.chrome.searchPlaceholder}
+          />
           <CommandList>
             {searching ? (
               <>
@@ -238,13 +253,15 @@ export default function CommandPalette() {
                           text={entry.item.name}
                           indices={match.indices}
                         />
-                        <span className={matchGroup}>{entry.group}</span>
+                        <span className={matchGroup}>
+                          {groupLabel(t.componentGroups, entry.group)}
+                        </span>
                       </span>
                     </CommandItem>
                   );
                 })}
                 {docsMatches.length > 0 && (
-                  <CommandGroup heading='Docs'>
+                  <CommandGroup heading={t.chrome.docs}>
                     {docsMatches.map((hit, i) => (
                       <CommandItem
                         key={`${hit.entry.route}#${hit.entry.label}#${i}`}
@@ -270,13 +287,16 @@ export default function CommandPalette() {
                     aria-disabled='true'
                     className={emptyRow}
                   >
-                    No results match “{query.trim()}”
+                    {fill(t.chrome.noResultsMatch, { query: query.trim() })}
                   </div>
                 )}
               </>
             ) : (
               COMPONENT_GROUPS.map((group) => (
-                <CommandGroup key={group.group} heading={group.group}>
+                <CommandGroup
+                  key={group.group}
+                  heading={groupLabel(t.componentGroups, group.group)}
+                >
                   {group.items.map((item) => (
                     <CommandItem
                       key={item.route}

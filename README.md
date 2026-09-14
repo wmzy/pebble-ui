@@ -35,6 +35,24 @@ English | [简体中文](./README-zh_CN.md)
 
 ## Getting Started
 
+### Quickstart via create-haze-ui
+
+Scaffold a ready-to-run app with the official templates — the CLI has zero
+runtime dependencies and needs no network access beyond dependency install:
+
+```sh
+pnpm create haze-ui my-app                    # vite template (default)
+pnpm create haze-ui my-app --template nextjs  # or: npm create haze-ui@latest my-app --
+```
+
+The **vite** template is a React 19 + Vite + TypeScript single-page demo
+(`Button` / `Input` / `Dialog` / `Toast`) with the theme classes mounted on
+the page root; the **nextjs** template is a Next.js 15 App Router starter
+whose home page renders the RSC-safe static subset (`Badge` / `Card` /
+`Typography`) as a server component, with a client island for the
+interactive pieces. Prefer wiring an existing project by hand? Continue
+with Installation below.
+
 ### Installation
 
 ```sh

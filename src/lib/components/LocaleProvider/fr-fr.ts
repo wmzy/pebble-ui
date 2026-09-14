@@ -233,6 +233,9 @@ const frFR: HazeStrings = {
     expand: 'Afficher l’extrait',
     collapse: 'Masquer l’extrait',
   },
+  streamingText: {
+    generating: 'Génération en cours',
+  },
   tag: {
     remove: 'Retirer',
   },

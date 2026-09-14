@@ -233,6 +233,9 @@ const koKR: HazeStrings = {
     expand: '발췌 보기',
     collapse: '발췌 접기',
   },
+  streamingText: {
+    generating: '생성 중',
+  },
   tag: {
     remove: '제거',
   },

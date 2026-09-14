@@ -233,6 +233,9 @@ const deDE: HazeStrings = {
     expand: 'Auszug anzeigen',
     collapse: 'Auszug ausblenden',
   },
+  streamingText: {
+    generating: 'Wird generiert',
+  },
   tag: {
     remove: 'Entfernen',
   },

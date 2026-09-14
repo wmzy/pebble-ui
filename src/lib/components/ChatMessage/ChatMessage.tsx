@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { css } from '@linaria/core';
 
 import { useStrings } from '../LocaleProvider';
@@ -11,12 +11,24 @@ type ChatMessageRole = 'user' | 'assistant' | 'system';
 /** Feedback window for the copy success glyph. */
 const COPIED_FEEDBACK_MS = 1500;
 
+/** Live-region cadence for `streaming` snapshots — matches StreamingText. */
+const ANNOUNCE_INTERVAL_MS = 1200;
+
 type ChatMessageProps = {
   role: ChatMessageRole;
   avatar?: ReactNode;
   name?: ReactNode;
   timestamp?: ReactNode;
   status?: 'sending' | 'sent' | 'error';
+  /**
+   * Marks an assistant message as mid-generation: the bubble carries
+   * aria-busy and a visually hidden status live region announces what
+   * is already on screen — a "Generating" cue, a throttled snapshot
+   * while the text grows, and the complete message once it ends. Leave
+   * it false when the children announce themselves (StreamingText has
+   * this built in): two live regions would say everything twice.
+   */
+  streaming?: boolean;
   /**
    * Opt in to the built-in copy action: a button in the hover/focus
    * reveal bar that copies the message's text content (the bubble's
@@ -165,6 +177,41 @@ const actionBtnCopied = css`
   color: var(--haze-color-success);
 `;
 
+// Visually hidden but exposed to assistive tech (the clip pattern from
+// the WCAG tutorials). Deliberately token-free: this is not a visual
+// surface, it only has to be removed from the layout entirely.
+const srOnly = css`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+`;
+
+/**
+ * Visible text of an element with any nested live regions stripped.
+ * Announcements and the copy action must read what is on screen, not
+ * what has already been said aloud — a mirroring region (StreamingText's,
+ * or this component's own) would otherwise double every snapshot and
+ * every copied character.
+ */
+function visibleText(root: HTMLElement | null): string {
+  if (!root) return '';
+  if (root.querySelector("[data-slot='live-region']") === null) {
+    return root.textContent;
+  }
+  const clone = root.cloneNode(true) as HTMLElement;
+  for (const region of clone.querySelectorAll("[data-slot='live-region']")) {
+    region.remove();
+  }
+  return clone.textContent;
+}
+
 const roleMap = {
   user: bubbleUser,
   assistant: bubbleAssistant,
@@ -214,6 +261,7 @@ export default function ChatMessage({
   name,
   timestamp,
   status,
+  streaming = false,
   copyable = false,
   actions,
   children,
@@ -222,12 +270,38 @@ export default function ChatMessage({
   const isUser = role === 'user';
   const strings = useStrings('chatMessage');
   const chatStrings = useStrings('chat');
+  const streamingStrings = useStrings('streamingText');
   const bubbleRef = useRef<HTMLDivElement>(null);
   const { copied, copy } = useClipboard(COPIED_FEEDBACK_MS);
   const showActions = copyable || actions !== undefined;
 
+  // Screen-reader mirror for `streaming` assistant messages (see the
+  // prop doc): '' for a message that never streamed, the announcement
+  // lifecycle otherwise — cue, throttled snapshots, final full text.
+  const [announced, setAnnounced] = useState('');
+  const wasStreamingRef = useRef(false);
+
+  useEffect(() => {
+    if (!streaming) {
+      // Generation just ended: announce the complete message once.
+      // Guarded by the ref so a message that never streamed stays
+      // silent (mounting with content is not a live-region change).
+      if (wasStreamingRef.current) {
+        wasStreamingRef.current = false;
+        setAnnounced(visibleText(bubbleRef.current));
+      }
+      return;
+    }
+    wasStreamingRef.current = true;
+    setAnnounced(streamingStrings.generating);
+    const timer = setInterval(() => {
+      setAnnounced(visibleText(bubbleRef.current));
+    }, ANNOUNCE_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [streaming, streamingStrings.generating]);
+
   const handleCopy = () => {
-    void copy(bubbleRef.current?.textContent ?? '');
+    void copy(visibleText(bubbleRef.current));
   };
 
   return (
@@ -248,9 +322,23 @@ export default function ChatMessage({
             {timestamp && <span data-slot='timestamp'>{timestamp}</span>}
           </div>
         )}
-        <div data-slot='bubble' x-class={[bubble, roleMap[role]]} ref={bubbleRef}>
+        <div
+          data-slot='bubble'
+          x-class={[bubble, roleMap[role]]}
+          ref={bubbleRef}
+          aria-busy={streaming || undefined}
+        >
           {children}
         </div>
+        {/* The live region sits OUTSIDE the aria-busy bubble on purpose:
+            busy marks a mutating subtree, and announcements from inside
+            one may be deferred until the flag clears — which would
+            silence the snapshots the region exists to deliver. */}
+        {role === 'assistant' && (
+          <span data-slot='live-region' role='status' x-class={[srOnly]}>
+            {announced}
+          </span>
+        )}
         {showActions && (
           <div data-slot='actions' x-class={[actionsRow]}>
             {copyable && (

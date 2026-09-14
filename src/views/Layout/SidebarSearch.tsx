@@ -6,6 +6,7 @@ import { css } from '@linaria/core';
 import { Search, X } from 'lucide-react';
 
 import { Icon } from '@/lib';
+import { useSiteLocale } from '@/views/i18n';
 
 /*
  * Search box for the sidebar COMPONENTS list.
@@ -131,6 +132,7 @@ type SidebarSearchProps = {
 };
 
 export default function SidebarSearch({ value, onChange }: SidebarSearchProps) {
+  const { t } = useSiteLocale();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -166,8 +168,8 @@ export default function SidebarSearch({ value, onChange }: SidebarSearchProps) {
         className={searchInput}
         type='text'
         value={value}
-        placeholder='Search components'
-        aria-label='Search components'
+        placeholder={t.chrome.searchPlaceholder}
+        aria-label={t.chrome.searchComponents}
         autoComplete='off'
         spellCheck={false}
         onChange={(e) => onChange(e.target.value)}
@@ -182,7 +184,7 @@ export default function SidebarSearch({ value, onChange }: SidebarSearchProps) {
         <button
           type='button'
           className={clearBtn}
-          aria-label='Clear search'
+          aria-label={t.chrome.clearSearch}
           onClick={clear}
         >
           <Icon icon={X} size='sm' />

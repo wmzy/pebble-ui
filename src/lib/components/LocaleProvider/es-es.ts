@@ -233,6 +233,9 @@ const esES: HazeStrings = {
     expand: 'Mostrar extracto',
     collapse: 'Ocultar extracto',
   },
+  streamingText: {
+    generating: 'Generando',
+  },
   tag: {
     remove: 'Quitar',
   },

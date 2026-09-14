@@ -13,6 +13,9 @@ import FormDemo from '@/components/FormDemo';
 
 import generatedProps from '@/generated/props.json';
 
+import { COMPONENT_GROUPS } from '@/views/Layout/component-groups';
+import { fill, useSiteLocale } from '@/views/i18n';
+
 import { LEGACY_REDIRECTS, suggestComponents } from './legacy-routes';
 
 import KbdDemo from './demos/KbdDemo';
@@ -42,10 +45,7 @@ import ToggleDemo from './demos/ToggleDemo';
 import AppShellDemo from './demos/AppShellDemo';
 import ChartDemo from './demos/ChartDemo';
 
-
-
 import { page } from './styles';
-
 
 import DemoPreview from './DemoPreview';
 import DemoSource from './DemoSource';
@@ -396,6 +396,32 @@ const propsByRoute = new Map(
   ])
 );
 
+/* route → display name, for the locale-aware one-line lede overlay. */
+const NAME_BY_ROUTE = new Map(
+  COMPONENT_GROUPS.flatMap((group) =>
+    group.items.map((item) => [item.route, item.name] as const)
+  )
+);
+
+/* zh lede sits above the demo's own English h1/intro (component doc bodies
+ * stay untranslated this round); en renders nothing extra. */
+const lede = css`
+  font-family: var(--haze-font-sans);
+  font-size: var(--haze-text-base);
+  color: var(--haze-color-text-secondary);
+  line-height: var(--haze-leading-normal);
+  margin: 0 0 var(--haze-space-4);
+`;
+
+/** Locale overlay for the per-component one-line description. */
+function ComponentLede({ route }: { route: string }) {
+  const { locale, t } = useSiteLocale();
+  if (locale !== 'zh') return null;
+  const blurb = t.components[NAME_BY_ROUTE.get(route) ?? ''];
+  if (blurb === undefined || blurb === '') return null;
+  return <p className={lede}>{blurb}</p>;
+}
+
 const notFound = css`
   h1 {
     margin-bottom: var(--haze-space-2);
@@ -431,14 +457,15 @@ const suggestionLink = css`
 
 /** 404 兜底：标题 + 最近匹配建议（≤3 条）+ 返回组件列表。 */
 function NotFound({ name }: { name: string }) {
+  const { t } = useSiteLocale();
   const suggestions = suggestComponents(name);
   return (
     <section className={notFound}>
-      <h1>Component not found: {name}</h1>
+      <h1>{fill(t.componentDetail.notFoundTitle, { name })}</h1>
       <p className={notFoundHint}>
         {suggestions.length > 0
-          ? 'No component lives at this URL. Did you mean:'
-          : 'No component lives at this URL.'}
+          ? t.componentDetail.notFoundHintSuggestions
+          : t.componentDetail.notFoundHintPlain}
       </p>
       {suggestions.length > 0 && (
         <ul className={suggestionList}>
@@ -451,7 +478,7 @@ function NotFound({ name }: { name: string }) {
           ))}
         </ul>
       )}
-      <Link to='/components'>Back to all components</Link>
+      <Link to='/components'>{t.componentDetail.backToAllComponents}</Link>
     </section>
   );
 }
@@ -463,6 +490,7 @@ function NotFound({ name }: { name: string }) {
  * route has no component entry in the generated props index (e.g. 'form').
  */
 function CopyImportButton({ name }: { name: string }) {
+  const { t } = useSiteLocale();
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -494,7 +522,7 @@ function CopyImportButton({ name }: { name: string }) {
           timer.current = setTimeout(() => setCopied(false), 2000);
         }}
       >
-        {copied ? 'Copied' : 'Copy import'}
+        {copied ? t.componentDetail.copied : t.componentDetail.copyImport}
       </Button>
     </div>
   );
@@ -512,17 +540,14 @@ export default function ComponentDetail() {
   useEffect(() => {
     if (!redirectTo) return;
     const to = `/components/${redirectTo}`;
-    void commitReplace(
-      router,
-      resolveTo(router, to),
-      toLocation(router, to)
-    );
+    void commitReplace(router, resolveTo(router, to), toLocation(router, to));
   }, [redirectTo, router]);
 
   return (
     <div className={page}>
       {redirectTo ? null : Demo ? (
         <>
+          <ComponentLede route={name} />
           <CopyImportButton name={name} />
           <DemoPreview>
             <Demo />

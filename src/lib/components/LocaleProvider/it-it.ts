@@ -233,6 +233,9 @@ const itIT: HazeStrings = {
     expand: 'Mostra stralcio',
     collapse: 'Nascondi stralcio',
   },
+  streamingText: {
+    generating: 'Generazione in corso',
+  },
   tag: {
     remove: 'Rimuovi',
   },

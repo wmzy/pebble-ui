@@ -53,36 +53,56 @@ const PAGES = [
     sublabel: 'Guide',
     route: '/getting-started',
     keywords: ['install', 'setup', 'quickstart', 'usage'],
+    zh: '快速上手',
   },
   {
     label: 'Recipes',
     sublabel: 'Guide',
     route: '/recipes',
     keywords: ['patterns', 'examples', 'member crud', 'chat adapter'],
+    zh: '实战示例',
   },
   {
     label: 'Dark mode',
     sublabel: 'Guide',
     route: '/guides/dark-mode',
     keywords: ['theme', 'theming', 'night', 'color scheme'],
+    zh: '深色模式',
   },
   {
     label: 'Density (compact)',
     sublabel: 'Guide',
     route: '/guides/density',
     keywords: ['compact', 'spacing', 'dense'],
+    zh: '密度（紧凑）',
   },
   {
     label: 'Accessibility',
     sublabel: 'Guide',
     route: '/guides/a11y',
     keywords: ['a11y', 'screen reader', 'keyboard', 'axe', 'wcag'],
+    zh: '无障碍',
   },
   {
     label: 'Migrating from AntD / shadcn',
     sublabel: 'Guide',
     route: '/guides/migration',
     keywords: ['antd', 'shadcn', 'upgrade', 'port'],
+    zh: '从 AntD / shadcn 迁移',
+  },
+  {
+    label: 'Streaming a11y',
+    sublabel: 'Guide',
+    route: '/guides/streaming-a11y',
+    keywords: ['streaming', 'screen reader', 'aria-live', 'live region', 'announce', 'chat'],
+    zh: '流式无障碍',
+  },
+  {
+    label: 'Motion presets',
+    sublabel: 'Guide',
+    route: '/guides/motion',
+    keywords: ['motion', 'animation', 'transition', 'enter', 'exit', 'data-state', 'presence'],
+    zh: '动效预设',
   },
   {
     label: 'Design Tokens',
@@ -96,30 +116,35 @@ const PAGES = [
       'spacing',
       'typography',
     ],
+    zh: '设计令牌',
   },
   {
     label: 'AI Showcase',
     sublabel: 'Demo',
     route: '/ai-showcase',
     keywords: ['chat', 'assistant', 'playground'],
+    zh: 'AI 演示',
   },
   {
     label: 'Theme Editor',
     sublabel: 'Tool',
     route: '/theme-editor',
     keywords: ['brand', 'customize', 'export theme', 'palette editor'],
+    zh: '主题编辑器',
   },
   {
     label: 'Changelog',
     sublabel: 'Reference',
     route: '/changelog',
     keywords: ['releases', 'version history', 'changes'],
+    zh: '更新日志',
   },
   {
     label: 'Help',
     sublabel: 'Reference',
     route: '/help',
     keywords: ['faq', 'support', 'troubleshooting'],
+    zh: '帮助',
   },
 ];
 
@@ -402,8 +427,15 @@ export function generateSearchIndex(rootDir = defaultRoot()) {
   }
 
   const entries = [];
-  for (const page of PAGES) {
-    entries.push({ type: 'page', ...page });
+  // zh title rides along as an extra search keyword: the palette's primary
+  // keys stay English (component/page labels), but a Chinese query like
+  // 深色模式 now hits the page tier too.
+  for (const { zh, ...page } of PAGES) {
+    entries.push({
+      type: 'page',
+      ...page,
+      keywords: [...(page.keywords ?? []), ...(zh ? [zh] : [])],
+    });
   }
 
   const { groups, aliases } = readComponentGroups(rootDir);

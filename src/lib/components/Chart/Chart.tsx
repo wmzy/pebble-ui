@@ -20,14 +20,19 @@ type ChartProps<T> = {
   /** Which recharts chart family to render. `pie` maps each datum to one
    * sector named by `xKey` and valued by each series `key`; `radar` maps
    * each datum to one spoke named by `xKey`; `scatter` plots the numeric
-   * `xKey` column against each series `key`. */
+   * `xKey` column against each series `key`. In the cartesian families
+   * the chart `type` picks the container and the default series shape —
+   * override the shape per series via `ChartSeries.type`. */
   type: ChartType;
   /** One datum per point (pie: per sector; radar: per spoke); series
    * values are read by `ChartSeries.key`. */
   data: T[];
   /** The series to plot — colors cycle through the semantic status tokens
    * when `color` is omitted. With `type='pie'` each series is one
-   * concentric ring. */
+   * concentric ring. In cartesian charts (line/area/bar) a per-series
+   * `type` overrides that series' shape for composed charts (bars under a
+   * line, a line over areas), and series sharing a `stackId` stack
+   * (Area/Bar shapes). Both are ignored by pie/radar/scatter. */
   series: ChartSeries[];
   /** Datum field driving the X axis — the cartesian categories, the pie
    * sector names, the radar spoke names, or the numeric scatter X
@@ -62,10 +67,12 @@ const root = css`
 
 /** Token-driven chart over recharts: line, area, bar, pie, radar or
  * scatter series rendered with haze semantic colors, axis/grid/tooltip/legend chrome
- * toggles, and the default-omittable `series`/`xKey` mapping. recharts is
- * a haze-ui dependency — this module's helpers import it statically, so
- * under preserveModules only bundles that actually render Chart include
- * the dependency. */
+ * toggles, and the default-omittable `series`/`xKey` mapping. Cartesian
+ * charts double as composed charts — a per-series `type` mixes line/area/bar
+ * shapes inside one chart, and `stackId` stacks the Area/Bar series sharing
+ * an id. recharts is a haze-ui dependency — this module's helpers import it
+ * statically, so under preserveModules only bundles that actually render
+ * Chart include the dependency. */
 export default function Chart<T>({
   type,
   data,

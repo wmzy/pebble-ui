@@ -1,6 +1,6 @@
-import {useState} from 'react';
-import {css} from '@linaria/core';
-import {Link} from '@native-router/react';
+import { useState } from 'react';
+import { css } from '@linaria/core';
+import { Link } from '@native-router/react';
 
 import {
   Avatar,
@@ -24,6 +24,7 @@ import {
 
 import propsJson from '@/generated/props.json';
 import sizeReportJson from '@/generated/size-report.json';
+import { fill, useSiteLocale } from '@/views/i18n';
 
 const wrapper = css`
   background: var(--haze-color-bg);
@@ -73,7 +74,8 @@ const installBox = css`
   background: var(--haze-gray-12);
   border: 1px solid var(--haze-gray-11);
   border-radius: var(--haze-radius-md);
-  padding: var(--haze-space-2) var(--haze-space-2) var(--haze-space-2) var(--haze-space-4);
+  padding: var(--haze-space-2) var(--haze-space-2) var(--haze-space-2)
+    var(--haze-space-4);
   font-family: var(--haze-font-mono);
   font-size: var(--haze-text-sm);
   margin-top: var(--haze-space-6);
@@ -450,7 +452,9 @@ const footer = css`
   & a {
     color: var(--haze-color-primary);
     text-decoration: none;
-    &:hover { text-decoration: underline; }
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `;
 
@@ -478,128 +482,165 @@ const formatBytes = (bytes: number) =>
 
 /** Aggregate CSS numbers from the latest local build (size-report.json). */
 const aggregateCss = sizeReport.aggregate;
-const cssStatNumber = aggregateCss ? formatBytes(aggregateCss.cssGzipBytes) : '\u2014';
-const cssStatLabel = aggregateCss
-  ? `CSS full bundle \u00b7 ${formatBytes(aggregateCss.cssBytes)} raw`
-  : 'CSS \u2014 run pnpm build';
-
-const shippedCssCell = aggregateCss
-  ? `~${formatBytes(aggregateCss.cssGzipBytes)} gzipped`
-  : 'per-component CSS';
-
-const lightweightDesc = aggregateCss
-  ? `Full CSS bundle is ${formatBytes(aggregateCss.cssBytes)} (${formatBytes(aggregateCss.cssGzipBytes)} gzipped). Per-component imports ship even less.`
-  : 'Tiny CSS footprint, no heavy dependencies. Designed for performance.';
+const cssStatNumber = aggregateCss
+  ? formatBytes(aggregateCss.cssGzipBytes)
+  : '\u2014';
 
 const INSTALL_COMMAND = 'pnpm add haze-ui';
 
-const FEATURES = [
-  {
-    icon: '\u26a1',
-    title: 'Zero Runtime Overhead',
-    desc: 'Styles are extracted at build time via Linaria. No runtime CSS-in-JS cost.',
-  },
-  {
-    icon: '\ud83c\udfa8',
-    title: 'Design Tokens',
-    desc: 'Consistent theming through CSS custom properties. Light and dark themes built in.',
-  },
-  {
-    icon: '\ud83e\udde9',
-    title: `${componentCount}+ Components`,
-    desc: 'From buttons to datepickers, all following Open UI standards for consistency.',
-  },
-  {
-    icon: '\u267f',
-    title: 'Accessible',
-    desc: 'Built on native HTML elements like <dialog> and <details> for built-in a11y.',
-  },
-  {
-    icon: '\ud83d\udce6',
-    title: 'Tree-Shakeable',
-    desc: 'ES module output with preserveModules. Import only what you use.',
-  },
-  {
-    icon: '\ud83d\udd27',
-    title: 'Controlled & Uncontrolled',
-    desc: 'Form components support both modes via react-use-control.',
-  },
-  {
-    icon: '\ud83d\udcdd',
-    title: 'TypeScript First',
-    desc: 'Written in TypeScript with exported prop types for every component.',
-  },
-  {
-    icon: '\ud83c\udf1f',
-    title: 'Lightweight',
-    desc: lightweightDesc,
-  },
-  {
-    icon: '\ud83c\udfaf',
-    title: 'Customizable',
-    desc: 'Override any design token with CSS variables. className passthrough on all components.',
-  },
-];
-
-const COMPARE_COLUMNS = ['haze-ui', 'shadcn + Base UI', 'Radix', 'Mantine', 'MUI'] as const;
-
-const COMPARE_ROWS = [
-  {
-    label: 'Styling runtime',
-    cells: ['zero (Linaria)', 'zero (Tailwind)', 'unstyled', 'runtime', 'runtime'],
-  },
-  {
-    label: 'State API',
-    cells: [
-      'ControlOrValue<T> single prop',
-      'value/defaultValue',
-      'value/defaultValue',
-      'value/defaultValue',
-      'value/defaultValue',
-    ],
-  },
-  {
-    label: 'Form binding',
-    cells: ['react-f0rm deep integration', 'react-hook-form optional', '\u2014', 'built-in', 'built-in'],
-  },
-  {
-    label: 'AI components',
-    cells: ['18 built-in, zero runtime binding', '\u2014', '\u2014', '\u2014', '\u2014'],
-  },
-  {
-    label: 'Per-component CSS',
-    cells: ['css-manifest.json', '\u2014', '\u2014', '\u2014', '\u2014'],
-  },
-  {
-    label: 'Shipped CSS',
-    cells: [shippedCssCell, 'varies', '\u2014', '\u2014', '\u2014'],
-  },
+const COMPARE_COLUMNS = [
+  'haze-ui',
+  'shadcn + Base UI',
+  'Radix',
+  'Mantine',
+  'MUI',
 ] as const;
 
 export default function Home() {
+  const { t } = useSiteLocale();
   // Bundle-size table ordering: gzip descending by default, toggleable.
   const [sizeSortDesc, setSizeSortDesc] = useState(true);
   // Hero install snippet: copy feedback flashes for ~1.5s.
   const { copied, copy } = useClipboard(1500);
   const sizeRows = [...sizeReport.families].sort((a, b) =>
-    sizeSortDesc ? b.cssGzipBytes - a.cssGzipBytes : a.cssGzipBytes - b.cssGzipBytes
+    sizeSortDesc
+      ? b.cssGzipBytes - a.cssGzipBytes
+      : a.cssGzipBytes - b.cssGzipBytes
   );
+
+  // Locale-aware rebuilds of the size-derived copy (en output byte-identical
+  // to the pre-i18n literals; zh overrides come from the dictionary).
+  const cssStatLabel = aggregateCss
+    ? fill(t.home.stats.cssLabelFull, {
+        raw: formatBytes(aggregateCss.cssBytes),
+      })
+    : t.home.stats.cssLabelFallback;
+  const shippedCssCell = aggregateCss
+    ? fill(t.home.compare.shippedFull, {
+        gzip: formatBytes(aggregateCss.cssGzipBytes),
+      })
+    : t.home.compare.shippedFallback;
+
+  const FEATURES = [
+    {
+      icon: '\u26a1',
+      title: t.home.features.zeroRuntime.title,
+      desc: t.home.features.zeroRuntime.desc,
+    },
+    {
+      icon: '\ud83c\udfa8',
+      title: t.home.features.designTokens.title,
+      desc: t.home.features.designTokens.desc,
+    },
+    {
+      icon: '\ud83e\udde9',
+      title: fill(t.home.features.components.title, { count: componentCount }),
+      desc: t.home.features.components.desc,
+    },
+    {
+      icon: '\u267f',
+      title: t.home.features.accessible.title,
+      desc: t.home.features.accessible.desc,
+    },
+    {
+      icon: '\ud83d\udce6',
+      title: t.home.features.treeShakeable.title,
+      desc: t.home.features.treeShakeable.desc,
+    },
+    {
+      icon: '\ud83d\udd27',
+      title: t.home.features.controlled.title,
+      desc: t.home.features.controlled.desc,
+    },
+    {
+      icon: '\ud83d\udcdd',
+      title: t.home.features.typescript.title,
+      desc: t.home.features.typescript.desc,
+    },
+    {
+      icon: '\ud83c\udf1f',
+      title: t.home.features.lightweight.title,
+      desc: aggregateCss
+        ? fill(t.home.features.lightweight.descFull, {
+            raw: formatBytes(aggregateCss.cssBytes),
+            gzip: formatBytes(aggregateCss.cssGzipBytes),
+          })
+        : t.home.features.lightweight.descFallback,
+    },
+    {
+      icon: '\ud83c\udfaf',
+      title: t.home.features.customizable.title,
+      desc: t.home.features.customizable.desc,
+    },
+  ];
+
+  const COMPARE_ROWS = [
+    {
+      label: t.home.compare.rows.stylingRuntime,
+      cells: [
+        'zero (Linaria)',
+        'zero (Tailwind)',
+        'unstyled',
+        'runtime',
+        'runtime',
+      ],
+    },
+    {
+      label: t.home.compare.rows.stateApi,
+      cells: [
+        'ControlOrValue<T> single prop',
+        'value/defaultValue',
+        'value/defaultValue',
+        'value/defaultValue',
+        'value/defaultValue',
+      ],
+    },
+    {
+      label: t.home.compare.rows.formBinding,
+      cells: [
+        'react-f0rm deep integration',
+        'react-hook-form optional',
+        '\u2014',
+        'built-in',
+        'built-in',
+      ],
+    },
+    {
+      label: t.home.compare.rows.aiComponents,
+      cells: [
+        '18 built-in, zero runtime binding',
+        '\u2014',
+        '\u2014',
+        '\u2014',
+        '\u2014',
+      ],
+    },
+    {
+      label: t.home.compare.rows.perComponentCss,
+      cells: ['css-manifest.json', '\u2014', '\u2014', '\u2014', '\u2014'],
+    },
+    {
+      label: t.home.compare.rows.shippedCss,
+      cells: [shippedCssCell, 'varies', '\u2014', '\u2014', '\u2014'],
+    },
+  ];
 
   return (
     <div className={wrapper}>
       <section className={hero}>
-        <Badge variant="info">v1.0</Badge>
-        <h1 className={title}>Build faster with Haze UI</h1>
+        <Badge variant='info'>v1.0</Badge>
+        <h1 className={title}>{t.home.hero.title}</h1>
         <p className={subtitle}>
-          A lightweight, accessible React component library with zero-runtime
-          CSS-in-JS, design tokens, and {componentCount} production-ready components.
+          {fill(t.home.hero.subtitle, { count: componentCount })}
         </p>
-        <Flex gap="var(--haze-space-3)">
-          <Link className={linkReset} to="/getting-started">
-            <Button size="lg">Get Started</Button>
+        <Flex gap='var(--haze-space-3)'>
+          <Link className={linkReset} to='/getting-started'>
+            <Button size='lg'>{t.home.hero.getStarted}</Button>
           </Link>
-          <Link className={linkReset} to="/components">
-            <Button variant="outline" size="lg">Components</Button>
+          <Link className={linkReset} to='/components'>
+            <Button variant='outline' size='lg'>
+              {t.home.hero.components}
+            </Button>
           </Link>
         </Flex>
         <div className={installBox}>
@@ -609,35 +650,35 @@ export default function Home() {
             <span className={installArg}>add haze-ui</span>
           </code>
           <button
-            type="button"
+            type='button'
             className={installCopyBtn}
-            aria-label="Copy install command"
+            aria-label={t.home.hero.copyAria}
             onClick={() => {
               void copy(INSTALL_COMMAND);
             }}
           >
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? t.home.hero.copied : t.home.hero.copy}
           </button>
         </div>
       </section>
 
       <section className={statsSection}>
         <div className={statsGrid}>
-          <Card variant="outlined" className={statCard}>
+          <Card variant='outlined' className={statCard}>
             <p className={statNumber}>{componentCount}</p>
-            <p className={statLabel}>Components</p>
+            <p className={statLabel}>{t.home.stats.components}</p>
           </Card>
-          <Card variant="outlined" className={statCard}>
+          <Card variant='outlined' className={statCard}>
             <p className={statNumber}>{cssStatNumber}</p>
             <p className={statLabel}>{cssStatLabel}</p>
           </Card>
-          <Card variant="outlined" className={statCard}>
+          <Card variant='outlined' className={statCard}>
             <p className={statNumber}>0</p>
-            <p className={statLabel}>Runtime JS for styles</p>
+            <p className={statLabel}>{t.home.stats.runtimeJs}</p>
           </Card>
-          <Card variant="outlined" className={statCard}>
+          <Card variant='outlined' className={statCard}>
             <p className={statNumber}>2</p>
-            <p className={statLabel}>Built-in themes</p>
+            <p className={statLabel}>{t.home.stats.builtInThemes}</p>
           </Card>
         </div>
       </section>
@@ -645,10 +686,8 @@ export default function Home() {
       <ComponentWall />
 
       <section className={featuresSection}>
-        <h2 className={sectionTitle}>Why Haze UI?</h2>
-        <p className={sectionSubtitle}>
-          Everything you need to build modern React interfaces, nothing you don&apos;t.
-        </p>
+        <h2 className={sectionTitle}>{t.home.features.title}</h2>
+        <p className={sectionSubtitle}>{t.home.features.subtitle}</p>
         <div className={featureGrid}>
           {FEATURES.map((f) => (
             <Card key={f.title}>
@@ -661,24 +700,24 @@ export default function Home() {
       </section>
 
       <section className={compareSection}>
-        <h2 className={sectionTitle}>How it compares</h2>
-        <p className={sectionSubtitle}>
-          Zero-runtime styling, one-prop state control, and AI components built in.
-        </p>
+        <h2 className={sectionTitle}>{t.home.compare.title}</h2>
+        <p className={sectionSubtitle}>{t.home.compare.subtitle}</p>
         <div className={compareScroll}>
           <table className={compareTable}>
             <thead>
               <tr>
-                <th scope="col" aria-label="Dimension" />
+                <th scope='col' aria-label={t.home.compare.dimension} />
                 {COMPARE_COLUMNS.map((column) => (
-                  <th key={column} scope="col">{column}</th>
+                  <th key={column} scope='col'>
+                    {column}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {COMPARE_ROWS.map((row) => (
                 <tr key={row.label}>
-                  <th scope="row">{row.label}</th>
+                  <th scope='row'>{row.label}</th>
                   {COMPARE_COLUMNS.map((column, i) => (
                     <td key={column}>{row.cells[i]}</td>
                   ))}
@@ -689,42 +728,45 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={sizeSection} id="bundle-size">
-        <h2 className={sectionTitle}>Bundle size</h2>
-        <p className={sectionSubtitle}>
-          Per-family CSS, measured from the local library build. Ship tokens.css
-          once, then only the components you render.
-        </p>
+      <section className={sizeSection} id='bundle-size'>
+        <h2 className={sectionTitle}>{t.home.size.title}</h2>
+        <p className={sectionSubtitle}>{t.home.size.subtitle}</p>
         {sizeReport.distAvailable && sizeReport.aggregate ? (
           <>
             <div className={sizeToolbar}>
               <span className={sizeSummary}>
-                {sizeReport.families.length} CSS families &middot; full bundle
-                (haze-ui.css): {formatBytes(sizeReport.aggregate.cssBytes)} /{' '}
-                {formatBytes(sizeReport.aggregate.cssGzipBytes)} gzip
+                {fill(t.home.size.summary, {
+                  families: sizeReport.families.length,
+                  raw: formatBytes(sizeReport.aggregate.cssBytes),
+                  gzip: formatBytes(sizeReport.aggregate.cssGzipBytes),
+                })}
               </span>
               <Button
-                variant="outline"
-                size="sm"
-                aria-label={`Sort families by gzip size, currently ${sizeSortDesc ? 'descending' : 'ascending'}`}
+                variant='outline'
+                size='sm'
+                aria-label={
+                  sizeSortDesc
+                    ? t.home.size.sortAriaDesc
+                    : t.home.size.sortAriaAsc
+                }
                 onClick={() => setSizeSortDesc((desc) => !desc)}
               >
-                Sort by gzip {sizeSortDesc ? '\u2193' : '\u2191'}
+                {t.home.size.sortLabel} {sizeSortDesc ? '\u2193' : '\u2191'}
               </Button>
             </div>
             <div className={sizeScroll}>
               <table className={sizeTable}>
                 <thead>
                   <tr>
-                    <th scope="col">Family</th>
-                    <th scope="col">CSS</th>
-                    <th scope="col">CSS (gzip)</th>
+                    <th scope='col'>{t.home.size.family}</th>
+                    <th scope='col'>{t.home.size.css}</th>
+                    <th scope='col'>{t.home.size.cssGzip}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sizeRows.map((row) => (
                     <tr key={row.family}>
-                      <th scope="row">{row.family}</th>
+                      <th scope='row'>{row.family}</th>
                       <td>{formatBytes(row.cssBytes)}</td>
                       <td>{formatBytes(row.cssGzipBytes)}</td>
                     </tr>
@@ -733,32 +775,23 @@ export default function Home() {
               </table>
             </div>
             <p className={sizeNote}>
-              Measured {new Date(sizeReport.generatedAt).toLocaleDateString()} by
-              scripts/generate-size-report.mjs (gzip level 9) &middot; run pnpm
-              build to regenerate.
+              {fill(t.home.size.note, {
+                date: new Date(sizeReport.generatedAt).toLocaleDateString(),
+              })}
             </p>
           </>
         ) : (
-          <p className={sizeHint}>
-            No local build output found &mdash; run pnpm build to regenerate this
-            report.
-          </p>
+          <p className={sizeHint}>{t.home.size.hint}</p>
         )}
       </section>
 
       <section className={codeSection}>
-        <h2 className={sectionTitle}>Simple by design</h2>
-        <p className={sectionSubtitle}>
-          Clean APIs that get out of your way. Here&apos;s what it looks like:
-        </p>
+        <h2 className={sectionTitle}>{t.home.code.title}</h2>
+        <p className={sectionSubtitle}>{t.home.code.subtitle}</p>
         <div className={codeExample}>
           <div>
-            <h3 className={codeDescTitle}>Quick setup</h3>
-            <p className={codeDescription}>
-              Import the stylesheet (full bundle or per-component CSS), apply a
-              theme class, and start using components. No providers, no context
-              wrappers, no configuration files.
-            </p>
+            <h3 className={codeDescTitle}>{t.home.code.quickSetup}</h3>
+            <p className={codeDescription}>{t.home.code.description}</p>
           </div>
           <pre className={codeBlock}>{`import 'haze-ui/styles.css';
 import { lightTheme, Button } from 'haze-ui';
@@ -774,8 +807,12 @@ export default function App() {
       </section>
 
       <footer className={footer}>
-        MIT License &middot; Built with React 19 &middot;{' '}
-        <a href="https://github.com/wmzy/haze-ui" target="_blank" rel="noreferrer">
+        {t.home.footer.license} &middot; {t.home.footer.builtWith} &middot;{' '}
+        <a
+          href='https://github.com/wmzy/haze-ui'
+          target='_blank'
+          rel='noreferrer'
+        >
           GitHub
         </a>
       </footer>
@@ -790,6 +827,7 @@ export default function App() {
  * + pass the `Control` handle); drive buttons flip state through `setV`.
  */
 function ComponentWall() {
+  const { t } = useSiteLocale();
   const [switchOn, setSwitchOn, switchCtrl] = useControl(undefined, false);
   const [, , segmentCtrl] = useControl(undefined, 'week');
   const [sliderValue, , sliderCtrl] = useControl(undefined, 40);
@@ -799,117 +837,130 @@ function ComponentWall() {
 
   return (
     <section className={wallSection}>
-      <h2 className={sectionTitle}>Real components, not screenshots</h2>
-      <p className={sectionSubtitle}>
-        Every control below is live — click, drag, and type your way through
-        the actual library.
-      </p>
+      <h2 className={sectionTitle}>{t.home.wall.title}</h2>
+      <p className={sectionSubtitle}>{t.home.wall.subtitle}</p>
       <div className={wallGrid}>
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Button</h3>
           <div className={wallDemo}>
-            <Button size="sm">Primary</Button>
-            <Button size="sm" variant="outline">Outline</Button>
-            <Button size="sm" variant="ghost">Ghost</Button>
+            <Button size='sm'>Primary</Button>
+            <Button size='sm' variant='outline'>
+              Outline
+            </Button>
+            <Button size='sm' variant='ghost'>
+              Ghost
+            </Button>
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Switch</h3>
           <div className={wallDemo}>
-            <Switch checked={switchCtrl} aria-label="Notifications" />
+            <Switch checked={switchCtrl} aria-label='Notifications' />
             <span className={wallValue}>{switchOn ? 'On' : 'Off'}</span>
-            <Button size="sm" variant="ghost" onClick={() => setSwitchOn((v) => !v)}>
+            <Button
+              size='sm'
+              variant='ghost'
+              onClick={() => setSwitchOn((v) => !v)}
+            >
               Toggle
             </Button>
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Slider</h3>
           <div className={wallDemo}>
-            <Slider value={sliderCtrl} aria-label="Opacity" />
+            <Slider value={sliderCtrl} aria-label='Opacity' />
             <span className={wallValue}>{sliderValue}%</span>
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Segmented</h3>
           <div className={wallDemo}>
             <Segmented options={['Day', 'Week', 'Month']} value={segmentCtrl} />
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Badge</h3>
           <div className={wallDemo}>
             <Badge>Default</Badge>
-            <Badge variant="success">Success</Badge>
-            <Badge variant="warning">Warning</Badge>
-            <Badge variant="danger">Danger</Badge>
+            <Badge variant='success'>Success</Badge>
+            <Badge variant='warning'>Warning</Badge>
+            <Badge variant='danger'>Danger</Badge>
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Avatar Group</h3>
           <div className={wallDemo}>
             <AvatarGroup max={3} total={5}>
-              <Avatar alt="Ada Lovelace" />
-              <Avatar alt="Grace Hopper" />
-              <Avatar alt="Alan Turing" />
-              <Avatar alt="Katherine Johnson" />
-              <Avatar alt="Margaret Hamilton" />
+              <Avatar alt='Ada Lovelace' />
+              <Avatar alt='Grace Hopper' />
+              <Avatar alt='Alan Turing' />
+              <Avatar alt='Katherine Johnson' />
+              <Avatar alt='Margaret Hamilton' />
             </AvatarGroup>
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Rating</h3>
           <div className={wallDemo}>
             <Rating value={ratingCtrl} />
-            <Button size="sm" variant="ghost" onClick={() => setRating(3)}>
+            <Button size='sm' variant='ghost' onClick={() => setRating(3)}>
               Reset
             </Button>
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Progress</h3>
           <div className={wallDemo}>
             <Progress value={72} />
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Chip</h3>
           <div className={wallDemo}>
             <Chip>Design</Chip>
-            <Chip variant="outline" color="primary">React</Chip>
-            <Chip color="success">Shipped</Chip>
+            <Chip variant='outline' color='primary'>
+              React
+            </Chip>
+            <Chip color='success'>Shipped</Chip>
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Tag</h3>
           <div className={wallDemo}>
             <Tag>Default</Tag>
-            <Tag variant="primary">New</Tag>
-            <Tag variant="success">Stable</Tag>
-            <Tag variant="danger" closable>Deprecated</Tag>
+            <Tag variant='primary'>New</Tag>
+            <Tag variant='success'>Stable</Tag>
+            <Tag variant='danger' closable>
+              Deprecated
+            </Tag>
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Input</h3>
           <div className={wallDemo}>
-            <Input value={emailCtrl} placeholder="you@example.com" aria-label="Email address" />
+            <Input
+              value={emailCtrl}
+              placeholder='you@example.com'
+              aria-label='Email address'
+            />
           </div>
         </Card>
 
-        <Card variant="outlined" className={wallCard}>
+        <Card variant='outlined' className={wallCard}>
           <h3 className={wallCaption}>Pagination</h3>
           <div className={wallDemo}>
-            <Pagination page={pageCtrl} total={50} aria-label="Demo pages" />
+            <Pagination page={pageCtrl} total={50} aria-label='Demo pages' />
           </div>
         </Card>
       </div>

@@ -1066,6 +1066,11 @@
             "required": false
           },
           {
+            "name": "streaming",
+            "type": "boolean",
+            "required": false
+          },
+          {
             "name": "copyable",
             "type": "boolean",
             "required": false
@@ -6175,6 +6180,11 @@
           },
           {
             "name": "speed",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "announceInterval",
             "type": "number",
             "required": false
           },

@@ -1,13 +1,25 @@
 import { memo, useState, useEffect, useRef } from 'react';
 import { css } from '@linaria/core';
 
+import { useStrings } from '../LocaleProvider';
+
 type StreamingTextProps = {
   text: string;
   speed?: number;
+  /**
+   * How often (ms) the screen-reader live region picks up a new snapshot
+   * of the streamed text. Everything streamed in between stays silent:
+   * announcing per character would restart the reader's utterance on
+   * every tick, so the throttle is the point, not an optimization.
+   */
+  announceInterval?: number;
   onComplete?: () => void;
   showCursor?: boolean;
   className?: string;
 };
+
+/** Default live-region cadence: one announcement per ~1.2s of streaming. */
+const ANNOUNCE_INTERVAL_DEFAULT = 1200;
 
 const wrapper = css`
   font-family: var(--haze-font-sans);
@@ -39,6 +51,22 @@ const cursor = css`
   @keyframes blink {
     50% { opacity: 0; }
   }
+`;
+
+// Visually hidden but exposed to assistive tech (the clip pattern from
+// the WCAG tutorials). Deliberately token-free: this is not a visual
+// surface, it only has to be removed from the layout entirely.
+const srOnly = css`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 `;
 
 // Hard cap so a wall of text without newlines still gets a bounded active
@@ -74,16 +102,27 @@ const TextChunk = memo(function TextChunk({ text }: { text: string }) {
 export default function StreamingText({
   text,
   speed = 20,
+  announceInterval = ANNOUNCE_INTERVAL_DEFAULT,
   onComplete,
   showCursor = true,
   className,
 }: StreamingTextProps) {
+  const strings = useStrings('streamingText');
   // `displayed` is the single source of truth (always a prefix of `text`);
   // completion derives from it instead of a render-read ref.
   const [displayed, setDisplayed] = useState('');
   // Guards onComplete to fire exactly once per completed stream, even when
   // the effect re-runs from an unstable `onComplete` identity.
   const doneRef = useRef(false);
+  // Screen-reader mirror of the stream: `announced` holds what the live
+  // region currently says — '' before the stream cues, a throttled
+  // snapshot while streaming, the full text once complete.
+  const [announced, setAnnounced] = useState('');
+  // Latest-value mirror of `displayed` for the announcement timer, which
+  // fires long after the render that armed it (assigned in an effect so
+  // no ref is written during render).
+  const displayedRef = useRef('');
+  const announceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Chunk bookkeeping mirrors `displayed` exactly
   // (`finalized.join('') + tail === displayed`): the tick below appends
@@ -106,9 +145,14 @@ export default function StreamingText({
   if (text !== prevText) {
     setPrevText(text);
     setDisplayed('');
+    setAnnounced('');
   }
 
   const isDone = displayed.length >= text.length;
+
+  useEffect(() => {
+    displayedRef.current = displayed;
+  }, [displayed]);
 
   useEffect(() => {
     if (isDone) {
@@ -127,12 +171,69 @@ export default function StreamingText({
     return () => clearTimeout(timer);
   }, [isDone, displayed, text, speed, onComplete]);
 
+  // Screen-reader announcements. The visible per-character render is
+  // silent to assistive technology — a plain text mutation carries no
+  // live semantics, so a streaming answer would only be discovered when
+  // focus happens to land on it. The hidden role='status' region fixes
+  // that with three utterances: a "Generating" cue as the stream starts,
+  // a fresh snapshot at most once per announceInterval, and the complete
+  // text exactly once at completion.
+  useEffect(() => {
+    if (isDone || announceTimerRef.current !== null) return;
+    if (announced === '') {
+      // Cue the start before the first throttled snapshot lands — a
+      // state write, not initial content, so it is a real mutation the
+      // live region announces (content present at mount is not).
+      setAnnounced(strings.generating);
+    }
+    const timer = setTimeout(() => {
+      announceTimerRef.current = null;
+      setAnnounced(displayedRef.current);
+    }, announceInterval);
+    announceTimerRef.current = timer;
+  }, [displayed, isDone, announced, announceInterval, strings.generating]);
+
+  // Completion: cancel any pending snapshot and announce the final text
+  // once. `announced === text` makes the write a no-op when the last
+  // snapshot already covered everything, so nothing is said twice.
+  useEffect(() => {
+    if (!isDone) return;
+    if (announceTimerRef.current !== null) {
+      clearTimeout(announceTimerRef.current);
+      announceTimerRef.current = null;
+    }
+    setAnnounced(text);
+  }, [isDone, text]);
+
+  // Never leave an armed announcement timer behind on unmount.
+  useEffect(
+    () => () => {
+      if (announceTimerRef.current !== null) {
+        clearTimeout(announceTimerRef.current);
+      }
+    },
+    [],
+  );
+
   return (
     <span data-slot='streaming-text' x-class={[wrapper, className]}>
-      {chunks.map((chunk, i) => (
-        <TextChunk key={i} text={chunk} />
-      ))}
-      {showCursor && !isDone && <span data-slot='caret' x-class={[cursor]} />}
+      <span data-slot='live-region' role='status' x-class={[srOnly]}>
+        {announced}
+      </span>
+      {/* aria-busy marks the mutating content area, deliberately NOT the
+          root: the live region must stay outside any aria-busy subtree,
+          or assistive tech may defer its announcements until the busy
+          flag clears — which would silence the snapshots this component
+          exists to deliver. */}
+      <span
+        data-slot='content'
+        aria-busy={isDone ? undefined : true}
+      >
+        {chunks.map((chunk, i) => (
+          <TextChunk key={i} text={chunk} />
+        ))}
+        {showCursor && !isDone && <span data-slot='caret' x-class={[cursor]} />}
+      </span>
     </span>
   );
 }

@@ -1,6 +1,7 @@
-import {css} from '@linaria/core';
+import { css } from '@linaria/core';
 
-import {page, intro, section} from '@/views/ComponentDetail/styles';
+import { Rich, useSiteLocale } from '@/views/i18n';
+import { page, intro, section } from '@/views/ComponentDetail/styles';
 
 const codeBlock = css`
   background: var(--haze-color-bg-muted);
@@ -79,21 +80,21 @@ const note = css`
 `;
 
 export default function GettingStarted() {
+  const { t } = useSiteLocale();
+  const gs = t.gettingStarted;
+
   return (
     <div className={page}>
-      <h1>Getting Started</h1>
-      <p className={intro}>
-        Get up and running with Haze UI in your React project in just a few minutes.
-      </p>
+      <h1>{gs.title}</h1>
+      <p className={intro}>{gs.intro}</p>
 
       <div className={section}>
-        <h2>Installation</h2>
+        <h2>{gs.installation.title}</h2>
         <p className={paragraph}>
-          Haze UI requires <code className={inlineCode}>react &gt;= 19</code> and{' '}
-          <code className={inlineCode}>@linaria/core &gt;= 7</code> as peer dependencies.
+          <Rich text={gs.installation.peers} codeClass={inlineCode} />
         </p>
         <pre className={codeBlock}>npm install haze-ui @linaria/core</pre>
-        <p className={paragraph}>Or with other package managers:</p>
+        <p className={paragraph}>{gs.installation.orOtherManagers}</p>
         <pre className={codeBlock}>{`# pnpm
 pnpm add haze-ui @linaria/core
 
@@ -102,11 +103,10 @@ yarn add haze-ui @linaria/core`}</pre>
       </div>
 
       <div className={section}>
-        <h2>Setup</h2>
+        <h2>{gs.setup.title}</h2>
         <ol className={stepList}>
           <li>
-            <strong>Import the stylesheet</strong> — load the full bundle, or
-            load tokens plus only the components you use.
+            <Rich text={gs.setup.steps[0]?.lead ?? []} codeClass={inlineCode} />
             <pre className={codeBlock}>{`// full bundle (~12kB gzipped)
 import 'haze-ui/styles.css';
 
@@ -115,9 +115,10 @@ import 'haze-ui/css/tokens.css';
 import 'haze-ui/css/button.css'; // OTPInput -> 'haze-ui/css/otp-input.css'`}</pre>
           </li>
           <li>
-            <strong>Apply the theme</strong> — Wrap your app (or any subtree) with the theme
-            class to activate design tokens.
-            <pre className={codeBlock}>{`import { lightTheme, spacing, typography } from 'haze-ui';
+            <Rich text={gs.setup.steps[1]?.lead ?? []} codeClass={inlineCode} />
+            <pre
+              className={codeBlock}
+            >{`import { lightTheme, spacing, typography } from 'haze-ui';
 
 function App() {
   return (
@@ -128,8 +129,10 @@ function App() {
 }`}</pre>
           </li>
           <li>
-            <strong>Use components</strong> — Import and use any component directly.
-            <pre className={codeBlock}>{`import { Button, Input, Card } from 'haze-ui';
+            <Rich text={gs.setup.steps[2]?.lead ?? []} codeClass={inlineCode} />
+            <pre
+              className={codeBlock}
+            >{`import { Button, Input, Card } from 'haze-ui';
 
 function LoginForm() {
   return (
@@ -145,20 +148,17 @@ function LoginForm() {
       </div>
 
       <div className={section}>
-        <h2>Theming</h2>
-        <p className={paragraph}>
-          Haze UI uses CSS custom properties (design tokens) for all visual values. Two built-in
-          themes are available:
-        </p>
-        <pre className={codeBlock}>{`import { lightTheme, darkTheme } from 'haze-ui';
+        <h2>{gs.theming.title}</h2>
+        <p className={paragraph}>{gs.theming.tokensPara}</p>
+        <pre
+          className={codeBlock}
+        >{`import { lightTheme, darkTheme } from 'haze-ui';
 
 // Apply to any container
 <div className={darkTheme}>
   <Button>Dark Mode Button</Button>
 </div>`}</pre>
-        <p className={paragraph}>
-          You can override any token by setting the CSS variable on a parent element:
-        </p>
+        <p className={paragraph}>{gs.theming.overridePara}</p>
         <pre className={codeBlock}>{`/* Custom brand color */
 .my-theme {
   --haze-color-primary: #8b5cf6;
@@ -166,32 +166,25 @@ function LoginForm() {
   --haze-color-primary-active: #6d28d9;
 }`}</pre>
         <div className={note}>
-          All tokens are prefixed with <code className={inlineCode}>--haze-</code> to avoid
-          conflicts with other libraries. See the full list of tokens in the source code.
+          <Rich text={gs.theming.prefixNote} codeClass={inlineCode} />
         </div>
         <p className={paragraph}>
-          All tokens are also published in the W3C Design Tokens Format (DTF) —
-          every token becomes a <code className={inlineCode}>$value</code> /{' '}
-          <code className={inlineCode}>$type</code> group entry — so design-tool
-          pipelines can consume them without knowing haze-ui&apos;s CSS naming:
+          <Rich text={gs.theming.dtfPara} codeClass={inlineCode} />
         </p>
-        <pre className={codeBlock}>{`import lightTokens from 'haze-ui/design-tokens/light.json';
+        <pre
+          className={codeBlock}
+        >{`import lightTokens from 'haze-ui/design-tokens/light.json';
 
 // lightTokens.haze.color.primary.$value -> 'oklch(0.563 0.241 260.8)'
 // lightTokens.haze.radius.md.$value -> '6px'
 // dark mode: 'haze-ui/design-tokens/dark.json'`}</pre>
-        <div className={note}>
-          The same JSON drops straight into Style Dictionary or Tokens Studio to
-          keep Figma variables and platform token output in sync with the library.
-        </div>
+        <div className={note}>{gs.theming.dtfNote}</div>
       </div>
 
       <div className={section}>
-        <h2>Using with Tailwind v4</h2>
+        <h2>{gs.tailwind.title}</h2>
         <p className={paragraph}>
-          Haze UI tokens are ordinary CSS custom properties, so Tailwind v4 can consume
-          them through <code className={inlineCode}>@theme</code>. Alias the tokens you
-          want as Tailwind color variables, then use the matching utilities:
+          <Rich text={gs.tailwind.intro} codeClass={inlineCode} />
         </p>
         <pre className={codeBlock}>{`/* app/globals.css */
 @import 'tailwindcss';
@@ -212,44 +205,20 @@ function LoginForm() {
   </p>
 </div>`}</pre>
         <div className={note}>
-          Use <code className={inlineCode}>@theme inline</code>, not plain{' '}
-          <code className={inlineCode}>@theme</code>. A plain block emits{' '}
-          <code className={inlineCode}>{':root { --color-primary: var(--haze-color-primary) }'}</code>{' '}
-          and the var() is resolved once at <code className={inlineCode}>:root</code> —
-          but Haze tokens are defined under the theme class, a descendant of{' '}
-          <code className={inlineCode}>:root</code>, so every alias collapses to nothing
-          there. With <code className={inlineCode}>inline</code>,{' '}
-          <code className={inlineCode}>bg-primary</code> compiles to{' '}
-          <code className={inlineCode}>background-color: var(--haze-color-primary)</code>{' '}
-          and resolves wherever the theme class is active.
+          <Rich text={gs.tailwind.inlineNote} codeClass={inlineCode} />
         </div>
         <p className={paragraph}>
-          <strong>Cascade and load order.</strong> Haze UI CSS ships unlayered, while
-          Tailwind v4 puts theme, preflight and utilities in{' '}
-          <code className={inlineCode}>@layer</code>. Unlayered author styles beat any
-          layer regardless of import order or specificity, so when a utility and a Haze
-          component set the same property (say, a Button&apos;s background), the
-          component wins. Append Tailwind v4&apos;s trailing{' '}
-          <code className={inlineCode}>!</code> (e.g.{' '}
-          <code className={inlineCode}>w-full!</code>) when a utility must override a
-          component. Utilities win normally on properties components do not set. Because
-          of layers, it does not matter whether Haze CSS or Tailwind loads first — just
-          make sure the tokens are loaded once in your app root.
+          <Rich text={gs.tailwind.cascadePara} codeClass={inlineCode} />
         </p>
         <p className={paragraph}>
-          <strong>Preflight.</strong> Tailwind&apos;s reset lives in{' '}
-          <code className={inlineCode}>@layer base</code> and only touches element
-          defaults (borders, margins, button backgrounds). Haze components style
-          themselves completely with unlayered token rules, so they render identically
-          with preflight enabled — keep the default setup.
+          <Rich text={gs.tailwind.preflightPara} codeClass={inlineCode} />
         </p>
       </div>
 
       <div className={section}>
-        <h2>Controlled Components</h2>
+        <h2>{gs.controlled.title}</h2>
         <p className={paragraph}>
-          Form components support both controlled and uncontrolled modes via{' '}
-          <code className={inlineCode}>react-use-control</code>:
+          <Rich text={gs.controlled.intro} codeClass={inlineCode} />
         </p>
         <pre className={codeBlock}>{`import { Input } from 'haze-ui';
 import { useControl } from 'react-use-control';
@@ -265,34 +234,20 @@ function SearchBox() {
   );
 }`}</pre>
         <p className={paragraph}>
-          You can also pass plain values for simple uncontrolled usage — just omit the{' '}
-          <code className={inlineCode}>value</code> prop and the component manages its own state.
+          <Rich text={gs.controlled.outro} codeClass={inlineCode} />
         </p>
       </div>
 
       <div className={section}>
-        <h2>Server rendering (Next.js)</h2>
+        <h2>{gs.ssr.title}</h2>
         <p className={paragraph}>
-          Every Haze UI component renders on the server and hydrates without mismatches —
-          the library contains no <code className={inlineCode}>window</code> guards. This
-          is enforced in-repo by two suites:{' '}
-          <code className={inlineCode}>src/lib/ssr-render.node.test.tsx</code> (23 cases
-          through <code className={inlineCode}>renderToString</code> in a real
-          window-less node environment) and{' '}
-          <code className={inlineCode}>src/lib/ssr-hydration.test.tsx</code> (22 cases
-          through <code className={inlineCode}>hydrateRoot</code>, asserting hydration
-          warnings stay silent) — 45 cases total, exemption list empty. A runnable
-          App Router project lives at <code className={inlineCode}>examples/nextjs</code>.
+          <Rich text={gs.ssr.enforcedPara} codeClass={inlineCode} />
         </p>
         <p className={paragraph}>
-          Haze UI ships no <code className={inlineCode}>&apos;use client&apos;</code>{' '}
-          directives — the boundary is yours to draw. Components own state and effects,
-          so import them from a client component; that is exactly the path the SSR suites
-          exercise (server render first, hydration second).
+          <Rich text={gs.ssr.boundaryPara} codeClass={inlineCode} />
         </p>
         <p className={paragraph}>
-          Load the stylesheet once in the root layout, where global CSS belongs, and apply
-          the theme classes to <code className={inlineCode}>&lt;body&gt;</code>:
+          <Rich text={gs.ssr.loadPara} codeClass={inlineCode} />
         </p>
         <pre className={codeBlock}>{`// app/layout.tsx
 import type { Metadata } from 'next';
@@ -334,36 +289,29 @@ export default function Page() {
   );
 }`}</pre>
         <div className={note}>
-          Haze UI requires <code className={inlineCode}>react &gt;= 19</code> (Next.js 15
-          or newer in the App Router) and ships ESM only —{' '}
-          <code className={inlineCode}>type: &apos;module&apos;</code>, no CommonJS
-          bundle. Next.js and Vite consume it out of the box; CommonJS servers should
-          reach for <code className={inlineCode}>import()</code>. One deliberate
-          exception to &quot;everything ships in server HTML&quot;:{' '}
-          <code className={inlineCode}>StreamingText</code> intentionally renders an
-          empty prefix plus cursor on the server and streams the text in on the client.
+          <Rich text={gs.ssr.note} codeClass={inlineCode} />
         </div>
       </div>
 
       <div className={section}>
-        <h2>TypeScript</h2>
+        <h2>{gs.typescript.title}</h2>
         <p className={paragraph}>
-          Haze UI is written in TypeScript and ships type declarations out of the box.
-          All component props are exported as types:
+          <Rich text={gs.typescript.para} codeClass={inlineCode} />
         </p>
-        <pre className={codeBlock}>{`import type { ButtonProps, InputProps } from 'haze-ui';`}</pre>
+        <pre
+          className={codeBlock}
+        >{`import type { ButtonProps, InputProps } from 'haze-ui';`}</pre>
       </div>
 
       <div className={section}>
-        <h2>Browser Support</h2>
+        <h2>{gs.browser.title}</h2>
         <p className={paragraph}>
-          Haze UI targets modern browsers that support CSS custom properties and the{' '}
-          <code className={inlineCode}>&lt;dialog&gt;</code> element:
+          <Rich text={gs.browser.para} codeClass={inlineCode} />
         </p>
         <ul className={stepList}>
-          <li>Chrome / Edge 84+</li>
-          <li>Firefox 98+</li>
-          <li>Safari 15.4+</li>
+          {gs.browser.browsers.map((browser) => (
+            <li key={browser}>{browser}</li>
+          ))}
         </ul>
       </div>
     </div>

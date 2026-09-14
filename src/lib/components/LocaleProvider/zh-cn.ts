@@ -231,6 +231,9 @@ const zhCN: HazeStrings = {
     expand: '展开摘录',
     collapse: '收起摘录',
   },
+  streamingText: {
+    generating: '生成中',
+  },
   tag: {
     remove: '移除',
   },

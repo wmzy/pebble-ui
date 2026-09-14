@@ -1,7 +1,26 @@
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import StreamingText from '../StreamingText/StreamingText';
+
 import ChatMessage from './ChatMessage';
+
+/** jsdom has neither navigator.clipboard nor execCommand — stub the
+ * async API so the success path runs (same pattern as
+ * useClipboard.test.tsx). */
+function stubClipboard(writeText: (text: string) => Promise<void>) {
+  const fn = vi.fn(writeText);
+  Object.defineProperty(navigator, 'clipboard', {
+    value: { writeText: fn },
+    configurable: true,
+  });
+  return {
+    fn,
+    restore: () => {
+      Reflect.deleteProperty(navigator, 'clipboard');
+    },
+  };
+}
 
 describe('ChatMessage', () => {
   it('renders children', () => {
@@ -51,23 +70,6 @@ describe('ChatMessage', () => {
   });
 
   describe('copy and actions', () => {
-    /** jsdom has neither navigator.clipboard nor execCommand — stub the
-     * async API so the success path runs (same pattern as
-     * useClipboard.test.tsx). */
-    function stubClipboard(writeText: (text: string) => Promise<void>) {
-      const fn = vi.fn(writeText);
-      Object.defineProperty(navigator, 'clipboard', {
-        value: { writeText: fn },
-        configurable: true,
-      });
-      return {
-        fn,
-        restore: () => {
-          Reflect.deleteProperty(navigator, 'clipboard');
-        },
-      };
-    }
-
     it('renders no action bar by default', () => {
       render(<ChatMessage role="assistant">Plain</ChatMessage>);
       expect(screen.queryByRole('button', { name: 'Copy' })).not.toBeInTheDocument();
@@ -185,6 +187,94 @@ describe('ChatMessage', () => {
     });
   });
 
+  describe('streaming announcements', () => {
+    it('marks the bubble busy while streaming and clears aria-busy when it ends', () => {
+      const { container, rerender } = render(
+        <ChatMessage role="assistant" streaming>Partial answer</ChatMessage>,
+      );
+      const bubble = container.querySelector("[data-slot='bubble']");
+      expect(bubble).toHaveAttribute('aria-busy', 'true');
+      rerender(<ChatMessage role="assistant">Partial answer</ChatMessage>);
+      expect(bubble).not.toHaveAttribute('aria-busy');
+    });
+
+    it('cues, snapshots and finishes the live region', () => {
+      vi.useFakeTimers();
+      try {
+        const { rerender } = render(
+          <ChatMessage role="assistant" streaming>The answer</ChatMessage>,
+        );
+        const region = screen.getByRole('status');
+        expect(region).toHaveAttribute('data-slot', 'live-region');
+        expect(region).toHaveTextContent('Generating');
+
+        // snapshots arrive on the announce cadence, not per token
+        act(() => { vi.advanceTimersByTime(1200); });
+        expect(region).toHaveTextContent('The answer');
+
+        // growing content is picked up by the next snapshot
+        rerender(
+          <ChatMessage role="assistant" streaming>
+            The answer is 42
+          </ChatMessage>,
+        );
+        act(() => { vi.advanceTimersByTime(1200); });
+        expect(region).toHaveTextContent('The answer is 42');
+
+        // ending the stream announces the complete message once
+        rerender(
+          <ChatMessage role="assistant">The answer is 42, see below</ChatMessage>,
+        );
+        expect(region).toHaveTextContent('The answer is 42, see below');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('renders no live region for user or system messages', () => {
+      const { unmount } = render(
+        <ChatMessage role="user" streaming>Hey</ChatMessage>,
+      );
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      unmount();
+      render(<ChatMessage role="system">Notice</ChatMessage>);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+
+    it('keeps a never-streamed assistant message silent', () => {
+      render(<ChatMessage role="assistant">Plain reply</ChatMessage>);
+      expect(screen.getByRole('status')).toHaveTextContent('');
+    });
+
+    it('excludes live regions from the copied text', async () => {
+      vi.useFakeTimers();
+      const clipboard = stubClipboard(() => Promise.resolve());
+      try {
+        render(
+          <ChatMessage role="assistant" copyable>
+            <StreamingText text="Done" speed={10} showCursor={false} />
+          </ChatMessage>,
+        );
+        for (const _tick of 'Done') {
+          act(() => { vi.advanceTimersByTime(10); });
+        }
+        // both the visible chunks and StreamingText's live region hold
+        // the text — copy must take the visible half only
+        expect(screen.getAllByText('Done').length).toBeGreaterThan(1);
+        const btn = screen.getByRole('button', { name: 'Copy' });
+        // fireEvent rather than user-event: under fake timers RTL's
+        // asyncWrapper parks user-event on a setTimeout(0) nothing
+        // flushes (the glyph test above documents the same pitfall).
+        fireEvent.click(btn);
+        await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+        expect(clipboard.fn).toHaveBeenCalledWith('Done');
+      } finally {
+        clipboard.restore();
+        vi.useRealTimers();
+      }
+    });
+  });
+
   it('has no axe violations', async () => {
     const { axe } = await import('jest-axe');
     render(
@@ -193,6 +283,7 @@ describe('ChatMessage', () => {
         <ChatMessage role="assistant" avatar={<span aria-hidden="true">AI</span>} name="Bot">
           Hi, how can I help?
         </ChatMessage>
+        <ChatMessage role="assistant" streaming>Generating a long answer right now</ChatMessage>
         <ChatMessage
           role="assistant"
           copyable

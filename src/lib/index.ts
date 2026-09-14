@@ -7,8 +7,20 @@ export type { CreateBrandThemeOptions, BrandThemeCss, BrandSeedOverrides, ScaleS
 export { spacing } from './tokens/spacing';
 export { compact } from './tokens/density';
 export { typography } from './tokens/typography';
+export { motion, motionPresets } from './tokens/motion';
+export type { MotionPreset } from './tokens/motion';
 export { TOKEN_REGISTRY, COMPONENT_TOKENS } from './tokens/registry';
 export type { TokenDef } from './tokens/registry';
+
+// dates (multi-calendar adapter layer over Calendar/date.ts + Intl)
+export { gregoryAdapter, islamicUmalquraAdapter, getAdapter, formatInTimeZone, getZonedParts } from './dates';
+export type {
+  HazeDateAdapter,
+  CivilDateParts,
+  HazeCalendarIdentifier,
+  MonthNameStyle,
+  ZonedParts,
+} from './dates';
 
 // components
 export { Button, ButtonLink, buttonVariants, buttonSizes } from './components/Button';

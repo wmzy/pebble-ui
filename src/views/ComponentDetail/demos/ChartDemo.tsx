@@ -342,6 +342,74 @@ export default function ChartDemo() {
           </ul>
         </A11yNote>
       </div>
+
+      <div className={section}>
+        <h2>Composed chart</h2>
+        <p className={row}>
+          Cartesian charts mix per-series shapes: each series may carry its
+          own <code>type</code> while the chart-level <code>type</code> picks
+          the container and the default shape — here SaaS revenue as bars with
+          the Services line laid over it.
+        </p>
+        <div className={row}>
+          <Chart
+            type='line'
+            data={revenue}
+            xKey='month'
+            series={[
+              { key: 'saas', label: 'SaaS', type: 'bar' },
+              { key: 'services', label: 'Services' },
+            ]}
+            showLegend
+          />
+        </div>
+        <pre className={codeBlock}>
+          {`<Chart
+  type='line'
+  data={revenue}
+  xKey='month'
+  series={[
+    { key: 'saas', label: 'SaaS', type: 'bar' },
+    { key: 'services', label: 'Services' },
+  ]}
+  showLegend
+/>`}
+        </pre>
+      </div>
+
+      <div className={section}>
+        <h2>Stacked areas</h2>
+        <p className={row}>
+          Series sharing a <code>stackId</code> stack onto the same baseline
+          (Area and Bar shapes) — SaaS and Services add up to total revenue
+          here. Line series ignore <code>stackId</code>; give them a
+          per-series <code>{"type='area'"}</code> when stacking is the goal.
+        </p>
+        <div className={row}>
+          <Chart
+            type='area'
+            data={revenue}
+            xKey='month'
+            series={[
+              { key: 'saas', label: 'SaaS', stackId: 'revenue' },
+              { key: 'services', label: 'Services', stackId: 'revenue' },
+            ]}
+            showLegend
+          />
+        </div>
+        <pre className={codeBlock}>
+          {`<Chart
+  type='area'
+  data={revenue}
+  xKey='month'
+  series={[
+    { key: 'saas', label: 'SaaS', stackId: 'revenue' },
+    { key: 'services', label: 'Services', stackId: 'revenue' },
+  ]}
+  showLegend
+/>`}
+        </pre>
+      </div>
     </>
   );
 }

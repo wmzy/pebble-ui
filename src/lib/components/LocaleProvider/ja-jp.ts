@@ -231,6 +231,9 @@ const jaJP: HazeStrings = {
     expand: '抜粋を表示',
     collapse: '抜粋を非表示',
   },
+  streamingText: {
+    generating: '生成中',
+  },
   tag: {
     remove: '削除',
   },

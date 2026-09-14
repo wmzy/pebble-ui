@@ -484,6 +484,7 @@ import { ChatMessage } from 'haze-ui';
 | `name` | `ReactNode` | — | Display name shown in the header |
 | `timestamp` | `ReactNode` | — | Timestamp shown in the header |
 | `status` | `'sending' \| 'sent' \| 'error'` | — | Delivery status indicator |
+| `streaming` | `boolean` | — |  |
 | `copyable` | `boolean` | — |  |
 | `actions` | `ReactNode` | — |  |
 | `children` | `ReactNode` | — | Message content |
@@ -2460,6 +2461,7 @@ import { StreamingText } from 'haze-ui';
 | --- | --- | --- | --- |
 | `text` | `string` | — | Full text to stream |
 | `speed` | `number` | `20` | Milliseconds between characters |
+| `announceInterval` | `number` | — |  |
 | `onComplete` | `() => void` | — | Called when streaming finishes |
 | `showCursor` | `boolean` | `true` | Show blinking cursor during streaming |
 | `className` | `string` | — | Additional CSS class |

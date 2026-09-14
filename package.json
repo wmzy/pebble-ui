@@ -202,11 +202,11 @@
     {
       "name": "CSS aggregate (dist/haze-ui.css, brotli)",
       "path": "dist/haze-ui.css",
-      "limit": "23.5 KB"
+      "limit": "23.75 KB"
     },
     {
       "path": "dist/haze-ui.css",
-      "limit": "30 KB",
+      "limit": "30.25 KB",
       "gzip": true
     },
     {
